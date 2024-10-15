@@ -185,9 +185,9 @@ public class MapEncodeTest {
 
         // RAID
         when(mockIntersectionGeometry.isFullRdAuthIDExists()).thenReturn(false);
-        when(mockIntersectionGeometry.getFullRdAuthID()).thenReturn("1");
+        when(mockIntersectionGeometry.getFullRdAuthID()).thenReturn(new int[]{1, 2, 3});
         when(mockIntersectionGeometry.isRelRdAuthIDExists()).thenReturn(true);
-        when(mockIntersectionGeometry.getRelRdAuthID()).thenReturn("2");
+        when(mockIntersectionGeometry.getRelRdAuthID()).thenReturn(new int[]{1, 2, 3});
 
         // Intersection Ref Point
         when(mockIntersectionRefPoint.getLatitude()).thenReturn((double)7.2);
@@ -366,7 +366,7 @@ public class MapEncodeTest {
             logger.error("Exception while printing res");
         }
 
-        byte[] expected = { 0, 18, 108, 56, 1, 16, 32, -16, -39, 59, -70, 101, -27, -49, 46, 62, -102, 119, -18, 64, -58, 0, 24, 0, 22, 89, 53, -92, -23, 7, 107, 73, -46, 10, 16, 13, 0, -58, 4, 0, 72, 2, -26, -16, -77, 48, -18, -54, -127, -113, -107, 84, -4, 0, 52, 0, 20, 16, 20, 6, 24, 9, 1, 69, 0, -48, 14, 56, 4, 64, 36, -112, 5, 64, 22, 88, 0, -56, 0, -41, 53, -92, -23, 7, 53, -92, -23, 14, 14, 10, 4, 0, 76, 65, 16, -121, -63, 116, 2, 0, 24, 0, 23, -65, -63, -62, 2, 6, -128, -103, 0  };
+        byte[] expected = { 0, 18, 110, 56 , 1, 16, 32, -16, -39, 59, -70, 101, -27, -49, 46, 62, -102, 119, -18, 64, -58, 0, 24, 0, 22, 89, 53, -92, -23, 7, 107, 73, -46, 10, 16, 13, 0, -58, 4, 0, 72, 2, -26, -16, -77, 48, -18, -54, -127, -113, -107, 84, -4, 0, 52, 0 , 20, 16, 20, 6, 24, 9, 1, 69, 0, -48, 14, 56, 4, 64, 36, -112, 5, 64, 22, 88, 0, -56, 0, -41, 53, -92, -23, 7, 53, -92, -23, 14, 14, 10, 4, 0, 76, 65, 16, -121, -63, 116, 2, 0, 24, 0, 23, -65, -63, -62, 2, 10, -127, -128, -127, 1, -128 };
 
         Assert.assertArrayEquals(expected, res.getMessage());
     }

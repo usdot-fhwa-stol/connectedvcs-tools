@@ -278,6 +278,21 @@ public class IntersectionSituationDataBuilder {
 		//RoadGeometryRefIDInfo
 		baseLayer.setRelativeToRdAuthID(isdInputData.mapData.relativeToRdAuthID);
 
+		if(referencePoint.roadAuthorityIdType != null) {
+			if (referencePoint.roadAuthorityIdType.replaceAll("\\s","").toLowerCase().equals("full")) {
+				baseLayer.setRelRdAuthIDExists(false);
+				baseLayer.setFullRdAuthIDExists(true);
+				baseLayer.setFullRdAuthID(referencePoint.roadAuthorityId);
+			} else if (referencePoint.roadAuthorityIdType.replaceAll("\\s","").toLowerCase().equals("relative")) {
+				baseLayer.setFullRdAuthIDExists(false);
+				baseLayer.setRelRdAuthIDExists(true);
+				baseLayer.setRelRdAuthID(referencePoint.roadAuthorityId);
+			} else {
+				baseLayer.setFullRdAuthIDExists(false);
+				baseLayer.setRelRdAuthIDExists(false);
+			}
+		}	
+
 		//DataSetContentIdentification
 		baseLayer.setContentVer(isdInputData.mapData.contentVer);
 

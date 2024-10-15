@@ -162,7 +162,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 			jmethodID isFullRdAuthIDExists = (*env)->GetMethodID(env, intersectionClass, "isFullRdAuthIDExists", "()Z");
 			jboolean fullRdAuthIDExists = (*env)->CallBooleanMethod(env, intersectionObj, isFullRdAuthIDExists);
 
-
 			// Check if relative RAID exists
 			jmethodID isRelRdAuthIDExists = (*env)->GetMethodID(env, intersectionClass, "isRelRdAuthIDExists", "()Z");
 			jboolean relRdAuthIDExists = (*env)->CallBooleanMethod(env, intersectionObj, isRelRdAuthIDExists);
@@ -170,49 +169,49 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 			if (fullRdAuthIDExists)
 			{
 				// Get full RAID
-				jmethodID getFullRdAuthID = (*env)->GetMethodID(env, intersectionClass, "getFullRdAuthID", "()Ljava/lang/String;");
-				jstring fullRdAuthID = (*env)->CallObjectMethod(env, intersectionObj, getFullRdAuthID);
-				const char *fullRdAuthIDStr = (*env)->GetStringUTFChars(env, fullRdAuthID, 0);
+				jmethodID getFullRdAuthID = (*env)->GetMethodID(env, intersectionClass, "getFullRdAuthID", "()[I");
+				jintArray fullRdAuthID = (*env)->CallObjectMethod(env, intersectionObj, getFullRdAuthID);
+				const int *fullRAID = (*env)->GetIntArrayElements(env, fullRdAuthID, NULL);
 
-				size_t fullRdAuthIDStrLen = strlen(fullRdAuthIDStr);
+				size_t fullRAIDLen = (*env)->GetArrayLength(env, fullRdAuthID);
 
-				ASN__PRIMITIVE_TYPE_t primType;
-				primType.buf = (uint8_t *)calloc(1, (fullRdAuthIDStrLen + 1));
+				OBJECT_IDENTIFIER_t fullRAIDObjID;
+				fullRAIDObjID.buf = (uint8_t *)calloc(1, (fullRAIDLen + 1));
 
-				for (size_t n = 0; n < fullRdAuthIDStrLen; n++)
+				for (size_t n = 0; n < fullRAIDLen; n++)
 				{
-					primType.buf[n] = (uint8_t)fullRdAuthIDStr[n];
+					fullRAIDObjID.buf[n] = (uint8_t)fullRAID[n];
 				}
-				primType.size = fullRdAuthIDStrLen;
+				fullRAIDObjID.size = fullRAIDLen;
 
 				// Set RAID pointer's PRESENT and CHOICE
 				roadAuthorityID->present = RoadAuthorityID_PR_fullRdAuthID;
-				roadAuthorityID->choice.fullRdAuthID = primType;
+				roadAuthorityID->choice.fullRdAuthID = fullRAIDObjID;
 				intersection->roadAuthorityID = roadAuthorityID;
 			} else if (relRdAuthIDExists) {
 				// Get relative RAID
-				jmethodID getRelRdAuthID = (*env)->GetMethodID(env, intersectionClass, "getRelRdAuthID", "()Ljava/lang/String;");
-				jstring relRdAuthID = (*env)->CallObjectMethod(env, intersectionObj, getRelRdAuthID);
+				jmethodID getRelRdAuthID = (*env)->GetMethodID(env, intersectionClass, "getRelRdAuthID", "()[I");
+				jintArray relRdAuthID = (*env)->CallObjectMethod(env, intersectionObj, getRelRdAuthID);
 
-				const char *relRdAuthIDStr = (*env)->GetStringUTFChars(env, relRdAuthID, 0);
+				const int *relRAID = (*env)->GetIntArrayElements(env, relRdAuthID, NULL);
+				size_t relRAIDLen  = (*env)->GetArrayLength(env, relRdAuthID);
 
-				size_t relRdAuthIDStrLen = strlen(relRdAuthIDStr);
+				OBJECT_IDENTIFIER_t relRAIDObjID;
+				relRAIDObjID.buf = (uint8_t *)calloc(1, (relRAIDLen + 1));
 
-				ASN__PRIMITIVE_TYPE_t primType;
-				primType.buf = (uint8_t *)calloc(1, (relRdAuthIDStrLen + 1));
-
-				for (size_t n = 0; n < relRdAuthIDStrLen; n++)
+				for (size_t n = 0; n < relRAIDLen; n++)
 				{
-					primType.buf[n] = (uint8_t)relRdAuthIDStr[n];
+					relRAIDObjID.buf[n] = (uint8_t)relRAID[n];
 				}
-				primType.size = relRdAuthIDStrLen;
+				relRAIDObjID.size = relRAIDLen;
 
 				// Set RAID pointer's PRESENT and CHOICE
 				roadAuthorityID->present = RoadAuthorityID_PR_relRdAuthID;
-				roadAuthorityID->choice.relRdAuthID = primType;
+				roadAuthorityID->choice.relRdAuthID = relRAIDObjID;
 				intersection->roadAuthorityID = roadAuthorityID;
 			} else {
 				roadAuthorityID->present = RoadAuthorityID_PR_NOTHING;
+				intersection->roadAuthorityID = NULL;
 			}
 
 			// Get Intersection Revision
