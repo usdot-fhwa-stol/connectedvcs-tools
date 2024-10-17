@@ -403,7 +403,7 @@ function createMessageJSON()
                 "referenceLat": feature.attributes.LonLat.lat,
                 "referenceLon": feature.attributes.LonLat.lon,
                 "referenceElevation": feature.attributes.elevation,
-                "roadAuthorityId": feature.attributes.roadAuthorityId,
+                "roadAuthorityId": feature.attributes.roadAuthorityId?.split("."),
                 "roadAuthorityIdType": feature.attributes.roadAuthorityIdType,
             };
 

@@ -428,7 +428,7 @@ var help_notes = [
 		max: "NA",
 		min: "NA",
 		units: "N/A",
-		description: "This data frame defines the Object Identifier (OID) of the Road Authority. Road authority ID is mandatory if region id (roadRegulatoryID) is set to 0."
+		description: "Road Authority ID, contained in the Base Layer of the RGA has the same value as that of the organization responsible for providing the DS content. If IEEE 1609.2 security is used (see 6.8), this will be contained in the ‘Operating Organization ID’ field of the security certificate used to sign the RGA. How this is obtained if other security mechanisms are used is outside the scope of this report."
 	},
 	{
 		value: "mapped_geometry_id",
