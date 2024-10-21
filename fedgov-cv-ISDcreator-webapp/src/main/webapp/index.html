@@ -1267,6 +1267,8 @@
 			</div>
 		</div>
 	</div>
+	<!-- DOM element for creating map object that is not displayed -->
+	<div id="myHiddenMap" style="position:relative;width:10px;height:10px;display:none"></div>
 
 	<!--******************************************* SCRIPTS *******************************************-->
 	
@@ -1297,6 +1299,9 @@
 
 	<!-- CUSTOM MAP CODE -->
 	<script src="js/mapping.js"></script>
+
+	<!-- Bing Map V8 Web Control call -->
+	<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetHiddenMap' async defer></script>
 	
 	<!-- OTHER -->
     <script src="js/parent-child.js"></script>

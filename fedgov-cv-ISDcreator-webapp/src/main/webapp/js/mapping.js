@@ -28,6 +28,7 @@ var nodeObject = [];
 var revisionNum = 0;
 let cachedApiKey = null;
 let cachedUsername = null;
+var cachedSessionKey = null;
 
 var bingResolutions = [156543.03390625, 78271.516953125, 39135.7584765625,
 	19567.87923828125, 9783.939619140625, 4891.9698095703125,
@@ -61,6 +62,9 @@ function set_rga_status() {
 }
 
 async function getApiKey() {
+	if(cachedSessionKey){
+		return cachedSessionKey;
+	}
 	if (cachedApiKey) {
 		return cachedApiKey;
 	}
@@ -107,6 +111,16 @@ async function getUsername() {
 		console.error('Failed to fetch API key:', error);
 		throw new Error('Failed to fetch API key');
 	}
+}
+
+async function GetHiddenMap() {
+	let apiKey = await getApiKey();
+	let hiddenMap = new Microsoft.Maps.Map('#myHiddenMap', {
+		credentials: apiKey
+	});
+	hiddenMap.getCredentials(function (c) {
+		cachedSessionKey = c;
+	});
 }
 	
 /**
@@ -909,8 +923,6 @@ async function init() {
 	for(var key in controls) {
 		map.addControl(controls[key]);
 	}
-
-    map.events.register("moveend", map, tileAge);
     
     map.addLayers([aerial, road, hybrid, laneConnections, box, laneMarkers, lanes, vectors, errors, laneWidths]);
     try {
@@ -926,6 +938,8 @@ async function init() {
     $('#OpenLayers_Control_MaximizeDiv_innerImage').attr('src', "img/layer-switcher-maximize.png");
 
     //Init toggle switches for the layers
+	//Update tile age
+	await tileAge();
 
 }
 
