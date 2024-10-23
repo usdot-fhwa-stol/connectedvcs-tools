@@ -225,7 +225,7 @@ public class IntersectionInputData {
 		public String descriptiveIntersctionName;
 		public int intersectionID;
 		public String roadAuthorityIdType;
-		public String roadAuthorityId;
+		public int[] roadAuthorityId;
 		public int regionID;
 		public int layerID;
 		public int msgCount;

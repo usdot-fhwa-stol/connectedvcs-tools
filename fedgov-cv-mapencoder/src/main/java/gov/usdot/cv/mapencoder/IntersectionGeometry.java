@@ -21,9 +21,9 @@
      private boolean nameExists;
      private IntersectionReferenceID id;
      private boolean fullRdAuthIDExists;
-     private String fullRdAuthID;
+     private int[] fullRdAuthID;
      private boolean relRdAuthIDExists;
-     private String relRdAuthID;
+     private int[] relRdAuthID;
      public int revision;
      private Position3D refPoint;
      private int laneWidth;
@@ -38,7 +38,7 @@
      public IntersectionGeometry() {
      }
  
-     public IntersectionGeometry(String name, boolean nameExists, IntersectionReferenceID id, boolean fullRdAuthIDExists, String fullRdAuthID, boolean relRdAuthIDExists, String relRdAuthID, int revision,
+     public IntersectionGeometry(String name, boolean nameExists, IntersectionReferenceID id, boolean fullRdAuthIDExists, int[] fullRdAuthID, boolean relRdAuthIDExists, int[] relRdAuthID, int revision,
                              Position3D refPoint, int laneWidth, boolean laneWidthExists,
                              SpeedLimitList speedLimits, boolean speedLimitsExists,
                              LaneList laneSet, PreemptPriorityList preemptPriorityData,
@@ -94,11 +94,11 @@
          this.fullRdAuthIDExists = fullRdAuthIDExists;
      }
  
-     public String getFullRdAuthID() {
+     public int[] getFullRdAuthID() {
          return fullRdAuthID;
      }
  
-     public void setFullRdAuthID(String fullRdAuthID) {
+     public void setFullRdAuthID(int[] fullRdAuthID) {
          this.fullRdAuthID = fullRdAuthID;
      }
  
@@ -110,11 +110,11 @@
          this.relRdAuthIDExists = relRdAuthIDExists;
      }
  
-     public String getRelRdAuthID() {
+     public int[] getRelRdAuthID() {
          return relRdAuthID;
      }
  
-     public void setRelRdAuthID(String relRdAuthID) {
+     public void setRelRdAuthID(int[] relRdAuthID) {
          this.relRdAuthID = relRdAuthID;
      }
  
