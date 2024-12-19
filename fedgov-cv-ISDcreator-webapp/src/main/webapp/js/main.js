@@ -176,11 +176,15 @@ $(document).ready(function() {
     });
     
     $(".datetimepicker").each(function(){
-        $(this).datetimepicker(
-            {
-            format:'d/m/Y H:m:s'
-            }
-        );
+        let config={
+            enableTime: true,
+            enableSeconds: true,
+            allowInput: true,
+            minuteIncrement: 1,
+            secondIncrement: 1,
+            dateFormat: "d/m/Y H:i:s"
+        }
+        $(this).flatpickr(config);
     });
 
 });

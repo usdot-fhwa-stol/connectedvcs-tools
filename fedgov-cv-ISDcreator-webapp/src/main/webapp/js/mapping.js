@@ -1918,8 +1918,10 @@ function show_rga_fields(hide=true){
 function enable_rga_fields(enable=true){    
     if(enable){        
          $(".extra_rga_field_input").prop('disabled', false);
+		 $(".extra_rga_field_input").css('backgroundColor', "#fff");
     }else{     
          $(".extra_rga_field_input").prop('disabled', true);
+		 $(".extra_rga_field_input").css('backgroundColor', "#eee");
     }
 	add_rga_fields_validation(enable);
 }
