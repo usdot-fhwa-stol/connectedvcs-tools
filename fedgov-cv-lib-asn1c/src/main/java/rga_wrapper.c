@@ -348,8 +348,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 						jmethodID getLaneIDMethod = (*env)->GetMethodID(env, indvMtrVehLaneGeometryInfoClass, "getLaneID", "()I");
 						jint laneID = (*env)->CallIntMethod(env, indvMtrVehLaneGeometryInfoObj, getLaneIDMethod);
 
-						printf("MotorVehicleLaneGeometryLayer_t LaneId %d \n", laneID);
-
 						IndvMtrVehLaneGeometryInfo_t *indvMtrVehLaneGeometryInfo = calloc(1, sizeof(IndvMtrVehLaneGeometryInfo_t));
 						indvMtrVehLaneGeometryInfo->laneID = laneID;
 

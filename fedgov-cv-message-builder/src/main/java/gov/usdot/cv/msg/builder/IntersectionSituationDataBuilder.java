@@ -262,7 +262,6 @@ public class IntersectionSituationDataBuilder {
 		rgaData.setBaseLayer(buildBaseLayer(isdInputData));
 		List<GeometryContainer> geometryContainers = buildGeometryContainers(isdInputData);
 		if (geometryContainers.size() > 0) {
-			System.out.println("geometryContainers");
 			rgaData.setGeometryContainers(geometryContainers);
 		}
 		return rgaData;
@@ -434,31 +433,28 @@ public class IntersectionSituationDataBuilder {
 		return geometryContainers;
 	}
 
-	public IndvMtrVehLaneGeometryInfo buildIndvMtrVehLaneGeometryInfo(DrivingLane drivingLane,
-			ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	public IndvMtrVehLaneGeometryInfo buildIndvMtrVehLaneGeometryInfo(DrivingLane drivingLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvMtrVehLaneGeometryInfo indvMtrVehLaneGeometryInfo = new IndvMtrVehLaneGeometryInfo();
 		indvMtrVehLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
-		indvMtrVehLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane,
-				referencePoint, offsetEncoding));
+		indvMtrVehLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
 		return indvMtrVehLaneGeometryInfo;
 	}
 
-	public IndvBikeLaneGeometryInfo buildIndvBikeLaneGeometryInfo(DrivingLane drivingLane,
-			ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	public IndvBikeLaneGeometryInfo buildIndvBikeLaneGeometryInfo(DrivingLane drivingLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvBikeLaneGeometryInfo indvBikeLaneGeometryInfo = new IndvBikeLaneGeometryInfo();
 		indvBikeLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
+		indvBikeLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
 		return indvBikeLaneGeometryInfo;
 	}
 
-	public IndvCrosswalkLaneGeometryInfo buildIndvCrosswalkLaneGeometryInfo(CrosswalkLane crosswalkLane,
-			ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	public IndvCrosswalkLaneGeometryInfo buildIndvCrosswalkLaneGeometryInfo(CrosswalkLane crosswalkLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvCrosswalkLaneGeometryInfo indvCrosswalkLaneGeometryInfo = new IndvCrosswalkLaneGeometryInfo();
 		indvCrosswalkLaneGeometryInfo.setLaneID(Integer.valueOf(crosswalkLane.laneID));
+		indvCrosswalkLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(crosswalkLane, referencePoint, offsetEncoding));
 		return indvCrosswalkLaneGeometryInfo;
 	}
 
-	public LaneConstructorType buildLaneConstructorType(DrivingLane lane,
-	ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	public LaneConstructorType buildLaneConstructorType(DrivingLane lane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		LaneConstructorType laneConstructorType = new LaneConstructorType();
 		if (!lane.isComputed) {
 			laneConstructorType.setChoice(LaneConstructorType.PHYSICAL_NODE);
@@ -471,8 +467,6 @@ public class IntersectionSituationDataBuilder {
 				IndividualXYZNodeGeometryInfo individualXYZNodeGeometryInfo = new IndividualXYZNodeGeometryInfo();
 				GeoPoint nextPoint = new GeoPoint(laneNode.nodeLat, laneNode.nodeLong, laneNode.nodeElev);
 
-				System.out.println("offsetEncoding.size before: " + offsetEncoding.size);
-
 				// Get Encoding Size based on given points
 				if (offsetEncoding.type == OffsetEncodingType.Tight) {
 					offsetEncoding.size = offsetEncoding.getOffsetEncodingSize(refPoint, nextPoint);
@@ -481,6 +475,7 @@ public class IntersectionSituationDataBuilder {
 				NodeXYZOffsetInfo nodeXYZOffsetInfo = offsetEncoding.encodeRGAOffset(refPoint, nextPoint);
 				individualXYZNodeGeometryInfo.setNodeXYZOffsetInfo(nodeXYZOffsetInfo);
 				physicalXYZNodeInfo.addIndividualXYZNodeGeometryInfo(individualXYZNodeGeometryInfo);
+				refPoint = nextPoint;
 			}
 			laneConstructorType.setPhysicalXYZNodeInfo(physicalXYZNodeInfo);
 		} else {
@@ -488,6 +483,7 @@ public class IntersectionSituationDataBuilder {
 			ComputedXYZNodeInfo computedXYZNodeInfo = new ComputedXYZNodeInfo();
 			NodeXYZOffsetInfo laneCenterLineXYZOffset = new NodeXYZOffsetInfo();
 
+			// Currently setting computed lane node offsets only to OFFSET_B12 to match MAP message computed lane encoding
 			NodeXYZOffsetValue nodeXOffsetValue = new NodeXYZOffsetValue();
 			nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
 			nodeXOffsetValue.setOffsetB12((long)lane.computedLane.offsetX);
@@ -584,8 +580,7 @@ public class IntersectionSituationDataBuilder {
 			for (int regIndex = 0; regIndex < speedLimitListLength; regIndex++) {
 				RegulatorySpeedLimit regulatorySpeedLimit = new RegulatorySpeedLimit();
 				short currentVelocity = referencePointChild.speedLimitType[regIndex].getVelocity();
-				regulatorySpeedLimit
-						.setType(getSpeedLimitType(referencePointChild.speedLimitType[regIndex].speedLimitType));
+				regulatorySpeedLimit.setType(getSpeedLimitType(referencePointChild.speedLimitType[regIndex].speedLimitType));
 				regulatorySpeedLimit.setSpeed(currentVelocity);
 				regulatorySpeedLimits[regIndex] = regulatorySpeedLimit;
 			}
@@ -606,8 +601,7 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	// This function builds and returns the LaneList required for the LaneSet
-	private LaneList buildLaneList(IntersectionInputData isdInputData, Approach[] approaches,
-			ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	private LaneList buildLaneList(IntersectionInputData isdInputData, Approach[] approaches, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		LaneList lanes = new LaneList();
 
 		if (offsetEncoding.type != OffsetEncodingType.Tight) {
@@ -779,8 +773,7 @@ public class IntersectionSituationDataBuilder {
 		LaneSharing laneSharing = new LaneSharing();
 		int laneSharingBitString = LONG_BIT_STRING;
 		if (drivingLane.sharedWith != null && drivingLane.sharedWith.length > 0) {
-			laneSharingBitString = BitStringHelper.getBitString(laneSharingBitString, LONG_BIT_STRING_LENGTH,
-					drivingLane.sharedWith);
+			laneSharingBitString = BitStringHelper.getBitString(laneSharingBitString, LONG_BIT_STRING_LENGTH, drivingLane.sharedWith);
 		}
 		laneSharing.setLaneSharing((short) laneSharingBitString);
 
@@ -803,15 +796,13 @@ public class IntersectionSituationDataBuilder {
 		type = type.toLowerCase();
 		if (type.equals("vehicle")) {
 			LaneAttributesVehicle laneAttributesVehicle = new LaneAttributesVehicle();
-			int vehicleBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH,
-					typeAttributes);
+			int vehicleBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesVehicle.setLaneAttributesVehicle((byte) vehicleBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.VEHICLE);
 			laneTypeAttributes.setVehicle(laneAttributesVehicle);
 		} else if (type.equals("crosswalk")) {
 			LaneAttributesCrosswalk laneAttributesCrosswalk = new LaneAttributesCrosswalk();
-			int crosswalkBitString = BitStringHelper.getBitString(LONG_BIT_STRING, LONG_BIT_STRING_LENGTH,
-					typeAttributes);
+			int crosswalkBitString = BitStringHelper.getBitString(LONG_BIT_STRING, LONG_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesCrosswalk.setLaneAttributesCrosswalk((short) crosswalkBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.CROSSWALK);
 			laneTypeAttributes.setCrosswalk(laneAttributesCrosswalk);
@@ -823,8 +814,7 @@ public class IntersectionSituationDataBuilder {
 			laneTypeAttributes.setBikeLane(laneAttributesBike);
 		} else if (type.equals("sidewalk")) {
 			LaneAttributesSidewalk laneAttributesSidewalk = new LaneAttributesSidewalk();
-			int sidewalkBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH,
-					typeAttributes);
+			int sidewalkBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesSidewalk.setLaneAttributesSidewalk((short) sidewalkBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.SIDEWALK);
 			laneTypeAttributes.setSidewalk(laneAttributesSidewalk);
@@ -836,22 +826,19 @@ public class IntersectionSituationDataBuilder {
 			laneTypeAttributes.setMedian(laneAttributesBarrier);
 		} else if (type.equals("striping")) {
 			LaneAttributesStriping laneAttributesStriping = new LaneAttributesStriping();
-			int stripingBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH,
-					typeAttributes);
+			int stripingBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesStriping.setLaneAttributesStriping((short) stripingBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.STRIPING);
 			laneTypeAttributes.setStriping(laneAttributesStriping);
 		} else if (type.equals("trackedVehicle")) {
 			LaneAttributesTrackedVehicle laneAttributesTrackedVehicle = new LaneAttributesTrackedVehicle();
-			int trackedVehicleBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH,
-					typeAttributes);
+			int trackedVehicleBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesTrackedVehicle.setLaneAttributesTrackedVehicle((short) trackedVehicleBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.TRACKED_VEHICLE);
 			laneTypeAttributes.setTrackedVehicle(laneAttributesTrackedVehicle);
 		} else if (type.equals("parking")) {
 			LaneAttributesParking laneAttributesParking = new LaneAttributesParking();
-			int parkingBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH,
-					typeAttributes);
+			int parkingBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesParking.setLaneAttributesParking((short) parkingBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.PARKING);
 			laneTypeAttributes.setParking(laneAttributesParking);
@@ -869,8 +856,7 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	// This functions builds and returns the NodeList
-	private NodeListXY buildNodeList(IntersectionInputData isdInputData, DrivingLane lane,
-			ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
+	private NodeListXY buildNodeList(IntersectionInputData isdInputData, DrivingLane lane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		NodeListXY nodeList = new NodeListXY();
 		if (!lane.isComputed) {
 			nodeList.setChoice(NodeListXY.NODE_SET_XY);
@@ -929,8 +915,7 @@ public class IntersectionSituationDataBuilder {
 					for (int regIndex = 0; regIndex < speedLimitListLength; regIndex++) {
 						RegulatorySpeedLimit regulatorySpeedLimit = new RegulatorySpeedLimit();
 						short currentVelocity = laneNode.speedLimitType[regIndex].getVelocity();
-						regulatorySpeedLimit
-								.setType(getSpeedLimitType(laneNode.speedLimitType[regIndex].speedLimitType));
+						regulatorySpeedLimit.setType(getSpeedLimitType(laneNode.speedLimitType[regIndex].speedLimitType));
 						regulatorySpeedLimit.setSpeed(currentVelocity);
 						regulatorySpeedLimits[regIndex] = regulatorySpeedLimit;
 					}
@@ -1106,8 +1091,7 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	// This function computes and returns the offset encoding size
-	private OffsetEncodingSize getOffsetEncodingSize(OffsetEncodingType offsetEncodingType, Approach[] approaches,
-			ReferencePoint referencePoint) {
+	private OffsetEncodingSize getOffsetEncodingSize(OffsetEncodingType offsetEncodingType, Approach[] approaches, ReferencePoint referencePoint) {
 		OffsetEncodingSize offsetEncodingSize;
 
 		switch (offsetEncodingType) {
@@ -1147,8 +1131,7 @@ public class IntersectionSituationDataBuilder {
 		return offsetEncodingSize;
 	}
 
-	private int getLongestOffsetDistanceInCm(IntersectionInputData.ReferencePoint referencePoint,
-			LaneNode[] laneNodes) {
+	private int getLongestOffsetDistanceInCm(IntersectionInputData.ReferencePoint referencePoint, LaneNode[] laneNodes) {
 		int longestDistanceInCm = 0;
 
 		try {
