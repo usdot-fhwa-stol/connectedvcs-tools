@@ -194,10 +194,8 @@ public class IntersectionSituationDataBuilder {
 					isdInputData.validate();
 					md = buildMapData(isdInputData);
 					logger.debug("in MAP: ");
-					// Removing the first 8 characters from the MessageFrame provides the MAP
-					// message
-					// This was tested manually by removing the characters from MessageFrame and
-					// testing using the decoder
+					// Removing the first 8 characters from the MessageFrame provides the MAP message
+					// This was tested manually by removing the characters from MessageFrame and testing using the decoder
 					hexString = (J2735Helper.getHexString(md)).substring(8);
 					readableString = md.toString();
 					break;
@@ -363,8 +361,7 @@ public class IntersectionSituationDataBuilder {
 		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
 			Approach approach = approaches[approachIndex];
 
-			// Excluding crosswalk lanes as currently crosswalks do not have an approach id
-			// and it is default to -1
+			// Excluding crosswalk lanes as currently crosswalks do not have an approach id and it is default to -1
 			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID) {
 				IndividualApproachGeometryInfo individualApproachGeometryInfo = new IndividualApproachGeometryInfo();
 
@@ -378,14 +375,10 @@ public class IntersectionSituationDataBuilder {
 
 					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
 						// Setting the MotorVehicleLaneGeometryLayer
-						motorVehicleLaneGeometryLayer
-								.addIndvMtrVehLaneGeometryInfo(
-										buildIndvMtrVehLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
+						motorVehicleLaneGeometryLayer.addIndvMtrVehLaneGeometryInfo(buildIndvMtrVehLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
 					} else if ((drivingLane.laneType.toLowerCase()).equals("bike")) {
 						// Setting the BicycleLaneGeometryLayer
-						bicycleLaneGeometryLayer
-								.addIndvBikeLaneGeometryInfo(
-										buildIndvBikeLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
+						bicycleLaneGeometryLayer.addIndvBikeLaneGeometryInfo(buildIndvBikeLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
 					}
 				}
 			} else {
@@ -394,9 +387,7 @@ public class IntersectionSituationDataBuilder {
 					CrosswalkLane crosswalkLane = approach.crosswalkLanes[crosswalkLaneIndex];
 					if ((crosswalkLane.laneType.toLowerCase()).equals("crosswalk")) {
 						// Setting the CrosswalkLaneGeometryLayer
-						crosswalkLaneGeometryLayer
-								.addIndvCrosswalkLaneGeometryInfo(buildIndvCrosswalkLaneGeometryInfo(crosswalkLane,
-										referencePoint, offsetEncoding));
+						crosswalkLaneGeometryLayer.addIndvCrosswalkLaneGeometryInfo(buildIndvCrosswalkLaneGeometryInfo(crosswalkLane, referencePoint, offsetEncoding));
 					}
 				}
 			}
@@ -629,8 +620,7 @@ public class IntersectionSituationDataBuilder {
 		for (int i = 0; i < approaches.length; i++) {
 			Approach approach = approaches[i];
 
-			// Check if an approach is not a crosswalk and there exists at least one driving
-			// lane
+			// Check if an approach is not a crosswalk and there exists at least one driving lane
 			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID
 					&& approach.drivingLanes != null && approach.drivingLanes.length > 0) {
 				// Loop through all the driving lanes for each approach
@@ -846,8 +836,7 @@ public class IntersectionSituationDataBuilder {
 		return laneTypeAttributes;
 	}
 
-	// This function builds maneuvers bit string, then sets and returns
-	// AllowedManeuvers
+	// This function builds maneuvers bit string, then sets and returns AllowedManeuvers
 	private AllowedManeuvers buildAllowedManeuvers(int[] attributes) {
 		AllowedManeuvers maneuvers = new AllowedManeuvers();
 		int maneuversBitString = BitStringHelper.getBitString(LONG_BIT_STRING, LONG_BIT_STRING_LENGTH, attributes);
