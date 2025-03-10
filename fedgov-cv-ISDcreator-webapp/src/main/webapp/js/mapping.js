@@ -2731,13 +2731,13 @@ function updateLaneInfoDaySelection(laneInfoDaySelection){
 function getLaneInfoTimePeriod() {
 	let laneInfoTimePeriodType = $("input[name='lane_info_time_period']:checked")?.val();
 	laneInfoTimePeriodType = laneInfoTimePeriodType?.trim()?.toLowerCase()
-	let laneInfoTimePeriodValue = null;
+	let laneInfoTimePeriodValue = undefined;
 	if (laneInfoTimePeriodType === "range") {
 		laneInfoTimePeriodValue = {};
-		laneInfoTimePeriodValue["start_datetime"] = $('#lane_info_time_period_start_datetime').val();
-		laneInfoTimePeriodValue["start_offset"] = $('#lane_info_time_period_start_offset').val();
-		laneInfoTimePeriodValue["end_datetime"] = $('#lane_info_time_period_end_datetime').val();
-		laneInfoTimePeriodValue["end_offset"] = $('#lane_info_time_period_end_offset').val();
+		laneInfoTimePeriodValue["startDatetime"] = $('#lane_info_time_period_start_datetime').val();
+		laneInfoTimePeriodValue["startOffset"] = $('#lane_info_time_period_start_offset').val();
+		laneInfoTimePeriodValue["endDatetime"] = $('#lane_info_time_period_end_datetime').val();
+		laneInfoTimePeriodValue["endOffset"] = $('#lane_info_time_period_end_offset').val();
 	} else if (laneInfoTimePeriodType === "general") {
 		laneInfoTimePeriodValue = $('input[name="lane_info_time_period_general"]:checked').val();
 	}
@@ -2768,10 +2768,10 @@ function updateLaneInfoTimePeriod(laneInfoTimePeriodType, laneInfoTimePeriodValu
 	if (laneInfoTimePeriodValue && laneInfoTimePeriodType == "range") {
 		$('.time_period_general_fields').css('display', 'none');
 		$('.time_period_range_fields').css('display', '');
-		$("#lane_info_time_period_start_datetime").val(laneInfoTimePeriodValue['start_datetime']);
-		$("#lane_info_time_period_end_datetime").val(laneInfoTimePeriodValue['end_datetime']);
-		$("#lane_info_time_period_start_offset").val(laneInfoTimePeriodValue['start_offset']);
-		$("#lane_info_time_period_end_offset").val(laneInfoTimePeriodValue['end_offset']);
+		$("#lane_info_time_period_start_datetime").val(laneInfoTimePeriodValue['startDatetime']);
+		$("#lane_info_time_period_end_datetime").val(laneInfoTimePeriodValue['endDatetime']);
+		$("#lane_info_time_period_start_offset").val(laneInfoTimePeriodValue['startOffset']);
+		$("#lane_info_time_period_end_offset").val(laneInfoTimePeriodValue['endOffset']);
 	} else if (laneInfoTimePeriodValue && laneInfoTimePeriodType == "general") {
 		$('.time_period_range_fields').css('display', 'none');
 		$('.time_period_general_fields').css('display', '');
