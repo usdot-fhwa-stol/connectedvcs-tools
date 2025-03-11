@@ -148,6 +148,12 @@ public class OffsetEncoding {
         return nodeOffsetPointXY;
     }
 
+    /**
+     * This method takes two GeoPoint coordinates where each of them contains latitude, longitude, and elevation
+     * @param gp1
+     * @param gp2
+     * @return nodeXYZOffsetInfo consisting of nodeXOffsetValue, nodeYOffsetValue, and nodeZOffsetValue
+     */
     public NodeXYZOffsetInfo encodeRGAOffset(GeoPoint gp1, GeoPoint gp2) {
         NodeXYZOffsetInfo nodeXYZOffsetInfo = new NodeXYZOffsetInfo();
         NodeXYZOffsetValue nodeXOffsetValue = new NodeXYZOffsetValue();

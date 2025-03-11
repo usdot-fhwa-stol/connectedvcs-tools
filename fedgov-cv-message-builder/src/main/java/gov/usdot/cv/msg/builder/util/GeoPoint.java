@@ -15,7 +15,6 @@
 */
 package gov.usdot.cv.msg.builder.util;
 
-import gov.usdot.cv.msg.builder.input.IntersectionInputData;
 import gov.usdot.cv.msg.builder.util.Vincenty.DistanceAndBearing;
 
 public class GeoPoint {
@@ -63,6 +62,7 @@ public class GeoPoint {
 
 	public short getElevationOffsetInCentimeters(GeoPoint fromPoint) {
 		// Check if either elevation is invalid
+		// Note: from the J2735 standard, 6143.9 is the maximum elevation and -409.5 is the minimum elevation 
 		if (this.elevation < -409.5 || this.elevation > 6143.9 || fromPoint.elevation < -409.5
 				|| fromPoint.elevation > 6143.9) {
 			return 0;

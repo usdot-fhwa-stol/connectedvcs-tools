@@ -328,6 +328,8 @@ public class IntersectionSituationDataBuilder {
 
 	/**
 	 * This function builds and returns list of geometry containers for RGA Data
+	 * @param isdInputData
+	 * @return geometryContainers
 	 */
 	public List<GeometryContainer> buildGeometryContainers(IntersectionInputData isdInputData) {
 		List<GeometryContainer> geometryContainers = new ArrayList<>();
@@ -424,6 +426,13 @@ public class IntersectionSituationDataBuilder {
 		return geometryContainers;
 	}
 
+	/**
+	 * This method creates and returns RGA IndvMtrVehLaneGeometryInfo object for each of the motor vehicle lanes
+	 * @param drivingLane
+	 * @param referencePoint
+	 * @param offsetEncoding
+	 * @return indvMtrVehLaneGeometryInfo
+	 */
 	public IndvMtrVehLaneGeometryInfo buildIndvMtrVehLaneGeometryInfo(DrivingLane drivingLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvMtrVehLaneGeometryInfo indvMtrVehLaneGeometryInfo = new IndvMtrVehLaneGeometryInfo();
 		indvMtrVehLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
@@ -431,6 +440,13 @@ public class IntersectionSituationDataBuilder {
 		return indvMtrVehLaneGeometryInfo;
 	}
 
+	/**
+	 * This method creates and returns RGA IndvBikeLaneGeometryInfo object for each of the bike lanes
+	 * @param drivingLane
+	 * @param referencePoint
+	 * @param offsetEncoding
+	 * @return indvBikeLaneGeometryInfo
+	 */
 	public IndvBikeLaneGeometryInfo buildIndvBikeLaneGeometryInfo(DrivingLane drivingLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvBikeLaneGeometryInfo indvBikeLaneGeometryInfo = new IndvBikeLaneGeometryInfo();
 		indvBikeLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
@@ -438,6 +454,13 @@ public class IntersectionSituationDataBuilder {
 		return indvBikeLaneGeometryInfo;
 	}
 
+	/**
+	 * This method creates and returns RGA IndvCrosswalkLaneGeometryInfo object for each of the crosswalk lanes
+	 * @param crosswalkLane
+	 * @param referencePoint
+	 * @param offsetEncoding
+	 * @return indvCrosswalkLaneGeometryInfo
+	 */
 	public IndvCrosswalkLaneGeometryInfo buildIndvCrosswalkLaneGeometryInfo(CrosswalkLane crosswalkLane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		IndvCrosswalkLaneGeometryInfo indvCrosswalkLaneGeometryInfo = new IndvCrosswalkLaneGeometryInfo();
 		indvCrosswalkLaneGeometryInfo.setLaneID(Integer.valueOf(crosswalkLane.laneID));
@@ -445,6 +468,14 @@ public class IntersectionSituationDataBuilder {
 		return indvCrosswalkLaneGeometryInfo;
 	}
 
+	/**
+	 * This method creates and returns RGA LaneConstructorType object for each of motor vehicle, bike and crosswalk lanes
+	 * Both Physical and Computed Lane Node Offsets are set in this method
+	 * @param lane
+	 * @param referencePoint
+	 * @param offsetEncoding
+	 * @return laneConstructorType
+	 */ 
 	public LaneConstructorType buildLaneConstructorType(DrivingLane lane, ReferencePoint referencePoint, OffsetEncoding offsetEncoding) {
 		LaneConstructorType laneConstructorType = new LaneConstructorType();
 		if (!lane.isComputed) {
@@ -458,14 +489,20 @@ public class IntersectionSituationDataBuilder {
 				IndividualXYZNodeGeometryInfo individualXYZNodeGeometryInfo = new IndividualXYZNodeGeometryInfo();
 				GeoPoint nextPoint = new GeoPoint(laneNode.nodeLat, laneNode.nodeLong, laneNode.nodeElev);
 
-				// Get Encoding Size based on given points
+				// Get Encoding Size based on given points if type is Tight
 				if (offsetEncoding.type == OffsetEncodingType.Tight) {
+					// Here, both refPoint and nextPoint are passed to the getOffsetEncodingSize method in OffsetEncoding java class
+					// getOffsetEncodingSize method calculates difference between both latitudes and longitudes using the GeoPoint Java class
+					// After obtaining the lat and lon offsets, it compares which one is larger
+					// Now, larger offset is compared with the maxSize of defined enum to obtainer the right size
 					offsetEncoding.size = offsetEncoding.getOffsetEncodingSize(refPoint, nextPoint);
 				}
 
 				NodeXYZOffsetInfo nodeXYZOffsetInfo = offsetEncoding.encodeRGAOffset(refPoint, nextPoint);
 				individualXYZNodeGeometryInfo.setNodeXYZOffsetInfo(nodeXYZOffsetInfo);
 				physicalXYZNodeInfo.addIndividualXYZNodeGeometryInfo(individualXYZNodeGeometryInfo);
+
+				// refPoint is updated to nextPoint at the end of for loop
 				refPoint = nextPoint;
 			}
 			laneConstructorType.setPhysicalXYZNodeInfo(physicalXYZNodeInfo);
@@ -495,10 +532,8 @@ public class IntersectionSituationDataBuilder {
 			computedXYZNodeInfo.setRefLaneID(Integer.valueOf(lane.computedLane.referenceLaneID));
 			computedXYZNodeInfo.setLaneCenterLineXYZOffset(laneCenterLineXYZOffset);
 			computedXYZNodeInfo.setLanePlanarGeomInfo(lanePlanarGeomInfo);
-
 		}
 		return laneConstructorType;
-
 	}
 
 	public IntersectionGeometry[] buildIntersections(IntersectionInputData isdInputData) {
