@@ -371,7 +371,7 @@ public class RGAEncodeTest {
         when(mockIndividualApproachWayTypeID1.getLaneID(0)).thenReturn((long)3);
         when(mockIndividualApproachWayTypeID1.getWayIDSet()).thenReturn(mockLaneIDSet1);
 
-        when(mockWayTypeID2.getWayType()).thenReturn((long)1);
+        when(mockWayTypeID2.getWayType()).thenReturn((long)2);
         mockLaneID2 = (long)5;
         mockLaneIDSet2 = Arrays.asList(mockLaneID2);
         when(mockIndividualApproachWayTypeID2.getWayType()).thenReturn(mockWayTypeID2);
