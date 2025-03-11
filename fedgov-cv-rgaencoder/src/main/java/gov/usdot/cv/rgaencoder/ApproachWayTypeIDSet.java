@@ -53,6 +53,10 @@ public class ApproachWayTypeIDSet {
         return wayIDSet.get(index);
     }
 
+    public void addLaneID(long laneID) {
+        wayIDSet.add(laneID);
+    }
+
     @Override
     public String toString() {
         return "ApprachWayTypeIDSet [wayType=" + wayType + 
