@@ -290,7 +290,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 					// Populating ApproachGeometryLayer_t
 					ApproachGeometryLayer_t *approachGeometryLayer = calloc(1, sizeof(ApproachGeometryLayer_t));
 
-					// Populating the approachGeomApproach from the ApproachGeometryLayer object
+					// Populating the approachGeomApproachSet from the ApproachGeometryLayer object
 					jclass approachGeometryLayerClass = (*env)->GetObjectClass(env, approachGeometryLayerObj);
 					jmethodID getApproachGeomApproachSetMethod = (*env)->GetMethodID(env, approachGeometryLayerClass, "getApproachGeomApproachSet", "()Ljava/util/List;");
 					jobject approachGeomApproachSetList = (*env)->CallObjectMethod(env, approachGeometryLayerObj, getApproachGeomApproachSetMethod);
@@ -300,6 +300,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 					jmethodID approachGeomApproachSetGetMethod = (*env)->GetMethodID(env, approachGeomApproachSetClass, "get", "(I)Ljava/lang/Object;");
 
 					jint approachGeomApproachSetSize = (*env)->CallIntMethod(env, approachGeomApproachSetList, approachGeomApproachSetSizeMethod);
+					printf("Got the approachGeomApproachSetSize, which is %d \n", approachGeomApproachSetSize);
 
 					for (jint aIndex = 0; aIndex < approachGeomApproachSetSize; aIndex++)
 					{
@@ -348,6 +349,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 						}
 						else {
 							approachInfo->wayTypesSet = NULL;
+							printf("WayTypeIDSet is NULL \n");
 						}
 						
 						// Adding to approachGeomApproachSet
@@ -922,20 +924,6 @@ void populateWayTypeIDSet(JNIEnv *env, jobject wayTypeIDSetObj, ApproachWayTypeI
 		jlong laneIDLong = (*env)->CallLongMethod(env, wayIDSetListObj, getLaneIDMethod, tIndex);
 		printf("Called getLaneIDMethod \n");
 		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDLong);
-
-
-		// get laneID
-		// if (laneIDObj != NULL)
-		// {
-		// 	long *laneIDValue = calloc(1, sizeof(long));
-		// 	jlong laneIDValueLong = (*env)->CallLongMethod(env, laneIDObj, getLaneIDMethod);
-		// 	ASN_SEQUENCE_ADD(wayTypeIDSet->wayIDSet.list, laneIDValueLong);
-		// 	//wayTypeIDSet->wayIDSet.laneID = laneIDValueLong;
-		// }
-		// else
-		// {
-		// 	wayTypeIDSet->wayIDSet.laneID = -1;
-		// }
 	}
 }
 
