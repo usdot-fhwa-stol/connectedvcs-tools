@@ -20,21 +20,10 @@ package gov.usdot.cv.rgaencoder;
 public class WayType {
     private long wayType;
 
-    public enum WayTypeEnum {
-        WayType_motorVehicleLane((long) 0),
-        WayType_bicycleLane((long) 1),
-        WayType_crosswalkLane((long) 2);
-
-        private long value;
-
-        WayTypeEnum(long value) {
-            this.value = value;
-        }
-
-        public long getValue() {
-            return value;
-        }
-    }
+    // Constants for choice field
+    public static final long MOTOR_VEHICLE_LANE = 0;
+    public static final long BICYCLE_LANE = 1;
+    public static final long CROSSWALK_LANE = 2;
 
     // Constructors
     public WayType() {

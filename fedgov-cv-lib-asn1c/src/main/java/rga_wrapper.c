@@ -331,7 +331,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 							{
 								ApproachWayTypeIDSet_t *approachWayTypeIDSetValue = calloc(1, sizeof(ApproachWayTypeIDSet_t));
 								populateWayTypeIDSet(env, approachWayTypeIDObj, approachWayTypeIDSetValue);
-								approachInfo->wayTypesSet = approachWayTypeIDSetValue;
+								ASN_SEQUENCE_ADD(&approachInfo->wayTypesSet->list, approachWayTypeIDSetValue);
+								//approachInfo->wayTypesSet = approachWayTypeIDSetValue;
 							}
 							else
 							{
@@ -901,22 +902,26 @@ void populateWayTypeIDSet(JNIEnv *env, jobject wayTypeIDSetObj, ApproachWayTypeI
 
 	for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
 	{
-		jmethodID getLaneIDMethod = (*env)->GetMethodID(env, wayIDSetListClass, "getLaneID", "()LJava/usdot/cv/rgaencoder/LaneID;");
-		jobject laneIDObj = (*env)->CallObjectMethod(env, wayIDSetListObj, wayTypeIDSetGetMethod, tIndex);
-		jclass laneIDClass = (*env)->GetObjectClass(env, laneIDObj);
+		//long *longLaneIDValue = calloc(1, sizeof(long));
+		// Get laneID from list
+		jmethodID getLaneIDMethod = (*env)->GetMethodID(env, wayIDSetListClass, "getLaneID", "()Ljava/lang/Long;");
+		jlong laneIDLong = (*env)->CallLongMethod(env, wayIDSetListClass, getLaneIDMethod, tIndex);
+		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDLong);
+
 
 		// get laneID
-		if (laneIDObj != NULL)
-		{
-			LaneID_t *laneIDValue = calloc(1, sizeof(LaneID_t));
-			jlong laneIDValueLong = (*env)->CallLongMethod(env, laneIDObj, getLaneIDMethod);
-			wayTypeIDSet->wayIDSet.laneID = laneIDValueLong;
-		}
-		else
-		{
-			wayTypeIDSet->wayIDSet.laneID = -1;
-		}
-		//ASN_SEQUENCE_ADD(wayTypeIDSet->wayIDSet.list, wayTypeIDSet);
+		// if (laneIDObj != NULL)
+		// {
+		// 	long *laneIDValue = calloc(1, sizeof(long));
+		// 	jlong laneIDValueLong = (*env)->CallLongMethod(env, laneIDObj, getLaneIDMethod);
+		// 	ASN_SEQUENCE_ADD(wayTypeIDSet->wayIDSet.list, laneIDValueLong);
+		// 	//wayTypeIDSet->wayIDSet.laneID = laneIDValueLong;
+		// }
+		// else
+		// {
+		// 	wayTypeIDSet->wayIDSet.laneID = -1;
+		// }
+		
 
 	}
 }

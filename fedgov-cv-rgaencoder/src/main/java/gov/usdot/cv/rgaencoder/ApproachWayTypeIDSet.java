@@ -21,14 +21,14 @@ import java.util.ArrayList;
 
 public class ApproachWayTypeIDSet {
     private WayType wayType;
-    private List<LaneID> wayIDSet;
+    private List<Long> wayIDSet;
 
     public ApproachWayTypeIDSet() {
         this.wayType = null;
         this.wayIDSet = new ArrayList<>();
     }
 
-    public ApproachWayTypeIDSet(WayType wayType, List<LaneID> wayIDSet) {
+    public ApproachWayTypeIDSet(WayType wayType, List<Long> wayIDSet) {
         this.wayType = wayType;
         this.wayIDSet = wayIDSet;
     }
@@ -41,12 +41,16 @@ public class ApproachWayTypeIDSet {
         this.wayType = wayType;
     }
 
-    public List<LaneID> getWayIDSet() {
+    public List<Long> getWayIDSet() {
         return wayIDSet;
     }
 
-    public void setWayIDSet(List<LaneID> wayIDSet) {
+    public void setWayIDSet(List<Long> wayIDSet) {
         this.wayIDSet = wayIDSet;
+    }
+
+    public long getLaneID(int index) {
+        return wayIDSet.get(index);
     }
 
     @Override
