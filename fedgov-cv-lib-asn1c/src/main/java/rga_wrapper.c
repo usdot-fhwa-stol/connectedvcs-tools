@@ -303,7 +303,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 
 					for (jint aIndex = 0; aIndex < approachGeomApproachSetSize; aIndex++)
 					{
-						jobject individualApproachGeometryInfoObj = (*env)->CallObjectMethod(env, approachGeomApproachSetList, getApproachGeomApproachSetMethod, aIndex);
+						jobject individualApproachGeometryInfoObj = (*env)->CallObjectMethod(env, approachGeomApproachSetList, approachGeomApproachSetGetMethod, aIndex);
 						jclass individualApproachGeometryInfoClass = (*env)->GetObjectClass(env, individualApproachGeometryInfoObj);
 
 						jmethodID getApproachIDMethod = (*env)->GetMethodID(env, individualApproachGeometryInfoClass, "getApproachID", "()I");
@@ -313,40 +313,42 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 
 						approachInfo->approachID = approachID;
 
-						printf("Got the approachID");
+						printf("Got the approachID \n");
 
-						// // Get the WayTypeIDSet object
-						// jmethodID getWayTypesSetMethod = (*env)->GetMethodID(env, individualApproachGeometryInfoClass, "getApproachWayTypeIDSet", "()Ljava/util/List;");
-						// jobject wayTypesSetListObj = (*env)->CallObjectMethod(env, individualApproachGeometryInfoObj, getWayTypesSetMethod); // this is a list
-						// jclass wayTypeIDSetListClass = (*env)->GetObjectClass(env, wayTypesSetListObj);
+						// Get the WayTypeIDSet object
+						jmethodID getWayTypesSetMethod = (*env)->GetMethodID(env, individualApproachGeometryInfoClass, "getApproachWayTypeIDSet", "()Ljava/util/List;");
+						jobject wayTypesSetListObj = (*env)->CallObjectMethod(env, individualApproachGeometryInfoObj, getWayTypesSetMethod); // this is a list
+						
+						// Check to see if the WayTypeIDSet object exists
+						if (wayTypesSetListObj != NULL) {
 
-						// printf("Got the ApproachWayTypeIDSet class");
+							jclass wayTypeIDSetListClass = (*env)->GetObjectClass(env, wayTypesSetListObj);
 
-						// jmethodID wayTypeIDSetSizeMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "size", "()I");
-						// jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "get", "(I)Ljava/lang/Object;");
+							printf("Got the ApproachWayTypeIDSet class \n");
 
-						// jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayTypesSetListObj, wayTypeIDSetSizeMethod);
+							jmethodID wayTypeIDSetSizeMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "size", "()I");
+							jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "get", "(I)Ljava/lang/Object;");
+							jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayTypesSetListObj, wayTypeIDSetSizeMethod);
+							printf("Got the size of the approachwaytypeidset, which is %d \n", wayTypeIDSetSize);
 
-						// printf("Got the size of the approachwaytypeidset");
+							for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
+							{
+								jobject approachWayTypeIDObj = (*env)->CallObjectMethod(env, wayTypesSetListObj, wayTypeIDSetGetMethod, tIndex);
+								printf("Got to the wayTypeIDSet loop\n");
+								ApproachWayTypeIDSet_t *approachWayTypeIDSetValue = calloc(1, sizeof(ApproachWayTypeIDSet_t));
 
-						// for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
-						// {
-						// 	jobject approachWayTypeIDObj = (*env)->CallObjectMethod(env, wayTypesSetListObj, wayTypeIDSetGetMethod, tIndex);
-						// 	printf("Got to the wayTypeIDSet loop\n");
-  
-						// 	if (approachWayTypeIDObj != NULL)
-						// 	{
-						// 		// ApproachWayTypeIDSet_t *approachWayTypeIDSetValue = calloc(1, sizeof(ApproachWayTypeIDSet_t));
-						// 		// populateWayTypeIDSet(env, approachWayTypeIDObj, approachWayTypeIDSetValue);
-						// 		// ASN_SEQUENCE_ADD(&approachInfo->wayTypesSet->list, approachWayTypeIDSetValue);
-						// 		//approachInfo->wayTypesSet = approachWayTypeIDSetValue;
-						// 	}
-						// 	else
-						// 	{
-						// 		approachInfo->wayTypesSet = NULL;
-						// 	}
+								printf("Going to call populateWayTypeIDSet method \n");
+								populateWayTypeIDSet(env, approachWayTypeIDObj, approachWayTypeIDSetValue);
+								printf("Called populateWayTypeIDSet method success \n");
 
-						// }
+								printf("About to add the wayTypeIDSet to the approachInfo \n");
+								ASN_SEQUENCE_ADD(&approachInfo->wayTypesSet->list, approachWayTypeIDSetValue);
+								printf("Added the wayTypeIDSet to the approachInfo \n");
+							}
+						}
+						else {
+							approachInfo->wayTypesSet = NULL;
+						}
 						
 						// Adding to approachGeomApproachSet
 						ASN_SEQUENCE_ADD(&approachGeometryLayer->approachGeomApproachSet.list, approachInfo);
@@ -881,57 +883,61 @@ void populateNodeXYZOffsetValue(JNIEnv *env, jobject offsetValueObj, NodeXYZOffs
 }
 
 // Function that populates the fields inside the ApproachWayTypeIDSet class (Now inside ApproachWayTypeIDSet class)
-// void populateWayTypeIDSet(JNIEnv *env, jobject wayTypeIDSetObj, ApproachWayTypeIDSet_t *wayTypeIDSet) {
+void populateWayTypeIDSet(JNIEnv *env, jobject wayTypeIDSetObj, ApproachWayTypeIDSet_t *wayTypeIDSet) {
 
-// 	jclass approachWayTypeIDSetClass = (*env)->GetObjectClass(env, wayTypeIDSetObj);
+	printf("Inside populateWayTypeIDSet method \n");
+	jclass approachWayTypeIDSetClass = (*env)->GetObjectClass(env, wayTypeIDSetObj);
 
-// 	// WayType
-// 	jmethodID getWayTypeMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayType", "()Lgov/usdot/cv/rgaencoder/WayType;");
-// 	jobject wayTypeObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayTypeMethod);
-// 	jclass wayTypeClass = (*env)->GetObjectClass(env, wayTypeObj);
+	// WayType
+	printf("Going to populate WayType field \n");
+	jmethodID getWayTypeMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayType", "()Lgov/usdot/cv/rgaencoder/WayType;");
+	jobject wayTypeObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayTypeMethod);
 
-// 	WayType_t wayType;
+	WayType_t wayType;
 
-// 	jlong wayTypeValue = (*env)->CallLongMethod(env, wayTypeObj, getWayTypeMethod);
-// 	wayType = (long)wayTypeValue;
+	jlong wayTypeValue = (*env)->CallLongMethod(env, wayTypeObj, getWayTypeMethod);
 
-// 	wayTypeIDSet->wayType = wayType;
+	wayTypeIDSet->wayType = (WayType_t)((long)wayTypeValue);
+	printf("WayType field populated \n");
 
-// 	// wayIDSet
-// 	jmethodID getWayIDSetMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayIDSet", "()Ljava/util/List;");
-// 	jobject wayIDSetListObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayIDSetMethod); // this is a list
-// 	jclass wayIDSetListClass = (*env)->GetObjectClass(env, wayIDSetListObj);
+	// wayIDSet
+	jmethodID getWayIDSetMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayIDSet", "()Ljava/util/List;");
+	jobject wayIDSetListObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayIDSetMethod); // this is a list
+	jclass wayIDSetListClass = (*env)->GetObjectClass(env, wayIDSetListObj);
+	printf("Got wayIDSetListClass \n");
 
-// 	jmethodID wayIDSetSizeMethod = (*env)->GetMethodID(env, wayIDSetListClass, "size", "()I");
-// 	jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayIDSetListClass, "get", "(I)Ljava/lang/Object;");
+	jmethodID wayIDSetSizeMethod = (*env)->GetMethodID(env, wayIDSetListClass, "size", "()I");
+	jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayIDSetListClass, "get", "(I)Ljava/lang/Object;");
 
-// 	jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayIDSetListObj, wayIDSetSizeMethod);
+	jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayIDSetListObj, wayIDSetSizeMethod);
+	printf("Got wayTypeIDSetSize, which is %d \n", wayTypeIDSetSize);
 
-// 	for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
-// 	{
-// 		//long *longLaneIDValue = calloc(1, sizeof(long));
-// 		// Get laneID from list
-// 		jmethodID getLaneIDMethod = (*env)->GetMethodID(env, wayIDSetListClass, "getLaneID", "()Ljava/lang/Long;");
-// 		jlong laneIDLong = (*env)->CallLongMethod(env, wayIDSetListClass, getLaneIDMethod, tIndex);
-// 		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDLong);
+	for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
+	{
+		//long *longLaneIDValue = calloc(1, sizeof(long));
+		// Get laneID from list
+		printf("Inside for loop for LaneID loop \n");
+		jmethodID getLaneIDMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getLaneID", "(I)J");
+		printf("Got getLaneIDMethod \n");
+		jlong laneIDLong = (*env)->CallLongMethod(env, wayIDSetListObj, getLaneIDMethod, tIndex);
+		printf("Called getLaneIDMethod \n");
+		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDLong);
 
 
-// 		// get laneID
-// 		// if (laneIDObj != NULL)
-// 		// {
-// 		// 	long *laneIDValue = calloc(1, sizeof(long));
-// 		// 	jlong laneIDValueLong = (*env)->CallLongMethod(env, laneIDObj, getLaneIDMethod);
-// 		// 	ASN_SEQUENCE_ADD(wayTypeIDSet->wayIDSet.list, laneIDValueLong);
-// 		// 	//wayTypeIDSet->wayIDSet.laneID = laneIDValueLong;
-// 		// }
-// 		// else
-// 		// {
-// 		// 	wayTypeIDSet->wayIDSet.laneID = -1;
-// 		// }
-		
-
-// 	}
-// }
+		// get laneID
+		// if (laneIDObj != NULL)
+		// {
+		// 	long *laneIDValue = calloc(1, sizeof(long));
+		// 	jlong laneIDValueLong = (*env)->CallLongMethod(env, laneIDObj, getLaneIDMethod);
+		// 	ASN_SEQUENCE_ADD(wayTypeIDSet->wayIDSet.list, laneIDValueLong);
+		// 	//wayTypeIDSet->wayIDSet.laneID = laneIDValueLong;
+		// }
+		// else
+		// {
+		// 	wayTypeIDSet->wayIDSet.laneID = -1;
+		// }
+	}
+}
 
 // Function that populates the fields inside the ReferencePointInfo class
 void populateReferencePointInfo(JNIEnv *env, jobject referencePointObj, ReferencePointInfo_t *referencePoint) {
