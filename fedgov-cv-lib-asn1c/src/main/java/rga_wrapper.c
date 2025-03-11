@@ -931,8 +931,10 @@ void populateWayTypeIDSet(JNIEnv *env, jobject wayTypeIDSetObj, ApproachWayTypeI
 
 		jlong laneIDLong = (*env)->CallLongMethod(env, laneIDObject, getLaneIDMethod);
 
-		printf("Called getLaneIDMethod, the laneID is: %d \n", laneIDLong);
-		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, (LaneID_t)laneIDLong);
+		LaneID_t laneIDApproach = (LaneID_t)laneIDLong;
+
+		printf("Called getLaneIDMethod, the laneID is: %d \n", laneIDApproach);
+		ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDApproach);
 	}
 }
 
