@@ -20,7 +20,7 @@ let revisionNum = 0;
  * @event clears map and then opens modal to choose file
  */
 
-function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected) {
+function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected, controls) {
 	let c = false;
     if (lanes.getSource().getFeatures().length != 0 || laneMarkers.getSource().getFeatures().length != 0 || vectors.getSource().getFeatures().length != 0 || box.getSource().getFeatures().length != 0) {
          c = confirm("Loading a new map will clear all current work. Continue?");
@@ -48,23 +48,23 @@ function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, sel
         if (msie10 > 0 || msie11 > 0 || msie12 > 0) {
             $('#open_file_modal').modal('show');
             $('#fileToLoad2').one('change', (event)=>{
-              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
             });
         }
         else {
             $('#fileToLoad').click();
             $('#fileToLoad').one('change',  (event)=>{
-              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
             });
         }
    }
 }
 
-function onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected) {
+function onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls) {
 	if (calls == 0) {
 		let reader = new FileReader();
 		reader.onload = (event)=>{
-      onReaderLoad(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+      onReaderLoad(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
     };
 		reader.readAsText(event.target.files[0]);
 	}
@@ -72,9 +72,9 @@ function onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selec
 }
 
 
-function onReaderLoad(event,map,lanes, vectors, laneMarkers, box, laneWidths, selected){
+function onReaderLoad(event,map,lanes, vectors, laneMarkers, box, laneWidths, selected, controls){
 	let data = JSON.parse(event.target.result);
-	loadMap(data, map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+	loadMap(data, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
 	$('#open_file_modal').modal('hide');
 }
 
@@ -84,7 +84,7 @@ function onReaderLoad(event,map,lanes, vectors, laneMarkers, box, laneWidths, se
  * @params  saved object
  * @event rebuilds markers on map
  */
-function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selected)
+function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 {
 	let vectorLayerAsOL = new ol.format.GeoJSON().readFeatures(data.vectors,{featureProjection: 'EPSG:3857' , dataProjection: 'EPSG:3857'});
 	let lanesLayerAsOL = new ol.format.GeoJSON().readFeatures(data.lanes,{featureProjection: 'EPSG:3857', dataProjection: 'EPSG:3857'});
@@ -168,11 +168,11 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 			console.log("No vectors to reset view");
 		}
 
-		$("#dragSigns").click();
-		$("#dragSigns").click();
+		// $("#dragSigns").click();
+		// $("#dragSigns").click();
 
-		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true);
-		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true);
+		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true, controls);
+		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true, controls);
 		console.log("loaded map")
 	}
 
@@ -227,7 +227,7 @@ function loadRSMTrace() {
 	}
 }
 
-function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected) {
+function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected, controls) {
 	loadType= "update";
 	calls = 0;
 	for (let a = 0; a < vectors.getSource().getFeatures().length; a++) {
@@ -246,42 +246,42 @@ function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selec
 	if (msie10 > 0 || msie11 > 0 || msie12 > 0) {
 		$('#open_file_modal').modal('show');
 		$('#fileToLoad2').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 	else {
 		$('#fileToLoad').click();
 		$('#fileToLoad').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 }
 
-function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoadMap) {
+function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoadMap, controls) {
 	if( state == 'help'){
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
-		toggleControl(state);
+		toggleControl(state, controls);
 		if( state == 'modify' || state == 'del') {
 			laneMarkers.getSource().clear();
-			// controls.del.unselectAll();
+			controls.del.getFeatures().clear();
 		} else {
 			onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap);
 		}
     }
 }
 
-function toggleControl(element) {
-	// for(key in controls) {
-	// 		let control = controls[key];
-	// 		if(element == key) {
-	// 				control.activate();
-	// 		} else {
-	// 				control.deactivate();
-	// 				$('.measurement').text('');
-	// 		}
-	// }
+function toggleControl(element, controls) {
+	for(let key in controls) {
+		let control = controls[key];
+		if(element == key) {
+			control.setActive(true);
+		} else {
+			control.setActive(false);
+			$('.measurement').text('');
+		}
+	}
 }
 
 

@@ -1,4 +1,5 @@
 import { getElevation } from "./api.js";
+import { laneStyle, midMarkerStyle } from "./style.js";
 import { directVincenty, inverseVincenty, toggleWidthArray } from "./utils.js";
 /*********************************************************************************************************************/
 /**
@@ -16,6 +17,9 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 		if (typeof laneFeat.get("elevation") == 'undefined') {
 			laneFeat.set("elevation", []);
 		}
+		if (typeof laneFeat.get("nodeInitialized") == 'undefined') {
+			laneFeat.set("nodeInitialized", []);
+		}
 		if (typeof laneFeat.get("laneWidth") == 'undefined') {
 			laneFeat.set("laneWidth", []);
 		} else if (laneFeat.get("laneWidth").constructor !== Array) {
@@ -30,11 +34,11 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 			// Loop through the lane vertices and see if there are any new dots to
 			for(let j=0; j< max; j++){
 				// If the laneIndex marker doesn't exist in this vertex, this is a new dot
-				if (typeof laneFeat.getGeometry().getCoordinates()[j].nodeInitialized === 'undefined') {
+				if (laneFeat.get("nodeInitialized").length===0 || laneFeat.get("nodeInitialized")[j] === undefined) {
 					if(isLoadMap) {
 						// Saved maps will not include the nodeInitialized flag.
 						// Inject this flag when loading a map
-						laneFeat.getGeometry().getCoordinates()[j].nodeInitialized = true;
+						laneFeat.get("nodeInitialized").splice(j, 0, true);
 					} else {
 						// Insert dummy values into the laneWidth and elevation arrays so that
 						// they are the correct size for the next loop through.  This is done because
@@ -45,6 +49,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 						// to be too small.
 						laneFeat.get("elevation").splice(j, 0, "tempValue");
 						laneFeat.get("laneWidth").splice(j, 0, "tempValue");
+						laneFeat.get("nodeInitialized").splice(j, 0, undefined);
 					}
 				}
 			}
@@ -58,7 +63,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 				let latLon = {lat: lonLat[1], lon: lonLat[0]};
 
 				// If the laneIndex marker doesn't exist in this vertex, this is a new dot
-				if (typeof laneFeat.getGeometry().getCoordinates()[j].nodeInitialized === 'undefined') {
+				if (laneFeat.get("nodeInitialized").length===0 || laneFeat.get("nodeInitialized")[j] === undefined) {
 					// Insert new values for elevation and laneWidth for the new dot
 					getElevation(dot, latLon, i, j, function(elev, i, j, latLon, dot){
 						laneFeat.get("elevation")[j] = {'value': elev, 'edited': true, 'latlon': latLon};
@@ -82,14 +87,14 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 						laneFeat.get("newNodes").push(j);
 					}					
 					// Mark the dot as being seen
-					laneFeat.getGeometry().getCoordinates()[j].nodeInitialized = true;
+					laneFeat.get("nodeInitialized").splice(j, 1, true);
 				} else {
 					// This node already existed
 					// Compare the latitude and longitude from the existing lane values to see if the node moved
-					let latMatch = ((laneFeat.get("elevation")[j].latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
-					let lonMatch = ((laneFeat.get("elevation")[j].latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
+					let latMatch = ((laneFeat.get("elevation")[j].latlon?.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
+					let lonMatch = ((laneFeat.get("elevation")[j].latlon?.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
 					// If the node elevation has never been edited or has moved along either axis, get a new elevation value
-					if (!laneFeat.get("elevation")[j].edited || !latMatch || !lonMatch){
+					if (!laneFeat.get("elevation")[j]?.edited || !latMatch || !lonMatch){
 						getElevation(dot, latLon, i, j, function(elev, i, j, latLon, dot){
 							laneFeat.get("elevation")[j] = {'value': elev, 'edited': true, 'latlon': latLon};
 						});
@@ -99,15 +104,15 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 			}
 		} else {
 				buildComputedFeature(i,
-					laneFeat.attributes.laneNumber,
-					laneFeat.attributes.referenceLaneID,
-					laneFeat.attributes.referenceLaneNumber,
-					laneFeat.attributes.offsetX,
-					laneFeat.attributes.offsetY,
-					laneFeat.attributes.rotation,
-					laneFeat.attributes.scaleX,
-					laneFeat.attributes.scaleY,
-					laneFeat.attributes.computedLaneID,
+					laneFeat.get("laneNumber"),
+					laneFeat.get("referenceLaneID"),
+					laneFeat.get("referenceLaneNumber"),
+					laneFeat.get("offsetX"),
+					laneFeat.get("offsetY"),
+					laneFeat.get("rotation"),
+					laneFeat.get("scaleX"),
+					laneFeat.get("scaleY"),
+					laneFeat.get("computedLaneID"),
 					lanes,
 					laneMarkers);
 		}
@@ -379,7 +384,29 @@ function connectComputedDots(i, points, initialize, lanes, laneMarkers){
 	}
 }
 
+// Function to add markers at main and midpoints
+function showMarkers(laneFeature, laneMarkers) {
+    const coordinates = laneFeature.getGeometry().getCoordinates();
+
+    for (let i = 0; i < coordinates.length; i++) {
+        // Add full opacity markers at main coordinates
+        const pointFeature = new ol.Feature(new ol.geom.Point(coordinates[i]));
+        pointFeature.setStyle(laneStyle);
+        laneMarkers.getSource().addFeature(pointFeature);
+
+        // Add semi-transparent markers at midpoints
+        if (i < coordinates.length - 1) {
+            const midX = (coordinates[i][0] + coordinates[i + 1][0]) / 2;
+            const midY = (coordinates[i][1] + coordinates[i + 1][1]) / 2;
+            const midFeature = new ol.Feature(new ol.geom.Point([midX, midY]));
+            midFeature.setStyle(midMarkerStyle);
+            laneMarkers.getSource().addFeature(midFeature);
+        }
+    }
+}
+
 export {
 	onFeatureAdded,
-	buildComputedFeature
+	buildComputedFeature,
+	showMarkers
 }

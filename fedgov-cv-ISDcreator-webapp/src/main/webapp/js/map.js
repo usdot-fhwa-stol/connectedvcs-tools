@@ -1,10 +1,10 @@
-import {addRow, deleteRow, getCookie, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
+import {addRow, deleteRow, getCookie, getLength, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
-import {barStyle, connectionsStyle, errorMarkerStyle, laneStyle, vectorStyle, widthStyle} from "./style.js";
-import {boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, vectorAddInteractionCallback, vectorSelectInteractionCallback} from "./interactions.js";
+import {barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, vectorStyle, widthStyle} from "./style.js";
+import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, onFeatureAdded } from "./features.js";
+import {buildComputedFeature, onFeatureAdded, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
@@ -20,8 +20,14 @@ let viewZoom = 19;
 let map;
 let selectedLayer, selectedMarker;
 let vectors, lanes, laneMarkers, box, laneConnections, errors, laneWidths;
+let controls;
 let overlayLayersGroup, baseLayersGroup;
 let computingLane = false;
+let measureSource = new ol.source.Vector();
+let measureLayer = new ol.layer.Vector({
+  source: measureSource,
+  style: measureStyle
+})
 let computedLaneSource;
 let dropdownCheck = false;
 let sharedWith_object, typeAttribute_object, typeAttributeName, laneTypeOptions = [];
@@ -198,7 +204,9 @@ function initMap() {
     groupSelectStyle: "group", // Show layers as grouped
   });
   map.addControl(layerSwitcher);
-}
+ 
+  map.addLayer(measureLayer)
+} //END map init
 
 function registerMapEvents() {
   map.on("moveend", (event) => {
@@ -215,7 +223,7 @@ function registerMapEvents() {
   });
 }
 
-function registerMapInteraction() {
+function registerSelectInteraction() {
   /***
    * Lanes layer interactions
    */
@@ -226,7 +234,7 @@ function registerMapInteraction() {
   });
 
   laneSelectInteraction.on("select", (event) => {
-    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, deleteMode, selected);
+    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected, controls);
   });
   map.addInteraction(laneSelectInteraction);
 
@@ -282,6 +290,111 @@ function registerMapInteraction() {
     selectedMarker = boxSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected);
   });
   map.addInteraction(boxSelectInteraction);
+
+}//END Select Interactions
+
+function registerDrawInteractions(){
+  /***
+   * Add interactions for the lane/box layer to draw and modify, measure and delete
+   * ***/
+  controls = {
+    line: new ol.interaction.Draw({
+      source: lanes.getSource(),
+      type: 'LineString'
+    }),
+    modify: new ol.interaction.Modify({
+      //Modify lanes
+      source: lanes.getSource(),
+      // condition: function(event) {
+        
+      //   const feature = map.forEachFeatureAtPixel(event.pixel, function(feature) {
+      //     return feature;
+      //   });
+      //   if (feature && feature.get('computed')) {
+      //     computedLaneSource = feature;
+      //     toggleControlsOn('placeComputed');
+      //     console.log("The following TypeError can be ignored safely:");
+      //     return false;
+      //   }
+      //   return true;
+      // }
+      insertVertexCondition: function () {
+        return false; // Disables adding new points to the line
+      },
+      condition: ol.events.condition.primaryAction // Allows dragging existing points
+    }),
+    placeComputed: new ol.interaction.Draw({
+      source: lanes.getSource(),
+      type: 'Point'
+    }),
+    drag: new ol.interaction.Translate({
+      features: new ol.Collection([lanes, vectors, box])
+    }),
+    bar: new ol.interaction.Draw({
+      source: box.getSource(),
+      type: 'Circle',
+      geometryFunction: ol.interaction.Draw.createBox()
+    }),
+    edit: new ol.interaction.Modify({
+      //Edit approach
+      source: box.getSource()
+    }),
+    del: new ol.interaction.Select({
+      layers: [lanes, vectors, box]
+    }),
+    none: new ol.interaction.Select({
+      layers: [laneMarkers, box, vectors]
+    }),
+    measure: new ol.interaction.Draw({
+      source: measureSource,
+      type: 'LineString',
+    })
+  };
+
+  //Add and deactivate all controls (draw/edit approach, draw/edit lanes, measures and delete) by default  
+  for (let key in controls) {
+    if (controls.hasOwnProperty(key)) {
+      map.addInteraction(controls[key]);
+      controls[key].setActive(false);
+    }
+  }
+  
+  controls.measure.on('drawend', (event)=>{measureCallback(event)});  
+  controls.measure.on('drawstart', (event)=>{
+    measureSource.clear();
+    measureCallback(event)}
+  );
+  
+  controls.line.on('drawend', (event) => {
+    lanes.getSource().addFeature(event.feature);
+    onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+  });
+  
+  controls.bar.on('drawend', (event) => {
+    box.getSource().addFeature(event.feature);
+  });
+  
+  // Start modifying: Track the feature and listen for geometry changes
+  controls.modify.on('modifystart', function (event) {
+    event.features.forEach(feature => {
+        if (feature.getGeometry() instanceof ol.geom.LineString) {
+            // Update markers while moving (geometry changes)
+            feature.getGeometry().on('change', function () {
+              laneMarkers.getSource().clear();
+              showMarkers(feature, laneMarkers);
+            });
+        }
+    });
+  });
+  // Update markers when a vertex is moved
+  controls.modify.on('modifyend', function (event) {
+    laneMarkers.getSource().clear();
+    event.features.forEach(feature => {
+        if (feature.getGeometry() instanceof ol.geom.LineString) {
+          showMarkers(feature, laneMarkers);
+        }
+    });
+});
 }
 
 function initTopNavBar() {
@@ -289,7 +402,7 @@ function initTopNavBar() {
    * Register navbar files events
    */
   $("#openChild").click(() => {
-    openChildMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors);
+    openChildMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors, controls);
   });
 
   $("#saveMap").click(() => {
@@ -297,19 +410,19 @@ function initTopNavBar() {
   });
 
   $("#openParent").click(() => {
-    openParentMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors);
+    openParentMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors, controls);
   });
 
   $("#newParentMap").click(() => {
-    newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors);
+    newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors, controls);
   });
 
   $("#newChildMap").click(() => {
-    newChildMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors);
+    newChildMap(map, lanes, vectors, laneMarkers, laneWidths, box, errors, controls);
   });
 
   $("#updateChildParent").click(() => {
-    updateChildParent(map, lanes, vectors, laneMarkers, laneWidths, box);
+    updateChildParent(map, lanes, vectors, laneMarkers, laneWidths, box, controls);
   });
 
   $("#loadKMLTrace").click(() => {
@@ -393,11 +506,13 @@ function initSideBar() {
         vectors,
         laneMarkers,
         laneWidths,
-        false
+        false,
+        controls
       );
     } else {
       deleteMode = false;
-      toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false);
+      toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false, controls);    
+      measureSource.clear();
     }
   });
 
@@ -995,7 +1110,8 @@ $(document).ready(() => {
   initMISC();
   initMap();
   registerMapEvents();
-  registerMapInteraction();
+  registerSelectInteraction();
+  registerDrawInteractions();
   initTopNavBar();
   initSideBar();
   registerModalButtonEvents();

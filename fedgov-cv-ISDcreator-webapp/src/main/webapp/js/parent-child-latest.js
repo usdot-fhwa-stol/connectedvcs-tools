@@ -20,7 +20,7 @@ $(function() {
 });
 
 
-function openChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors){
+function openChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "child";
     confirmClear(lanes,vectors, laneMarkers, laneWidths, box, errors);
     $("#map-type").text("CHILD MAP");
@@ -33,10 +33,10 @@ function openChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors){
     $("#lane-tab-header").addClass("active");
     $("#lane-tab").addClass("active");
     $("#builder, #drawLanes, #measureLanes, #editLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel").show();
-    loadFile(map, lanes, vectors, laneMarkers , laneWidths, box, errors, selected);
+    loadFile(map, lanes, vectors, laneMarkers , laneWidths, box, errors, selected, controls);
 }
 
-function openParentMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors){
+function openParentMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "parent";
     confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors);
     $("#map-type").text("PARENT MAP");
@@ -49,7 +49,7 @@ function openParentMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors)
     $("#intersection-tab-header").addClass("active");
     $("#intersection-tab").addClass("active");
     $("#dragSigns, #deleteMarker, #builder").show();
-    loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected);
+    loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected, controls);
 }
 
 function newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors){
@@ -67,7 +67,7 @@ function newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors){
     $("#dragSigns, #deleteMarker, #builder").show();
 }
 
-function newChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors){
+function newChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "child";
     confirmClear(lanes,vectors, laneMarkers, laneWidths, box, errors);
     alert("Use the file dialog to open a parent map.")
@@ -81,15 +81,15 @@ function newChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors){
     $("#lane-tab-header").addClass("active");
     $("#lane-tab").addClass("active");
     $("#builder, #drawLanes, #measureLanes, #editLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel").show();
-    loadFile(map, lanes,vectors, laneMarkers, laneWidths, box, errors, selected);
+    loadFile(map, lanes,vectors, laneMarkers, laneWidths, box, errors, selected, controls);
 }
 
-function updateChildParent(map, lanes, vectors, laneMarkers, laneWidths, box){
+function updateChildParent(map, lanes, vectors, laneMarkers, laneWidths, box, controls){
     selected = "child";
     var c = confirm("This will reset the verified point and marker. Continue?");
     if (c === true) {
         alert("Use the file dialog to select the parent map you wish to use to replace the current markers.")
-        loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected);
+        loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected, controls);
     }
 }
 

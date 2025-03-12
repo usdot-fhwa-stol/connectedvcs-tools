@@ -1,19 +1,28 @@
-import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes } from "./utils.js";
+import { showMarkers } from "./features.js";
+import { barHighlightedStyle, laneStyle } from "./style.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard } from "./utils.js";
 
-function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, deleteMode, selected){
+function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected, controls){
+    if (controls?.modify.getActive()) {
+      laneMarkers.getSource().clear();
+    }
+
     if (evt.selected?.length > 0) {
-      console.log('Lane feature selected:', evt.selected[0]);
+      console.log('Lane feature selected:', evt.selected[0]);  
     }else{
       console.log("No lane feature selected, ignore");
       return;
+    }
+
+    if (controls?.modify.getActive()) {
+      showMarkers(evt.selected[0], laneMarkers);   
     }
 
     let selectedLane = evt.selected[0];
     // Find the layer by checking which vector source contains the feature
     const laneLayer = overlayLayersGroup.getLayers().getArray().find(layer=>{
       return selectedLane && layer instanceof ol.layer.Vector && layer.getSource().hasFeature(selectedLane)
-    })
+    })    
 
     if (deleteMode){
         if(selectedLane.get("source")) {
@@ -176,14 +185,14 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       $(".lane_number").hide();
     }
     let nodeLaneWidth;
-    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")){
-        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth");
+    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth")){
+        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth");
     }
 
-    if (! nodeLaneWidth[selectedMarker.get("number")]){
-      $("#lane_width").val("0");
+    if (nodeLaneWidth && nodeLaneWidth[selectedMarker.get("number")]){
+      $("#lane_width").val(nodeLaneWidth[selectedMarker.get("number")]);      
     } else {
-      $("#lane_width").val(nodeLaneWidth[selectedMarker.get("number")]);
+      $("#lane_width").val("0");
     }
     
     if (! selectedMarker.get("elevation")?.value){
@@ -537,9 +546,9 @@ function updateFeatureLocation( feature, selected, rgaEnabled, speedForm) {
 function updateLaneFeatureLocation(feature) {
   let lonLatCoordinates = new ol.proj.toLonLat(feature.getGeometry().getCoordinates());
   feature.set("LonLat", {lon: lonLatCoordinates[0], lat: lonLatCoordinates[1]});
-	$('#long').val(feature.get("LatLon").lon);
-	$('#lat').val(feature.get("LatLon").lat);
-	populateRefWindow(feature, feature.get("LatLon").lat, feature.get("LatLon").lon);
+	$('#long').val(feature.get("LonLat").lon);
+	$('#lat').val(feature.get("LonLat").lat);
+	populateRefWindow(feature, feature.get("LonLat").lat, feature.get("LonLat").lon);
 }
 
 
@@ -609,7 +618,18 @@ function deleteMarker(featureLayer, feature, lanes, selected) {
       featureLayer.getSource().removeFeature(feature);
   }
 }
-
+/**
+ * 
+ * @param {*} measureControl draw line control callback function when draw ended and calculate the distance of the line
+ */
+function measureCallback(event){
+  const geometry = event.feature.getGeometry();
+  geometry.on('change', (event)=>{
+    const length = getLength(geometry); 
+    $('.measurement').text(length.toFixed(3) + ' m');
+    copyTextToClipboard((length).toFixed(3));
+  });  
+}
 
 export {
   laneSelectInteractionCallback,
@@ -618,4 +638,5 @@ export {
   vectorAddInteractionCallback,
   boxSelectInteractionCallback,
   deleteMarker,
+  measureCallback
 }

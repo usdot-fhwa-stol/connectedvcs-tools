@@ -13,6 +13,19 @@ const laneDefault = {
   cursor: "pointer"
 };
 
+const measureDefault = {
+  // strokeColor: "${getStrokeColor}",
+  strokeColor: "#FF9900",
+  // fillColor: "${getFillColor}",
+  fillColor: "#FF9900",
+  strokeOpacity: 1,
+  strokeWidth: 2,
+  fillOpacity: .9,
+  fontFamily: "Arial",
+  fontSize: "8px",
+  cursor: "pointer"
+};
+
 const barDefault = {
   strokeColor: "#FF0000",
   fillColor: "#FF0000",
@@ -75,6 +88,20 @@ const laneStyle = (feature) => {
       fill: new ol.style.Fill({
         color: feature.get('computed') ? '#FF5000' : (feature.get('source') ? '#00EDFF' : laneDefault.fillColor)
       })
+    })
+  });
+};
+
+const measureStyle = (feature) => {
+  return new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: feature.get('computed') ? '#FF5000' : (feature.get('source') ? '#00EDFF' : "#FF9900"),
+      width: measureDefault.strokeWidth,
+      opacity: measureDefault.strokeOpacity
+    }),
+    fill: new ol.style.Fill({
+      color: feature.get('computed') ? '#FF5000' : (feature.get('source') ? '#00EDFF' : "#FF9900"),
+      opacity: laneDefault.fillOpacity
     })
   });
 };
@@ -178,6 +205,15 @@ const errorMarkerStyle = new ol.style.Style({
   })
 });
 
+// Style for midpoints (less opacity)
+const midMarkerStyle = new ol.style.Style({
+  image: new ol.style.Circle({
+      radius: 5,
+      fill: new ol.style.Fill({ color: 'rgba(240, 133, 45, 0.5)' }), // Semi-transparent
+      stroke: new ol.style.Stroke({ color: 'rgba(247, 154, 14, 0.5)', width: 1 })
+  })
+});
+
 export {
   laneStyle,
   vectorStyle,
@@ -187,5 +223,7 @@ export {
   errorMarkerStyle,
   barStyle,
   pointStyle,
-  barHighlightedStyle 
+  barHighlightedStyle,
+  measureStyle,
+  midMarkerStyle
 };

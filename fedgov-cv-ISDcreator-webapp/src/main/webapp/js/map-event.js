@@ -15,7 +15,7 @@ function onPointerMove(event, map) {
     if (feature) {
         const geometry = feature.getGeometry();
         const featureType = geometry.getType();
-        if(featureType === 'Point' || featureType === 'Polygon') {
+        if(featureType === 'Point' || featureType === 'Polygon' ) {
             map.getTargetElement().style.cursor = 'pointer';
         }
     }
