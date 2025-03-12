@@ -2,7 +2,7 @@ import {addRow, deleteRow, getCookie, getLength, makeDroppable, onMappedGeomIdCh
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
 import {barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, vectorStyle, widthStyle} from "./style.js";
-import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorSelectInteractionCallback} from "./interactions.js";
+import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, onFeatureAdded, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomIn, onZoomOut } from "./map-event.js";
@@ -28,6 +28,8 @@ let measureLayer = new ol.layer.Vector({
   source: measureSource,
   style: measureStyle
 })
+//Features that are allowed to be moved on the map
+const draggableFeature = new ol.Collection();
 let computedLaneSource;
 let dropdownCheck = false;
 let sharedWith_object, typeAttribute_object, typeAttributeName, laneTypeOptions = [];
@@ -262,20 +264,30 @@ function registerSelectInteraction() {
    * Vectors layer interactions
    */
   //Add select feature event on vectors layer
-  const vectorAddInteraction = new ol.interaction.Select({
+  const vectorInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [vectors],
   });
-  vectorAddInteraction.on("select", (event) => {
+  vectorInteraction.on("select", (event) => {
+    draggableFeature.clear(); // Ensure only one feature is draggable at a time
+    draggableFeature.push(event.selected[0]);
     selectedLayer = vectors;
     selectedMarker = vectorSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
   });
-  map.addInteraction(vectorAddInteraction);
+
+  map.addInteraction(vectorInteraction);
 
   //Add feature event on vectors layer
   vectors.getSource().on("addfeature", (event) => {
+    console.log("Vectors feature added:", event.feature);
+    draggableFeature.push(event.feature);
     selectedLayer = vectors;
     selectedMarker = vectorAddInteractionCallback(event,  selected, rgaEnabled, speedForm);
+  });
+
+  vectors.getSource().on("removefeature", (event) => {
+    console.log("Vectors feature removed:", event.feature);
+    draggableFeature.remove(event.feature);
   });
 
   /***
@@ -292,6 +304,7 @@ function registerSelectInteraction() {
   map.addInteraction(boxSelectInteraction);
 
 }//END Select Interactions
+
 
 function registerDrawInteractions(){
   /***
@@ -328,7 +341,7 @@ function registerDrawInteractions(){
       type: 'Point'
     }),
     drag: new ol.interaction.Translate({
-      features: new ol.Collection([lanes, vectors, box])
+      features: draggableFeature
     }),
     bar: new ol.interaction.Draw({
       source: box.getSource(),
@@ -343,13 +356,13 @@ function registerDrawInteractions(){
       layers: [lanes, vectors, box]
     }),
     none: new ol.interaction.Select({
-      layers: [laneMarkers, box, vectors]
+      layers: [laneMarkers, box]
     }),
     measure: new ol.interaction.Draw({
       source: measureSource,
       type: 'LineString',
     })
-  };
+  }; //END Draw Interactions
 
   //Add and deactivate all controls (draw/edit approach, draw/edit lanes, measures and delete) by default  
   for (let key in controls) {
@@ -365,16 +378,18 @@ function registerDrawInteractions(){
     measureCallback(event)}
   );
   
+  //End drawing lane: Add the features to lanes and laneMarkers
   controls.line.on('drawend', (event) => {
     lanes.getSource().addFeature(event.feature);
     onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
   });
   
+  //End drawing approach: Add feature to box 
   controls.bar.on('drawend', (event) => {
     box.getSource().addFeature(event.feature);
   });
   
-  // Start modifying: Track the feature and listen for geometry changes
+  // Start modifying lanes: Track the feature and listen for geometry changes
   controls.modify.on('modifystart', function (event) {
     event.features.forEach(feature => {
         if (feature.getGeometry() instanceof ol.geom.LineString) {
@@ -386,7 +401,8 @@ function registerDrawInteractions(){
         }
     });
   });
-  // Update markers when a vertex is moved
+
+  // End modifying lanes: Update markers when a vertex is moved
   controls.modify.on('modifyend', function (event) {
     laneMarkers.getSource().clear();
     event.features.forEach(feature => {
@@ -394,7 +410,15 @@ function registerDrawInteractions(){
           showMarkers(feature, laneMarkers);
         }
     });
-});
+  });
+
+  //End Draging reference marker and verified reference point: Update marker location after drag
+  controls.drag.on('translateend', (event) => {
+      const draggedFeature = event.features.getArray()[0];
+      console.log("Dragged: ", draggedFeature);
+      vectorDragCallback(draggedFeature, selected, rgaEnabled, speedForm)
+  });
+
 }
 
 function initTopNavBar() {
@@ -604,7 +628,7 @@ function initSideBar() {
 function clone(object, pixel) {
   let coordinate = map.getCoordinateFromPixel(pixel);
   let clonedFeature = new ol.Feature(new ol.geom.Point(coordinate));
-  let IconInfo = { src: object.src, height: 50, width: 50 };
+  let IconInfo = { src: object.src, height: 50, width: 50 ,anchor: [0.5,1], anchorXUnits: 'fraction', anchorYUnits: 'fraction'};
   clonedFeature.setStyle(
     new ol.style.Style({
       image: new ol.style.Icon(IconInfo),
@@ -1088,7 +1112,7 @@ function registerModalButtonEvents() {
   $(".btnClone").click(() => {
     computingLane = true;
 
-    // The current selected_marker is the 0 node of the lane clicked to clone.
+    // The current selected marker is the 0 node of the lane clicked to clone.
     // Set it as the source for the computed lane and then unselect it
     computedLaneSource = selectedMarker;
     unselectFeature(map, overlayLayersGroup, selectedMarker);

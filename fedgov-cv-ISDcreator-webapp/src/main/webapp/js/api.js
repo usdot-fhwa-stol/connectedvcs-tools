@@ -4,7 +4,6 @@ const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
 const intersection_url = "/api.geonames.org/findNearestIntersectionJSON"
 async function getElevation(dot, latlon, i, j, callback){
-  console.log('getElevation')
     try {
       const response = await fetch(google_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
       if (!response.ok) {
@@ -25,7 +24,6 @@ async function getElevation(dot, latlon, i, j, callback){
 
 async function getElev(lat, lon) {
   try {
-    console.log('getElev')
     const response = await fetch(google_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
     if (!response.ok) {
       throw new Error('Server response was not ok');

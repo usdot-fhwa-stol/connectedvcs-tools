@@ -373,11 +373,15 @@ function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteM
     let selectedVector = evt.selected[0];
 
     //Use the marker properties to update the marker icon
-    let iconAddress = selectedVector.get("marker").img_src;
-    let IconInfo = { src: iconAddress, height: 50, width: 50 ,anchor: [0.5,1]};
-    selectedVector.setStyle(new ol.style.Style({
-      image: new ol.style.Icon(IconInfo)
-    }));
+    let iconAddress = selectedVector.get("marker")?.img_src;
+    if (iconAddress) {
+      let IconInfo = { src: iconAddress, height: 50, width: 50 ,anchor: [0.5,1], anchorXUnits: 'fraction', anchorYUnits: 'fraction'};
+      selectedVector.setStyle(new ol.style.Style({
+        image: new ol.style.Icon(IconInfo)
+      }));
+    } else {
+      console.error("Icon address not found for the selected vector.");
+    }
 
     const vectorLayer = overlayLayersGroup.getLayers().getArray().find(layer=>{
       return selectedVector && layer instanceof ol.layer.Vector && layer.getSource().hasFeature(selectedVector)
@@ -410,6 +414,10 @@ function vectorAddInteractionCallback(evt, selected, rgaEnabled, speedForm) {
   let selectedVector = evt.feature;
   updateFeatureLocation(selectedVector, selected, rgaEnabled, speedForm);
   return selectedVector;
+}
+
+function vectorDragCallback(draggedFeature,  selected, rgaEnabled, speedForm){
+  updateFeatureLocation(draggedFeature,  selected, rgaEnabled, speedForm);
 }
 
 function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected) {
@@ -510,8 +518,10 @@ function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode
 
 /**
  * Purpose: if lat/long is modified, it changes the location
- * @params  the feature and it's metadata
- * @event changes the location on the map by redrawing
+ * @params  The selected feature
+ * @params selected: The selected map, available values: parent or child
+ * @params rgaEnabled indicator whether RGA fields are enabled
+ * @params speedForm A Javascript object that contains the speed form for lane info
  */
 function updateFeatureLocation( feature, selected, rgaEnabled, speedForm) {
   referencePointWindow(feature, selected, rgaEnabled, speedForm);
@@ -631,6 +641,7 @@ function measureCallback(event){
   });  
 }
 
+
 export {
   laneSelectInteractionCallback,
   vectorSelectInteractionCallback,
@@ -638,5 +649,6 @@ export {
   vectorAddInteractionCallback,
   boxSelectInteractionCallback,
   deleteMarker,
-  measureCallback
+  measureCallback,
+  vectorDragCallback
 }
