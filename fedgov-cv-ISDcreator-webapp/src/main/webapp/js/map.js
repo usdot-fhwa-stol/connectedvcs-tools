@@ -4,7 +4,7 @@ import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleCon
 import {barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, vectorStyle, widthStyle} from "./style.js";
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, onFeatureAdded, showMarkers } from "./features.js";
+import {buildComputedFeature, onFeatureAdded, placeComputedLane, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
@@ -43,6 +43,8 @@ let $imgs;
 let rowHtml;
 let speedForm;
 let rgaEnabled = false;
+let laneSelectInteraction;
+let temporaryMarkers;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -208,6 +210,13 @@ function initMap() {
   map.addControl(layerSwitcher);
  
   map.addLayer(measureLayer)
+
+  temporaryMarkers = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: laneStyle,
+    title: 'temporaryMarkers'
+  });
+  map.addLayer(temporaryMarkers);
 } //END map init
 
 function registerMapEvents() {
@@ -215,7 +224,7 @@ function registerMapEvents() {
     onMoveEnd(event, map);
   });
   map.on("pointermove", (event) => {
-    onPointerMove(event, map);
+    onPointerMove(event, map, controls);    
   });
   document.getElementById('customZoomOut').addEventListener('click', (event) => {
     onZoomOut(event, map);
@@ -230,13 +239,13 @@ function registerSelectInteraction() {
    * Lanes layer interactions
    */
   //Add select feature event on lanes layer
-  const laneSelectInteraction = new ol.interaction.Select({
+  laneSelectInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [lanes],
   });
 
   laneSelectInteraction.on("select", (event) => {
-    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected, controls);
+    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected);
   });
   map.addInteraction(laneSelectInteraction);
 
@@ -317,24 +326,20 @@ function registerDrawInteractions(){
     }),
     modify: new ol.interaction.Modify({
       //Modify lanes
-      source: lanes.getSource(),
-      // condition: function(event) {
-        
-      //   const feature = map.forEachFeatureAtPixel(event.pixel, function(feature) {
-      //     return feature;
-      //   });
-      //   if (feature && feature.get('computed')) {
-      //     computedLaneSource = feature;
-      //     toggleControlsOn('placeComputed');
-      //     console.log("The following TypeError can be ignored safely:");
-      //     return false;
-      //   }
-      //   return true;
-      // }
-      insertVertexCondition: function () {
-        return false; // Disables adding new points to the line
-      },
-      condition: ol.events.condition.primaryAction // Allows dragging existing points
+      features: laneSelectInteraction.getFeatures(),
+      condition: function(event) {        
+        const feature = map.forEachFeatureAtPixel(event.pixel, function(feature) {
+          return feature;
+        });
+        if (feature && feature.get('computed')) {
+          computedLaneSource = feature;
+          toggleControlsOn('placeComputed', lanes, vectors, laneMarkers, laneWidths, false, controls);
+          console.log("The following TypeError can be ignored safely:");
+          return false;
+        }
+        return true;
+        // return ol.events.condition.primaryAction // Allows dragging existing points;
+      }
     }),
     placeComputed: new ol.interaction.Draw({
       source: lanes.getSource(),
@@ -356,7 +361,7 @@ function registerDrawInteractions(){
       layers: [lanes, vectors, box]
     }),
     none: new ol.interaction.Select({
-      layers: [laneMarkers, box]
+      layers: []
     }),
     measure: new ol.interaction.Draw({
       source: measureSource,
@@ -395,8 +400,8 @@ function registerDrawInteractions(){
         if (feature.getGeometry() instanceof ol.geom.LineString) {
             // Update markers while moving (geometry changes)
             feature.getGeometry().on('change', function () {
-              laneMarkers.getSource().clear();
-              showMarkers(feature, laneMarkers);
+              temporaryMarkers.getSource().clear();
+              showMarkers(feature, temporaryMarkers);
             });
         }
     });
@@ -404,10 +409,10 @@ function registerDrawInteractions(){
 
   // End modifying lanes: Update markers when a vertex is moved
   controls.modify.on('modifyend', function (event) {
-    laneMarkers.getSource().clear();
     event.features.forEach(feature => {
         if (feature.getGeometry() instanceof ol.geom.LineString) {
-          showMarkers(feature, laneMarkers);
+          temporaryMarkers.getSource().clear();
+          showMarkers(feature, temporaryMarkers);
         }
     });
   });
@@ -417,6 +422,22 @@ function registerDrawInteractions(){
       const draggedFeature = event.features.getArray()[0];
       console.log("Dragged: ", draggedFeature);
       vectorDragCallback(draggedFeature, selected, rgaEnabled, speedForm)
+  });
+
+  //Draw Computed lane
+  controls.placeComputed.on("drawend", event=>{
+    if(computedLaneSource===null){
+      alert("Please select a marker to proceed.")
+    }
+    placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
+
+    stateConfidence = null;
+    signalPhase = null;
+    
+    nodeLaneWidth = [];    
+    let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
+    $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
+    laneNum = nextAvailableLaneNum;
   });
 
 }
@@ -538,6 +559,7 @@ function initSideBar() {
       toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false, controls);    
       measureSource.clear();
     }
+    temporaryMarkers.getSource().clear();
   });
 
   $("#builder").click(() => {
@@ -618,7 +640,6 @@ function initSideBar() {
   }); 
   
 }
-
  /**
    * Purpose: clone marker image onto layer
    * @params  object, pixel
@@ -873,6 +894,7 @@ function registerModalButtonEvents() {
     ) {
       // When computing a lane, there is no initial marker since we are generating them from another lane.
       // Therefore we have to build the markers before we select the lane.
+
       if (selectedLayer.get("title") == "Lane Marker Layer" && computingLane) {
         if (laneNum == null) {
           let selText = $("#lane_number .dropdown-menu li a").text();
@@ -889,18 +911,18 @@ function registerModalButtonEvents() {
           $("#rotation").val(),
           $("#scale-X").val(),
           $("#scale-Y").val(),
-          selectedMarker.get("lane"),
+          undefined,
           lanes,
           laneMarkers
         );
-        selectedMarker = selectComputedFeature(laneNum);
+        selectedMarker = selectComputedFeature(laneNum, laneMarkers);
 
         // The Latitude and Longitude text boxes in the Lane Info tab have not yet been set
         // since the lane's nodes were just created
-        $("#lat").val(selectedMarker.attributes.LatLon.lat);
-        $("#long").val(selectedMarker.attributes.LatLon.lon);
+        $("#lat").val(selectedMarker.get("LonLat").lat);
+        $("#long").val(selectedMarker.get("LonLat").lon);
 
-        nodeLaneWidth = lanes.features[selectedMarker.attributes.lane].attributes.laneWidth;
+        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth");
       }
 
       setLaneAttributes(selectedMarker);
@@ -927,6 +949,8 @@ function registerModalButtonEvents() {
       ]);
       
       if (selectedLayer.get("title") == "Lane Marker Layer") {
+
+        console.log(lanes.getSource().getFeatures())
         let currentLaneSpeedLimits = saveSpeedForm(speedForm);
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.set("speedLimitType", currentLaneSpeedLimits);
@@ -976,7 +1000,7 @@ function registerModalButtonEvents() {
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("typeAttribute", typeAttribute);
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("lane_attributes",selectedMarker.get("lane_attributes"));
         }
-        selectedMarker.set("LatLon", {
+        selectedMarker.set("LonLat", {
           lat: parseFloat($("#lat").val()),
           lon: parseFloat($("#long").val()),
         });
@@ -1125,7 +1149,8 @@ function registerModalButtonEvents() {
       vectors,
       laneMarkers,
       laneWidths,
-      false
+      false,
+      controls
     );
   });
 }

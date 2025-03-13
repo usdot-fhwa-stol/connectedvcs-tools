@@ -64,7 +64,6 @@ function getLength(geometry){
  * @params  measurement value
  * @event copy
  */
-
 function copyTextToClipboard(text) {
   var textArea = document.createElement("textarea");
 
@@ -1174,7 +1173,6 @@ function onMappedGeomIdChangeCallback(){
   }
 }
 
-  
 export {
   getCookie,
   isOdd,
@@ -1219,4 +1217,5 @@ export {
   resetRGAStatus,
   getLength,
   copyTextToClipboard
+  
 }

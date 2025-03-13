@@ -2,20 +2,12 @@ import { showMarkers } from "./features.js";
 import { barHighlightedStyle, laneStyle } from "./style.js";
 import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard } from "./utils.js";
 
-function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected, controls){
-    if (controls?.modify.getActive()) {
-      laneMarkers.getSource().clear();
-    }
-
+function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
       console.log('Lane feature selected:', evt.selected[0]);  
     }else{
       console.log("No lane feature selected, ignore");
       return;
-    }
-
-    if (controls?.modify.getActive()) {
-      showMarkers(evt.selected[0], laneMarkers);   
     }
 
     let selectedLane = evt.selected[0];
@@ -226,11 +218,11 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
         $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
     }
-    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("speedLimitType")) {
+    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType")) {
       removeSpeedForm(speedForm);
       addSpeedForm(speedForm);
     } else {
-      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("speedLimitType"));
+      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType"));
     }
           
     $('#shared_with').multiselect('deselectAll', false);
@@ -260,7 +252,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
     $('#likely_time').val(selectedMarker.get("likelyTime"));
     $('#next_time').val(selectedMarker.get("nextTime"));              
         
-    populateAttributeWindow(selectedMarker.get("LatLon").lat, selectedMarker.get("LatLon").lon);
+    populateAttributeWindow(selectedMarker.get("LonLat").lat, selectedMarker.get("LonLat").lon);
     $("#attributes").show();
 
     for(let attrConnection in selectedMarker.get("connections")) {

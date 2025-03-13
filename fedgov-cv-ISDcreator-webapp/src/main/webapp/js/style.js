@@ -77,7 +77,7 @@ const laneStyle = (feature) => {
       opacity: laneDefault.fillOpacity
     }),
     text: new ol.style.Text({
-      text: feature.get('laneNumber') ? feature.get('laneNumber').toString() : '',
+      text: feature.getGeometry().getType() === "LineString"? '': feature.get('laneNumber') ? feature.get('laneNumber').toString() : '',
       font: `${laneDefault.fontSize} ${laneDefault.fontFamily}`,
       fill: new ol.style.Fill({
         color: '#000'
