@@ -347,6 +347,7 @@ function registerDrawInteractions(){
    * ***/
   controls = {
     line: new ol.interaction.Draw({
+      //Add lane
       source: lanes.getSource(),
       type: 'LineString'
     }),
@@ -367,6 +368,7 @@ function registerDrawInteractions(){
       }
     }),
     placeComputed: new ol.interaction.Draw({
+      //Add computed lane
       source: lanes.getSource(),
       type: 'Point'
     }),
@@ -380,11 +382,8 @@ function registerDrawInteractions(){
       freehand: true,
       geometryFunction: ol.interaction.Draw.createBox()
     }),
-    // edit: new ol.interaction.Modify({
-    //   //Edit approach
-    //   source: box.getSource()
-    // }),
     edit: new ol.interaction.Modify({
+      //Edit approach
       source: temporaryBoxMarkers.getSource(),
     }),
     del: new ol.interaction.Select({
@@ -394,6 +393,7 @@ function registerDrawInteractions(){
       layers: []
     }),
     measure: new ol.interaction.Draw({
+      //Add measure
       source: measureSource,
       type: 'LineString',
     })
