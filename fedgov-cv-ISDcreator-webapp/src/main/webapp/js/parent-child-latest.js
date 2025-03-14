@@ -22,7 +22,9 @@ $(function() {
 
 function openChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "child";
-    confirmClear(lanes,vectors, laneMarkers, laneWidths, box, errors);
+    if(!confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors)){
+        return;
+    };
     $("#map-type").text("CHILD MAP");
     $(".builder").show();
     $(".encoder").show();
@@ -38,7 +40,9 @@ function openChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, 
 
 function openParentMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "parent";
-    confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors);
+    if(!confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors)){
+        return;
+    };
     $("#map-type").text("PARENT MAP");
     $(".builder").show();
     $(".encoder").hide();
@@ -54,7 +58,9 @@ function openParentMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors,
 
 function newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors){
     selected = "parent";
-    confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors);
+    if(!confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors)){
+        return;
+    };
     $("#map-type").text("PARENT MAP");
     $(".builder").show();
     $(".encoder").hide();
@@ -69,7 +75,9 @@ function newParentMap(lanes, vectors, laneMarkers, laneWidths, box, errors){
 
 function newChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, controls){
     selected = "child";
-    confirmClear(lanes,vectors, laneMarkers, laneWidths, box, errors);
+    if(!confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors)){
+        return;
+    };
     alert("Use the file dialog to open a parent map.")
     $("#map-type").text("CHILD MAP");
     $(".builder").show();
@@ -119,7 +127,7 @@ function confirmClear(lanes, vectors, laneMarkers, laneWidths, box, errors) {
         $("#attributes").hide();
         $("#help").show();
     }
-
+    return r;
 }
 
 export {

@@ -263,10 +263,12 @@ function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoad
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
-		toggleControl(state, controls);
+		if(controls){
+			toggleControl(state, controls);
+		}		
 		if( state == 'modify' || state == 'del') {
 			laneMarkers.getSource().clear();
-			controls.del.getFeatures().clear();
+			controls?.del?.getFeatures().clear();
 		} else {
 			onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap);
 		}

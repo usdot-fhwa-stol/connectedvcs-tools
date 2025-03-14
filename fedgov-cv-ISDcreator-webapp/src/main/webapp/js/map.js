@@ -1,10 +1,10 @@
-import {addRow, deleteRow, getCookie, getLength, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
+import {addRow, debounceModifyEvent, deleteRow, getCookie, getLength, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
-import {barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, vectorStyle, widthStyle} from "./style.js";
+import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, onFeatureAdded, placeComputedLane, selectComputedFeature, showMarkers } from "./features.js";
+import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
@@ -44,7 +44,8 @@ let rowHtml;
 let speedForm;
 let rgaEnabled = false;
 let laneSelectInteraction;
-let temporaryMarkers;
+let temporaryLaneMarkers;
+let temporaryBoxMarkers;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -211,12 +212,20 @@ function initMap() {
  
   map.addLayer(measureLayer)
 
-  temporaryMarkers = new ol.layer.Vector({
+  //This layer is used when modifying a lane and show the temporary dots on the lane to help guide lane modification
+  temporaryLaneMarkers = new ol.layer.Vector({
     source: new ol.source.Vector(),
     style: laneStyle,
     title: 'temporaryMarkers'
   });
-  map.addLayer(temporaryMarkers);
+  map.addLayer(temporaryLaneMarkers);
+
+  temporaryBoxMarkers = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: laneStyle,
+    title: 'temporaryBoxMarkers'
+  });
+  map.addLayer(temporaryBoxMarkers);
 } //END map init
 
 function registerMapEvents() {
@@ -307,8 +316,27 @@ function registerSelectInteraction() {
     layers: [box],
   });
   boxSelectInteraction.on("select", (event) => {
+    temporaryBoxMarkers.getSource().clear();
     selectedLayer = box;
-    selectedMarker = boxSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected);
+    if(!controls.edit?.getActive()){
+      selectedMarker = boxSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected);
+    }else if(event.selected?.length>0 ){
+        selectedMarker = event.selected[0];
+        selectedMarker.setStyle(barHighlightedStyle);
+        
+        //Createa point at the center of the polygon
+        let center = selectedMarker.getGeometry().getInteriorPoint().getCoordinates();
+        let centerFeat = new ol.Feature(new ol.geom.Point([center[0], center[1]]));
+        centerFeat.setStyle(pointStyle);
+        centerFeat.setId("boxCenter");
+        temporaryBoxMarkers.getSource().addFeature(centerFeat);
+        
+        //Create a draggable point outside polygon
+        let offsetX = getMaxSquareDistance(selectedMarker);
+        let offsetY = getMaxSquareDistance(selectedMarker)/2;
+        let newPoint = createPointFeature("draggablePoint", centerFeat, offsetX, offsetY );
+        temporaryBoxMarkers.getSource().addFeature(newPoint);
+      }
   });
   map.addInteraction(boxSelectInteraction);
 
@@ -338,7 +366,6 @@ function registerDrawInteractions(){
           return false;
         }
         return true;
-        // return ol.events.condition.primaryAction // Allows dragging existing points;
       }
     }),
     placeComputed: new ol.interaction.Draw({
@@ -349,13 +376,18 @@ function registerDrawInteractions(){
       features: draggableFeature
     }),
     bar: new ol.interaction.Draw({
+      //Add approach
       source: box.getSource(),
       type: 'Circle',
+      freehand: true,
       geometryFunction: ol.interaction.Draw.createBox()
     }),
+    // edit: new ol.interaction.Modify({
+    //   //Edit approach
+    //   source: box.getSource()
+    // }),
     edit: new ol.interaction.Modify({
-      //Edit approach
-      source: box.getSource()
+      source: temporaryBoxMarkers.getSource(),
     }),
     del: new ol.interaction.Select({
       layers: [lanes, vectors, box]
@@ -390,8 +422,52 @@ function registerDrawInteractions(){
   });
   
   //End drawing approach: Add feature to box 
-  controls.bar.on('drawend', (event) => {
+  controls.bar.on('drawend', (event) => {    
     box.getSource().addFeature(event.feature);
+  });
+
+  //Start modifying approach/box: Move and rotate
+  controls.edit.on('modifystart', event=>{
+    let centerFeat = temporaryBoxMarkers.getSource().getFeatureById("boxCenter");
+    let draggableFeat = temporaryBoxMarkers.getSource().getFeatureById("draggablePoint");
+    let initRadius = getGeodesicDistance(centerFeat, draggableFeat);
+    let initialPosition = draggableFeat.getGeometry().getCoordinates();
+    event.features.forEach(feature => {
+      if (feature === centerFeat) {
+        feature.getGeometry().on('change', function () {
+          movePolygon(selectedMarker, centerFeat);
+          temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+        })
+      }else if(feature === draggableFeat){
+        feature.getGeometry().on('change', function () {
+          scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, initialPosition, initRadius);
+          //Calculate the updated radius and set it to the initRadius property
+          initRadius = getGeodesicDistance(centerFeat, draggableFeat); ;
+          draggableFeat.set("initRadius", initRadius);
+          draggableFeat.set("initialPosition", initialPosition);  
+        });
+      }
+    });
+  });
+  //End modifying approach/box: Move and rotate
+  controls.edit.on('modifyend', event=>{
+    let centerFeat = temporaryBoxMarkers.getSource().getFeatureById("boxCenter");
+    let draggableFeat = temporaryBoxMarkers.getSource().getFeatureById("draggablePoint");
+    if (event.features.getArray().includes(centerFeat)) {
+      movePolygon(selectedMarker, centerFeat);
+      temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+      let offsetX = getMaxSquareDistance(selectedMarker);
+      let offsetY = getMaxSquareDistance(selectedMarker)/2;
+      let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
+      temporaryBoxMarkers.getSource().addFeature(newPoint);
+    }else if (event.features.getArray().includes(draggableFeat)){
+      scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, draggableFeat.get("initialPosition"), draggableFeat.get("initRadius"))
+      temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+      let offsetX = getMaxSquareDistance(selectedMarker);
+      let offsetY = getMaxSquareDistance(selectedMarker)/2;
+      let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
+      temporaryBoxMarkers.getSource().addFeature(newPoint);
+    }
   });
   
   // Start modifying lanes: Track the feature and listen for geometry changes
@@ -400,19 +476,18 @@ function registerDrawInteractions(){
         if (feature.getGeometry() instanceof ol.geom.LineString) {
             // Update markers while moving (geometry changes)
             feature.getGeometry().on('change', function () {
-              temporaryMarkers.getSource().clear();
-              showMarkers(feature, temporaryMarkers);
+              temporaryLaneMarkers.getSource().clear();
+              showMarkers(feature, temporaryLaneMarkers);
             });
         }
     });
   });
-
   // End modifying lanes: Update markers when a vertex is moved
   controls.modify.on('modifyend', function (event) {
     event.features.forEach(feature => {
         if (feature.getGeometry() instanceof ol.geom.LineString) {
-          temporaryMarkers.getSource().clear();
-          showMarkers(feature, temporaryMarkers);
+          temporaryLaneMarkers.getSource().clear();
+          showMarkers(feature, temporaryLaneMarkers);
         }
     });
   });
@@ -432,8 +507,7 @@ function registerDrawInteractions(){
     placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
 
     stateConfidence = null;
-    signalPhase = null;
-    
+    signalPhase = null;    
     nodeLaneWidth = [];    
     let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
     $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
@@ -555,11 +629,16 @@ function initSideBar() {
         controls
       );
     } else {
+
+      let tempLaneFeatures = lanes.getSource().getFeatures();
+      let tempVectorFeatures = vectors.getSource().getFeatures();
+      let tempBoxFeatures = box.getSource().getFeatures();
       deleteMode = false;
       toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false, controls);    
       measureSource.clear();
     }
-    temporaryMarkers.getSource().clear();
+    temporaryLaneMarkers.getSource().clear();
+    temporaryBoxMarkers.getSource().clear();
   });
 
   $("#builder").click(() => {
@@ -786,7 +865,6 @@ function initMISC() {
   resetRGAStatus();
   $("#rga_switch").on("click", () => {
     rgaEnabled = setRGAStatus();
-    console.log(rgaEnabled)
   });
 
   $("#road_authority_id").on("keyup", () => {

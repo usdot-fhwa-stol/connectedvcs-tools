@@ -1031,7 +1031,6 @@ function unselectFeature(map, overlayLayersGroup,  selectedFeature ) {
 
 
 function setRGAStatus() {
-  console.log("setRGAStatus")
   let rgaEnabled = false;
   if($('#rga_switch').is(":checked")){
       rgaEnabled = true;
@@ -1173,6 +1172,19 @@ function onMappedGeomIdChangeCallback(){
   }
 }
 
+// Function to debounce the modify event
+function debounceModifyEvent(callback, delay) {
+  let timeoutId;
+  return function (event) {
+      if (timeoutId) {
+          clearTimeout(timeoutId); // Clear the previous timeout
+      }
+      timeoutId = setTimeout(() => {
+          callback(event); // Execute callback after delay
+      }, delay);
+  };
+}
+
 export {
   getCookie,
   isOdd,
@@ -1216,6 +1228,7 @@ export {
   onRoadAuthorityIdChangeCallback,
   resetRGAStatus,
   getLength,
-  copyTextToClipboard
+  copyTextToClipboard,
+  debounceModifyEvent
   
 }

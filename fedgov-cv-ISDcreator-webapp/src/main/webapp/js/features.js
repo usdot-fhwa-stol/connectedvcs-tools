@@ -1,6 +1,6 @@
 import { getElevation } from "./api.js";
 import { toggleControlsOn } from "./files.js";
-import { laneStyle, midMarkerStyle } from "./style.js";
+import { laneStyle, midMarkerStyle, pointStyle } from "./style.js";
 import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
 /*********************************************************************************************************************/
 /**
@@ -264,7 +264,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 		    
 		    // Turn off the placeComputed control since the user has completed
 		    // picking where they want to place the computed lane
-		    toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, true, controls);
+		    toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false, controls);
 	    }
 	}
 	else {		
@@ -304,7 +304,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 			
 			// Toggle the control back to lane editing since this is what the user
 			// was in when they selected the lane
-			toggleControlsOn("modify", lanes, vectors, laneMarkers, laneWidths, true, controls);
+			toggleControlsOn("modify", lanes, vectors, laneMarkers, laneWidths, false, controls);
 		}
 	}
 }
@@ -574,6 +574,33 @@ function showMarkers(laneFeature, laneMarkers) {
     }
 }
 
+/**
+ *@brief Move polygon to target point location
+ *@param {*} polygonFeature polygon feature
+ *@param {*} targetPointFeature target point feature
+ */
+function movePolygon(polygonFeature, targetPointFeature){
+	let newCenter = targetPointFeature.getGeometry().getCoordinates();
+	let oldCenter = polygonFeature.getGeometry().getInteriorPoint().getCoordinates();
+	// Calculate translation distance
+	let deltaX = newCenter[0] - oldCenter[0];
+	let deltaY = newCenter[1] - oldCenter[1];
+	// Move polygon coordinates
+	polygonFeature.getGeometry().translate(deltaX, deltaY);
+}
+
+/**
+ * Function to calculate geodesic (real-world) distance between two features
+ * @param {*} fromPointFeature A point feature
+ * @param {*} toPointFeature Target point feature
+ * @returns Distance in meter between two points
+ */
+function getGeodesicDistance(fromPointFeature, toPointFeature) {
+    let coord1 = ol.proj.toLonLat(fromPointFeature.getGeometry().getCoordinates());
+    let coord2 = ol.proj.toLonLat(toPointFeature.getGeometry().getCoordinates());
+    return ol.sphere.getDistance(coord1, coord2);
+}
+
 function selectComputedFeature(laneNum, laneMarkers) {
 	const features = laneMarkers.getSource().getFeatures();
 	for (let i = 0; i < features.length; i++) {
@@ -584,10 +611,93 @@ function selectComputedFeature(laneNum, laneMarkers) {
 	}
 }
 
+/**
+ * Function to calculate the maximum distance (diagonal) of a square polygon
+ * @param {*} polygonFeature Polygon feature
+ * @returns Maximum distance in meters
+ */
+function getMaxSquareDistance(polygonFeature) {
+    // Get the coordinates of the polygon (outer ring)
+    let coordinates = polygonFeature.getGeometry().getCoordinates()[0]; // Outer ring coordinates
+
+    // Assuming the polygon is a square, get two opposite corner points (diagonal)
+    let coord1 = ol.proj.toLonLat(coordinates[0]); // First point (corner)
+    let coord2 = ol.proj.toLonLat(coordinates[2]); // Opposite corner (diagonal)
+
+    // Calculate the distance between the two diagonal points (max distance)
+    let maxDistance = ol.sphere.getDistance(coord1, coord2);
+    
+    return maxDistance;
+}
+
+/**
+ * Function to calculate the angle between two points (in radians)
+ * @param {*} centerCoord center point coordinates
+ * @param {*} pointCoord point coordinates
+ * @returns 
+ */
+function calculateAngle(centerCoord, pointCoord) {
+    let dx = pointCoord[0] - centerCoord[0];
+    let dy = pointCoord[1] - centerCoord[1];
+    return Math.atan2(dy, dx); // Angle in radians
+}
+
+/**
+ * Create a point with coordinates offset(x,y) from  center feature
+ * @param {*} pointId point identifier
+ * @param {*} centerFeature a feature
+ * @param {*} offsetX offset x from the center feature
+ * @param {*} offsetY offset y from the center feature
+ * @returns 
+ */
+function createPointFeature(pointId , centerFeature, offsetX, offsetY){
+	let center = centerFeature.getGeometry().getCoordinates();
+	let newCoordinate = [center[0] + offsetX, center[1] + offsetY];
+	let newPoint = new ol.Feature(new ol.geom.Point(newCoordinate));
+	newPoint.setStyle(pointStyle);
+	newPoint.setId(pointId);
+	return newPoint;
+}
+
+/**
+ * Scale and rotate the polygon layer based on the center and the draggable feature
+  1. **Rotation**: Calculate the angle between the center and the new outside point
+  2. **Scaling**: Calculate the distance between the center and the new outside point (radius change)
+ * @param {*} polygonFeature polygon feature
+ * @param {*} centerFeature center feature of the polygon
+ * @param {*} draggableFeature Draggable feature
+ * @param {*} draggableFeatInitPosition Intial position of the draggable feature
+ * @param {*} initRadius Initial radius of the polygon
+ */
+function scaleAndRotatePolygon(polygonFeature, centerFeature, draggableFeature, draggableFeatInitPosition, initRadius){
+	// Update polygon location while moving the center point
+	let newDraggleFeatPos = draggableFeature.getGeometry().getCoordinates();
+	let centerCoord = centerFeature.getGeometry().getCoordinates();
+	// 1. **Rotation**: Calculate the angle between the center and the new outside point
+	let initAngle = Math.atan2(draggableFeatInitPosition[1] - centerCoord[1], draggableFeatInitPosition[0] - centerCoord[0]);
+	let newAngle = Math.atan2(newDraggleFeatPos[1] - centerCoord[1], newDraggleFeatPos[0] - centerCoord[0]);
+	let deltaAngle = newAngle  - initAngle;
+	const scaledPolygon = polygonFeature.getGeometry().clone();
+	// Rotate the polygon around its center
+	scaledPolygon.rotate(deltaAngle, centerCoord);
+	// 2. **Scaling**: Calculate the distance between the center and the new outside point (radius change)
+	let radius = getGeodesicDistance(centerFeature, draggableFeature);     
+	// Scale the polygon to maintain the radius
+	scaledPolygon.scale(radius/Number(initRadius), radius/Number(initRadius), centerCoord); // Normalize the radius
+	polygonFeature.setGeometry(scaledPolygon);
+}
+
+
 export {
 	onFeatureAdded,
 	buildComputedFeature,
 	showMarkers,
 	placeComputedLane,
-	selectComputedFeature
+	selectComputedFeature,
+	movePolygon,
+	getGeodesicDistance,
+	getMaxSquareDistance,
+	calculateAngle,
+	createPointFeature,
+	scaleAndRotatePolygon
 }
