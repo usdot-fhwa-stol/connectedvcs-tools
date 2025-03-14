@@ -23,7 +23,7 @@
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIEnv *env, jobject cls, jobject baseLayer, jobject geometryContainers)
 {
 	printf("\n ***Inside the rga_wrapper.c file **** \n");
-	uint8_t buffer[2500];
+	uint8_t buffer[2302];
 	size_t buffer_size = sizeof(buffer);
 	asn_enc_rval_t ec;
 
@@ -300,7 +300,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 					jmethodID approachGeomApproachSetGetMethod = (*env)->GetMethodID(env, approachGeomApproachSetClass, "get", "(I)Ljava/lang/Object;");
 
 					jint approachGeomApproachSetSize = (*env)->CallIntMethod(env, approachGeomApproachSetList, approachGeomApproachSetSizeMethod);
-					printf("Got the approachGeomApproachSetSize, which is %d \n", approachGeomApproachSetSize);
 
 					for (jint aIndex = 0; aIndex < approachGeomApproachSetSize; aIndex++)
 					{
@@ -329,7 +328,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 							jmethodID wayTypeIDSetSizeMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "size", "()I");
 							jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayTypeIDSetListClass, "get", "(I)Ljava/lang/Object;");
 							jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayTypesSetListObj, wayTypeIDSetSizeMethod);
-							printf("Got the size of the approachwaytypeidset, which is %d \n", wayTypeIDSetSize);
 
 							for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
 							{
@@ -345,8 +343,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 								jlong wayTypeValue = (*env)->CallLongMethod(env, wayTypeObj, getWayTypeMethod);
 							
 								wayTypeIDSet->wayType = (WayType_t)((long)wayTypeValue);
-								printf("WayType field populated, %d \n", wayTypeValue);
-							
+
 								// wayIDSet
 								jmethodID getWayIDSetMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayIDSet", "()Ljava/util/List;");
 								jobject wayIDSetListObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayIDSetMethod); // this is a list
@@ -356,7 +353,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 								jmethodID wayTypeIDSetGetMethod = (*env)->GetMethodID(env, wayIDSetListClass, "get", "(I)Ljava/lang/Object;");
 							
 								jint wayTypeIDSetSize = (*env)->CallIntMethod(env, wayIDSetListObj, wayIDSetSizeMethod);
-								printf("Got wayTypeIDSetSize, which is %d \n", wayTypeIDSetSize);
 							
 								for (jint tIndex = 0; tIndex < wayTypeIDSetSize; tIndex++)
 								{						
@@ -369,7 +365,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 							
 									LaneID_t *laneIDApproach = calloc(1, sizeof(LaneID_t));
 									*laneIDApproach = (LaneID_t)laneIDLong; 
-									printf("Called getLaneIDMethod, value at laneIDApproach is: %d \n", *laneIDApproach);
 									ASN_SEQUENCE_ADD(&wayTypeIDSet->wayIDSet.list, laneIDApproach);
 								}
 
