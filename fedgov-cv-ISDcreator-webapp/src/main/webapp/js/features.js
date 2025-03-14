@@ -48,8 +48,8 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 						// the call can take too long to return and the code iterates to the next nodes
 						// but a value has not yet been inserted into the elevation array causing the array
 						// to be too small.
-						laneFeat.get("elevation").splice(j, 0, "tempValue");
-						laneFeat.get("laneWidth").splice(j, 0, "tempValue");
+						laneFeat.get("elevation").splice(j, 0, 0);
+						laneFeat.get("laneWidth").splice(j, 0, 0);
 						laneFeat.get("nodeInitialized").splice(j, 0, undefined);
 					}
 				}
