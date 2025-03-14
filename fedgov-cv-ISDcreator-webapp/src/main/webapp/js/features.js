@@ -123,6 +123,16 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 	}
 }
 
+
+/**
+ * Function to build dots for lane features.
+ * @param {number} i - Index of the lane feature.
+ * @param {number} j - Index of the dot.
+ * @param {Object} dot - The dot feature.
+ * @param {Object} latLon - Latitude and longitude of the dot.
+ * @param {Object} lanes - The lanes layer.
+ * @param {Object} laneMarkers - The lane markers layer.
+ */
 function buildDots(i, j, dot, latLon, lanes, laneMarkers){
 	// Don't look at computed dots, they are handled by other functions
 	let laneFeatures = lanes.getSource().getFeatures();
@@ -140,7 +150,21 @@ function buildDots(i, j, dot, latLon, lanes, laneMarkers){
 	}
 }
 
-
+/**
+ * Function to place a computed lane on the map.
+ * @param {Object} newDotFeature - The new dot feature.
+ * @param {Object} lanes - The lanes layer.
+ * @param {Object} vectors - The vectors layer.
+ * @param {Object} laneMarkers - The lane markers layer.
+ * @param {Object} laneWidths - The lane widths layer.
+ * @param {boolean} computingLane - Flag indicating if a lane is being computed.
+ * @param {Object} computedLaneSource - The source of the computed lane.
+ * @param {Object} speedForm - The speed form element.
+ * @param {Array} sharedWith - Array of shared lane attributes.
+ * @param {Array} laneTypeOptions - Array of lane type options.
+ * @param {string} typeAttributeNameSaved - Saved type attribute name.
+ * @param {Object} controls - The controls object.
+ */
 function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls) {
 	let laneFeatures = lanes.getSource().getFeatures();
 	let newX = newDotFeature.getGeometry().getCoordinates()[0];
@@ -309,6 +333,21 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	}
 }
 
+/**
+ * Function to build a computed feature.
+ * @param {*} i Lane identifier
+ * @param {*} laneNumber Lane number 
+ * @param {*} referenceLaneID Reference lane ID
+ * @param {*} referenceLaneNumber  Reference lane number
+ * @param {*} offsetX X offset
+ * @param {*} offsetY Y offset
+ * @param {*} rotation Rotation angle
+ * @param {*} scaleX 
+ * @param {*} scaleY 
+ * @param {*} computedLaneID 
+ * @param {*} lanes 
+ * @param {*} laneMarkers 
+ */
 function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID, lanes, laneMarkers){
 
 	let r = Number(referenceLaneNumber);

@@ -620,8 +620,8 @@ function deleteMarker(featureLayer, feature, lanes, selected) {
   }
 }
 /**
- * 
- * @param {*} measureControl draw line control callback function when draw ended and calculate the distance of the line
+ * @description draw line control callback function when draw ended and calculate the length of the line and display the length in the measurement div
+ * @param {Object} event - The event object
  */
 function measureCallback(event){
   const geometry = event.feature.getGeometry();
