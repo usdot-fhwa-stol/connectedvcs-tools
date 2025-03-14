@@ -14,9 +14,7 @@ const laneDefault = {
 };
 
 const measureDefault = {
-  // strokeColor: "${getStrokeColor}",
   strokeColor: "#FF9900",
-  // fillColor: "${getFillColor}",
   fillColor: "#FF9900",
   strokeOpacity: 1,
   strokeWidth: 2,
