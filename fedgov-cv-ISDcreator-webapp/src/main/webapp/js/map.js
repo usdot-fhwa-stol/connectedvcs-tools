@@ -215,15 +215,13 @@ function initMap() {
   //This layer is used when modifying a lane and show the temporary dots on the lane to help guide lane modification
   temporaryLaneMarkers = new ol.layer.Vector({
     source: new ol.source.Vector(),
-    style: laneStyle,
-    title: 'temporaryMarkers'
+    style: laneStyle
   });
   map.addLayer(temporaryLaneMarkers);
 
   temporaryBoxMarkers = new ol.layer.Vector({
     source: new ol.source.Vector(),
-    style: laneStyle,
-    title: 'temporaryBoxMarkers'
+    style: laneStyle
   });
   map.addLayer(temporaryBoxMarkers);
 } //END map init
@@ -431,7 +429,7 @@ function registerDrawInteractions(){
     let centerFeat = temporaryBoxMarkers.getSource().getFeatureById("boxCenter");
     let draggableFeat = temporaryBoxMarkers.getSource().getFeatureById("draggablePoint");
     let initRadius = getGeodesicDistance(centerFeat, draggableFeat);
-    let initialPosition = draggableFeat.getGeometry().getCoordinates();
+    let startRotatePosition = draggableFeat.getGeometry().getCoordinates();
     event.features.forEach(feature => {
       if (feature === centerFeat) {
         feature.getGeometry().on('change', function () {
@@ -440,11 +438,13 @@ function registerDrawInteractions(){
         })
       }else if(feature === draggableFeat){
         feature.getGeometry().on('change', function () {
-          scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, initialPosition, initRadius);
+          scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, startRotatePosition, initRadius);
+          //Calculate the updated initial position
+          startRotatePosition = draggableFeat.getGeometry().getCoordinates();
           //Calculate the updated radius and set it to the initRadius property
           initRadius = getGeodesicDistance(centerFeat, draggableFeat); ;
           draggableFeat.set("initRadius", initRadius);
-          draggableFeat.set("initialPosition", initialPosition);  
+          draggableFeat.set("initialPosition", startRotatePosition);  
         });
       }
     });
@@ -456,14 +456,14 @@ function registerDrawInteractions(){
     if (event.features.getArray().includes(centerFeat)) {
       movePolygon(selectedMarker, centerFeat);
       temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
-      let offsetX = getMaxSquareDistance(selectedMarker);
+      let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
       let offsetY = getMaxSquareDistance(selectedMarker)/2;
       let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
       temporaryBoxMarkers.getSource().addFeature(newPoint);
     }else if (event.features.getArray().includes(draggableFeat)){
-      scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, draggableFeat.get("initialPosition"), draggableFeat.get("initRadius"))
+      scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, draggableFeat.get("initialPosition"), draggableFeat.get("initRadius"));      
       temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
-      let offsetX = getMaxSquareDistance(selectedMarker);
+      let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
       let offsetY = getMaxSquareDistance(selectedMarker)/2;
       let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
       temporaryBoxMarkers.getSource().addFeature(newPoint);

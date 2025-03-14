@@ -652,7 +652,7 @@ function calculateAngle(centerCoord, pointCoord) {
  */
 function createPointFeature(pointId , centerFeature, offsetX, offsetY){
 	let center = centerFeature.getGeometry().getCoordinates();
-	let newCoordinate = [center[0] + offsetX, center[1] + offsetY];
+	let newCoordinate = [center[0] + offsetX, center[1] - offsetY];
 	let newPoint = new ol.Feature(new ol.geom.Point(newCoordinate));
 	newPoint.setStyle(pointStyle);
 	newPoint.setId(pointId);
@@ -666,24 +666,24 @@ function createPointFeature(pointId , centerFeature, offsetX, offsetY){
  * @param {*} polygonFeature polygon feature
  * @param {*} centerFeature center feature of the polygon
  * @param {*} draggableFeature Draggable feature
- * @param {*} draggableFeatInitPosition Intial position of the draggable feature
- * @param {*} initRadius Initial radius of the polygon
+ * @param {*} draggableFeatStartPosition Start position of the draggable feature
+ * @param {*} startRadius start radius of the polygon
  */
-function scaleAndRotatePolygon(polygonFeature, centerFeature, draggableFeature, draggableFeatInitPosition, initRadius){
+function scaleAndRotatePolygon(polygonFeature, centerFeature, draggableFeature, draggableFeatStartPosition, startRadius){
 	// Update polygon location while moving the center point
-	let newDraggleFeatPos = draggableFeature.getGeometry().getCoordinates();
+	let draggleFeatCoord = draggableFeature.getGeometry().getCoordinates();
 	let centerCoord = centerFeature.getGeometry().getCoordinates();
-	// 1. **Rotation**: Calculate the angle between the center and the new outside point
-	let initAngle = Math.atan2(draggableFeatInitPosition[1] - centerCoord[1], draggableFeatInitPosition[0] - centerCoord[0]);
-	let newAngle = Math.atan2(newDraggleFeatPos[1] - centerCoord[1], newDraggleFeatPos[0] - centerCoord[0]);
-	let deltaAngle = newAngle  - initAngle;
-	const scaledPolygon = polygonFeature.getGeometry().clone();
+	// 1. **Rotation**: Calculate the angle between the center and the draggable point
+	let initAngle = Math.atan2(draggableFeatStartPosition[1] - centerCoord[1], draggableFeatStartPosition[0] - centerCoord[0]);
+	let newAngle = Math.atan2(draggleFeatCoord[1] - centerCoord[1], draggleFeatCoord[0] - centerCoord[0]);
+	let deltaAngle = (newAngle - initAngle);
+	let scaledPolygon = polygonFeature.getGeometry().clone();
 	// Rotate the polygon around its center
 	scaledPolygon.rotate(deltaAngle, centerCoord);
 	// 2. **Scaling**: Calculate the distance between the center and the new outside point (radius change)
 	let radius = getGeodesicDistance(centerFeature, draggableFeature);     
 	// Scale the polygon to maintain the radius
-	scaledPolygon.scale(radius/Number(initRadius), radius/Number(initRadius), centerCoord); // Normalize the radius
+	scaledPolygon.scale(radius/Number(startRadius), radius/Number(startRadius), centerCoord); // Normalize the radius
 	polygonFeature.setGeometry(scaledPolygon);
 }
 
