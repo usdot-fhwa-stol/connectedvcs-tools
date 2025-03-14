@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 LEIDOS.
+ * Copyright (C) 2025 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +24,8 @@ import gov.usdot.cv.mapencoder.NodeXY24b;
 import gov.usdot.cv.mapencoder.NodeXY26b;
 import gov.usdot.cv.mapencoder.NodeXY28b;
 import gov.usdot.cv.mapencoder.NodeXY32b;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
 
 public class OffsetEncoding {
     public OffsetEncodingType type = OffsetEncodingType.Standard;
@@ -144,5 +146,74 @@ public class OffsetEncoding {
                 break;
         }
         return nodeOffsetPointXY;
+    }
+
+    /**
+     * This method takes two GeoPoint coordinates where each of them contains latitude, longitude, and elevation
+     * @param gp1
+     * @param gp2
+     * @return nodeXYZOffsetInfo consisting of nodeXOffsetValue, nodeYOffsetValue, and nodeZOffsetValue
+     */
+    public NodeXYZOffsetInfo encodeRGAOffset(GeoPoint gp1, GeoPoint gp2) {
+        NodeXYZOffsetInfo nodeXYZOffsetInfo = new NodeXYZOffsetInfo();
+        NodeXYZOffsetValue nodeXOffsetValue = new NodeXYZOffsetValue();
+        NodeXYZOffsetValue nodeYOffsetValue = new NodeXYZOffsetValue();
+        NodeXYZOffsetValue nodeZOffsetValue = new NodeXYZOffsetValue();
+        switch (size) {
+            case Offset20Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B10);
+                nodeXOffsetValue.setOffsetB10(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B10);
+                nodeYOffsetValue.setOffsetB10(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B10);
+                nodeZOffsetValue.setOffsetB10(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            case Offset22Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B11);
+                nodeXOffsetValue.setOffsetB11(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B11);
+                nodeYOffsetValue.setOffsetB11(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B11);
+                nodeZOffsetValue.setOffsetB11(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            case Offset24Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
+                nodeXOffsetValue.setOffsetB12(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
+                nodeYOffsetValue.setOffsetB12(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
+                nodeZOffsetValue.setOffsetB12(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            case Offset26Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B13);
+                nodeXOffsetValue.setOffsetB13(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B13);
+                nodeYOffsetValue.setOffsetB13(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B13);
+                nodeZOffsetValue.setOffsetB13(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            case Offset28Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B14);
+                nodeXOffsetValue.setOffsetB14(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B14);
+                nodeYOffsetValue.setOffsetB14(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B14);
+                nodeZOffsetValue.setOffsetB14(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            case Offset32Bit:
+                nodeXOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B16);
+                nodeXOffsetValue.setOffsetB16(gp2.getLonOffsetInCentimeters(gp1));
+                nodeYOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B16);
+                nodeYOffsetValue.setOffsetB16(gp2.getLatOffsetInCentimeters(gp1));
+                nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B16);
+                nodeZOffsetValue.setOffsetB16(gp2.getElevationOffsetInCentimeters(gp1));
+                break;
+            default:
+                break;
+        }
+        nodeXYZOffsetInfo.setNodeXOffsetValue(nodeXOffsetValue);
+        nodeXYZOffsetInfo.setNodeYOffsetValue(nodeYOffsetValue);
+        nodeXYZOffsetInfo.setNodeZOffsetValue(nodeZOffsetValue);
+        return nodeXYZOffsetInfo;
     }
 }

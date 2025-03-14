@@ -251,7 +251,12 @@ function createMessageJSON()
                     "sharedWith": lanes.features[j].attributes.sharedWith,
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": lanes.features[j].attributes.computed
+                    "isComputed": lanes.features[j].attributes.computed,
+                    "timeRestrictions": {                        
+                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
+                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                    }
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	drivingLaneArray[temp_j].laneNodes = nodeArray;
@@ -302,7 +307,12 @@ function createMessageJSON()
                     "sharedWith": lanes.features[j].attributes.sharedWith,
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": lanes.features[j].attributes.computed
+                    "isComputed": lanes.features[j].attributes.computed,
+                    "timeRestrictions": {                        
+                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
+                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                    }
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
