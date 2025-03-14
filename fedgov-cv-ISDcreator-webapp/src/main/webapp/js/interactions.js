@@ -1,5 +1,4 @@
-import { showMarkers } from "./features.js";
-import { barHighlightedStyle, laneStyle } from "./style.js";
+import { barHighlightedStyle } from "./style.js";
 import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard } from "./utils.js";
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){

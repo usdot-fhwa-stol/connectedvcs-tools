@@ -1,4 +1,4 @@
-import {addRow, debounceModifyEvent, deleteRow, getCookie, getLength, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
+import {addRow, deleteRow, getCookie, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -330,7 +330,7 @@ function registerSelectInteraction() {
         temporaryBoxMarkers.getSource().addFeature(centerFeat);
         
         //Create a draggable point outside polygon
-        let offsetX = getMaxSquareDistance(selectedMarker);
+        let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
         let offsetY = getMaxSquareDistance(selectedMarker)/2;
         let newPoint = createPointFeature("draggablePoint", centerFeat, offsetX, offsetY );
         temporaryBoxMarkers.getSource().addFeature(newPoint);
@@ -629,10 +629,6 @@ function initSideBar() {
         controls
       );
     } else {
-
-      let tempLaneFeatures = lanes.getSource().getFeatures();
-      let tempVectorFeatures = vectors.getSource().getFeatures();
-      let tempBoxFeatures = box.getSource().getFeatures();
       deleteMode = false;
       toggleControlsOn("none", lanes, vectors, laneMarkers, laneWidths, false, controls);    
       measureSource.clear();

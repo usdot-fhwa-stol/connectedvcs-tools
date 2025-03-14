@@ -65,7 +65,7 @@ function getLength(geometry){
  * @event copy
  */
 function copyTextToClipboard(text) {
-  var textArea = document.createElement("textarea");
+  let textArea = document.createElement("textarea");
 
   //
   // *** This styling is an extra step which is likely not required. ***
@@ -111,8 +111,8 @@ function copyTextToClipboard(text) {
   textArea.select();
 
   try {
-      var successful = document.execCommand('copy');
-      var msg = successful ? 'successful' : 'unsuccessful';
+      let successful = document.execCommand('copy');
+      let msg = successful ? 'successful' : 'unsuccessful';
       console.log('Copying text command was ' + msg);
   } catch (err) {
       console.log('Oops, unable to copy');

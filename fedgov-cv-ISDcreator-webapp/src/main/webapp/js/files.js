@@ -169,8 +169,6 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 			console.log("No vectors to reset view");
 		}
 
-		// $("#dragSigns").click();
-		// $("#dragSigns").click();
 
 		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true, controls);
 		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true, controls);
@@ -363,7 +361,7 @@ function saveFile( data, vectors, selected )
 
 	let downloadLink = document.createElement("a");
 	downloadLink.download = fileNameToSaveAs;
-	//downloadLink.innerHTML = "Download File";
+	downloadLink.innerHTML = "Download File";
 	if (window.webkitURL != null){
 		// Chrome allows the link to be clicked
 		// without actually adding it to the DOM.

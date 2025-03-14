@@ -94,7 +94,7 @@ function newChildMap(map, lanes,vectors, laneMarkers, laneWidths, box, errors, c
 
 function updateChildParent(map, lanes, vectors, laneMarkers, laneWidths, box, controls){
     selected = "child";
-    var c = confirm("This will reset the verified point and marker. Continue?");
+    let c = confirm("This will reset the verified point and marker. Continue?");
     if (c === true) {
         alert("Use the file dialog to select the parent map you wish to use to replace the current markers.")
         loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected, controls);

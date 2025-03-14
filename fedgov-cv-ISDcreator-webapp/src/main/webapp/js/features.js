@@ -1,6 +1,6 @@
 import { getElevation } from "./api.js";
 import { toggleControlsOn } from "./files.js";
-import { laneStyle, midMarkerStyle, pointStyle } from "./style.js";
+import { laneStyle, pointStyle } from "./style.js";
 import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
 /*********************************************************************************************************************/
 /**
