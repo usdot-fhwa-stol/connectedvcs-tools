@@ -43,9 +43,18 @@ public class RGAEncodeTest {
 
     GeometryContainer mockGeometryContainer1;
     ApproachGeometryLayer mockApproachGeometryLayer1;
+    List<IndividualApproachGeometryInfo> mockIndividualApproachGeometryInfoList1;
     IndividualApproachGeometryInfo mockIndividualApproachGeometryInfo1;
     IndividualApproachGeometryInfo mockIndividualApproachGeometryInfo2;
-    List<IndividualApproachGeometryInfo> mockIndividualApproachGeometryInfoList1;
+    List<ApproachWayTypeIDSet> mockApproachWayTypeIDSet1;
+    ApproachWayTypeIDSet mockIndividualApproachWayTypeID1;
+    ApproachWayTypeIDSet mockIndividualApproachWayTypeID2;
+    List<Long> mockLaneIDSet1;
+    WayType mockWayTypeID1;
+    Long mockLaneID1;
+    List<Long> mockLaneIDSet2;
+    WayType mockWayTypeID2;
+    Long mockLaneID2;
 
     GeometryContainer mockGeometryContainer2;
     ApproachGeometryLayer mockApproachGeometryLayer2;
@@ -195,6 +204,10 @@ public class RGAEncodeTest {
         mockApproachGeometryLayer1 = mock(ApproachGeometryLayer.class);
         mockIndividualApproachGeometryInfo1 = mock(IndividualApproachGeometryInfo.class);
         mockIndividualApproachGeometryInfo2 = mock(IndividualApproachGeometryInfo.class);
+        mockIndividualApproachWayTypeID1 = mock(ApproachWayTypeIDSet.class);
+        mockIndividualApproachWayTypeID2 = mock(ApproachWayTypeIDSet.class);
+        mockWayTypeID1 = mock(WayType.class);
+        mockWayTypeID2 = mock(WayType.class);
 
         mockGeometryContainer2 = mock(GeometryContainer.class);
         mockApproachGeometryLayer2 = mock(ApproachGeometryLayer.class);
@@ -351,12 +364,28 @@ public class RGAEncodeTest {
 
         // CONTAINER 1
         when(mockGeometryContainer1.getGeometryContainerID()).thenReturn(GeometryContainer.APPROACH_GEOMETRY_LAYER_ID);
+        when(mockWayTypeID1.getWayType()).thenReturn((long)1);
+        mockLaneID1 = (long)3;
+        mockLaneIDSet1 = Arrays.asList(mockLaneID1);
+        when(mockIndividualApproachWayTypeID1.getWayType()).thenReturn(mockWayTypeID1);
+        when(mockIndividualApproachWayTypeID1.getLaneID(0)).thenReturn((long)3);
+        when(mockIndividualApproachWayTypeID1.getWayIDSet()).thenReturn(mockLaneIDSet1);
+
+        when(mockWayTypeID2.getWayType()).thenReturn((long)2);
+        mockLaneID2 = (long)5;
+        mockLaneIDSet2 = Arrays.asList(mockLaneID2);
+        when(mockIndividualApproachWayTypeID2.getWayType()).thenReturn(mockWayTypeID2);
+        when(mockIndividualApproachWayTypeID2.getLaneID(0)).thenReturn((long)5);
+        when(mockIndividualApproachWayTypeID2.getWayIDSet()).thenReturn(mockLaneIDSet2);
+
+        mockApproachWayTypeIDSet1 = Arrays.asList(mockIndividualApproachWayTypeID1, mockIndividualApproachWayTypeID2);
+        when(mockIndividualApproachGeometryInfo1.getApproachWayTypeIDSet()).thenReturn(mockApproachWayTypeIDSet1);
         when(mockIndividualApproachGeometryInfo1.getApproachID()).thenReturn(2);
         when(mockIndividualApproachGeometryInfo2.getApproachID()).thenReturn(3);
         mockIndividualApproachGeometryInfoList1 = Arrays.asList(mockIndividualApproachGeometryInfo1,
-                mockIndividualApproachGeometryInfo2);
+                        mockIndividualApproachGeometryInfo2);
         when(mockApproachGeometryLayer1.getApproachGeomApproachSet())
-                .thenReturn(mockIndividualApproachGeometryInfoList1);
+                        .thenReturn(mockIndividualApproachGeometryInfoList1);
         when(mockGeometryContainer1.getApproachGeometryLayer()).thenReturn(mockApproachGeometryLayer1);
 
         // CONTAINER 2
@@ -658,16 +687,17 @@ public class RGAEncodeTest {
     public void rgaEncodeTester() {
         ByteArrayObject res = encoder.encode(mockRGA);
         System.out.println(res.getMessage());
-        byte[] expected = { 0, 43, -128, -30, 2, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
+        byte[] expected = { 0, 43, -128, -23, 2, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
                         16, 32, 19, 9, -20, 20, 2, 6, 12, 2, 8, 3, 4, 110, 42, 40, 27, -3, -6, 34, -83, -52, 0, 81, -92,
-                        40, 0, -63, 8, 48, 0, 8, 1, 0, 65, 0, 0, -76, 23, 4, -128, 1, 12, 33, -127, 32, 34, -64, 51, 64,
-                        34, 0, 9, 0, 60, 15, -3, -6, 34, -83, -52, 0, 81, -2, 127, 126, -120, -84, -13, 0, 20, 105, 8,
-                        71, -64, 16, -48, -109, 90, 78, -112, 118, -76, -99, 32, -95, 0, -41, -24, -118, -128, 71, -125,
-                        34, 32, -106, 84, 6, 66, 0, 10, 80, 4, 68, 96, 8, 16, 0, 28, -124, 32, -120, 0, 33, -28, 68, 36,
-                        4, 88, 6, 104, 4, 88, 8, 0, -16, 47, -9, -25, -81, 50, -48, 0, 8, -83, -3, -6, 79, -52, -56, 0,
-                        1, -92, 0, 8, 52, 0, 32, 0, 8, -16, 10, 68, 1, -22, -128, 20, 88, 4, -63, 0, 4, 80, -84, 12, 40,
-                        0, 72, -117, 4, -128, -117, 0, -51, 0, -128, -57, -64, 68, -64, 0, 30, 12, -88, -126, 93, 80,
-                        25, 32, 7, -127, 127, -65, 62, 89, 79, 0, 0, 58, 47, -17, -46, -74, 80, 0, 0, 13, 33, 0 };
+                        40, 2, 65, 72, 68, 0, 50, 0, 21, 56, 0, 0, 12, 5, 32, 0, 65, 0, 0, -76, 23, 4, -128, 1, 12, 33,
+                        -127, 32, 34, -64, 51, 64, 34, 0, 9, 0, 60, 15, -3, -6, 34, -83, -52, 0, 81, -2, 127, 126, -120,
+                        -84, -13, 0, 20, 105, 8, 71, -64, 16, -48, -109, 90, 78, -112, 118, -76, -99, 32, -95, 0, -41,
+                        -24, -118, -128, 71, -125, 34, 32, -106, 84, 6, 66, 0, 10, 80, 4, 68, 96, 8, 16, 0, 28, -124,
+                        32, -120, 0, 33, -28, 68, 36, 4, 88, 6, 104, 4, 88, 8, 0, -16, 47, -9, -25, -81, 50, -48, 0, 8,
+                        -83, -3, -6, 79, -52, -56, 0, 1, -92, 0, 8, 52, 0, 32, 0, 8, -16, 10, 68, 1, -22, -128, 20, 88,
+                        4, -63, 0, 4, 80, -84, 12, 40, 0, 72, -117, 4, -128, -117, 0, -51, 0, -128, -57, -64, 68, -64,
+                        0, 30, 12, -88, -126, 93, 80, 25, 32, 7, -127, 127, -65, 62, 89, 79, 0, 0, 58, 47, -17, -46,
+                        -74, 80, 0, 0, 13, 33, 0 };
 
         Assert.assertArrayEquals(expected, res.getMessage()); 
     }

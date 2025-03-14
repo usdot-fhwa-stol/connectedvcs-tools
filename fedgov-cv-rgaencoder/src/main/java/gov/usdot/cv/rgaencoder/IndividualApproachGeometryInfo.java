@@ -15,16 +15,21 @@
 */
 
 package gov.usdot.cv.rgaencoder;
+import java.util.List;
+import java.util.ArrayList;
 
 public class IndividualApproachGeometryInfo {
     private int approachID;
+    private List<ApproachWayTypeIDSet> wayTypesSet;
 
     public IndividualApproachGeometryInfo() {
         this.approachID = 0;
+        this.wayTypesSet = new ArrayList<>();
     }
 
-    public IndividualApproachGeometryInfo(int approachID) {
+    public IndividualApproachGeometryInfo(int approachID, List<ApproachWayTypeIDSet> wayTypesSet) {
         this.approachID = approachID;
+        this.wayTypesSet = wayTypesSet;
     }
 
     public int getApproachID() {
@@ -35,8 +40,17 @@ public class IndividualApproachGeometryInfo {
         this.approachID = approachID;
     }
 
+    public List<ApproachWayTypeIDSet> getApproachWayTypeIDSet() {
+        return wayTypesSet;
+    }
+
+    public void setApproachWayTypeIDSet(List<ApproachWayTypeIDSet> wayTypesSet) {
+        this.wayTypesSet = wayTypesSet;
+    }
+
     @Override
     public String toString() {
-        return "IndividualApproachGeometryInfo [approachID=" + approachID + "]";
+        return "IndividualApproachGeometryInfo [approachID=" + approachID + 
+        (wayTypesSet != null ? wayTypesSet.toString() : "null") + "]";
     }
 }
