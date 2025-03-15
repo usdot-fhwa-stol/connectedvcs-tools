@@ -1,9 +1,9 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard } from "./utils.js";
 
-function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, deleteMode, selected){
+function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
-      console.log('Lane feature selected:', evt.selected[0]);
+      console.log('Lane feature selected:', evt.selected[0]);  
     }else{
       console.log("No lane feature selected, ignore");
       return;
@@ -13,7 +13,7 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
     // Find the layer by checking which vector source contains the feature
     const laneLayer = overlayLayersGroup.getLayers().getArray().find(layer=>{
       return selectedLane && layer instanceof ol.layer.Vector && layer.getSource().hasFeature(selectedLane)
-    })
+    })    
 
     if (deleteMode){
         if(selectedLane.get("source")) {
@@ -176,14 +176,14 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       $(".lane_number").hide();
     }
     let nodeLaneWidth;
-    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")){
-        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth");
+    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth")){
+        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth");
     }
 
-    if (! nodeLaneWidth[selectedMarker.get("number")]){
-      $("#lane_width").val("0");
+    if (nodeLaneWidth && nodeLaneWidth[selectedMarker.get("number")]){
+      $("#lane_width").val(nodeLaneWidth[selectedMarker.get("number")]);      
     } else {
-      $("#lane_width").val(nodeLaneWidth[selectedMarker.get("number")]);
+      $("#lane_width").val("0");
     }
     
     if (! selectedMarker.get("elevation")?.value){
@@ -217,11 +217,11 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
         $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
     }
-    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("speedLimitType")) {
+    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType")) {
       removeSpeedForm(speedForm);
       addSpeedForm(speedForm);
     } else {
-      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("speedLimitType"));
+      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType"));
     }
           
     $('#shared_with').multiselect('deselectAll', false);
@@ -251,7 +251,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
     $('#likely_time').val(selectedMarker.get("likelyTime"));
     $('#next_time').val(selectedMarker.get("nextTime"));              
         
-    populateAttributeWindow(selectedMarker.get("LatLon").lat, selectedMarker.get("LatLon").lon);
+    populateAttributeWindow(selectedMarker.get("LonLat").lat, selectedMarker.get("LonLat").lon);
     $("#attributes").show();
 
     for(let attrConnection in selectedMarker.get("connections")) {
@@ -364,11 +364,15 @@ function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteM
     let selectedVector = evt.selected[0];
 
     //Use the marker properties to update the marker icon
-    let iconAddress = selectedVector.get("marker").img_src;
-    let IconInfo = { src: iconAddress, height: 50, width: 50 ,anchor: [0.5,1]};
-    selectedVector.setStyle(new ol.style.Style({
-      image: new ol.style.Icon(IconInfo)
-    }));
+    let iconAddress = selectedVector.get("marker")?.img_src;
+    if (iconAddress) {
+      let IconInfo = { src: iconAddress, height: 50, width: 50 ,anchor: [0.5,1], anchorXUnits: 'fraction', anchorYUnits: 'fraction'};
+      selectedVector.setStyle(new ol.style.Style({
+        image: new ol.style.Icon(IconInfo)
+      }));
+    } else {
+      console.error("Icon address not found for the selected vector.");
+    }
 
     const vectorLayer = overlayLayersGroup.getLayers().getArray().find(layer=>{
       return selectedVector && layer instanceof ol.layer.Vector && layer.getSource().hasFeature(selectedVector)
@@ -401,6 +405,10 @@ function vectorAddInteractionCallback(evt, selected, rgaEnabled, speedForm) {
   let selectedVector = evt.feature;
   updateFeatureLocation(selectedVector, selected, rgaEnabled, speedForm);
   return selectedVector;
+}
+
+function vectorDragCallback(draggedFeature,  selected, rgaEnabled, speedForm){
+  updateFeatureLocation(draggedFeature,  selected, rgaEnabled, speedForm);
 }
 
 function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected) {
@@ -501,8 +509,10 @@ function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode
 
 /**
  * Purpose: if lat/long is modified, it changes the location
- * @params  the feature and it's metadata
- * @event changes the location on the map by redrawing
+ * @params  The selected feature
+ * @params selected: The selected map, available values: parent or child
+ * @params rgaEnabled indicator whether RGA fields are enabled
+ * @params speedForm A Javascript object that contains the speed form for lane info
  */
 function updateFeatureLocation( feature, selected, rgaEnabled, speedForm) {
   referencePointWindow(feature, selected, rgaEnabled, speedForm);
@@ -537,9 +547,9 @@ function updateFeatureLocation( feature, selected, rgaEnabled, speedForm) {
 function updateLaneFeatureLocation(feature) {
   let lonLatCoordinates = new ol.proj.toLonLat(feature.getGeometry().getCoordinates());
   feature.set("LonLat", {lon: lonLatCoordinates[0], lat: lonLatCoordinates[1]});
-	$('#long').val(feature.get("LatLon").lon);
-	$('#lat').val(feature.get("LatLon").lat);
-	populateRefWindow(feature, feature.get("LatLon").lat, feature.get("LatLon").lon);
+	$('#long').val(feature.get("LonLat").lon);
+	$('#lat').val(feature.get("LonLat").lat);
+	populateRefWindow(feature, feature.get("LonLat").lat, feature.get("LonLat").lon);
 }
 
 
@@ -609,6 +619,18 @@ function deleteMarker(featureLayer, feature, lanes, selected) {
       featureLayer.getSource().removeFeature(feature);
   }
 }
+/**
+ * @description draw line control callback function when draw ended and calculate the length of the line and display the length in the measurement div
+ * @param {Object} event - The event object
+ */
+function measureCallback(event){
+  const geometry = event.feature.getGeometry();
+  geometry.on('change', (event)=>{
+    const length = getLength(geometry); 
+    $('.measurement').text(length.toFixed(3) + ' m');
+    copyTextToClipboard((length).toFixed(3));
+  });  
+}
 
 
 export {
@@ -618,4 +640,6 @@ export {
   vectorAddInteractionCallback,
   boxSelectInteractionCallback,
   deleteMarker,
+  measureCallback,
+  vectorDragCallback
 }

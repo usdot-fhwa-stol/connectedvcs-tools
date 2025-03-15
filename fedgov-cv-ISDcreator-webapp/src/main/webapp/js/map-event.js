@@ -9,14 +9,17 @@ function onMoveEnd(event, map) {
     $('#zoomLevel .zoom').text(map.getView().getZoom());
 }
 
-function onPointerMove(event, map) {
+function onPointerMove(event, map, controls) {
     map.getTargetElement().style.cursor = 'default';
     const feature = map.forEachFeatureAtPixel(event.pixel, (feature) => feature);
     if (feature) {
         const geometry = feature.getGeometry();
         const featureType = geometry.getType();
-        if(featureType === 'Point' || featureType === 'Polygon') {
+        if(featureType === 'Point' || featureType === 'Polygon' ) {
             map.getTargetElement().style.cursor = 'pointer';
+        }
+        if(controls?.modify.getActive() && featureType === 'LineString'){
+            map.getTargetElement().style.cursor = 'pointer';      
         }
     }
 }

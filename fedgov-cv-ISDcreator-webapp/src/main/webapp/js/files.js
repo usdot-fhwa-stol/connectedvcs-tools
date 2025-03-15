@@ -20,7 +20,7 @@ let revisionNum = 0;
  * @event clears map and then opens modal to choose file
  */
 
-function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected) {
+function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, selected, controls) {
 	let c = false;
     if (lanes.getSource().getFeatures().length != 0 || laneMarkers.getSource().getFeatures().length != 0 || vectors.getSource().getFeatures().length != 0 || box.getSource().getFeatures().length != 0) {
          c = confirm("Loading a new map will clear all current work. Continue?");
@@ -48,43 +48,83 @@ function loadFile(map, lanes, vectors, laneMarkers, laneWidths, box, errors, sel
         if (msie10 > 0 || msie11 > 0 || msie12 > 0) {
             $('#open_file_modal').modal('show');
             $('#fileToLoad2').one('change', (event)=>{
-              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
             });
         }
         else {
             $('#fileToLoad').click();
             $('#fileToLoad').one('change',  (event)=>{
-              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+              onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
             });
         }
    }
 }
 
-function onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected) {
+/**
+ * Handles the file input change event when loading map data
+ * Creates a FileReader to read the selected file and passes the content to onReaderLoad
+ * Uses the calls counter to ensure the function is executed only once per file selection
+ * 
+ * @param {Event} event - The change event from the file input
+ * @param {ol.Map} map - OpenLayers map object to display the loaded data
+ * @param {ol.layer.Vector} lanes - Vector layer for lane features
+ * @param {ol.layer.Vector} vectors - Vector layer for point features
+ * @param {ol.layer.Vector} laneMarkers - Vector layer for lane marker features
+ * @param {ol.layer.Vector} box - Vector layer for box/polygon features
+ * @param {ol.layer.Vector} laneWidths - Vector layer for lane width features
+ * @param {string} selected - Current selected mode ('parent' or 'child')
+ * @param {Object} controls - Map controls object containing edit/modification controls
+ */
+function onChange(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls) {
 	if (calls == 0) {
 		let reader = new FileReader();
 		reader.onload = (event)=>{
-      onReaderLoad(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+      onReaderLoad(event,map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
     };
 		reader.readAsText(event.target.files[0]);
 	}
 	calls++;
 }
 
-
-function onReaderLoad(event,map,lanes, vectors, laneMarkers, box, laneWidths, selected){
+/**
+ * Processes the loaded file content, parses it as JSON, and loads it into the map
+ * This function is called as the onload callback for the FileReader
+ * 
+ * @param {Event} event - The FileReader load event containing the file contents in event.target.result
+ * @param {ol.Map} map - OpenLayers map object to display the loaded data
+ * @param {ol.layer.Vector} lanes - Vector layer for lane features
+ * @param {ol.layer.Vector} vectors - Vector layer for point features and markers
+ * @param {ol.layer.Vector} laneMarkers - Vector layer for lane marker features
+ * @param {ol.layer.Vector} box - Vector layer for box/polygon features
+ * @param {ol.layer.Vector} laneWidths - Vector layer for lane width features
+ * @param {string} selected - Current selected mode ('parent' or 'child')
+ * @param {Object} controls - Map controls object containing edit/modification controls
+ */
+function onReaderLoad(event,map,lanes, vectors, laneMarkers, box, laneWidths, selected, controls){
 	let data = JSON.parse(event.target.result);
-	loadMap(data, map, lanes, vectors, laneMarkers, box, laneWidths, selected);
+	loadMap(data, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls);
 	$('#open_file_modal').modal('hide');
 }
 
 
 /**
- * Purpose: loads map objects from geojson
- * @params  saved object
- * @event rebuilds markers on map
+ * Loads map data from GeoJSON into the OpenLayers map
+ * 
+ * @param {Object} data - Object containing GeoJSON data for different map components
+ * @param {Object} data.vectors - GeoJSON data for vector features (points, markers)
+ * @param {Object} data.lanes - GeoJSON data for lane features
+ * @param {Object} data.laneMarkers - GeoJSON data for lane marker features
+ * @param {Object} data.box - GeoJSON data for box/polygon features
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {ol.layer.Vector} lanes - Vector layer for lane features
+ * @param {ol.layer.Vector} vectors - Vector layer for point features
+ * @param {ol.layer.Vector} laneMarkers - Vector layer for lane marker features
+ * @param {ol.layer.Vector} box - Vector layer for box/polygon features
+ * @param {ol.layer.Vector} laneWidths - Vector layer for lane width features
+ * @param {string} selected - Current mode ('parent' or 'child')
+ * @param {Object} controls - Map controls object
  */
-function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selected)
+function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 {
 	let vectorLayerAsOL = new ol.format.GeoJSON().readFeatures(data.vectors,{featureProjection: 'EPSG:3857' , dataProjection: 'EPSG:3857'});
 	let lanesLayerAsOL = new ol.format.GeoJSON().readFeatures(data.lanes,{featureProjection: 'EPSG:3857', dataProjection: 'EPSG:3857'});
@@ -125,7 +165,8 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		let feat = vectors.getSource().getFeatures();   
 		for (let a = 0; a < feat.length; a++) {
 			let iconAddress = feat[a].getProperties().marker.img_src;
-			let IconInfo = {src: iconAddress, height: 50, width: 50, anchor: [0.5,1]};
+			let IconInfo = {src: iconAddress, height: 50, width: 50, anchor: [0.5,1], anchorXUnits: 'fraction',
+				anchorYUnits: 'fraction'};
 			feat[a].setStyle(new ol.style.Style({
 				image: new ol.style.Icon(IconInfo)
 			}));
@@ -168,16 +209,22 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 			console.log("No vectors to reset view");
 		}
 
-		$("#dragSigns").click();
-		$("#dragSigns").click();
 
-		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true);
-		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true);
+		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true, controls);
+		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true, controls);
 		console.log("loaded map")
 	}
 
 }
 
+/**
+ * Loads a KML stencil overlay onto the map
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @description Confirms with user before clearing existing stencil, handles
+ * browser compatibility for file selection dialog, and processes selected KML file
+ * to display as a visual trace overlay on the map.
+ */
 function loadKMLTrace(map) {
 	let c = confirm("Loading a new KML stencil will clear any other stencil. Continue?");
 	if (c === true) {
@@ -202,7 +249,13 @@ function loadKMLTrace(map) {
 	}
 }
 
-//03/2019 MF: Added new function for RSM
+/**
+ * Loads a Roadside Message (RSM) stencil overlay onto the map
+ * 
+ * @description Confirms with user before clearing existing stencil, handles
+ * browser compatibility for file selection dialog, processes selected RSM file
+ * through conversion service, and displays result as a visual trace overlay.
+ */
 function loadRSMTrace() {
 	let c = confirm("Loading a new RSM stencil will clear any other stencil. Continue?");
 	if (c === true) {
@@ -226,8 +279,21 @@ function loadRSMTrace() {
 
 	}
 }
-
-function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected) {
+/**
+ * Loads an update file to modify existing map data
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {ol.layer.Vector} lanes - Vector layer for lane features
+ * @param {ol.layer.Vector} vectors - Vector layer for point features
+ * @param {ol.layer.Vector} laneMarkers - Vector layer for lane markers
+ * @param {ol.layer.Vector} laneWidths - Vector layer for lane width features
+ * @param {ol.layer.Vector} box - Vector layer for box/polygon features
+ * @param {string} selected - Current selected mode ('parent' or 'child')
+ * @param {Object} controls - Map controls object
+ * @description Sets loadType to "update", stores temporary data from reference point,
+ * and handles browser-specific file selection for updating existing map features.
+ */
+function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selected, controls) {
 	loadType= "update";
 	calls = 0;
 	for (let a = 0; a < vectors.getSource().getFeatures().length; a++) {
@@ -246,45 +312,76 @@ function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selec
 	if (msie10 > 0 || msie11 > 0 || msie12 > 0) {
 		$('#open_file_modal').modal('show');
 		$('#fileToLoad2').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 	else {
 		$('#fileToLoad').click();
 		$('#fileToLoad').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected)
+			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 }
-
-function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoadMap) {
+/**
+ * Manages the UI controls and tool states for map editing
+ * 
+ * @param {string} state - The control state to activate ('modify', 'del', 'help', etc.)
+ * @param {ol.layer.Vector} lanes - Vector layer for lane features
+ * @param {ol.layer.Vector} vectors - Vector layer for point features
+ * @param {ol.layer.Vector} laneMarkers - Vector layer for lane marker features
+ * @param {ol.layer.Vector} laneWidths - Vector layer for lane width features
+ * @param {boolean} isLoadMap - Flag indicating if this is called during map loading
+ * @param {Object} controls - Map controls object containing edit/modification controls
+ * @description Shows help modal when state is 'help', otherwise activates the appropriate
+ * control and manages feature cleanup based on the selected state.
+ */
+function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoadMap, controls) {
 	if( state == 'help'){
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
-		toggleControl(state);
+		if(controls){
+			toggleControl(state, controls);
+		}		
 		if( state == 'modify' || state == 'del') {
 			laneMarkers.getSource().clear();
-			// controls.del.unselectAll();
+			controls?.del?.getFeatures().clear();
 		} else {
 			onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap);
 		}
     }
 }
-
-function toggleControl(element) {
-	// for(key in controls) {
-	// 		let control = controls[key];
-	// 		if(element == key) {
-	// 				control.activate();
-	// 		} else {
-	// 				control.deactivate();
-	// 				$('.measurement').text('');
-	// 		}
-	// }
+/**
+ * Controls the active state of map editing controls
+ * 
+ * @param {string} element - The control to activate ('modify', 'draw', 'del', etc.)
+ * @param {Object} controls - Object containing all available map controls
+ * @description Activates the specified control while deactivating all others.
+ * Clears any measurement text when switching controls.
+ */
+function toggleControl(element, controls) {
+	for(let key in controls) {
+		let control = controls[key];
+		if(element == key) {
+			control.setActive(true);
+		} else {
+			control.setActive(false);
+			$('.measurement').text('');
+		}
+	}
 }
 
-
+/**
+ * Initiates the map saving process with revision control
+ * 
+ * @param {ol.layer.Vector} vectors - Vector layer containing map features
+ * @param {ol.layer.Vector} box - Vector layer containing box/polygon features
+ * @param {ol.layer.Vector} lanes - Vector layer containing lane features
+ * @param {ol.layer.Vector} laneMarkers - Vector layer containing lane markers
+ * @param {string} selected - Current selected mode ('parent' or 'child')
+ * @description Opens revision modal for user input, validates revision number,
+ * updates reference point with revision number, and compiles layers for saving.
+ */
 function saveMap(vectors, box, lanes, laneMarkers, selected)
 {
 	$('#revision_modal').modal('show')
@@ -360,7 +457,7 @@ function saveFile( data, vectors, selected )
 
 	let downloadLink = document.createElement("a");
 	downloadLink.download = fileNameToSaveAs;
-	//downloadLink.innerHTML = "Download File";
+	downloadLink.innerHTML = "Download File";
 	if (window.webkitURL != null){
 		// Chrome allows the link to be clicked
 		// without actually adding it to the DOM.
@@ -398,7 +495,13 @@ function saveFile( data, vectors, selected )
 			document.body.removeChild(downloadLink);
 	}	
 }
-
+/**
+ * Removes any existing trace overlay from the map
+ * 
+ * @description Checks if there is an active trace layer, clears its features and
+ * undefines the trace variable if it exists, and provides user feedback via alerts
+ * regardless of whether a trace existed.
+ */
 function deleteTrace() {
 	if (trace != undefined){
 		trace.getSource().clear();
@@ -410,20 +513,40 @@ function deleteTrace() {
 	}
 }
 
-
+/**
+ * Removes a temporary DOM element after it has been used
+ * 
+ * @param {Event} event - The click event containing the target element to remove
+ * @description Utility function used during file download operations to
+ * clean up temporary DOM elements after they have served their purpose.
+ */
 function destroyClickedElement(event){
 	document.body.removeChild(event.target);
 }
 
+/**
+ * Handles the file input event when loading KML trace files
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {Event} event - The file input change event
+ * @description Creates a FileReader to asynchronously read the selected KML file
+ * and passes the content to the onTraceReaderLoad function for processing.
+ */
 function onTraceChange(map, event) {
 	let reader = new FileReader();
 	reader.onload = (event) => { onTraceReaderLoad(map, event) };
 	reader.readAsText(event.target.files[0]);
 }
 
-/*
-2019/04, MF: Event to process all the RSM file, convert to KML, and load onto the map.
-*/
+/**
+ * Handles the file input event when loading RSM (Roadside Message) files
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {Event} event - The file input change event
+ * @description Processes one or more RSM files by reading their contents as base64 data,
+ * creates an array of promises to handle asynchronous loading, and when all files
+ * are processed, calls the RSM conversion web service to generate KML for display.
+ */
 function onTraceChangeRSM (map, event) {
     filesToSend = [];
     console.log("# of files: " + event.target.files.length);
@@ -543,7 +666,16 @@ function callRSMWebservice(map, filesToSend){
        }
    })
 };
-
+/**
+ * Processes and displays KML data as an overlay on the map
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {string} kmlDocument - KML document content as a string
+ * @description Parses the KML document using OpenLayers KML format parser,
+ * creates a new vector layer with custom styling for the trace overlay,
+ * adds the KML features to this layer, centers the map view on the new features,
+ * and closes any open file dialog.
+ */
 function addKmltoMap(map, kmlDocument)
 {
 	let kmlParser = new ol.format.KML({
@@ -580,7 +712,14 @@ function addKmltoMap(map, kmlDocument)
 	map.getView().fit(extent, { duration: 1000 });
 }
 
-
+/**
+ * Processes the loaded KML trace file and adds it to the map
+ * 
+ * @param {ol.Map} map - OpenLayers map instance
+ * @param {Event} event - FileReader load event containing the KML content
+ * @description Extracts the KML data from the FileReader result and passes it to
+ * addKmltoMap function for processing and display as a visual trace overlay.
+ */
 function onTraceReaderLoad(map, event){
 	let data = event.target.result;
 	addKmltoMap(map, data);

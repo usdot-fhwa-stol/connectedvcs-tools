@@ -6,6 +6,9 @@ const intersection_url = "/api.geonames.org/findNearestIntersectionJSON"
 async function getElevation(dot, latlon, i, j, callback){
     try {
       const response = await fetch(google_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
+      if (!response.ok) {
+        throw new Error('Server response was not ok');
+      }
       const result = await response.json();
       let elev = result?.elevation;
       if (elev == null || elev == undefined) {
@@ -22,6 +25,9 @@ async function getElevation(dot, latlon, i, j, callback){
 async function getElev(lat, lon) {
   try {
     const response = await fetch(google_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
+    if (!response.ok) {
+      throw new Error('Server response was not ok');
+    }
     const result = await response.json();
     let elev = result?.elevation;
     if (elev == null || elev == undefined) {
