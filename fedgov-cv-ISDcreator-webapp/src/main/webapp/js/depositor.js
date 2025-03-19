@@ -422,7 +422,7 @@ function createMessageJSON()
 
             var data_frame_rga_base_layer_fields = {} //Ensure to clear the data for each call
             //Only populate JSON with RGA fields when the RGA toggle is enabled
-            if(rga_enabled){ // Global variable rga_enabled is defined in mapping.js                
+            if(rga_enabled){ // Global variable rga_enabled is defined in mapping.js
                 data_frame_rga_base_layer_fields["majorVersion"]=parseInt(feature.attributes.majorVersion);
                 data_frame_rga_base_layer_fields["minorVersion"]= parseInt(feature.attributes.minorVersion);
                 data_frame_rga_base_layer_fields["contentVersion"]= parseInt(feature.attributes.contentVersion);
