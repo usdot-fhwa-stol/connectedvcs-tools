@@ -3,16 +3,13 @@
  * Updated 3/2017 by martzth
  */
 
-import { errorMarkerStyle } from "./style.js";
-import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
-
 /**
  * DEFINE GLOBAL VARIABLES
  */
 
-let proj_name, host;
-let message_json_input, message_hex_input, message_text_input;
-let message_status_div;
+var proj_name, host;
+var message_json_input, message_hex_input, message_text_input;
+var message_status_div;
 
 
 /**
@@ -40,7 +37,7 @@ $(document).ready(function()
     $('#message_deposit_modal').on('show.bs.modal', function (e) {
         resetMessageForm()
         if( !errorCheck() ){
-            let message = createMessageJSON();
+            var message = createMessageJSON();
             message_json_input.val( JSON.stringify(message, null, 2) )
         } else {
             $("#message_deposit").prop('disabled', true);
@@ -73,8 +70,8 @@ $(document).ready(function()
      */
 
     $('#message_deposit').click( function() {
-        let message =  JSON.parse(message_json_input.val());
-        let type = $("#message_type").val();
+        var message =  JSON.parse(message_json_input.val());
+        var type = $("#message_type").val();
         message["message"] = type;
         message = JSON.stringify(message);
 
@@ -100,14 +97,8 @@ $(document).ready(function()
     });
 });
 
-/**
- * Sets the result message and updates the UI based on the success status and message type.
- *
- * @param {boolean} success - Indicates whether the operation was successful.
- * @param {string} message - The message to be displayed.
- * @param {string} type - The type of the message, either "hex" or other.
- */
 function setMessageResult( success, message, type ){
+
     if( success ) {
         message_status_div.removeClass('has-error').addClass('has-success');
     }
@@ -134,10 +125,6 @@ $('.close').click(function() {
     resetMessageForm();
 });
 
-/**
- * Resets the message form by clearing all input fields, enabling the deposit button,
- * and removing any status indicators.
- */
 function resetMessageForm() {
     $('#alert_placeholder').html("");
     $("#message_deposit").prop('disabled', false);
@@ -159,57 +146,53 @@ function resetMessageForm() {
 function createMessageJSON()
 {
 
-    let isdMessage = {};
-    let minuteOfTheYear = moment().diff(moment().startOf('year'), 'minutes');
+    var isdMessage = {};
+    var minuteOfTheYear = moment().diff(moment().startOf('year'), 'minutes');
 
     //Feature object models
-    let stopFeat = box.getSource().getFeatures();
-    let laneFeat = lanes.getSource().getFeatures();
+    var stopFeat = box.features;
+    var laneFeat = lanes.features;
 
     //Building of nested layers
-    let approachesArray = { "approach": []};
-    let drivingLanesArray = {"drivingLanes":[]};
-    let crosswalkLanesArray = {"crosswalkLanes":[]};
-    let attributesArray = {"laneAttributes":[]};
-    let nodesArray = {"laneNodes":[]};
-    let spatsArray = {"spatNodes":[]};
+    var approachesArray = { "approach": []};
+    var drivingLanesArray = {"drivingLanes":[]};
+    var crosswalkLanesArray = {"crosswalkLanes":[]};
+    var attributesArray = {"laneAttributes":[]};
+    var nodesArray = {"laneNodes":[]};
+    var spatsArray = {"spatNodes":[]};
 
-    let approachArray = approachesArray["approach"];
-    let drivingLaneArray = drivingLanesArray["drivingLanes"];
-    let crosswalkLaneArray = crosswalkLanesArray["crosswalkLanes"];
-    let attributeArray = attributesArray["laneAttributes"];
-    let nodeArray = nodesArray["laneNodes"];
-    let computedLane = "";
-    let spatArray = spatsArray["spatNodes"];
+    var approachArray = approachesArray["approach"];
+    var drivingLaneArray = drivingLanesArray["drivingLanes"];
+    var crosswalkLaneArray = crosswalkLanesArray["crosswalkLanes"];
+    var attributeArray = attributesArray["laneAttributes"];
+    var nodeArray = nodesArray["laneNodes"];
+    var computedLane = "";
+    var spatArray = spatsArray["spatNodes"];
 
     let incompleteApproaches = []
-    let verified = {};
-    let reference = {};
-    let referenceChild = {};
-    let rgaBaseLayerFields = {};
 
-    for(let b=0; b< laneFeat.length; b++){
-        laneFeat[b].set('inBox', false);
+    for(var b=0; b< laneFeat.length; b++){
+        lanes.features[b].attributes.inBox = false;
     }
 
-    for(let i=0; i< stopFeat.length; i++){
-        let temp_j = 0;
-        let temp_j_c = 0;
-        for(let j=0; j< laneFeat.length; j++){
+    for(var i=0; i< stopFeat.length; i++){
+        var temp_j = 0;
+        var temp_j_c = 0;
+        for(var j=0; j< laneFeat.length; j++){
 
-            let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
-            if (inside && laneFeat[j].get('laneType') != "Crosswalk"){
+            var inside = (box.features[i].geometry).containsPoint(lanes.features[j].geometry.components[0]);
+            if (inside && lanes.features[j].attributes.laneType != "Crosswalk"){
                 //console.log("Stop Box: " + i + " contains lead point of feature " + j);
-                laneFeat[j].set('inBox', true);
+                lanes.features[j].attributes.inBox = true;
 
-                if (!lanes.getSource().getFeatures()[j].get('computed')) {
-                    for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
-                        let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                        let lonlat = ol.proj.toLonLat(coord);
+                if(!lanes.features[j].attributes.computed) {
+	                for(var m=0; m< lanes.features[j].geometry.components.length; m++){
+	                    var latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[m].x,lanes.features[j].geometry.components[m].y).transform(toProjection, fromProjection);
+	                    
 
                         let currentSpeedLimits = [];
-                        if(laneFeat[j].get('speedLimitType')) {
-                            let mapSpeedLimits = laneFeat[j].get('speedLimitType');
+                        if(lanes.features[j].attributes.speedLimitType) {
+                            let mapSpeedLimits = lanes.features[j].attributes.speedLimitType;
 
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type") {
@@ -221,108 +204,120 @@ function createMessageJSON()
                         try {
                             nodeArray[m] = {
                                 "nodeNumber": m,
-                                "nodeLat": lonlat[1],
-                                "nodeLong": lonlat[0],
-                                "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                                "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
+                                "nodeLat": latlon.lat,
+                                "nodeLong": latlon.lon,
+                                "nodeElev": lanes.features[j].attributes.elevation[m].value,
+                                "laneWidthDelta": lanes.features[j].attributes.laneWidth[m],
                                 "speedLimitType": currentSpeedLimits
                             }
-                        } catch (e) {
+                          } catch (e) {
                             nodeArray[m] = {
                                 "nodeNumber": m,
-                                "nodeLat": lonlat[1],
-                                "nodeLong": lonlat[0],
-                                "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                                "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
+                                "nodeLat": latlon.lat,
+                                "nodeLong": latlon.lon,
+                                "nodeElev": lanes.features[j].attributes.elevation[m]?.value,
+                                "laneWidthDelta": lanes.features[j].attributes?.laneWidth[m],
                                 "speedLimitType": currentSpeedLimits
                             }
                             $("#message_deposit").prop('disabled', true);
-                            $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Node elevation empty for node " + m + " in lane " + laneFeat[j].get('laneNumber') + "." +'</span></div>');
-                        }                 
-                    }
+                            $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Node elevation empty for node " + m + " in lane " + lanes.features[j].attributes.laneNumber + "." +'</span></div>');
+                          }                 
+	                }
                 } else {
-                    computedLane = {
-                        "computedLaneNumber": laneFeat[j].get('computedLaneNumber'),
-                        "computedLaneID": laneFeat[j].get('computedLaneID'),
-                        "referenceLaneID": laneFeat[j].get('referenceLaneID'),
-                        "offsetX": laneFeat[j].get('offsetX'),
-                        "offsetY": laneFeat[j].get('offsetY'),
-                        "rotation": laneFeat[j].get('rotation'),
-                        "scaleX": laneFeat[j].get('scaleX'),
-                        "scaleY": laneFeat[j].get('scaleY')
-                    }
+                	computedLane = {
+                			"computedLaneNumber": lanes.features[j].attributes.computedLaneNumber,
+                            "computedLaneID": lanes.features[j].attributes.computedLaneID,
+                            "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
+                            "offsetX": lanes.features[j].attributes.offsetX,
+                            "offsetY": lanes.features[j].attributes.offsetY,
+                            "rotation": lanes.features[j].attributes.rotation,
+                            "scaleX": lanes.features[j].attributes.scaleX,
+                            "scaleY": lanes.features[j].attributes.scaleY
+                	}
                 }
 
                 attributeArray = [];
-                for(let k in laneFeat[j].get('lane_attributes')) {
-                    attributeArray.push(laneFeat[j].get('lane_attributes')[k].id);
+
+                for (var k in lanes.features[j].attributes.lane_attributes) {
+                    var id = lanes.features[j].attributes.lane_attributes[k].id;
+                    attributeArray.push(id)
                 }
-                console.log(laneFeat[j].getProperties());
+                console.log(lanes.features[j].attributes);
                 drivingLaneArray[temp_j] = {
-                    "laneID": laneFeat[j].get('laneNumber'),
-                    "descriptiveName": laneFeat[j].get('descriptiveName'),
-                    "laneType": laneFeat[j].get('laneType'),
-                    "typeAttributes": laneFeat[j].get('typeAttribute'),
-                    "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "laneID": lanes.features[j].attributes.laneNumber,
+                    "descriptiveName": lanes.features[j].attributes.descriptiveName,
+                    "laneType": lanes.features[j].attributes.laneType,
+                    "typeAttributes": lanes.features[j].attributes.typeAttribute,
+                    "sharedWith": lanes.features[j].attributes.sharedWith,
+                    "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": laneFeat[j].get('computed')
+                    "isComputed": lanes.features[j].attributes.computed,
+                    "timeRestrictions": {                        
+                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
+                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                    }
                 };
-                if(!laneFeat[j].get('computed')) {
-                    drivingLaneArray[temp_j].laneNodes = nodeArray;
+                if(!lanes.features[j].attributes.computed) {
+                	drivingLaneArray[temp_j].laneNodes = nodeArray;
                 } else {
-                    drivingLaneArray[temp_j].computedLane = computedLane;
+                	drivingLaneArray[temp_j].computedLane = computedLane;
                 }
 
                 //since some lanes are not in the driving lane
                 temp_j++;
-            } else if(laneFeat[j].get('laneType') == "Crosswalk"){
+            } else if(lanes.features[j].attributes.laneType == "Crosswalk"){
                 //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
-                laneFeat[j].set('inBox', true);
+                lanes.features[j].attributes.inBox = true;
 
-                if(!laneFeat[j].get('computed')) {
-                    for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
-                        let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                        let lonlat = ol.proj.toLonLat(coord);
-                        nodeArray[m] = {
-                            "nodeNumber": m,
-                            "nodeLat": lonlat[1],
-                            "nodeLong": lonlat[0],
-                            "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                            "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
-                        }
-                    }
+                if(!lanes.features[j].attributes.computed) {
+	                for(var m=0; m< lanes.features[j].geometry.components.length; m++){
+	                    var latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[m].x,lanes.features[j].geometry.components[m].y).transform(toProjection, fromProjection);
+	                    nodeArray[m] = {
+	                        "nodeNumber": m,
+	                        "nodeLat": latlon.lat,
+	                        "nodeLong": latlon.lon,
+	                        "nodeElev": lanes.features[j].attributes.elevation[m].value,
+	                        "laneWidthDelta": lanes.features[j].attributes.laneWidth[m]
+	                    }
+	                }
                 } else {
-                    computedLane = {
-                        "referenceLaneID": laneFeat[j].get('referenceLaneID'),
-                        "offsetX": laneFeat[j].get('offsetX'),
-                        "offsetY": laneFeat[j].get('offsetY'),
-                        "rotation": laneFeat[j].get('rotation'),
-                        "scaleX": laneFeat[j].get('scaleX'),
-                        "scaleY": laneFeat[j].get('scaleY')
-                    }
+                	computedLane = {
+                            "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
+                            "offsetX": lanes.features[j].attributes.offsetX,
+                            "offsetY": lanes.features[j].attributes.offsetY,
+                            "rotation": lanes.features[j].attributes.rotation,
+                            "scaleX": lanes.features[j].attributes.scaleX,
+                            "scaleY": lanes.features[j].attributes.scaleY
+                	}
                 }
 
                 attributeArray = [];
 
-                laneFeat[j].get('lane_attributes').forEach(attr => {
-                    attributeArray.push(attr.id);
-                });
-                console.log(laneFeat[j].getProperties());
+                for (var k in lanes.features[j].attributes.lane_attributes) {
+                    var id = lanes.features[j].attributes.lane_attributes[k].id;
+                    attributeArray.push(id)
+                }
+                console.log(lanes.features[j].attributes);
                 crosswalkLaneArray[temp_j_c] = {
-                    "laneID": laneFeat[j].get('laneNumber'),
-                    "descriptiveName": laneFeat[j].get('descriptiveName'),
-                    "laneType": laneFeat[j].get('laneType'),
-                    "typeAttributes": laneFeat[j].get('typeAttribute'),
-                    "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "laneID": lanes.features[j].attributes.laneNumber,
+                    "descriptiveName": lanes.features[j].attributes.descriptiveName,
+                    "laneType": lanes.features[j].attributes.laneType,
+                    "typeAttributes": lanes.features[j].attributes.typeAttribute,
+                    "sharedWith": lanes.features[j].attributes.sharedWith,
+                    "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": laneFeat[j].get('computed')
+                    "isComputed": lanes.features[j].attributes.computed,
+                    "timeRestrictions": {                        
+                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
+                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                    }
                 };
-                if(!laneFeat[j].get('computed')) {
-                    crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
+                if(!lanes.features[j].attributes.computed) {
+                	crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
                 } else {
-                    crosswalkLaneArray[temp_j_c].computedLane = computedLane;
+                	crosswalkLaneArray[temp_j_c].computedLane = computedLane;
                 }
 
                 //since some lanes are not in the driving lane
@@ -334,10 +329,10 @@ function createMessageJSON()
         }
 
         approachArray[i] = {
-            "approachType": stopFeat[i].get('approachType'),
-            "approachID": stopFeat[i].get('approachID'),
-            "descriptiveName": stopFeat[i].get('approachName'),
-            "speedLimit": stopFeat[i].get('speedLimit'),
+            "approachType": box.features[i].attributes.approachType,
+            "approachID": box.features[i].attributes.approachID,
+            "descriptiveName": box.features[i].attributes.approachName,
+            "speedLimit": box.features[i].attributes.speedLimit,
             "drivingLanes": drivingLaneArray
         };
 
@@ -357,125 +352,127 @@ function createMessageJSON()
     };
 
 
-    for (let a = 0; a < laneFeat.length; a++) {
+    for (var a = 0; a < laneFeat.length; a++) {
 
-        if (laneFeat[a].get('inBox') == true && laneFeat[a].get('signalGroupID') != null && laneFeat[a].get('stateConfidence') != null) {
+        if (lanes.features[a].attributes.inBox == true && lanes.features[a].attributes.signalGroupID != null && lanes.features[a].attributes.stateConfidence != null) {
 
-            let obj = {
-                "laneSet": laneFeat[a].get('laneNumber'),
-                "spatRevision": laneFeat[a].get('spatRevision'),
-                "signalGroupID": laneFeat[a].get('signalGroupID'),
-                "signalPhase": laneFeat[a].get('signalPhase'),
-                "startTime": laneFeat[a].get('startTime'),
-                "minEndTime": laneFeat[a].get('minEndTime'),
-                "maxEndTime": laneFeat[a].get('maxEndTime'),
-                "likelyTime": laneFeat[a].get('likelyTime'),
-                "stateConfidence": laneFeat[a].get('stateConfidence').substring(laneFeat[a].get('stateConfidence').lastIndexOf("(")+1,laneFeat[a].get('stateConfidence').lastIndexOf(")")),
-                "nextTime": laneFeat[a].get('nextTime')
+            var obj = {
+                "laneSet": lanes.features[a].attributes.laneNumber,
+                "spatRevision": lanes.features[a].attributes.spatRevision,
+                "signalGroupID": lanes.features[a].attributes.signalGroupID,
+                "signalPhase": lanes.features[a].attributes.signalPhase,
+                "startTime": lanes.features[a].attributes.startTime,
+                "minEndTime": lanes.features[a].attributes.minEndTime,
+                "maxEndTime": lanes.features[a].attributes.maxEndTime,
+                "likelyTime": lanes.features[a].attributes.likelyTime,
+                "stateConfidence": lanes.features[a].attributes.stateConfidence.substring(lanes.features[a].attributes.stateConfidence.lastIndexOf("(")+1,lanes.features[a].attributes.stateConfidence.lastIndexOf(")")),
+                "nextTime": lanes.features[a].attributes.nextTime
             };
 
-            let k_index = -1;
+            var k_index = -1;
 
-            for (let k = 0; k < spatArray.length; k++) {
+            //what if the spat doesn't exist?
+
+            for (var k = 0; k < spatArray.length; k++) {
                 if (spatArray[k].stateConfidence == obj.stateConfidence ) {
+                    console.log("spat: ", spatArray[k])
                     k_index = k;
+                    console.log("k_index=", k_index)
                 }
             }
 
             if (k_index != -1) {
-                spatArray[k_index].laneSet += obj.laneSet;
+                (spatArray[k_index].laneSet) = (spatArray[k_index].laneSet)+(obj.laneSet)
             } else {
                 spatArray.push(obj);
             }
 
         } else {
-            $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
+            $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
         }
     }
-    errors.getSource().clear();
-    
+    errors.clearMarkers();
+    var size = new OpenLayers.Size(21,25);
+    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+    var icon = new OpenLayers.Icon('img/error.png',size,offset);
 
-    for(let j=0; j< laneFeat.length; j++){        
-        let coords = laneFeat[j].getGeometry().getFirstCoordinate();
-        let errorMarker = new ol.Feature({
-            geometry: new ol.geom.Point(coords)
-        });
-        errorMarker.setStyle(errorMarkerStyle);
-        if (!laneFeat[j].get("inBox")){
+    for(var j=0; j< laneFeat.length; j++){
+        var latlon;
+        if (!lanes.features[j].attributes.inBox){
+            latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[0].x,lanes.features[j].geometry.components[0].y).transform(toProjection, fromProjection);
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
-            errors.getSource().addFeature(errorMarker);
+            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + lanes.features[j].attributes.laneNumber + " exists outside of an approach." +'</span></div>');
+            errors.addMarker(new OpenLayers.Marker(latlon.transform(fromProjection, toProjection),icon));
         }
-        if (!laneFeat[j].get('laneNumber')) {
-            // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
-            let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
+        if (!lanes.features[j].attributes.laneNumber){
+            //lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
+            latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[0].x,lanes.features[j].geometry.components[0].y).transform(toProjection, fromProjection);
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
-            errors.getSource().addFeature(errorMarker);
+            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon.lat + ", " + latlon.lon + " is not assigned a lane number. Check overlapping points." +'</span></div>');
+            errors.addMarker(new OpenLayers.Marker(latlon.transform(fromProjection, toProjection),icon));
         }
     }
-    let vectorFeatures = vectors.getSource().getFeatures();
-    for (let f = 0; f < vectorFeatures.length; f++) {
-        let feature = vectorFeatures[f];
-        if (feature.get('marker').name == "Reference Point Marker") {
+    for ( var f = 0; f < vectors.features.length; f++) {
+        var feature = vectors.features[f];
+        if (vectors.features[f].attributes.marker.name == "Reference Point Marker") {
 
-            reference = {
-                "descriptiveIntersctionName": feature.get('intersectionName'),
-                "layerID": feature.get('layerID'),
-                "intersectionID": feature.get('intersectionID'),
-                "regionID": feature.get('regionID'),
-                "msgCount": feature.get('revisionNum'),
-                "masterLaneWidth": feature.get('masterLaneWidth'),
-                "referenceLat": feature.getGeometry().getCoordinates()[1],
-                "referenceLon": feature.getGeometry().getCoordinates()[0],
-                "referenceElevation": feature.get('elevation'),
-                "roadAuthorityId": feature.get('roadAuthorityId')?.split(".").map(num => parseInt(num, 10)),
-                "roadAuthorityIdType": feature.get('roadAuthorityIdType'),
+            var reference = {
+                "descriptiveIntersctionName": feature.attributes.intersectionName,
+                "layerID": feature.attributes.layerID,
+                "intersectionID": feature.attributes.intersectionID,
+                "regionID": feature.attributes.regionID,
+                "msgCount": feature.attributes.revisionNum,
+                "masterLaneWidth": feature.attributes.masterLaneWidth,
+                "referenceLat": feature.attributes.LonLat.lat,
+                "referenceLon": feature.attributes.LonLat.lon,
+                "referenceElevation": feature.attributes.elevation,
+                "roadAuthorityId": feature.attributes.roadAuthorityId?.split(".").map(num => parseInt(num, 10)),
+                "roadAuthorityIdType": feature.attributes.roadAuthorityIdType,
             };
 
-            rgaBaseLayerFields = {}; // Ensure to clear the data for each call
-            // Only populate JSON with RGA fields when the RGA toggle is enabled
-            if (rgaEnabled) { // Global variable rgaEnabled is defined in mapping.js
-                rgaBaseLayerFields["majorVersion"] = parseInt(feature.get('majorVersion'));
-                rgaBaseLayerFields["minorVersion"] = parseInt(feature.get('minorVersion'));
-                rgaBaseLayerFields["contentVersion"] = parseInt(feature.get('contentVersion'));
-                let datetime = parseDatetimeStr(feature.get('contentDateTime'));
-                rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
-                rgaBaseLayerFields["contentDateTime"] = datetime.time;
+            var data_frame_rga_base_layer_fields = {} //Ensure to clear the data for each call
+            //Only populate JSON with RGA fields when the RGA toggle is enabled
+            if(rga_enabled){ // Global variable rga_enabled is defined in mapping.js
+                data_frame_rga_base_layer_fields["contentVersion"]= parseInt(feature.attributes.contentVersion);
+                let date_time = parse_datetime_str(feature.attributes.contentDateTime);
+                data_frame_rga_base_layer_fields["timeOfCalculation"] = date_time.date;
+                data_frame_rga_base_layer_fields["contentDateTime"] = date_time.time;
 
-                // Add mapped geometry ID to intersection geometry reference point
-                reference["mappedGeomID"] = feature.get('mappedGeometryId').split(".").map(num => parseInt(num, 10));
+                //Add mapped geometry ID to intersection geometry reference point
+                reference["mappedGeomID"] = feature.attributes.mappedGeometryId.split(".").map(num => parseInt(num, 10));
 
-                // Validate RGA required fields
-                validateRequiredRGAFields(feature);
+                //Validate RGA required fields
+                validate_required_rga_fields(feature);
             }
 
-            referenceChild = {
-                "speedLimitType": feature.get('speedLimitType')
-            };
 
-            if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
+            var referenceChild = {
+                "speedLimitType": feature.attributes.speedLimitType
+            }
+
+            if (feature.attributes.intersectionName == undefined || feature.attributes.intersectionName == ""){
                 $("#message_deposit").prop('disabled', true);
-                $('#alert_placeholder').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
+                $('#alert_placeholder').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "No intersection name defined." +'</span></div>');
             }
 
         }
 
-        if (feature.get('marker').name == "Verified Point Marker") {
-            verified = {
-                "verifiedMapLat": feature.get('LonLat').lat,
-                "verifiedMapLon": feature.get('LonLat').lon,
-                "verifiedMapElevation": feature.get('elevation'),
-                "verifiedSurveyedLat": feature.get('verifiedLat'),
-                "verifiedSurveyedLon": feature.get('verifiedLon'),
-                "verifiedSurveyedElevation": feature.get('verifiedElev')
-            };
+        if (vectors.features[f].attributes.marker.name == "Verified Point Marker") {
+
+            var verified = {
+                "verifiedMapLat": feature.attributes.LonLat.lat,
+                "verifiedMapLon": feature.attributes.LonLat.lon,
+                "verifiedMapElevation": feature.attributes.elevation,
+                "verifiedSurveyedLat": feature.attributes.verifiedLat,
+                "verifiedSurveyedLon": feature.attributes.verifiedLon,
+                "verifiedSurveyedElevation": feature.attributes.verifiedElev
+            }
 
         }
 
     }
 
-    let spat = {
+    var spat = {
         "intersections": {
             "status": "00",
             "states": spatArray
@@ -483,7 +480,7 @@ function createMessageJSON()
     }
 
 
-    let intersectionGeometry = {
+    var intersectionGeometry = {
         "referencePoint": reference,
         "referencePointChild": referenceChild,
         "verifiedPoint": verified,
@@ -491,10 +488,10 @@ function createMessageJSON()
     }
 
 
-    let mapData = {
+    var mapData = {
         "minuteOfTheYear": minuteOfTheYear,
         "layerType": "intersectionData",
-        ...rgaBaseLayerFields,
+        ...data_frame_rga_base_layer_fields,
         "intersectionGeometry": intersectionGeometry,
         "spatData": spat
     }
@@ -507,21 +504,7 @@ function createMessageJSON()
     return isdMessage;
 }
 
-/**
- * Parses a datetime string in the format "d/m/Y H:m:s" and returns an object with separate date and time components.
- *
- * @param {string} datetimestring - The datetime string to parse.
- * @returns {Object} An object containing the parsed date and time components.
- * @returns {Object.date} An object containing the day, month, and year.
- * @returns {number} date.day - The day of the month.
- * @returns {number} date.month - The month of the year.
- * @returns {number} date.year - The year.
- * @returns {Object.time} An object containing the hour, minute, and second.
- * @returns {number} time.hour - The hour of the day.
- * @returns {number} time.minute - The minute of the hour.
- * @returns {number} time.second - The second of the minute.
- */
-function parseDatetimeStr(datetimestring){
+function parse_datetime_str(datetimestring){
     let temp_datetime = datetimestring.split(/\s/);
     try{
         let temp_date = temp_datetime[0]
@@ -548,18 +531,16 @@ function parseDatetimeStr(datetimestring){
 }
 
 /***
- * @brief According to J2945_A RGA definition,  majorVersion, minorVersion, mappedGeometryId, contentVersion, contentDateTime are required
+ * @brief According to J2945_A RGA definition, mappedGeometryId, contentVersion, contentDateTime are required
  */
-function validateRequiredRGAFields(feature){    
+function validate_required_rga_fields(feature){    
     let map_fields_descriptions= {
-        "majorVersion": "RGA message no major version defined",
-        "minorVersion": "RGA message no minor version defined",
         "mappedGeometryId": "RGA message no mapped geometry ID defined",
         "contentVersion": "RGA message no content version defined",
         "contentDateTime": "RGA message no content datetime defined",
     }
     for (const [key, value] of Object.entries(map_fields_descriptions)){
-        if (feature.get(key) == undefined || feature.get(key) == ""){
+        if (feature.attributes[key]== undefined || feature.attributes[key] == ""){
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').append('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ value +'</span></div>');
         }
@@ -573,15 +554,18 @@ function validateRequiredRGAFields(feature){
  */
 
 function errorCheck(){
-    let status = false; //false means there are no errors
-    if (lanes.getSource().getFeatures().length == 0) {
-        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>');
+
+    var status = false; //false means there are no errors
+
+    if (lanes.features.length == 0){
+        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>')
         status = true;
     }
-    
-    if (vectors.getSource().getFeatures().length < 2) {
-        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>');
+
+    if (vectors.features.length < 2){
+        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>')
         status = true;
     }
+
     return status;
 }
