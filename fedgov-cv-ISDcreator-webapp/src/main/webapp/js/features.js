@@ -91,8 +91,8 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 				} else {
 					// This node already existed
 					// Compare the latitude and longitude from the existing lane values to see if the node moved
-					let latMatch = ((laneFeat.get("elevation")[j].latlon?.lat)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
-					let lonMatch = ((laneFeat.get("elevation")[j].latlon?.lon)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
+					let latMatch = ((laneFeat.get("elevation")[j]?.latlon?.lat)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
+					let lonMatch = ((laneFeat.get("elevation")[j]?.latlon?.lon)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
 					// If the node elevation has never been edited or has moved along either axis, get a new elevation value
 					if (!laneFeat.get("elevation")[j]?.edited || !latMatch || !lonMatch){
 						getElevation(dot, latLon, i, j, function(elev, i, j, latLon, dot){
@@ -337,8 +337,8 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
  * Function to build a computed feature.
  * @param {*} i Lane identifier
  * @param {*} laneNumber Lane number 
- * @param {*} referenceLaneID Reference lane ID
- * @param {*} referenceLaneNumber  Reference lane number
+ * @param {*} referenceLaneID Reference lane Number
+ * @param {*} referenceLaneNumber  Reference lane index
  * @param {*} offsetX X offset
  * @param {*} offsetY Y offset
  * @param {*} rotation Rotation angle
@@ -350,8 +350,23 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
  */
 function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID, lanes, laneMarkers){
 
-	let r = Number(referenceLaneNumber);
 	let laneFeatures = lanes.getSource().getFeatures();
+	let referenceLaneFeat = laneFeatures.find(feat=>feat.get("laneNumber") == referenceLaneID);
+	let r = laneFeatures.indexOf(referenceLaneFeat);
+	if(r !== Number(referenceLaneNumber)){
+		//Synchronize the reference lane number with the lane index
+		referenceLaneNumber = r;
+		laneFeatures[i].set("referenceLaneNumber", referenceLaneNumber);
+		//Update the reference lane index in the laneMarkers
+		let laneMarkerFeatures = laneMarkers.getSource().getFeatures();
+		for (let k = 0; k < laneMarkerFeatures.length; k++) {
+			if (laneMarkerFeatures[k].get("lane") == i && laneMarkerFeatures[k].get("number") == 0) {
+				laneMarkerFeatures[k].set("referenceLaneNumber", referenceLaneNumber);
+				break;
+			}
+		}
+	}
+	
 	let laneFeatureCoordinates = laneFeatures[r].getGeometry().getCoordinates()
 	let max = laneFeatureCoordinates.length;
 
@@ -518,7 +533,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			elevationVal = 0;
 		} else {
 			// The point at this index is not a new point or no points were added to the source, copy elevation value directly
-			elevationVal = laneFeatures[i].get("elevation")[j].value;
+			elevationVal = laneFeatures[i].get("elevation")[j]?.value;
 		}		
 		dot.set("elevation", elevationVal);
 	}	

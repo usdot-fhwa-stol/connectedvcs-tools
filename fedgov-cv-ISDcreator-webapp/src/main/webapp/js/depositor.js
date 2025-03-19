@@ -3,6 +3,9 @@
  * Updated 3/2017 by martzth
  */
 
+import { errorMarkerStyle } from "./style.js";
+import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
+
 /**
  * DEFINE GLOBAL VARIABLES
  */
@@ -97,8 +100,14 @@ $(document).ready(function()
     });
 });
 
+/**
+ * Sets the result message and updates the UI based on the success status and message type.
+ *
+ * @param {boolean} success - Indicates whether the operation was successful.
+ * @param {string} message - The message to be displayed.
+ * @param {string} type - The type of the message, either "hex" or other.
+ */
 function setMessageResult( success, message, type ){
-
     if( success ) {
         message_status_div.removeClass('has-error').addClass('has-success');
     }
@@ -125,6 +134,10 @@ $('.close').click(function() {
     resetMessageForm();
 });
 
+/**
+ * Resets the message form by clearing all input fields, enabling the deposit button,
+ * and removing any status indicators.
+ */
 function resetMessageForm() {
     $('#alert_placeholder').html("");
     $("#message_deposit").prop('disabled', false);
@@ -150,7 +163,7 @@ function createMessageJSON()
     let minuteOfTheYear = moment().diff(moment().startOf('year'), 'minutes');
 
     //Feature object models
-    let stopFeat = stopFeat;
+    let stopFeat = box.getSource().getFeatures();
     let laneFeat = lanes.getSource().getFeatures();
 
     //Building of nested layers
@@ -173,6 +186,7 @@ function createMessageJSON()
     let verified = {};
     let reference = {};
     let referenceChild = {};
+    let rgaBaseLayerFields = {};
 
     for(let b=0; b< laneFeat.length; b++){
         laneFeat[b].set('inBox', false);
@@ -240,10 +254,9 @@ function createMessageJSON()
                 }
 
                 attributeArray = [];
-
-                laneFeat[j].get('lane_attributes').forEach(attr => {
-                    attributeArray.push(attr.id);
-                });
+                for(let k in laneFeat[j].get('lane_attributes')) {
+                    attributeArray.push(laneFeat[j].get('lane_attributes')[k].id);
+                }
                 console.log(laneFeat[j].getProperties());
                 drivingLaneArray[temp_j] = {
                     "laneID": laneFeat[j].get('laneNumber'),
@@ -384,31 +397,21 @@ function createMessageJSON()
 
     for(let j=0; j< laneFeat.length; j++){        
         let coords = laneFeat[j].getGeometry().getFirstCoordinate();
-        // Create feature for error marker
-        let errorFeature = new ol.Feature({
+        let errorMarker = new ol.Feature({
             geometry: new ol.geom.Point(coords)
         });
-        //Style the error marker
-        errorFeature.setStyle(new ol.style.Style({
-            image: new ol.style.Icon({
-                src: 'img/error.png',
-                size: [21, 25],
-                anchor: [0.5, 1],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'fraction'
-            })
-        }));
+        errorMarker.setStyle(errorMarkerStyle);
         if (!laneFeat[j].get("inBox")){
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
-            errors.getSource().addFeature(errorFeature);
+            errors.getSource().addFeature(errorMarker);
         }
         if (!laneFeat[j].get('laneNumber')) {
             // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
             let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
-            errors.getSource().addFeature(errorFeature);
+            errors.getSource().addFeature(errorMarker);
         }
     }
     let vectorFeatures = vectors.getSource().getFeatures();
@@ -430,15 +433,15 @@ function createMessageJSON()
                 "roadAuthorityIdType": feature.get('roadAuthorityIdType'),
             };
 
-            let data_frame_rga_base_layer_fields = {}; // Ensure to clear the data for each call
+            rgaBaseLayerFields = {}; // Ensure to clear the data for each call
             // Only populate JSON with RGA fields when the RGA toggle is enabled
-            if (rga_enabled) { // Global variable rga_enabled is defined in mapping.js
-                data_frame_rga_base_layer_fields["majorVersion"] = parseInt(feature.get('majorVersion'));
-                data_frame_rga_base_layer_fields["minorVersion"] = parseInt(feature.get('minorVersion'));
-                data_frame_rga_base_layer_fields["contentVersion"] = parseInt(feature.get('contentVersion'));
-                let date_time = parseDatetimeStr(feature.get('contentDateTime'));
-                data_frame_rga_base_layer_fields["timeOfCalculation"] = date_time.date;
-                data_frame_rga_base_layer_fields["contentDateTime"] = date_time.time;
+            if (rgaEnabled) { // Global variable rgaEnabled is defined in mapping.js
+                rgaBaseLayerFields["majorVersion"] = parseInt(feature.get('majorVersion'));
+                rgaBaseLayerFields["minorVersion"] = parseInt(feature.get('minorVersion'));
+                rgaBaseLayerFields["contentVersion"] = parseInt(feature.get('contentVersion'));
+                let datetime = parseDatetimeStr(feature.get('contentDateTime'));
+                rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
+                rgaBaseLayerFields["contentDateTime"] = datetime.time;
 
                 // Add mapped geometry ID to intersection geometry reference point
                 reference["mappedGeomID"] = feature.get('mappedGeometryId').split(".").map(num => parseInt(num, 10));
@@ -491,7 +494,7 @@ function createMessageJSON()
     let mapData = {
         "minuteOfTheYear": minuteOfTheYear,
         "layerType": "intersectionData",
-        ...data_frame_rga_base_layer_fields,
+        ...rgaBaseLayerFields,
         "intersectionGeometry": intersectionGeometry,
         "spatData": spat
     }
@@ -504,6 +507,20 @@ function createMessageJSON()
     return isdMessage;
 }
 
+/**
+ * Parses a datetime string in the format "d/m/Y H:m:s" and returns an object with separate date and time components.
+ *
+ * @param {string} datetimestring - The datetime string to parse.
+ * @returns {Object} An object containing the parsed date and time components.
+ * @returns {Object.date} An object containing the day, month, and year.
+ * @returns {number} date.day - The day of the month.
+ * @returns {number} date.month - The month of the year.
+ * @returns {number} date.year - The year.
+ * @returns {Object.time} An object containing the hour, minute, and second.
+ * @returns {number} time.hour - The hour of the day.
+ * @returns {number} time.minute - The minute of the hour.
+ * @returns {number} time.second - The second of the minute.
+ */
 function parseDatetimeStr(datetimestring){
     let temp_datetime = datetimestring.split(/\s/);
     try{
@@ -556,18 +573,15 @@ function validateRequiredRGAFields(feature){
  */
 
 function errorCheck(){
-
     let status = false; //false means there are no errors
-
     if (lanes.getSource().getFeatures().length == 0) {
         $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>');
         status = true;
     }
-
+    
     if (vectors.getSource().getFeatures().length < 2) {
         $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>');
         status = true;
     }
-
     return status;
 }

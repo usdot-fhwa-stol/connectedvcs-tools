@@ -212,6 +212,16 @@ const midMarkerStyle = new ol.style.Style({
   })
 });
 
+const errrorMarkerStyle = new ol.style.Style({
+  image: new ol.style.Icon({
+      src: 'img/error.png',
+      size: [21, 25],
+      anchor: [0.5, 1],
+      anchorXUnits: 'fraction',
+      anchorYUnits: 'fraction'
+  })
+});
+
 export {
   laneStyle,
   vectorStyle,
@@ -223,5 +233,6 @@ export {
   pointStyle,
   barHighlightedStyle,
   measureStyle,
-  midMarkerStyle
+  midMarkerStyle,
+  errrorMarkerStyle
 };

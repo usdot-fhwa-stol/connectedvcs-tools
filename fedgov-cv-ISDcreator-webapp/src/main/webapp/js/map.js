@@ -504,14 +504,14 @@ function registerDrawInteractions(){
     if(computedLaneSource===null){
       alert("Please select a marker to proceed.")
     }
+    let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
+    $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
+    laneNum = nextAvailableLaneNum;
     placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
 
     stateConfidence = null;
     signalPhase = null;    
     nodeLaneWidth = [];    
-    let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
-    $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
-    laneNum = nextAvailableLaneNum;
   });
 
 }
@@ -612,6 +612,7 @@ function initSideBar() {
     $("#dragSigns i").removeClass("fa-unlock").addClass("fa-lock");
     $(this).addClass("current").siblings().removeClass("active");
     currentControl = this.value;
+    console.log(lanes.getSource().getFeatures());
     if (!$(this).hasClass("active")) {
       if (currentControl === "drag") {
         $("#dragSigns i").removeClass("fa-lock").addClass("fa-unlock");
@@ -902,10 +903,17 @@ function initMISC() {
     toggle(lanes, vectors, laneMarkers, laneWidths, laneConnections);
   });
 
-  $(".datetimepicker").each(function () {
-    $(this).datetimepicker({
-      format: "d/m/Y H:m:s",
-    });
+  $(".datetimepicker").each(function(){
+    let config={
+        enableTime: true,
+        enableSeconds: true,
+        allowInput: true,
+        minuteIncrement: 1,
+        secondIncrement: 1,
+        dateFormat: "d/m/Y H:i:s",
+        time_24hr: true
+    }
+    $(this).flatpickr(config);
   });
 }
 
@@ -1046,8 +1054,12 @@ function registerModalButtonEvents() {
           }
 
           if (laneNum != null) {
+            let orignalLaneNum = selectedMarker.get("laneNumber");
             selectedMarker.set("laneNumber", laneNum);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            let features = lanes.getSource().getFeatures();
+            features[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            //Synchronize computed lane reference lane number: Checking if there is computed lane reference to this lane. If so, update computed lane reference lane number to this lane number
+            features.find(feat=>feat.get("referenceLaneID") === orignalLaneNum)?.set("referenceLaneID", laneNum);
           }
           if (laneType != null) {
             selectedMarker.set("laneType", laneType);
@@ -1239,3 +1251,13 @@ $(document).ready(() => {
   initSideBar();
   registerModalButtonEvents();
 });
+
+export {
+  lanes,
+  vectors,
+  laneMarkers,
+  laneWidths,
+  box,
+  errors, 
+  rgaEnabled
+};
