@@ -527,6 +527,8 @@ function parse_datetime_str(datetimestring){
  */
 function validate_required_rga_fields(feature){    
     let map_fields_descriptions= {
+        "majorVersion": "RGA message no major version defined",
+        "minorVersion": "RGA message no minor version defined",
         "mappedGeometryId": "RGA message no mapped geometry ID defined",
         "contentVersion": "RGA message no content version defined",
         "contentDateTime": "RGA message no content datetime defined",
