@@ -88,6 +88,7 @@ function initMap() {
     source: lanesSource,
     style: laneStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const vectorSource = new ol.source.Vector();
@@ -96,6 +97,7 @@ function initMap() {
     source: vectorSource,
     style: vectorStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const boxSource = new ol.source.Vector();
@@ -104,6 +106,7 @@ function initMap() {
     source: boxSource,
     style: barStyle,
     visible: true,
+    zIndex: 1,
   });
 
   const laneMarkersSource = new ol.source.Vector();
@@ -112,6 +115,7 @@ function initMap() {
     source: laneMarkersSource,
     style: laneStyle,
     visible: true,
+    zIndex: 3,
   });
 
   const laneWidthsSource = new ol.source.Vector();
@@ -265,7 +269,7 @@ function registerSelectInteraction() {
   });
   laneMarkersInteraction.on("select", (event) => {
     selectedLayer = laneMarkers;
-    selectedMarker = laneMarkersInteractionCallback( event, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
+    selectedMarker = laneMarkersInteractionCallback( event, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
     if (selectedMarker) {
       signalPhase = selectedMarker.get("signalPhase")? selectedMarker.get("signalPhase"): null;
       stateConfidence = selectedMarker.get("stateConfidence")? selectedMarker.get("stateConfidence"): null;
@@ -288,7 +292,7 @@ function registerSelectInteraction() {
     draggableFeature.clear(); // Ensure only one feature is draggable at a time
     draggableFeature.push(event.selected[0]);
     selectedLayer = vectors;
-    selectedMarker = vectorSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
+    selectedMarker = vectorSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
   });
 
   map.addInteraction(vectorInteraction);
@@ -317,7 +321,7 @@ function registerSelectInteraction() {
     temporaryBoxMarkers.getSource().clear();
     selectedLayer = box;
     if(!controls.edit?.getActive()){
-      selectedMarker = boxSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected);
+      selectedMarker = boxSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected);
     }else if(event.selected?.length>0 ){
         selectedMarker = event.selected[0];
         selectedMarker.setStyle(barHighlightedStyle);

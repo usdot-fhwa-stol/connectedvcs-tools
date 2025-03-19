@@ -68,7 +68,7 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
 }
 
 
-function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm) {
+function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm) {
   if (evt.selected?.length > 0) {
     console.log('Lane marker feature selected:', evt.selected[0]);
 
@@ -348,7 +348,9 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
     return selectedMarker;
   } else if (evt.deselected?.length > 0) {
     console.log('Lane marker feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     resetLaneAttributes();
     laneConnections.getSource().clear();
     return null;
@@ -358,7 +360,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
   }
 }
 
-function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm){
+function vectorSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm){
   if (evt.selected?.length > 0) {
     console.log('Vector feature selected:', evt.selected[0]);
     let selectedVector = evt.selected[0];
@@ -386,7 +388,9 @@ function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteM
     return selectedVector;
   }else if (evt.deselected?.length >0 ){
     console.log('Vector feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     return null;
   }else{
     console.log("No vector feature selected, ignore");
@@ -411,7 +415,7 @@ function vectorDragCallback(draggedFeature,  selected, rgaEnabled, speedForm){
   updateFeatureLocation(draggedFeature,  selected, rgaEnabled, speedForm);
 }
 
-function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected) {
+function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, deleteMode, selected) {
   if (evt.selected?.length > 0) {
     console.log('box/stopBar feature selected:', evt.selected[0]);
     let selectedBox = evt.selected[0];
@@ -498,7 +502,9 @@ function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode
   } else if (evt.deselected?.length > 0) {
     evt.deselected[0].setStyle(null);
     console.log('box/stopBar feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     return null;
   } else {
     console.log("No box/stopBar feature selected, ignore");
@@ -631,6 +637,18 @@ function measureCallback(event){
     copyTextToClipboard((length).toFixed(3));
   });  
 }
+
+
+// Function to check if any features are selected in the map
+function hasSelectedFeatures(map) {
+  const interactions = map.getInteractions().getArray();  
+  // Filter Select interactions
+  const selectInteractions = interactions.filter(interaction => 
+    interaction instanceof ol.interaction.Select
+  );
+  // Check if any Select interaction has selected features
+  return selectInteractions.some(select => select.getFeatures().getLength() > 0);
+};
 
 
 export {
