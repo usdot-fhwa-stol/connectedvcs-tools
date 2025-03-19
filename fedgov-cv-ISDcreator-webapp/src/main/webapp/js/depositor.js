@@ -251,6 +251,7 @@ function createMessageJSON()
                     "sharedWith": lanes.features[j].attributes.sharedWith,
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
+                    "isComputed": lanes.features[j].attributes.computed
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	drivingLaneArray[temp_j].laneNodes = nodeArray;
@@ -423,6 +424,8 @@ function createMessageJSON()
             //Only populate JSON with RGA fields when the RGA toggle is enabled
             if(rga_enabled){ // Global variable rga_enabled is defined in mapping.js
                 data_frame_rga_base_layer_fields["contentVersion"]= parseInt(feature.attributes.contentVersion);
+                data_frame_rga_base_layer_fields["majorVersion"]=parseInt(feature.attributes.majorVersion);
+                data_frame_rga_base_layer_fields["minorVersion"]= parseInt(feature.attributes.minorVersion);
                 let date_time = parse_datetime_str(feature.attributes.contentDateTime);
                 data_frame_rga_base_layer_fields["timeOfCalculation"] = date_time.date;
                 data_frame_rga_base_layer_fields["contentDateTime"] = date_time.time;
