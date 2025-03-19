@@ -523,7 +523,7 @@ function parse_datetime_str(datetimestring){
 }
 
 /***
- * @brief According to J2945_A RGA definition, majorVersion, minorVersion, mappedGeometryId, contentVersion, contentDateTime are required
+ * @brief According to J2945_A RGA definition,  majorVersion, minorVersion, mappedGeometryId, contentVersion, contentDateTime are required
  */
 function validate_required_rga_fields(feature){    
     let map_fields_descriptions= {
