@@ -342,7 +342,7 @@ function createMessageJSON()
         if (approachArray[i].approachType === undefined) {
             incompleteApproaches.push(drivingLaneArray[0].laneID);
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
+            $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
         }
 
         drivingLaneArray = [];
@@ -401,14 +401,14 @@ function createMessageJSON()
         errorMarker.setStyle(errorMarkerStyle);
         if (!laneFeat[j].get("inBox")){
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
+            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
             errors.getSource().addFeature(errorMarker);
         }
         if (!laneFeat[j].get('laneNumber')) {
             // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
             let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
+            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
             errors.getSource().addFeature(errorMarker);
         }
     }
@@ -424,8 +424,8 @@ function createMessageJSON()
                 "regionID": feature.get('regionID'),
                 "msgCount": feature.get('revisionNum'),
                 "masterLaneWidth": feature.get('masterLaneWidth'),
-                "referenceLat": feature.getGeometry().getCoordinates()[1],
-                "referenceLon": feature.getGeometry().getCoordinates()[0],
+                "referenceLat": feature.get('LonLat').lat,
+                "referenceLon": feature.get('LonLat').lon,
                 "referenceElevation": feature.get('elevation'),
                 "roadAuthorityId": feature.get('roadAuthorityId')?.split(".").map(num => parseInt(num, 10)),
                 "roadAuthorityIdType": feature.get('roadAuthorityIdType'),
@@ -454,7 +454,7 @@ function createMessageJSON()
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
                 $("#message_deposit").prop('disabled', true);
-                $('#alert_placeholder').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
+                $('#alert_placeholder').append('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
             }
 
         }
@@ -573,12 +573,12 @@ function validateRequiredRGAFields(feature){
 function errorCheck(){
     let status = false; //false means there are no errors
     if (lanes.getSource().getFeatures().length == 0) {
-        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>');
+        $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>');
         status = true;
     }
     
     if (vectors.getSource().getFeatures().length < 2) {
-        $('#alert_placeholder').html('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>');
+        $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>');
         status = true;
     }
     return status;
