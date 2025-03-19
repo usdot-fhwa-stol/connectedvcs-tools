@@ -612,7 +612,6 @@ function initSideBar() {
     $("#dragSigns i").removeClass("fa-unlock").addClass("fa-lock");
     $(this).addClass("current").siblings().removeClass("active");
     currentControl = this.value;
-    console.log(lanes.getSource().getFeatures());
     if (!$(this).hasClass("active")) {
       if (currentControl === "drag") {
         $("#dragSigns i").removeClass("fa-lock").addClass("fa-unlock");
@@ -1032,7 +1031,6 @@ function registerModalButtonEvents() {
       
       if (selectedLayer.get("title") == "Lane Marker Layer") {
 
-        console.log(lanes.getSource().getFeatures())
         let currentLaneSpeedLimits = saveSpeedForm(speedForm);
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.set("speedLimitType", currentLaneSpeedLimits);

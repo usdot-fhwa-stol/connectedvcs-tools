@@ -193,13 +193,12 @@ function createMessageJSON()
     }
 
     for(let i=0; i< stopFeat.length; i++){
-        let temp_j = 0;
-        let temp_j_c = 0;
+        let tempJ = 0;
+        let tempJC = 0;
         for(let j=0; j< laneFeat.length; j++){
 
             let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
             if (inside && laneFeat[j].get('laneType') != "Crosswalk"){
-                //console.log("Stop Box: " + i + " contains lead point of feature " + j);
                 laneFeat[j].set('inBox', true);
 
                 if (!lanes.getSource().getFeatures()[j].get('computed')) {
@@ -257,8 +256,7 @@ function createMessageJSON()
                 for(let k in laneFeat[j].get('lane_attributes')) {
                     attributeArray.push(laneFeat[j].get('lane_attributes')[k].id);
                 }
-                console.log(laneFeat[j].getProperties());
-                drivingLaneArray[temp_j] = {
+                drivingLaneArray[tempJ] = {
                     "laneID": laneFeat[j].get('laneNumber'),
                     "descriptiveName": laneFeat[j].get('descriptiveName'),
                     "laneType": laneFeat[j].get('laneType'),
@@ -269,13 +267,13 @@ function createMessageJSON()
                     "isComputed": laneFeat[j].get('computed')
                 };
                 if(!laneFeat[j].get('computed')) {
-                    drivingLaneArray[temp_j].laneNodes = nodeArray;
+                    drivingLaneArray[tempJ].laneNodes = nodeArray;
                 } else {
-                    drivingLaneArray[temp_j].computedLane = computedLane;
+                    drivingLaneArray[tempJ].computedLane = computedLane;
                 }
 
                 //since some lanes are not in the driving lane
-                temp_j++;
+                tempJ++;
             } else if(laneFeat[j].get('laneType') == "Crosswalk"){
                 //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
                 laneFeat[j].set('inBox', true);
@@ -305,11 +303,11 @@ function createMessageJSON()
 
                 attributeArray = [];
 
-                laneFeat[j].get('lane_attributes').forEach(attr => {
-                    attributeArray.push(attr.id);
-                });
-                console.log(laneFeat[j].getProperties());
-                crosswalkLaneArray[temp_j_c] = {
+                let laneAttributes = laneFeat[j].get('lane_attributes');
+                for (let attr in laneAttributes) {
+                    attributeArray.push(laneAttributes[attr].id);
+                }
+                crosswalkLaneArray[tempJC] = {
                     "laneID": laneFeat[j].get('laneNumber'),
                     "descriptiveName": laneFeat[j].get('descriptiveName'),
                     "laneType": laneFeat[j].get('laneType'),
@@ -320,13 +318,13 @@ function createMessageJSON()
                     "isComputed": laneFeat[j].get('computed')
                 };
                 if(!laneFeat[j].get('computed')) {
-                    crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
+                    crosswalkLaneArray[tempJC].laneNodes = nodeArray;
                 } else {
-                    crosswalkLaneArray[temp_j_c].computedLane = computedLane;
+                    crosswalkLaneArray[tempJC].computedLane = computedLane;
                 }
 
                 //since some lanes are not in the driving lane
-                temp_j_c++;
+                tempJC++;
 
             }
             nodeArray = [];

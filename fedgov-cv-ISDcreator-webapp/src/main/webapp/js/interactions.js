@@ -89,9 +89,9 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       updateLaneFeatureLocation( selectedMarker );
     }
    
-
+    let laneFeatures = lanes.getSource().getFeatures();
     $('#lane_number li').show();
-    for (let laneFeature of lanes.getSource().getFeatures()){
+    for (let laneFeature of laneFeatures){
       let usedNum = laneFeature.get("laneNumber");
       $('.lane_number li').filter(function () {
         return $(this).text() === usedNum;
@@ -176,8 +176,8 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       $(".lane_number").hide();
     }
     let nodeLaneWidth;
-    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth")){
-        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth");
+    if(laneFeatures[selectedMarker.get("lane")]?.get("laneWidth")){
+        nodeLaneWidth = laneFeatures[selectedMarker.get("lane")]?.get("laneWidth");
     }
 
     if (nodeLaneWidth && nodeLaneWidth[selectedMarker.get("number")]){
@@ -217,11 +217,11 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
         $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
     }
-    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType")) {
+    if (!laneFeatures[selectedMarker.get("lane")]?.get("speedLimitType")) {
       removeSpeedForm(speedForm);
       addSpeedForm(speedForm);
     } else {
-      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType"));
+      rebuildSpeedForm(speedForm, laneFeatures[selectedMarker.get("lane")]?.get("speedLimitType"));
     }
           
     $('#shared_with').multiselect('deselectAll', false);
@@ -259,7 +259,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
           let connection = selectedMarker.get("connections")[attrConnection];
           let startPoint;
           let endPoint;
-          for (let laneFeature of lanes.getSource().getFeatures()) {
+          for (let laneFeature of laneFeatures) {
               if (laneFeature.get("laneNumber") && laneFeature.get("laneNumber") !== undefined) {
                   if (parseInt(laneFeature.get("laneNumber")) === parseInt(connection.fromLane)) {
                       startPoint = new ol.geom.Point(laneFeature.getGeometry().getCoordinates()[0], laneFeature.getGeometry().getCoordinates()[1]);
