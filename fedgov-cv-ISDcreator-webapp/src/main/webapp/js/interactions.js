@@ -484,18 +484,14 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
     }
     
     if (!selectedBox.get("approachType")) {
-      // approachType = null;
       $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
     } else {
-      // approachType = selectedBox.attributes.approachType;
       $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
     }
         
     if (!selectedBox.get("approachID")) {
-      // approachID = null;
       $('#approach_name .dropdown-toggle').html("Select an Approach ID <span class='caret'></span>");
     } else {
-      // approachID = selectedBox.get("approachID");
       $('#approach_name .dropdown-toggle').html(selectedBox.get("approachID") + " <span class='caret'></span>");
     }
     return selectedBox;

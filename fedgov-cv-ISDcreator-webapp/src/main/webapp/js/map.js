@@ -339,6 +339,11 @@ function registerSelectInteraction() {
         let newPoint = createPointFeature("draggablePoint", centerFeat, offsetX, offsetY );
         temporaryBoxMarkers.getSource().addFeature(newPoint);
       }
+      
+      if(event.selected?.length === 0){
+        approachID = null;
+        approachType = null;
+      }
   });
   map.addInteraction(boxSelectInteraction);
 
@@ -1118,10 +1123,12 @@ function registerModalButtonEvents() {
       if (selectedLayer.get("title") == "Stop Bar Layer") {
         if (approachType != null) {
           selectedMarker.set("approachType", approachType);
+          approachType = null;
         }
 
         if (approachID != null) {
           selectedMarker.set("approachID", approachID);
+          approachID = null;
         }
       }
 
@@ -1219,6 +1226,8 @@ function registerModalButtonEvents() {
       computingLane = false;
       computedLaneSource = null;
     }
+    approachID = null;
+    approachType = null;
   });
 
   $(".btnClone").click(() => {
