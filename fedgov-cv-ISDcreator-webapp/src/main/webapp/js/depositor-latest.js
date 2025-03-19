@@ -342,7 +342,7 @@ function createMessageJSON()
         if (approachArray[i].approachType === undefined) {
             incompleteApproaches.push(drivingLaneArray[0].laneID);
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
+            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
         }
 
         drivingLaneArray = [];
@@ -454,7 +454,7 @@ function createMessageJSON()
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
                 $("#message_deposit").prop('disabled', true);
-                $('#alert_placeholder').append('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
+                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
             }
 
         }
