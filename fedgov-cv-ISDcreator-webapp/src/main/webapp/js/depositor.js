@@ -62,6 +62,8 @@ $(document).ready(function()
         message_json_input.val(JSON.stringify(createMessageJSON(), null, 2));
     });
 
+    // Call RGA warning initialization function here:
+    initRgaWarning();
 
     /**
      * Purpose: to allow conversion of message
@@ -547,6 +549,8 @@ function validate_required_rga_fields(feature){
     }
 }
 
+
+
 /**
  * Purpose: pretty terrible error check
  * @params: DOM elements
@@ -569,3 +573,30 @@ function errorCheck(){
 
     return status;
 }
+
+/**
+ * Purpose: Checks to see if the RGA message is selected and if the lane type is sidewalk or parking
+ * @event: just checking if Frame+RGA message type is selected
+ */
+function initRgaWarning() {
+    var messageTypeEl = document.getElementById("message_type");
+    if (messageTypeEl) {
+      messageTypeEl.addEventListener("change", function() {
+        if (this.value === "Frame+RGA") {
+          var laneItems = document.querySelectorAll("#lane_type .dropdown-menu li a");
+          var unsupportedFound = false;
+          laneItems.forEach(function(item) {
+            var text = item.textContent || item.innerText;
+            if (text.includes("Sidewalk") || text.includes("Parking")) {
+              unsupportedFound = true;
+            }
+          });
+          if (unsupportedFound) {
+            alert("Sidewalk and Parking lane types are not supported in the RGA message.");
+          }
+        }
+      });
+    }
+  }
+document.addEventListener("DOMContentLoaded", initRgaWarning);
+  
