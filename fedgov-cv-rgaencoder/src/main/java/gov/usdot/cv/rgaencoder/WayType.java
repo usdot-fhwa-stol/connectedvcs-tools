@@ -18,7 +18,7 @@
 package gov.usdot.cv.rgaencoder;
 
 public class WayType {
-    private long wayType;
+    private long wayTypeValue;
 
     // Constants for choice field
     public static final long MOTOR_VEHICLE_LANE = 0;
@@ -29,23 +29,23 @@ public class WayType {
     public WayType() {
     }
 
-    public WayType(long wayType) {
-        this.wayType = wayType;
+    public WayType(long wayTypeValue) {
+        this.wayTypeValue = wayTypeValue;
     }
 
     // Getters and Setters
-    public long getWayType() {
-        return wayType;
+    public long getWayTypeValue() {
+        return wayTypeValue;
     }
 
-    public void setWayType(long wayType) {
-        this.wayType = wayType;
+    public void setWayTypeValue(long wayTypeValue) {
+        this.wayTypeValue = wayTypeValue;
     }
 
     @Override
     public String toString() {
         return "WayType{" +
-                "wayType=" + wayType +
+                "wayTypeValue=" + wayTypeValue +
                 '}';
     }
     

@@ -364,18 +364,17 @@ public class RGAEncodeTest {
 
         // CONTAINER 1
         when(mockGeometryContainer1.getGeometryContainerID()).thenReturn(GeometryContainer.APPROACH_GEOMETRY_LAYER_ID);
-        when(mockWayTypeID1.getWayType()).thenReturn((long)1);
+        when(mockWayTypeID1.getWayTypeValue()).thenReturn(WayType.BICYCLE_LANE);
         mockLaneID1 = (long)3;
         mockLaneIDSet1 = Arrays.asList(mockLaneID1);
         when(mockIndividualApproachWayTypeID1.getWayType()).thenReturn(mockWayTypeID1);
-        when(mockIndividualApproachWayTypeID1.getLaneID(0)).thenReturn((long)3);
         when(mockIndividualApproachWayTypeID1.getWayIDSet()).thenReturn(mockLaneIDSet1);
 
-        when(mockWayTypeID2.getWayType()).thenReturn((long)2);
+        when(mockWayTypeID2.getWayTypeValue()).thenReturn(WayType.CROSSWALK_LANE);
         mockLaneID2 = (long)5;
+
         mockLaneIDSet2 = Arrays.asList(mockLaneID2);
         when(mockIndividualApproachWayTypeID2.getWayType()).thenReturn(mockWayTypeID2);
-        when(mockIndividualApproachWayTypeID2.getLaneID(0)).thenReturn((long)5);
         when(mockIndividualApproachWayTypeID2.getWayIDSet()).thenReturn(mockLaneIDSet2);
 
         mockApproachWayTypeIDSet1 = Arrays.asList(mockIndividualApproachWayTypeID1, mockIndividualApproachWayTypeID2);

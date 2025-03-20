@@ -339,8 +339,11 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 								// WayType
 								jmethodID getWayTypeMethod = (*env)->GetMethodID(env, approachWayTypeIDSetClass, "getWayType", "()Lgov/usdot/cv/rgaencoder/WayType;");
 								jobject wayTypeObj = (*env)->CallObjectMethod(env, wayTypeIDSetObj, getWayTypeMethod);
-														
-								jlong wayTypeValue = (*env)->CallLongMethod(env, wayTypeObj, getWayTypeMethod);
+								
+								// WayType Value
+								jclass wayTypeClass = (*env)->GetObjectClass(env, wayTypeObj);
+								jmethodID getWayTypeValueMethod = (*env)->GetMethodID(env, wayTypeClass, "getWayTypeValue", "()J");
+								jlong wayTypeValue = (*env)->CallLongMethod(env, wayTypeObj, getWayTypeValueMethod);
 							
 								wayTypeIDSet->wayType = (WayType_t)((long)wayTypeValue);
 
