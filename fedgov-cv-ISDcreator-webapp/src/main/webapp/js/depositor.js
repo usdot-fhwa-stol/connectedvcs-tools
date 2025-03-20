@@ -62,8 +62,7 @@ $(document).ready(function()
         message_json_input.val(JSON.stringify(createMessageJSON(), null, 2));
     });
 
-    // Call RGA warning initialization function here:
-    initRgaWarning();
+    removeExplicitRGA();
 
     /**
      * Purpose: to allow conversion of message
@@ -325,7 +324,7 @@ function createMessageJSON()
                 //since some lanes are not in the driving lane
                 temp_j_c++;
 
-            }
+            } 
             nodeArray = [];
             computedLane = "";
         }
@@ -392,7 +391,16 @@ function createMessageJSON()
         } else {
             $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
         }
+
+        if (lanes.features[a].attributes.laneType != null && (lanes.features[a].attributes.laneType == "Parking" || lanes.features[a].attributes.laneType == "Sidewalk")) {
+                var messageType = $('#message_type').val();
+                if (messageType == "Frame+RGA") {
+                    $('#alert_placeholder').append('<div id="rga-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + lanes.features[a].attributes.laneNumber + " cannot be encoded for RGA, as " + lanes.features[a].attributes.laneType + " is not supported." + '</span></div>');
+                }
+        }
+
     }
+
     errors.clearMarkers();
     var size = new OpenLayers.Size(21,25);
     var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
@@ -575,28 +583,33 @@ function errorCheck(){
 }
 
 /**
- * Purpose: Checks to see if the RGA message is selected and if the lane type is sidewalk or parking
- * @event: just checking if Frame+RGA message type is selected
+ * Purpose: Greys out explicit node offsets when RGA message type is selected
+ * @event: just checking if RGA message type is selected
  */
-function initRgaWarning() {
+function removeExplicitRGA() {
     var messageTypeEl = document.getElementById("message_type");
-    if (messageTypeEl) {
-      messageTypeEl.addEventListener("change", function() {
-        if (this.value === "Frame+RGA") {
-          var laneItems = document.querySelectorAll("#lane_type .dropdown-menu li a");
-          var unsupportedFound = false;
-          laneItems.forEach(function(item) {
-            var text = item.textContent || item.innerText;
-            if (text.includes("Sidewalk") || text.includes("Parking")) {
-              unsupportedFound = true;
+    if (!messageTypeEl) return;
+
+    messageTypeEl.addEventListener("change", function () {
+        var nodeOffsetsEl = document.getElementById("node_offsets");
+        if (this.value === "RGA" || this.value === "Frame+RGA") {
+            if (nodeOffsetsEl) {
+                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                    if (nodeOffsetsEl.options[i].value === "Explicit") {
+                        nodeOffsetsEl.options[i].disabled = true;
+                        nodeOffsetsEl.selectedIndex = 1;
+                    }
+                }
             }
-          });
-          if (unsupportedFound) {
-            alert("Sidewalk and Parking lane types are not supported in the RGA message.");
-          }
+        } else {
+            if (nodeOffsetsEl) {
+                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                    if (nodeOffsetsEl.options[i].value === "Explicit") {
+                        nodeOffsetsEl.options[i].disabled = false;
+                    }
+                }
+            }
         }
-      });
-    }
-  }
-document.addEventListener("DOMContentLoaded", initRgaWarning);
-  
+    });
+}
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);  
