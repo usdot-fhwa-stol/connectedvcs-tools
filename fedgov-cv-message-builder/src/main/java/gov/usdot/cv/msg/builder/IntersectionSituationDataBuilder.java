@@ -427,7 +427,7 @@ public class IntersectionSituationDataBuilder {
 			
 		}
 
-		// Check if approachGeometryLayer approachGeomApproachSet is empty
+		// Check if approachGeometryLayer approachGeomApproachSet is not empty
 		if (!approachGeometryLayer.getApproachGeomApproachSet().isEmpty()) {
 			// Setting the Approach Geometry Layer
 			approachGeometryContainer.setGeometryContainerID(GeometryContainer.APPROACH_GEOMETRY_LAYER_ID);
@@ -437,7 +437,7 @@ public class IntersectionSituationDataBuilder {
 			geometryContainers.add(approachGeometryContainer);
 		}
 
-		// Check if motorVehicleLaneGeometryLayer laneGeomLaneSet is empty
+		// Check if motorVehicleLaneGeometryLayer laneGeomLaneSet is not empty
 		if (!motorVehicleLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
 			// Setting the Motor Vehicle Lane Geometry Layer
 			motorVehicleGeometryContainer
@@ -448,7 +448,7 @@ public class IntersectionSituationDataBuilder {
 			geometryContainers.add(motorVehicleGeometryContainer);
 		}
 
-		// Check if bicycleLaneGeometryLayer laneGeomLaneSet is empty
+		// Check if bicycleLaneGeometryLayer laneGeomLaneSet is not empty
 		if (!bicycleLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
 			// Setting the Bicycle Lane Geometry Layer
 			bicycleGeometryContainer.setGeometryContainerID(GeometryContainer.BICYCLE_LANE_GEOMETRY_LAYER_ID);
@@ -458,7 +458,7 @@ public class IntersectionSituationDataBuilder {
 			geometryContainers.add(bicycleGeometryContainer);
 		}
 
-		// Check if crosswalkLaneGeometryLayer laneGeomLaneSet is empty
+		// Check if crosswalkLaneGeometryLayer laneGeomLaneSet is not empty 
 		if (!crosswalkLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
 			// Setting the Crosswalk Lane Geometry Layer
 			crosswalkGeometryContainer.setGeometryContainerID(GeometryContainer.CROSSWALK_LANE_GEOMETRY_LAYER_ID);
