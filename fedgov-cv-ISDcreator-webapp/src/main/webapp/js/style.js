@@ -227,5 +227,5 @@ export {
   pointStyle,
   barHighlightedStyle,
   measureStyle,
-  midMarkerStyle,
+  midMarkerStyle
 };

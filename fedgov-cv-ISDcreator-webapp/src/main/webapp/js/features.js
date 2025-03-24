@@ -533,7 +533,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			elevationVal = 0;
 		} else {
 			// The point at this index is not a new point or no points were added to the source, copy elevation value directly
-			elevationVal = laneFeatures[i].get("elevation")[j]?.value;
+			elevationVal = laneFeatures[i].get("elevation")[j]?.value??-9999;
 		}		
 		dot.set("elevation", elevationVal);
 	}	
