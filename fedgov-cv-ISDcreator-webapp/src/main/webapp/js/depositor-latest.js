@@ -1,6 +1,6 @@
 /**
- * Created by martzth on 3/20/2015.
- * Updated 3/2017 by martzth
+ * TODO: This temporary file is used to test the message deposit functionality.
+ * It will be merged with the original file once the full integration testing is complete.
  */
 
 import { errorMarkerStyle } from "./style.js";

@@ -336,9 +336,9 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 /**
  * Function to build a computed feature.
  * @param {*} i Lane identifier
- * @param {*} laneNumber Lane number 
- * @param {*} referenceLaneID Reference lane Number
- * @param {*} referenceLaneNumber  Reference lane index
+ * @param {*} laneNumber Lane number. 
+ * @param {*} referenceLaneID Reference lane ID which is a unique index of the lane within an array of lanes.
+ * @param {*} referenceLaneNumber  Reference lane Number used to uniquely identify the lane.
  * @param {*} offsetX X offset
  * @param {*} offsetY Y offset
  * @param {*} rotation Rotation angle
