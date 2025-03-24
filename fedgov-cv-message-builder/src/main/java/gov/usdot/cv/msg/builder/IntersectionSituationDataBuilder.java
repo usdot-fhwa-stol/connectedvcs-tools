@@ -59,6 +59,7 @@ import gov.usdot.cv.msg.builder.util.OffsetEncoding;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
 import gov.usdot.cv.rgaencoder.ApproachGeometryLayer;
+import gov.usdot.cv.rgaencoder.ApproachWayTypeIDSet;
 import gov.usdot.cv.rgaencoder.BaseLayer;
 import gov.usdot.cv.rgaencoder.BicycleLaneGeometryLayer;
 import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
@@ -78,6 +79,7 @@ import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
 import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
 import gov.usdot.cv.rgaencoder.RGAData;
 import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
+import gov.usdot.cv.rgaencoder.WayType;
 import gov.usdot.cv.mapencoder.AllowedManeuvers;
 import gov.usdot.cv.mapencoder.ComputedLane;
 import gov.usdot.cv.mapencoder.ConnectingLane;
@@ -362,14 +364,17 @@ public class IntersectionSituationDataBuilder {
 
 		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
 			Approach approach = approaches[approachIndex];
+			IndividualApproachGeometryInfo individualApproachGeometryInfo = new IndividualApproachGeometryInfo();
+			ApproachWayTypeIDSet mtrVehicleApproachWayTypeIDSet = new ApproachWayTypeIDSet();
+			ApproachWayTypeIDSet bicycleApproachWayTypeIDSet = new ApproachWayTypeIDSet();
 
 			// Excluding crosswalk lanes as currently crosswalks do not have an approach id and it is default to -1
 			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID) {
-				IndividualApproachGeometryInfo individualApproachGeometryInfo = new IndividualApproachGeometryInfo();
+				List<Long> mtrVehicleWayIDSet =  new ArrayList<>();
+				List<Long> bicycleWayIDSet =  new ArrayList<>();
 
 				// Setting approach ID
 				individualApproachGeometryInfo.setApproachID(approach.approachID);
-				approachGeometryLayer.addIndividualApproachGeometryInfo(individualApproachGeometryInfo);
 
 				// Loop through the driving lanes
 				for (int drivingLaneIndex = 0; drivingLaneIndex < approach.drivingLanes.length; drivingLaneIndex++) {
@@ -378,11 +383,36 @@ public class IntersectionSituationDataBuilder {
 					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
 						// Setting the MotorVehicleLaneGeometryLayer
 						motorVehicleLaneGeometryLayer.addIndvMtrVehLaneGeometryInfo(buildIndvMtrVehLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
+						mtrVehicleWayIDSet.add(Long.valueOf(drivingLane.laneID));
 					} else if ((drivingLane.laneType.toLowerCase()).equals("bike")) {
 						// Setting the BicycleLaneGeometryLayer
 						bicycleLaneGeometryLayer.addIndvBikeLaneGeometryInfo(buildIndvBikeLaneGeometryInfo(drivingLane, referencePoint, offsetEncoding));
+						bicycleWayIDSet.add(Long.valueOf(drivingLane.laneID));
 					}
 				}
+
+				
+				if (!mtrVehicleWayIDSet.isEmpty()) {
+					WayType currentWayType1 = new WayType();
+					currentWayType1.setWayTypeValue(WayType.MOTOR_VEHICLE_LANE);
+					mtrVehicleApproachWayTypeIDSet.setWayType(currentWayType1);
+					mtrVehicleApproachWayTypeIDSet.setWayIDSet(mtrVehicleWayIDSet);
+
+					// Populate mtrVehicleApproachWayTypeIDSet into the individualApproachGeometryInfo
+					individualApproachGeometryInfo.addIndividualWayTypesSet(mtrVehicleApproachWayTypeIDSet);
+				}
+
+				if (!bicycleWayIDSet.isEmpty()) {
+					WayType currentWayType2 = new WayType();
+					currentWayType2.setWayTypeValue(WayType.BICYCLE_LANE);
+					bicycleApproachWayTypeIDSet.setWayType(currentWayType2);
+					bicycleApproachWayTypeIDSet.setWayIDSet(bicycleWayIDSet);
+
+					// Populate bicycleApproachWayTypeIDSet into the individualApproachGeometryInfo
+					individualApproachGeometryInfo.addIndividualWayTypesSet(bicycleApproachWayTypeIDSet);
+				}
+
+				approachGeometryLayer.addIndividualApproachGeometryInfo(individualApproachGeometryInfo);
 			} else {
 				// Loop through the crosswalk lanes
 				for (int crosswalkLaneIndex = 0; crosswalkLaneIndex < approach.crosswalkLanes.length; crosswalkLaneIndex++) {
@@ -393,35 +423,50 @@ public class IntersectionSituationDataBuilder {
 					}
 				}
 			}
+
+			
 		}
 
-		// Setting the Approach Geometry Layer
-		approachGeometryContainer.setGeometryContainerID(GeometryContainer.APPROACH_GEOMETRY_LAYER_ID);
-		approachGeometryContainer.setApproachGeometryLayer(approachGeometryLayer);
+		// Check if approachGeometryLayer approachGeomApproachSet is not empty
+		if (!approachGeometryLayer.getApproachGeomApproachSet().isEmpty()) {
+			// Setting the Approach Geometry Layer
+			approachGeometryContainer.setGeometryContainerID(GeometryContainer.APPROACH_GEOMETRY_LAYER_ID);
+			approachGeometryContainer.setApproachGeometryLayer(approachGeometryLayer);
 
-		// Adding approachGeometryContainer to the list of containers
-		geometryContainers.add(approachGeometryContainer);
+			// Adding approachGeometryContainer to the list of containers
+			geometryContainers.add(approachGeometryContainer);
+		}
 
-		// Setting the Motor Vehicle Lane Geometry Layer
-		motorVehicleGeometryContainer.setGeometryContainerID(GeometryContainer.MOTOR_VEHICLE_LANE_GEOMETRY_LAYER_ID);
-		motorVehicleGeometryContainer.setMotorVehicleLaneGeometryLayer(motorVehicleLaneGeometryLayer);
+		// Check if motorVehicleLaneGeometryLayer laneGeomLaneSet is not empty
+		if (!motorVehicleLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
+			// Setting the Motor Vehicle Lane Geometry Layer
+			motorVehicleGeometryContainer
+					.setGeometryContainerID(GeometryContainer.MOTOR_VEHICLE_LANE_GEOMETRY_LAYER_ID);
+			motorVehicleGeometryContainer.setMotorVehicleLaneGeometryLayer(motorVehicleLaneGeometryLayer);
 
-		// Adding motorVehicleGeometryContainer to the list of containers
-		geometryContainers.add(motorVehicleGeometryContainer);
+			// Adding motorVehicleGeometryContainer to the list of containers
+			geometryContainers.add(motorVehicleGeometryContainer);
+		}
 
-		// Setting the Bicycle Lane Geometry Layer
-		bicycleGeometryContainer.setGeometryContainerID(GeometryContainer.BICYCLE_LANE_GEOMETRY_LAYER_ID);
-		bicycleGeometryContainer.setBicycleLaneGeometryLayer(bicycleLaneGeometryLayer);
+		// Check if bicycleLaneGeometryLayer laneGeomLaneSet is not empty
+		if (!bicycleLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
+			// Setting the Bicycle Lane Geometry Layer
+			bicycleGeometryContainer.setGeometryContainerID(GeometryContainer.BICYCLE_LANE_GEOMETRY_LAYER_ID);
+			bicycleGeometryContainer.setBicycleLaneGeometryLayer(bicycleLaneGeometryLayer);
 
-		// Adding bicycleGeometryContainer to the list of containers
-		geometryContainers.add(bicycleGeometryContainer);
+			// Adding bicycleGeometryContainer to the list of containers
+			geometryContainers.add(bicycleGeometryContainer);
+		}
 
-		// Setting the Crosswalk Lane Geometry Layer
-		crosswalkGeometryContainer.setGeometryContainerID(GeometryContainer.CROSSWALK_LANE_GEOMETRY_LAYER_ID);
-		crosswalkGeometryContainer.setCrosswalkLaneGeometryLayer(crosswalkLaneGeometryLayer);
+		// Check if crosswalkLaneGeometryLayer laneGeomLaneSet is not empty 
+		if (!crosswalkLaneGeometryLayer.getLaneGeomLaneSet().isEmpty()) {
+			// Setting the Crosswalk Lane Geometry Layer
+			crosswalkGeometryContainer.setGeometryContainerID(GeometryContainer.CROSSWALK_LANE_GEOMETRY_LAYER_ID);
+			crosswalkGeometryContainer.setCrosswalkLaneGeometryLayer(crosswalkLaneGeometryLayer);
 
-		// Adding crosswalkGeometryContainer to the list of containers
-		geometryContainers.add(crosswalkGeometryContainer);
+			// Adding crosswalkGeometryContainer to the list of containers
+			geometryContainers.add(crosswalkGeometryContainer);
+		}
 
 		return geometryContainers;
 	}

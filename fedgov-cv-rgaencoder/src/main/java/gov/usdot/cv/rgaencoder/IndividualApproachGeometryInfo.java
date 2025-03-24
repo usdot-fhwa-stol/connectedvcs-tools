@@ -48,6 +48,12 @@ public class IndividualApproachGeometryInfo {
         this.wayTypesSet = wayTypesSet;
     }
 
+    public void addIndividualWayTypesSet(ApproachWayTypeIDSet indApproachWayTypeIDSet) {
+        if (indApproachWayTypeIDSet != null) {
+            this.wayTypesSet.add(indApproachWayTypeIDSet);
+        }
+    }
+
     @Override
     public String toString() {
         return "IndividualApproachGeometryInfo [approachID=" + approachID + 
