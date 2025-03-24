@@ -88,6 +88,7 @@ function initMap() {
     source: lanesSource,
     style: laneStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const vectorSource = new ol.source.Vector();
@@ -96,6 +97,7 @@ function initMap() {
     source: vectorSource,
     style: vectorStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const boxSource = new ol.source.Vector();
@@ -104,6 +106,7 @@ function initMap() {
     source: boxSource,
     style: barStyle,
     visible: true,
+    zIndex: 1,
   });
 
   const laneMarkersSource = new ol.source.Vector();
@@ -112,6 +115,7 @@ function initMap() {
     source: laneMarkersSource,
     style: laneStyle,
     visible: true,
+    zIndex: 3,
   });
 
   const laneWidthsSource = new ol.source.Vector();
@@ -265,7 +269,7 @@ function registerSelectInteraction() {
   });
   laneMarkersInteraction.on("select", (event) => {
     selectedLayer = laneMarkers;
-    selectedMarker = laneMarkersInteractionCallback( event, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
+    selectedMarker = laneMarkersInteractionCallback( event, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
     if (selectedMarker) {
       signalPhase = selectedMarker.get("signalPhase")? selectedMarker.get("signalPhase"): null;
       stateConfidence = selectedMarker.get("stateConfidence")? selectedMarker.get("stateConfidence"): null;
@@ -288,7 +292,7 @@ function registerSelectInteraction() {
     draggableFeature.clear(); // Ensure only one feature is draggable at a time
     draggableFeature.push(event.selected[0]);
     selectedLayer = vectors;
-    selectedMarker = vectorSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
+    selectedMarker = vectorSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
   });
 
   map.addInteraction(vectorInteraction);
@@ -317,7 +321,7 @@ function registerSelectInteraction() {
     temporaryBoxMarkers.getSource().clear();
     selectedLayer = box;
     if(!controls.edit?.getActive()){
-      selectedMarker = boxSelectInteractionCallback(event, overlayLayersGroup, lanes, deleteMode, selected);
+      selectedMarker = boxSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected);
     }else if(event.selected?.length>0 ){
         selectedMarker = event.selected[0];
         selectedMarker.setStyle(barHighlightedStyle);
@@ -334,6 +338,11 @@ function registerSelectInteraction() {
         let offsetY = getMaxSquareDistance(selectedMarker)/2;
         let newPoint = createPointFeature("draggablePoint", centerFeat, offsetX, offsetY );
         temporaryBoxMarkers.getSource().addFeature(newPoint);
+      }
+      
+      if(event.selected?.length === 0){
+        approachID = null;
+        approachType = null;
       }
   });
   map.addInteraction(boxSelectInteraction);
@@ -504,14 +513,14 @@ function registerDrawInteractions(){
     if(computedLaneSource===null){
       alert("Please select a marker to proceed.")
     }
+    let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
+    $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
+    laneNum = nextAvailableLaneNum;
     placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
 
     stateConfidence = null;
     signalPhase = null;    
     nodeLaneWidth = [];    
-    let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
-    $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
-    laneNum = nextAvailableLaneNum;
   });
 
 }
@@ -902,10 +911,17 @@ function initMISC() {
     toggle(lanes, vectors, laneMarkers, laneWidths, laneConnections);
   });
 
-  $(".datetimepicker").each(function () {
-    $(this).datetimepicker({
-      format: "d/m/Y H:m:s",
-    });
+  $(".datetimepicker").each(function(){
+    let config={
+        enableTime: true,
+        enableSeconds: true,
+        allowInput: true,
+        minuteIncrement: 1,
+        secondIncrement: 1,
+        dateFormat: "d/m/Y H:i:s",
+        time_24hr: true
+    }
+    $(this).flatpickr(config);
   });
 }
 
@@ -1024,7 +1040,6 @@ function registerModalButtonEvents() {
       
       if (selectedLayer.get("title") == "Lane Marker Layer") {
 
-        console.log(lanes.getSource().getFeatures())
         let currentLaneSpeedLimits = saveSpeedForm(speedForm);
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.set("speedLimitType", currentLaneSpeedLimits);
@@ -1046,8 +1061,12 @@ function registerModalButtonEvents() {
           }
 
           if (laneNum != null) {
+            let orignalLaneNum = selectedMarker.get("laneNumber");
             selectedMarker.set("laneNumber", laneNum);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            let features = lanes.getSource().getFeatures();
+            features[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            //Synchronize computed lane reference lane number: Checking if there is computed lane reference to this lane. If so, update computed lane reference lane number to this lane number
+            features.find(feat=>feat.get("referenceLaneID") === orignalLaneNum)?.set("referenceLaneID", laneNum);
           }
           if (laneType != null) {
             selectedMarker.set("laneType", laneType);
@@ -1104,10 +1123,12 @@ function registerModalButtonEvents() {
       if (selectedLayer.get("title") == "Stop Bar Layer") {
         if (approachType != null) {
           selectedMarker.set("approachType", approachType);
+          approachType = null;
         }
 
         if (approachID != null) {
           selectedMarker.set("approachID", approachID);
+          approachID = null;
         }
       }
 
@@ -1205,6 +1226,8 @@ function registerModalButtonEvents() {
       computingLane = false;
       computedLaneSource = null;
     }
+    approachID = null;
+    approachType = null;
   });
 
   $(".btnClone").click(() => {
@@ -1239,3 +1262,13 @@ $(document).ready(() => {
   initSideBar();
   registerModalButtonEvents();
 });
+
+export {
+  lanes,
+  vectors,
+  laneMarkers,
+  laneWidths,
+  box,
+  errors, 
+  rgaEnabled
+};

@@ -1,6 +1,5 @@
 
 let numRows = -1;
-let speedLimits = [];
 let tmpLaneAttributes = {}
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
@@ -968,6 +967,7 @@ function addSpeedForm(speedForm) {
 }
 
 function rebuildSpeedForm(speedForm, speedLimitArray) {
+    removeSpeedForm(speedForm);
     let results = speedLimitArray.length
     for (let i = 0; i < results; i++) {
         speedForm.addForm();
@@ -978,19 +978,19 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
         $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType)
     }
     resetSpeedDropdowns(speedForm);
-    speedLimits = [];
 }
 
 function saveSpeedForm(speedForm) {
+    let tmpSpeedLimits = [];
     let forms = (speedForm.getForms()).length;
     for (let i = 0; i < forms; i++) {
-        speedLimits.push({
+      tmpSpeedLimits.push({
             speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
             velocity: $("#speedForm_" + i + "_velocity").val()
         });
     }
     removeSpeedForm(speedForm);
-    return speedLimits;
+    return tmpSpeedLimits;
 }
 
 function resetSpeedDropdowns(speedForm){

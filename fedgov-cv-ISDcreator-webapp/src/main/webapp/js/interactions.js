@@ -68,7 +68,7 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
 }
 
 
-function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm) {
+function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm) {
   if (evt.selected?.length > 0) {
     console.log('Lane marker feature selected:', evt.selected[0]);
 
@@ -89,9 +89,9 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       updateLaneFeatureLocation( selectedMarker );
     }
    
-
+    let laneFeatures = lanes.getSource().getFeatures();
     $('#lane_number li').show();
-    for (let laneFeature of lanes.getSource().getFeatures()){
+    for (let laneFeature of laneFeatures){
       let usedNum = laneFeature.get("laneNumber");
       $('.lane_number li').filter(function () {
         return $(this).text() === usedNum;
@@ -176,8 +176,8 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
       $(".lane_number").hide();
     }
     let nodeLaneWidth;
-    if(lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth")){
-        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("laneWidth");
+    if(laneFeatures[selectedMarker.get("lane")]?.get("laneWidth")){
+        nodeLaneWidth = laneFeatures[selectedMarker.get("lane")]?.get("laneWidth");
     }
 
     if (nodeLaneWidth && nodeLaneWidth[selectedMarker.get("number")]){
@@ -217,11 +217,11 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
         $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
     }
-    if (!lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType")) {
+    if (!laneFeatures[selectedMarker.get("lane")]?.get("speedLimitType")) {
       removeSpeedForm(speedForm);
       addSpeedForm(speedForm);
     } else {
-      rebuildSpeedForm(speedForm, lanes.getSource().getFeatures()[selectedMarker.get("lane")]?.get("speedLimitType"));
+      rebuildSpeedForm(speedForm, laneFeatures[selectedMarker.get("lane")]?.get("speedLimitType"));
     }
           
     $('#shared_with').multiselect('deselectAll', false);
@@ -259,7 +259,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
           let connection = selectedMarker.get("connections")[attrConnection];
           let startPoint;
           let endPoint;
-          for (let laneFeature of lanes.getSource().getFeatures()) {
+          for (let laneFeature of laneFeatures) {
               if (laneFeature.get("laneNumber") && laneFeature.get("laneNumber") !== undefined) {
                   if (parseInt(laneFeature.get("laneNumber")) === parseInt(connection.fromLane)) {
                       startPoint = new ol.geom.Point(laneFeature.getGeometry().getCoordinates()[0], laneFeature.getGeometry().getCoordinates()[1]);
@@ -348,7 +348,9 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
     return selectedMarker;
   } else if (evt.deselected?.length > 0) {
     console.log('Lane marker feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     resetLaneAttributes();
     laneConnections.getSource().clear();
     return null;
@@ -358,7 +360,7 @@ function laneMarkersInteractionCallback(evt, overlayLayersGroup, lanes, laneConn
   }
 }
 
-function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm){
+function vectorSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm){
   if (evt.selected?.length > 0) {
     console.log('Vector feature selected:', evt.selected[0]);
     let selectedVector = evt.selected[0];
@@ -386,7 +388,9 @@ function vectorSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteM
     return selectedVector;
   }else if (evt.deselected?.length >0 ){
     console.log('Vector feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     return null;
   }else{
     console.log("No vector feature selected, ignore");
@@ -411,7 +415,7 @@ function vectorDragCallback(draggedFeature,  selected, rgaEnabled, speedForm){
   updateFeatureLocation(draggedFeature,  selected, rgaEnabled, speedForm);
 }
 
-function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode, selected) {
+function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, deleteMode, selected) {
   if (evt.selected?.length > 0) {
     console.log('box/stopBar feature selected:', evt.selected[0]);
     let selectedBox = evt.selected[0];
@@ -480,25 +484,23 @@ function boxSelectInteractionCallback(evt, overlayLayersGroup, lanes, deleteMode
     }
     
     if (!selectedBox.get("approachType")) {
-      // approachType = null;
       $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
     } else {
-      // approachType = selectedBox.attributes.approachType;
       $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
     }
         
     if (!selectedBox.get("approachID")) {
-      // approachID = null;
       $('#approach_name .dropdown-toggle').html("Select an Approach ID <span class='caret'></span>");
     } else {
-      // approachID = selectedBox.get("approachID");
       $('#approach_name .dropdown-toggle').html(selectedBox.get("approachID") + " <span class='caret'></span>");
     }
     return selectedBox;
   } else if (evt.deselected?.length > 0) {
     evt.deselected[0].setStyle(null);
     console.log('box/stopBar feature deselected:', evt.deselected[0]);
-    $("#attributes").hide();
+    if(!hasSelectedFeatures(map)) {
+      $("#attributes").hide();
+    }
     return null;
   } else {
     console.log("No box/stopBar feature selected, ignore");
@@ -631,6 +633,18 @@ function measureCallback(event){
     copyTextToClipboard((length).toFixed(3));
   });  
 }
+
+
+// Function to check if any features are selected in the map
+function hasSelectedFeatures(map) {
+  const interactions = map.getInteractions().getArray();  
+  // Filter Select interactions
+  const selectInteractions = interactions.filter(interaction => 
+    interaction instanceof ol.interaction.Select
+  );
+  // Check if any Select interaction has selected features
+  return selectInteractions.some(select => select.getFeatures().getLength() > 0);
+};
 
 
 export {

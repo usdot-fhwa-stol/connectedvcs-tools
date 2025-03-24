@@ -199,7 +199,10 @@ const pointStyle = new ol.style.Style({
 const errorMarkerStyle = new ol.style.Style({
   image: new ol.style.Icon({
     src: 'img/error.png',
-    scale: 0.1
+    size: [21, 25],
+    anchor: [0.5, 1],
+    anchorXUnits: 'fraction',
+    anchorYUnits: 'fraction'
   })
 });
 
@@ -211,6 +214,7 @@ const midMarkerStyle = new ol.style.Style({
       stroke: new ol.style.Stroke({ color: 'rgba(247, 154, 14, 0.5)', width: 1 })
   })
 });
+
 
 export {
   laneStyle,
