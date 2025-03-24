@@ -395,7 +395,7 @@ function createMessageJSON()
         if (lanes.features[a].attributes.laneType != null && (lanes.features[a].attributes.laneType == "Parking" || lanes.features[a].attributes.laneType == "Sidewalk")) {
                 var messageType = $('#message_type').val();
                 if (messageType == "Frame+RGA") {
-                    $('#alert_placeholder').append('<div id="rga-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + lanes.features[a].attributes.laneNumber + " cannot be encoded for RGA, as " + lanes.features[a].attributes.laneType + " is not supported." + '</span></div>');
+                    $('#alert_placeholder').append('<div id="rga-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + lanes.features[a].attributes.laneNumber + " cannot be encoded for RGA, as " + lanes.features[a].attributes.laneType + " lane type is not supported." + '</span></div>');
                 }
         }
 
