@@ -194,7 +194,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 			let center = new ol.proj.fromLonLat([feat[0].getProperties().LonLat.lon, feat[0].getProperties().LonLat.lat]);
 			let viewZoom = 18;
 			if (getCookie("isd_zoom") !== "") {
-				viewZoom = getCookie("isd_zoom");
+				viewZoom = getCookie("isd_zoom") < viewZoom ? getCookie("isd_zoom") : viewZoom;
 			}
 			map.getView().setCenter(center);
 			map.getView().setZoom(viewZoom);
@@ -241,7 +241,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 			let viewZoom = 18;
 
 			if (getCookie("isd_zoom") !== "") {
-				viewZoom = getCookie("isd_zoom");
+				viewZoom = getCookie("isd_zoom") < viewZoom ? getCookie("isd_zoom") : viewZoom;
 			}
 
 			map.getView().setCenter(center);

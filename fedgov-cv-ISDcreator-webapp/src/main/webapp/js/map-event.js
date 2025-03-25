@@ -1,4 +1,6 @@
 
+const minZoom = 1;
+const maxZoom = 21;
 //Set cookie anytime map is moved
 function onMoveEnd(event, map) {
     let centerPoint = map.getView().getCenter();
@@ -28,7 +30,7 @@ function onZoomOut(event, map) {
     let currentZoom = map.getView().getZoom();
     map.getView().animate({
         center: map.getView().getCenter(),
-        zoom: currentZoom - 1,
+        zoom: (currentZoom - 1) > minZoom ? currentZoom - 1 : minZoom,
         duration: 500
     });
 }
@@ -37,14 +39,26 @@ function onZoomIn(event, map) {
     let currentZoom = map.getView().getZoom();
     map.getView().animate({
         center: map.getView().getCenter(),
-        zoom: currentZoom + 1,
+        zoom: (currentZoom + 1) > maxZoom ? maxZoom : currentZoom + 1,
         duration: 500
     });
+}
+
+function onZoomCallback(event, map) {
+    let currentZoom = map.getView().getZoom();
+    if (currentZoom < minZoom) {
+        map.getView().setZoom(minZoom);
+    }
+    if (currentZoom > maxZoom) {
+        map.getView().setZoom(maxZoom);
+    }    
+    $('#zoomLevel .zoom').text(currentZoom);
 }
 
 export {
     onMoveEnd,
     onPointerMove,
     onZoomIn,
-    onZoomOut
+    onZoomOut,
+    onZoomCallback
 }

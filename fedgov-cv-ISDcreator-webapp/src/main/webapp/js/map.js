@@ -5,13 +5,14 @@ import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneS
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
-import {onMoveEnd, onPointerMove, onZoomIn, onZoomOut } from "./map-event.js";
+import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 let nodeObject = [];
 const aerialTilesetId = "microsoft.imagery";
 const roadTilesetId = "microsoft.base.road";
 const hybridTilesetId = "microsoft.base.hybrid.road";
+const aerialMaxZoom = 19;
 let viewLon = -83.05084664848823; //-77.149279; // -81.831733
 let viewLat = 42.33697589046676 // 38.955995; //  28.119692
 let viewLonLat = [viewLon, viewLat];
@@ -179,6 +180,7 @@ function initMap() {
   }
   if (getCookie("isd_zoom") !== "") {
     viewZoom = getCookie("isd_zoom");
+    viewZoom = viewZoom < aerialMaxZoom? viewZoom: aerialMaxZoom;
   }
   if (getCookie("isd_message_type") !== "") {
     $("#message_type").val(getCookie("isd_message_type"));
@@ -242,6 +244,9 @@ function registerMapEvents() {
   });
   document.getElementById('customZoomIn').addEventListener('click', (event) => {
     onZoomIn(event, map);
+  });
+  map.getView().on("change:resolution", (event) => {
+    onZoomCallback(event, map);
   });
 }
 
