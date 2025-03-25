@@ -1,5 +1,5 @@
 import { getElevation } from "./api.js";
-import { toggleControlsOn } from "./files.js";
+import { deleteTrace, toggleControlsOn } from "./files.js";
 import { laneStyle, pointStyle } from "./style.js";
 import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
 /*********************************************************************************************************************/
@@ -742,6 +742,26 @@ function scaleAndRotatePolygon(polygonFeature, centerFeature, draggableFeature, 
 }
 
 
+/**
+ * Purpose: removes features from the map
+ * @params  map layers and features
+ * @event remove features and all of it's metadata
+ */
+function ClearMap(lanes, laneMarkers, vectors, box, errors, laneWidths) {
+	let r = confirm("Clear and reset all of the map features?");
+	if (r == true) {
+		lanes.getSource().clear();
+		laneMarkers.getSource().clear();
+		vectors.getSource().clear();
+		box.getSource().clear();
+        errors.getSource().clear();
+        deleteTrace();
+        laneWidths.getSource().clear();
+	}
+    $("#map-type").text("");
+    $("#builder, #drawLanes, #editLanes, #measureLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel, #dragSigns").hide();
+}
+
 export {
 	onFeatureAdded,
 	buildComputedFeature,
@@ -753,5 +773,6 @@ export {
 	getMaxSquareDistance,
 	calculateAngle,
 	createPointFeature,
-	scaleAndRotatePolygon
+	scaleAndRotatePolygon,
+	ClearMap
 }

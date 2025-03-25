@@ -4,7 +4,7 @@ import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleCon
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
+import {buildComputedFeature, ClearMap, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
@@ -568,6 +568,10 @@ function initTopNavBar() {
 
   $("#deleteTrace").click(() => {
     deleteTrace();
+  });
+
+  $("#clearMap").click(() => {
+    ClearMap(lanes, laneMarkers, vectors, box, errors, laneWidths);
   });
 
   /***
