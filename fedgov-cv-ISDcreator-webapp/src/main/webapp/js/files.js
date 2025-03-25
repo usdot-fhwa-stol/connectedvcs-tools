@@ -156,7 +156,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		c = true;
 	}
   
-	if (c === true) {
+	if (c === true && loadType == "load") {
     	vectors.setSource(vectorsSource);
 		lanes.setSource(lanesSource);
 		laneMarkers.setSource(laneMarkersSource);
@@ -213,6 +213,56 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, true, controls);
 		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, true, controls);
 		console.log("loaded map")
+	}else if( loadType == "update"){
+		vectors.getSource().clear();
+		let vectorsSource = new ol.source.Vector({
+			features: vectorLayerAsOL,
+		});
+		vectors.setSource(vectorsSource);
+
+		let feat = vectors.getSource().getFeatures();
+		for (let a = 0; a < feat.length; a++) {
+			let iconAddress = feat[a].getProperties().marker.img_src;
+			let IconInfo = {src: iconAddress, height: 50, width: 50, anchor: [0.5,1], anchorXUnits: 'fraction', anchorYUnits: 'fraction'};
+			feat[a].setStyle(new ol.style.Style({
+				image: new ol.style.Icon(IconInfo)
+			}));
+			if (feat[a].getProperties().marker.name == "Reference Point Marker") {
+				feat[a].setProperties({
+					speedLimitType: tempSpeedLimits,
+					layerID: tempLayerID,
+					regionID: feat[a].getProperties().regionID ? feat[a].getProperties().regionID : ''
+				});
+			}
+		}
+
+		try {
+			let center = new ol.proj.fromLonLat([feat[0].getProperties().LonLat.lon, feat[0].getProperties().LonLat.lat]);
+			let viewZoom = 18;
+
+			if (getCookie("isd_zoom") !== "") {
+				viewZoom = getCookie("isd_zoom");
+			}
+
+			map.getView().setCenter(center);
+			map.getView().setZoom(viewZoom);
+			let overlayLayersGroup = new ol.layer.Group({
+				title: 'Overlays',
+				layers: [vectors]
+			});
+			unselectFeature(map, overlayLayersGroup, feat[0]);
+		}
+		catch (err) {
+			console.log("No vectors to reset view");
+		}
+
+		vectors.changed();
+
+		$("#dragSigns").click();
+		$("#dragSigns").click();
+
+		toggleControlsOn('modify', lanes, vectors, laneMarkers, laneWidths, false, controls);
+		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, false, controls);
 	}
 
 }
@@ -312,13 +362,13 @@ function loadUpdateFile(map, lanes, vectors, laneMarkers, laneWidths, box, selec
 	if (msie10 > 0 || msie11 > 0 || msie12 > 0) {
 		$('#open_file_modal').modal('show');
 		$('#fileToLoad2').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
+			onChange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 	else {
 		$('#fileToLoad').click();
 		$('#fileToLoad').one('change', (event) => {
-			onchange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
+			onChange(event, map, lanes, vectors, laneMarkers, box, laneWidths, selected, controls)
 		});
 	}
 }

@@ -16,7 +16,7 @@ let viewLon = -83.05084664848823; //-77.149279; // -81.831733
 let viewLat = 42.33697589046676 // 38.955995; //  28.119692
 let viewLonLat = [viewLon, viewLat];
 let viewCenter = ol.proj.fromLonLat(viewLonLat);
-let viewZoom = 19;
+let viewZoom = 18;
 let map;
 let selectedLayer, selectedMarker;
 let vectors, lanes, laneMarkers, box, laneConnections, errors, laneWidths;
@@ -54,7 +54,7 @@ function initMap() {
       url: tilesetURL + aerialTilesetId+"/{z}/{x}/{y}"
     }),
     type: "base",
-    visible: false,
+    visible: true,
   });
 
   const baseRoadLayer = new ol.layer.Tile({
@@ -79,7 +79,7 @@ function initMap() {
     title: "OpenStreetMap",
     type: "base",
     source: new ol.source.OSM(),
-    visible: true,
+    visible: false,
   });
 
   const lanesSource = new ol.source.Vector();
