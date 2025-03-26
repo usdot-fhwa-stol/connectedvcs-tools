@@ -23,3 +23,39 @@ import org.junit.Before;
 import org.junit.Test;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+public class ASN1DecoderTest {
+    private static final Logger logger = LogManager.getLogger(ASN1DecoderTest.class);
+    Decoder decoder;
+    ByteArrayObject mockMsg;
+
+    @Before
+    public void setup() {
+
+
+        mockMsg = mock(ByteArrayObject.class);
+
+        decoder = new Decoder();
+        when(mockMsg.getType()).thenReturn("MAP");
+        when(mockMsg.getMessage()).thenReturn(new byte[]{1});
+
+    }
+
+    @Test
+    public void ASN1DecoderTest() {
+        long start = System.currentTimeMillis();
+        logger.debug("mockMsg Type: " + mockMsg.getType());
+        System.out.print("mockMsg");
+        System.out.printf("Type: %s", mockMsg.getType());
+
+        String res = decoder.decode(mockMsg);
+        long end = System.currentTimeMillis();
+
+        System.out.printf("res: %s", mockMsg.getType());
+
+        String expected = "Decoded Message";
+
+
+        Assert.assertEquals(expected, res);
+    }
+}

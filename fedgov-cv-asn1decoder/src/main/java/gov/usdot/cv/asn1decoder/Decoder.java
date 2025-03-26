@@ -31,7 +31,7 @@ public class Decoder {
 	public Decoder() {
 	}
 
-	// Load libasn1c.so external C library
+	// Load libasn1c_decoder.so external C library
 	static {
 		try {
 			System.loadLibrary("asn1c_decoder");
@@ -49,7 +49,7 @@ public class Decoder {
 	 */
 	public native String decodeMsg(byte[] message);
 
-	//
+
 	public String decode(ByteArrayObject binaryMessage) {
 		logger.debug("Decoding the binary message :");
 

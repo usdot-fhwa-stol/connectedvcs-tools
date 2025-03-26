@@ -30,8 +30,16 @@ public class ByteArrayObject {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public byte[] getMessage() {
         return message;
+    }
+
+    public void setMessage(byte[] message) {
+        this.message = message;
     }
 
 }
