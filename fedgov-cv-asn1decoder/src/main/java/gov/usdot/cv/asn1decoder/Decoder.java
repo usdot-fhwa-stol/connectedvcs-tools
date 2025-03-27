@@ -54,6 +54,7 @@ public class Decoder {
 		logger.debug("Decoding the binary message :");
 
 		// TODO The following lines are assumption and may not be correct
+		/*Checking with Bytes */
 		String decodedMsg = decodeMsg(binaryMessage.getMessage());
 
 		if (decodedMsg == null) {

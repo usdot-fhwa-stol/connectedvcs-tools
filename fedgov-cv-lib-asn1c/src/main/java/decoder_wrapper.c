@@ -23,29 +23,43 @@
 JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg)
 {
 	// TODO temporary
-	const char *resultStr = "Decoded Message";
+	const char *resultStr;
 
 	asn_dec_rval_t rval; /* Decoder return value */
 	MessageFrame_t *message = 0; /* Type to decode */
+	
+	int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_bsm */
+	jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
+	char buf[len]; /* Buffer for decoder function */
+	for(int i = 0; i < len; i++) {
+		buf[i] = inCArray[i];
+	} /* Copy into buffer */
 
-	// int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_bsm */
-	// jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
-	// char buf[len]; /* Buffer for decoder function */
-	// for(int i = 0; i < len; i++) {
-	// 	buf[i] = inCArray[i];
-	// } /* Copy into buffer */
+	rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
 
-	// rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
+	if(rval.code == RC_OK) {
 
-	// if(rval.code == RC_OK) {
-	// 	}
-	// else {
-	// 	// return error for failure to decode
-	// }
+		asn_fprint(stdout, &asn_DEF_MessageFrame, message);
 
+		char outputBuffer[4096]; // Ensure it's large enough
+		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		if (stream) {
+			asn_fprint(stream, &asn_DEF_MessageFrame, message);
+			fclose(stream);
+			resultStr = strdup(outputBuffer); // Dumping the outputBuffer
+		} else {
+			resultStr = "Failed to allocate memory for output";
+		}
 
+	}
+	else if(rval.code == RC_WMORE) {
+		printf("More Data Needed");
+		
+	}
+	else
+	{
+		printf("Decoding Failed");
 
-    // Convert to jstring and return
-	// NewStringUTF() converts a C-style string (const char*) to a Java String (jstring).
-    return (*env)->NewStringUTF(env, resultStr);
+	}
+    return (*env)->NewStringUTF(env, resultStr1);
 }
