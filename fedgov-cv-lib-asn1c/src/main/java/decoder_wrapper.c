@@ -61,5 +61,5 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 		printf("Decoding Failed");
 
 	}
-    return (*env)->NewStringUTF(env, resultStr1);
+    return (*env)->NewStringUTF(env, resultStr);
 }
