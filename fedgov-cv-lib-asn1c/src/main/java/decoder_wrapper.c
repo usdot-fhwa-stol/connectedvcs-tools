@@ -38,6 +38,7 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 	rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
 
 	if(rval.code == RC_OK) {
+		printf("Message ID: %ld\n", message->messageId);
 
 		asn_fprint(stdout, &asn_DEF_MessageFrame, message);
 
