@@ -524,7 +524,7 @@ public class IntersectionSituationDataBuilder {
 
 			NodeXYZOffsetValue nodeZOffsetValue = new NodeXYZOffsetValue();
 			nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
-			nodeZOffsetValue.setOffsetB12((long)0);
+			nodeZOffsetValue.setOffsetB12((long)lane.computedLane.offsetZ); //replace this with computedLane.offsetZ
 			laneCenterLineXYZOffset.setNodeZOffsetValue(nodeZOffsetValue);
 
 			WayPlanarGeometryInfo lanePlanarGeomInfo = new WayPlanarGeometryInfo(); 

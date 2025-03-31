@@ -375,6 +375,14 @@ var help_notes = [
 		description: "A path Y offset for translations."
 	},
 	{
+		value: "offsetZ",
+		title: "Offset Z",
+		max: "2047",
+		min: "-2047",
+		units: "Centimeters",
+		description: "A path Z offset for translations."
+	},
+	{
 		value: "rotation",
 		title: "Rotation",
 		max: "359.9875",

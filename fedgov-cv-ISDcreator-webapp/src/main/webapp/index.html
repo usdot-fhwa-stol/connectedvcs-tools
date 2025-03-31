@@ -773,6 +773,20 @@
 						<div class="col-sm-7"><input class="form-control" id="offset-Y" placeholder="-2047 to 2047"  data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-2047, 2047]" data-parsley-pattern-message="This value must include numbers only."></div>
 						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="offsetY"></i></div>
 					</div>
+					<div class="row offset-Z" data-toggle="tooltip" title="in centimeters">
+						<div class="col-sm-4"><label for="offset-Z">Offset Z:</label></div>
+						<div class="col-sm-7">
+							<!-- Removed placeholder="-2047 to 2047" data-parsley-range="[-2047, 2047]" while Elevation API is corrected. -->
+							<input 
+								class="form-control" 
+								id="offset-Z" 
+								data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" 
+								data-parsley-required="true"
+								data-parsley-pattern-message="This value must include numbers only."
+							>
+						</div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="offsetYZ"></i></div>
+					</div>
 					<div class="row rotation" data-toggle="tooltip" title="in decimal degrees">
 						<div class="col-sm-4"><label for="rotation">Rotation:</label></div>
 						<div class="col-sm-7"><input class="form-control" id="rotation" placeholder="0 to 359.9875"  data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 359.9875]" data-parsley-pattern-message="This value must include numbers only."></div>

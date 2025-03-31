@@ -1264,6 +1264,7 @@ function onFeatureAdded(){
 				        		lanes.features[i].attributes.referenceLaneNumber,
 				        		lanes.features[i].attributes.offsetX,
 				        		lanes.features[i].attributes.offsetY,
+								lanes.features[i].attributes.offsetZ,
 				        		lanes.features[i].attributes.rotation,
 				        		lanes.features[i].attributes.scaleX,
 				        		lanes.features[i].attributes.scaleY,
@@ -1296,10 +1297,16 @@ function buildDots(i, j, dot, latlon){
 	}
 }
 
-function placeComputedLane(newDotFeature) {
-	var newX = newDotFeature.geometry.x;
-	var newY = newDotFeature.geometry.y;
-	
+async function placeComputedLane(newDotFeature) {
+    const newX = newDotFeature.geometry.x;
+    const newY = newDotFeature.geometry.y;
+    let newLonLat = new OpenLayers.LonLat(newX, newY).transform(toProjection, fromProjection);
+    
+    // Await the computed elevation
+    let newZ = await getComputedElevation(newLonLat);
+    console.log("Elevation (newZ) is: " + newZ);
+
+
 	// We no longer need the newDotFeature since we only needed to save it's x/y values
 	// to calculate the offset from the old x/y values
 	lanes.removeFeatures(newDotFeature);
@@ -1314,6 +1321,7 @@ function placeComputedLane(newDotFeature) {
 	    // Note: Measurement is in meters so multiply by 100 for CM
 	    var offsetX = Math.round((newX - lanes.features[computedLaneSource.attributes.lane].geometry.components[0].x) * 100);
 	    var offsetY = Math.round((newY - lanes.features[computedLaneSource.attributes.lane].geometry.components[0].y) * 100);
+		var offsetZ = Math.round((newZ - lanes.features[computedLaneSource.attributes.lane].attributes.elevation[0].value) * 100);
 	    
 	    var inRange = true;
 	    if(offsetX > 2047 || offsetX < -2047) {
@@ -1325,7 +1333,15 @@ function placeComputedLane(newDotFeature) {
 	    	alert("Current offset in Y axis from source lane is " + offsetY + "cm. Offset value should be between -2047 and 2047.");
 	    	inRange = false;
 	    }
-	    
+
+		// TODO: Commenting out code as we change Elevation API for correct world model result.
+
+		// if(offsetZ > 2047 || offsetZ < -2047) {
+		// 	alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
+		// 	inRange = false;
+		// }
+		
+		
 	    if(inRange) {
 	    	
 			$("#attributes").hide();
@@ -1420,6 +1436,8 @@ function placeComputedLane(newDotFeature) {
 	
 		    $("#offset-X").val(offsetX);
 		    $("#offset-Y").val(offsetY);
+			//Place the elevationOffset here 
+			$("#offset-Z").val(offsetZ);
 		    $("#rotation").val(0);
 		    $("#scale-X").val(0);
 		    $("#scale-Y").val(0);
@@ -1438,11 +1456,13 @@ function placeComputedLane(newDotFeature) {
 	    // Get the offset from the first old point of the computed lane
 		var offsetX = Math.round((newX - computedLaneSource.geometry.components[0].x) * 100);
 	    var offsetY = Math.round((newY - computedLaneSource.geometry.components[0].y) * 100);
+		var offsetZ = Math.round((newZ - computedLaneSource.attributes.elevation.value) * 100);
 
 		// Combining the offsets with the computed lane's current offsets will give the
 	    // amount of offset from the source lane
 	    var offsetXFromSource = Number(computedLaneSource.attributes.offsetX) + offsetX;
 	    var offsetYFromSource = Number(computedLaneSource.attributes.offsetY) + offsetY;
+		var offsetZFromSource = Number(computedLaneSource.attributes.offsetZ) + offsetZ;
 		
 	    var inRange = true;
 	    if(offsetXFromSource > 2047 || offsetXFromSource < -2047) {
@@ -1454,12 +1474,18 @@ function placeComputedLane(newDotFeature) {
 	    	alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
 	    	inRange = false;
 	    }
+		// TODO: Commenting out code as we change Elevation API for correct world model result.
+		// if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
+		// 	alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
+	    // 	inRange = false;
+		// }
 	    
 	    if(inRange) {
 	    	// Just need to update the lane's offset values since the drawing in the UI
 		    // is based off the them
 			computedLaneSource.attributes.offsetX = offsetXFromSource;
 			computedLaneSource.attributes.offsetY = offsetYFromSource;
+			computedLaneSource.attributes.offsetZ = offsetZFromSource;
 			
 			// Unset the source computed lane since we are done moving it
 			computedLaneSource = null;
@@ -1474,7 +1500,7 @@ function placeComputedLane(newDotFeature) {
 	}
 }
 
-function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID){
+function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, offsetZ, rotation, scaleX, scaleY, computedLaneID){
 
 	var r = Number(referenceLaneNumber);
 	var max = lanes.features[r].geometry.getVertices().length;
@@ -1643,7 +1669,7 @@ function connectComputedDots(i, points, initialize){
 		        
 		        "computed": laneMarkers.features[m].attributes.computed, "computedLaneID": laneMarkers.features[m].attributes.computedLaneID,
 		        "referenceLaneID": laneMarkers.features[m].attributes.referenceLaneID, "referenceLaneNumber": laneMarkers.features[m].attributes.referenceLaneNumber,
-		        "offsetX": laneMarkers.features[m].attributes.offsetX, "offsetY": laneMarkers.features[m].attributes.offsetY,
+		        "offsetX": laneMarkers.features[m].attributes.offsetX, "offsetY": laneMarkers.features[m].attributes.offsetY, "offsetZ": laneMarkers.features[m].attributes.offsetZ,
 		        "rotation": laneMarkers.features[m].attributes.rotation,
 		        "scaleX": laneMarkers.features[m].attributes.scaleX, "scaleY": laneMarkers.features[m].attributes.scaleY
 		    };
@@ -2490,6 +2516,28 @@ async function getElevation(dot, latlon, i, j, callback){
         error: function(error){
             callback(-9999, i, j, latlon, dot);
         }
+    });
+}
+
+async function getComputedElevation(latlon) {
+    const apiKey = await getApiKey();
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: google_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+            success: function(result) {
+                let elev = result?.elevation;
+                if (elev == null || elev === undefined) {
+                    elev = -9999;
+                } else {
+                    elev = Math.round(elev);
+                }
+                resolve(elev);
+            },
+            error: function(error) {
+                console.log("ERROR GETTING ELEVATION: " + error);
+                resolve(-9999);
+            }
+        });
     });
 }
 

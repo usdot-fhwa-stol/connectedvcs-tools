@@ -231,6 +231,7 @@ function createMessageJSON()
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            "offsetZ": lanes.features[j].attributes.offsetZ,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
@@ -287,6 +288,7 @@ function createMessageJSON()
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            "offsetZ": lanes.features[j].attributes.offsetZ,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
