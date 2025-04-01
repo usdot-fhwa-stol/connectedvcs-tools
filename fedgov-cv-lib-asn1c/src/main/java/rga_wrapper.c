@@ -1086,7 +1086,6 @@ void populateTimeRestrictions(JNIEnv *env, jobject timeRestrictionsObj, RGATimeR
 			// EndPeriod
 			jmethodID getEndPeriodMethod = (*env)->GetMethodID(env, timeWindowInformationClass, "getEndPeriod", "()Lgov/usdot/cv/rgaencoder/DDateTime;");
 			jobject endPeriodObj = (*env)->CallObjectMethod(env, timeWindowInformationObj, getEndPeriodMethod);
-			jclass endPeriodClass = (*env)->GetObjectClass(env, endPeriodObj);
 
 			if (endPeriodObj == NULL)
 			{
@@ -1094,6 +1093,7 @@ void populateTimeRestrictions(JNIEnv *env, jobject timeRestrictionsObj, RGATimeR
 			}
 			else
 			{
+				jclass endPeriodClass = (*env)->GetObjectClass(env, endPeriodObj);
 				jmethodID getEndYear = (*env)->GetMethodID(env, endPeriodClass, "getYear", "()I");
 				jmethodID getEndMonth = (*env)->GetMethodID(env, endPeriodClass, "getMonth", "()I");
 				jmethodID getEndDay = (*env)->GetMethodID(env, endPeriodClass, "getDay", "()I");
