@@ -22,30 +22,53 @@
 
 JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg)
 {
-	// TODO temporary
-	const char *resultStr = "Decoded Message";
-
+	
+	const char *resultStr;
 	asn_dec_rval_t rval; /* Decoder return value */
 	MessageFrame_t *message = 0; /* Type to decode */
+	
+	int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_message */
+	jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
+	char buf[len]; /* Buffer for decoder function */
+	for(int i = 0; i < len; i++) {
+		buf[i] = inCArray[i];
+	} /* Copy into buffer */
 
-	// int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_bsm */
-	// jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
-	// char buf[len]; /* Buffer for decoder function */
-	// for(int i = 0; i < len; i++) {
-	// 	buf[i] = inCArray[i];
-	// } /* Copy into buffer */
+	rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
 
-	// rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
+	if(rval.code == RC_OK) {
 
-	// if(rval.code == RC_OK) {
-	// 	}
-	// else {
-	// 	// return error for failure to decode
-	// }
+		// If message decoding is sucessful print the message id
+		printf("Message ID: %ld\n", message->messageId);
+	
+		//copying decoded message to char Array outputBuffer
+		char outputBuffer[4096]; 
+		//Open memory stream of size outputBuffer to write into char array outputBuffer
+		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
 
+		if (stream) {
+			/*if stream is sucessfully created by fmemopen*/				
+			asn_fprint(stream, &asn_DEF_MessageFrame, message); // Write the ASN.1 encoded message ('message') to the memory stream ('stream').
+			fclose(stream); //closing the memory stream
+			resultStr = strdup(outputBuffer);    // Copy the content of 'outputBuffer' to 'resultStr' using 'strdup()'.
+		} else {
+			   // If 'fmemopen()' failed to create the memory stream ('stream' is NULL)
+			resultStr = "Failed to allocate memory for output";
+		}
 
+	}
+	else if(rval.code == RC_WMORE) {
+		// Checks if decoding requires more data ('RC_WMORE') indicating incomplete parsing needing additional bytes.
 
-    // Convert to jstring and return
-	// NewStringUTF() converts a C-style string (const char*) to a Java String (jstring).
+		printf("Additional bytes  required for decoding");
+		
+	}
+	else
+	{
+		//Decoding failed due to invalid data
+		printf("Decoding Failed");
+
+	}
+	//converting char array to Java String
     return (*env)->NewStringUTF(env, resultStr);
 }
