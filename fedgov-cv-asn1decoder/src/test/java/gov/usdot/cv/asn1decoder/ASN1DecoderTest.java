@@ -27,13 +27,14 @@ import org.apache.logging.log4j.Logger;
 public class ASN1DecoderTest {
     private static final Logger logger = LogManager.getLogger(ASN1DecoderTest.class);
     Decoder decoder;
-    ByteArrayObject mockMsg;
+    ByteArrayObject mockMsg,mockMsg2;
 
     @Before
     public void setup() {
 
 
         mockMsg = mock(ByteArrayObject.class);
+        mockMsg2 = mock(ByteArrayObject.class); // For testing empty case
 
         decoder = new Decoder();
         when(mockMsg.getType()).thenReturn("MAP");
@@ -41,6 +42,7 @@ public class ASN1DecoderTest {
 
 
         when(mockMsg.getMessage()).thenReturn(bsm);
+        when(mockMsg2.getMessage()).thenReturn(new byte[]{}); // Mock for empty message
 
     }
 
@@ -53,6 +55,12 @@ public class ASN1DecoderTest {
         String decodedMessage= decoder.decode(mockMsg);
         //Test passes if decoded message has a length greater than 0
         Assert.assertTrue("Decoded result should not be empty",!decodedMessage.isEmpty());
-
     }
+
+    @Test
+    public void ASN1DecoderTestEmpty() {
+        String decodedMessage = decoder.decode(mockMsg2);
+        Assert.assertTrue("Decoded result should be empty", decodedMessage.isEmpty());
+    }
+
 }
