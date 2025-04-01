@@ -27,7 +27,7 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 	asn_dec_rval_t rval; /* Decoder return value */
 	MessageFrame_t *message = 0; /* Type to decode */
 	
-	int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_bsm */
+	int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_message */
 	jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
 	char buf[len]; /* Buffer for decoder function */
 	for(int i = 0; i < len; i++) {

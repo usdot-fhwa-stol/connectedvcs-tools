@@ -53,8 +53,7 @@ public class Decoder {
 	public String decode(ByteArrayObject binaryMessage) {
 		logger.debug("Decoding the binary message :");
 
-		// TODO The following lines are assumption and may not be correct
-		/*Checking with Bytes */
+		/*Decoding the binary Message */
 		String decodedMsg = decodeMsg(binaryMessage.getMessage());
 
 		if (decodedMsg == null) {
