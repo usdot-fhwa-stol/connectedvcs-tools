@@ -56,6 +56,7 @@ let rga_enabled=false;
 function set_rga_status() {
     if($('#rga_switch').is(":checked")){
         rga_enabled = true;
+		console.log("RGA IS ENABLED");
     }else{
         rga_enabled = false;
     }
@@ -773,6 +774,7 @@ async function init() {
                 }
                 
                 if(selected_marker.attributes.computed) {
+					show_rga_fields(hide=false);
                 	if (! selected_marker.attributes.referenceLaneNumber){
                         $("#referenceLaneNumber").val("");
                     } else {
@@ -795,6 +797,11 @@ async function init() {
                         $("#offset-Y").val("");
                     } else {
                         $("#offset-Y").val(selected_marker.attributes.offsetY);
+                    }
+					if (! selected_marker.attributes.offsetZ){
+                        $("#offset-Z").val("");
+                    } else {
+                        $("#offset-Z").val(selected_marker.attributes.offsetZ);
                     }
 
                     if (! selected_marker.attributes.rotation){
@@ -1303,7 +1310,7 @@ async function placeComputedLane(newDotFeature) {
     let newLonLat = new OpenLayers.LonLat(newX, newY).transform(toProjection, fromProjection);
     
     // Await the computed elevation
-    let newZ = await getComputedElevation(newLonLat);
+    const newZ = await getComputedElevation(newLonLat);
     console.log("Elevation (newZ) is: " + newZ);
 
 
@@ -1436,7 +1443,7 @@ async function placeComputedLane(newDotFeature) {
 	
 		    $("#offset-X").val(offsetX);
 		    $("#offset-Y").val(offsetY);
-			//Place the elevationOffset here 
+			show_rga_fields(hide=false);
 			$("#offset-Z").val(offsetZ);
 		    $("#rotation").val(0);
 		    $("#scale-X").val(0);
@@ -1456,7 +1463,7 @@ async function placeComputedLane(newDotFeature) {
 	    // Get the offset from the first old point of the computed lane
 		var offsetX = Math.round((newX - computedLaneSource.geometry.components[0].x) * 100);
 	    var offsetY = Math.round((newY - computedLaneSource.geometry.components[0].y) * 100);
-		var offsetZ = Math.round((newZ - computedLaneSource.attributes.elevation.value) * 100);
+		var offsetZ = Math.round((newZ - computedLaneSource.attributes.elevation[0].value) * 100);
 
 		// Combining the offsets with the computed lane's current offsets will give the
 	    // amount of offset from the source lane
@@ -1519,13 +1526,14 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var zeroPoint = new OpenLayers.Geometry.Point(
 					lanes.features[r].geometry.getVertices()[j].x + offsetX / 100,
 					lanes.features[r].geometry.getVertices()[j].y + offsetY / 100);
+			//TODO: SIMILAR FOR ELEVATION??
 			var zeroDot = new OpenLayers.Feature.Vector(zeroPoint);
 			zeroLatlon = new OpenLayers.LonLat(zeroDot.geometry.x, zeroDot.geometry.y).transform(toProjection, fromProjection);
 			points.push(zeroPoint);
 			buildComputedDot(i, j, laneNumber,
 								referenceLaneID, referenceLaneNumber, 
 								zeroDot, zeroLatlon,
-								offsetX, offsetY,
+								offsetX, offsetY, offsetZ,
 								rotation,
 								scaleX, scaleY,
 								computedLaneID,
@@ -1539,6 +1547,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var tempPoint = new OpenLayers.Geometry.Point(
 					lanes.features[r].geometry.getVertices()[j].x + deltaScaleX + (offsetX / 100),
 					lanes.features[r].geometry.getVertices()[j].y + deltaScaleY + (offsetY / 100));
+			//SIMILAR FOR ELEVATION???
 			var tempDot = new OpenLayers.Feature.Vector(tempPoint);
 			var tempLatlon = new OpenLayers.LonLat(tempDot.geometry.x, tempDot.geometry.y).transform(toProjection, fromProjection);
 			
@@ -1554,7 +1563,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			buildComputedDot(i, j, laneNumber,
 								referenceLaneID, referenceLaneNumber,
 								newDot, newLatlon,
-								offsetX, offsetY,
+								offsetX, offsetY, offsetZ,
 								rotation,
 								scaleX, scaleY,
 								computedLaneID,
@@ -1574,7 +1583,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 	}
 }
 
-function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber, dot, latlon, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID, initialize){
+function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber, dot, latlon, offsetX, offsetY, offsetZ, rotation, scaleX, scaleY, computedLaneID, initialize){
 	if(typeof initialize === 'undefined') {
 		initialize = false;
 	}
@@ -1585,26 +1594,26 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 		dot.attributes={"lane": i, "number": j, "LatLon": latlon,
 	    		"descriptiveName" : "",
 				"laneNumber": laneNumber, "laneWidth": lanes.features[r].attributes.laneWidth, "laneType": lanes.features[r].attributes.laneType, "sharedWith": lanes.features[r].attributes.sharedWith,
-				"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue,
+				"laneInfoDaySelection": lanes.features[r].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[r].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[r].attributes.laneInfoTimePeriodValue,
 		        "stateConfidence": lanes.features[r].attributes.stateConfidence, "spatRevision": lanes.features[r].attributes.spatRevision, "signalGroupID": lanes.features[r].attributes.signalGroupID, "lane_attributes": lanes.features[r].attributes.lane_attributes,
 		        "startTime": lanes.features[r].attributes.startTime, "minEndTime": lanes.features[r].attributes.minEndTime, "maxEndTime": lanes.features[r].attributes.maxEndTime,
 		        "likelyTime": lanes.features[r].attributes.likelyTime, "nextTime": lanes.features[r].attributes.nextTime, "signalPhase": lanes.features[r].attributes.signalPhase, "typeAttribute": lanes.features[r].attributes.typeAttribute,
 		        "connections": lanes.features[r].attributes.connections, "elevation": lanes.features[r].attributes.elevation[j].value,
 		        "computed" : true,
-		        "computedLaneID": computedLaneID, "referenceLaneID": referenceLaneID, "referenceLaneNumber": referenceLaneNumber, "offsetX": offsetX, "offsetY": offsetY, "rotation": rotation, "scaleX": scaleX, "scaleY": scaleY
+		        "computedLaneID": computedLaneID, "referenceLaneID": referenceLaneID, "referenceLaneNumber": referenceLaneNumber, "offsetX": offsetX, "offsetY": offsetY, "offsetZ": offsetZ, "rotation": rotation, "scaleX": scaleX, "scaleY": scaleY
 		    };
 	} else {
 		dot.attributes={"lane": i, "number": j, "LatLon": latlon,
 	    		"descriptiveName" : lanes.features[i].attributes.descriptiveName,
 				"laneNumber": laneNumber, "laneWidth": lanes.features[i].attributes.laneWidth, "laneType": lanes.features[i].attributes.laneType, "sharedWith": lanes.features[i].attributes.sharedWith,
-				"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue,
+				"laneInfoDaySelection": lanes.features[r].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[r].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[r].attributes.laneInfoTimePeriodValue,
 		        "stateConfidence": lanes.features[i].attributes.stateConfidence, "spatRevision": lanes.features[i].attributes.spatRevision, "signalGroupID": lanes.features[i].attributes.signalGroupID, "lane_attributes": lanes.features[i].attributes.lane_attributes,
 		        "startTime": lanes.features[i].attributes.startTime, "minEndTime": lanes.features[i].attributes.minEndTime, "maxEndTime": lanes.features[i].attributes.maxEndTime,
 		        "likelyTime": lanes.features[i].attributes.likelyTime, "nextTime": lanes.features[i].attributes.nextTime, "signalPhase": lanes.features[i].attributes.signalPhase, "typeAttribute": lanes.features[i].attributes.typeAttribute,
 		        "connections": lanes.features[i].attributes.connections,
 		        "computed" : lanes.features[i].attributes.computed, "computedLaneID": lanes.features[i].attributes.computedLaneID,
 		        "referenceLaneID": lanes.features[i].attributes.referenceLaneID, "referenceLaneNumber": lanes.features[i].attributes.referenceLaneNumber,
-		        "offsetX": lanes.features[i].attributes.offsetX, "offsetY": lanes.features[i].attributes.offsetY,
+		        "offsetX": lanes.features[i].attributes.offsetX, "offsetY": lanes.features[i].attributes.offsetY, "offsetZ": lanes.features[i].attributes.offsetZ,
 		        "rotation": lanes.features[i].attributes.rotation,
 		        "scaleX": lanes.features[i].attributes.scaleX, "scaleY": lanes.features[i].attributes.scaleY
 		    };
@@ -2251,7 +2260,7 @@ $(".btnDone").click(function () {
 				
 				buildComputedFeature(lanes.features.length, laneNum,
 						 				$("#referenceLaneID").val(), $("#referenceLaneNumber").val(),
-						 				$("#offset-X").val(), $("#offset-Y").val(),
+						 				$("#offset-X").val(), $("#offset-Y").val(), $("#offset-Z").val(),
 						 				$("#rotation").val(),
 						 				$("#scale-X").val(), $("#scale-Y").val());
 				selected_marker = selectComputedFeature(laneNum);
@@ -2363,12 +2372,14 @@ $(".btnDone").click(function () {
                 if(selected_marker.attributes.computed) {
 					selected_marker.attributes.offsetX = $("#offset-X").val();
 					selected_marker.attributes.offsetY = $("#offset-Y").val();
+					selected_marker.attributes.offsetZ = $("#offset-Z").val();
 					selected_marker.attributes.rotation = $("#rotation").val();
 					selected_marker.attributes.scaleX = $("#scale-X").val();
 					selected_marker.attributes.scaleY = $("#scale-Y").val();
 
 					(lanes.features[selected_marker.attributes.lane]).attributes.offsetX = $("#offset-X").val();
 					(lanes.features[selected_marker.attributes.lane]).attributes.offsetY = $("#offset-Y").val();
+					(lanes.features[selected_marker.attributes.lane]).attributes.offsetZ = $("#offset-Z").val();
 					(lanes.features[selected_marker.attributes.lane]).attributes.rotation = $("#rotation").val();
 					(lanes.features[selected_marker.attributes.lane]).attributes.scaleX = $("#scale-X").val();
 					(lanes.features[selected_marker.attributes.lane]).attributes.scaleY = $("#scale-Y").val();
@@ -2458,8 +2469,10 @@ $(".btnClose").click(function(){
     onFeatureAdded();
     
     if (computingLane) {
+		show_rga_fields(hide=false);
 	    $("#offset-X").val("");
 	    $("#offset-Y").val("");
+		$("#offset-Z").val("");
 	    $("#rotation").val("");
 	    $("#scale-X").val("");
 	    $("#scale-Y").val("");
