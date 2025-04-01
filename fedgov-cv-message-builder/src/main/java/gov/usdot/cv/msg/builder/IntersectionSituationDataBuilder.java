@@ -174,10 +174,8 @@ public class IntersectionSituationDataBuilder {
 		GenerateType generateType = GenerateType.FramePlusMap;
 		IntersectionInputData isdInputData = new IntersectionInputData();
 		try {
-			System.out.println("Before mapping");
 			isdInputData = JSONMapper.jsonStringToPojo(intersectionData,
 					IntersectionInputData.class);
-			System.out.println("After mapping");
 			generateType = isdInputData.getGenerateType();
 			logger.debug("generateType: " + generateType);
 
