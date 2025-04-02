@@ -225,12 +225,17 @@ function createMessageJSON()
                           }                 
 	                }
                 } else {
+                    var data_frame_rga_offset_z = {}
+                    if (rga_enabled){
+                        data_frame_rga_offset_z["offsetZ"] = lanes.features[j].attributes.offsetZ;
+                    }
                 	computedLane = {
                 			"computedLaneNumber": lanes.features[j].attributes.computedLaneNumber,
                             "computedLaneID": lanes.features[j].attributes.computedLaneID,
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            ...data_frame_rga_offset_z,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
@@ -270,7 +275,7 @@ function createMessageJSON()
             } else if(lanes.features[j].attributes.laneType == "Crosswalk"){
                 //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
                 lanes.features[j].attributes.inBox = true;
-
+                
                 if(!lanes.features[j].attributes.computed) {
 	                for(var m=0; m< lanes.features[j].geometry.components.length; m++){
 	                    var latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[m].x,lanes.features[j].geometry.components[m].y).transform(toProjection, fromProjection);
@@ -283,10 +288,15 @@ function createMessageJSON()
 	                    }
 	                }
                 } else {
+                    var data_frame_rga_offset_z = {}
+                    if (rga_enabled){
+                        data_frame_rga_offset_z["offsetZ"] = parseInt(lanes.features[j].attributes.offsetZ);
+                    }
                 	computedLane = {
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            ...data_frame_rga_offset_z,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
@@ -454,6 +464,7 @@ function createMessageJSON()
                 //Validate RGA required fields
                 validate_required_rga_fields(feature);
             }
+            
 
 
             var referenceChild = {

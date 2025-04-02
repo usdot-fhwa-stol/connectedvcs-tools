@@ -425,6 +425,7 @@ public class IntersectionInputData {
         public String referenceLaneID;
         public int offsetX;
         public int offsetY;
+		public int offsetZ;
         public double rotation;
         public double scaleX;
         public double scaleY;
@@ -434,6 +435,7 @@ public class IntersectionInputData {
 			return "CopmutedLane [referenceLaneID=" + referenceLaneID +
 					", offsetX=" + offsetX +
 					", offsetY=" + offsetY +
+					", offsetZ=" + offsetZ +
 					", rotation=" + rotation +
 					", scaleX=" + scaleX +
 					", scaleY=" + scaleY + "]";
