@@ -16,6 +16,8 @@
 
 package gov.usdot.cv.msg.builder;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -49,6 +51,7 @@ import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.SpatData;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.State;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
 import gov.usdot.cv.msg.builder.message.IntersectionMessage;
 import gov.usdot.cv.msg.builder.util.BitStringHelper;
 import gov.usdot.cv.msg.builder.util.GeoPoint;
@@ -66,6 +69,8 @@ import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
 import gov.usdot.cv.rgaencoder.CrosswalkLaneGeometryLayer;
 import gov.usdot.cv.rgaencoder.DDate;
 import gov.usdot.cv.rgaencoder.DDateTime;
+import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
+import gov.usdot.cv.rgaencoder.GeneralPeriod;
 import gov.usdot.cv.rgaencoder.GeometryContainer;
 import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
 import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
@@ -78,8 +83,12 @@ import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
 import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
 import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
 import gov.usdot.cv.rgaencoder.RGAData;
+import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
+import gov.usdot.cv.rgaencoder.TimeWindowInformation;
+import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
 import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
 import gov.usdot.cv.rgaencoder.WayType;
+import gov.usdot.cv.rgaencoder.WayWidth;
 import gov.usdot.cv.mapencoder.AllowedManeuvers;
 import gov.usdot.cv.mapencoder.ComputedLane;
 import gov.usdot.cv.mapencoder.ConnectingLane;
@@ -472,6 +481,81 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	/**
+	 * This method takes time restriction from Intersection Input and returns RGA Time Restrictions
+	 * @param timeRestrictions
+	 * @return
+	 */
+	public RGATimeRestrictions buildLaneTimeRestriction(TimeRestrictions timeRestrictions) {
+		RGATimeRestrictions rgaTimeRestrictions = new RGATimeRestrictions();
+		TimeWindowItemControlInfo timeWindowItemControlInfo = new TimeWindowItemControlInfo();
+		TimeWindowInformation timeWindowInformation = new TimeWindowInformation();
+
+		if(timeRestrictions.daysOfTheWeek != null && timeRestrictions.daysOfTheWeek.length > 0) {
+			DaysOfTheWeek daysOfTheWeek = new DaysOfTheWeek();
+			int daysOfTheWeekBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, timeRestrictions.daysOfTheWeek);
+			daysOfTheWeek.setDaysOfTheWeekValue((short)daysOfTheWeekBitString);
+			timeWindowInformation.setDaysOfTheWeek(daysOfTheWeek);
+		} 
+
+		if(timeRestrictions.timePeriodType != null && !timeRestrictions.timePeriodType.equals("none")) {
+			if(timeRestrictions.timePeriodType.equals("general") && timeRestrictions.laneInfoTimePeriodValue != null) {
+				GeneralPeriod generalPeriod = new GeneralPeriod();
+				if(timeRestrictions.laneInfoTimePeriodValue.equals("day")) {
+					generalPeriod.setGeneralPeriodValue(GeneralPeriod.DAY);
+				}
+
+				if(timeRestrictions.laneInfoTimePeriodValue.equals("night")) {
+					generalPeriod.setGeneralPeriodValue(GeneralPeriod.NIGHT);
+				}
+
+				timeWindowInformation.setGeneralPeriod(generalPeriod);
+			} 
+
+			if(timeRestrictions.timePeriodType.equals("range") && timeRestrictions.laneInfoTimePeriodRange != null ) {
+				if(timeRestrictions.laneInfoTimePeriodRange.startDatetime != null && !(timeRestrictions.laneInfoTimePeriodRange.startDatetime).isEmpty()) {
+					String startDDateTimeString = timeRestrictions.laneInfoTimePeriodRange.startDatetime;
+					DDateTime startDDateTime = buildDDateTime(startDDateTimeString, timeRestrictions.laneInfoTimePeriodRange.startOffset);
+					timeWindowInformation.setStartPeriod(startDDateTime);
+				}
+
+				if(timeRestrictions.laneInfoTimePeriodRange.endDatetime != null && !(timeRestrictions.laneInfoTimePeriodRange.endDatetime).isEmpty()) {
+					String endDDateTimeString = timeRestrictions.laneInfoTimePeriodRange.endDatetime;
+					DDateTime endDDateTime = buildDDateTime(endDDateTimeString, timeRestrictions.laneInfoTimePeriodRange.endOffset);
+					timeWindowInformation.setEndPeriod(endDDateTime);
+				}
+			}		
+		}
+		
+		timeWindowItemControlInfo.addTimeWindowSet(timeWindowInformation);
+		rgaTimeRestrictions.setChoice(RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
+		rgaTimeRestrictions.setFixedTimeWindowCtrl(timeWindowItemControlInfo);
+
+		return rgaTimeRestrictions; 
+	}
+
+	/**
+	 * This method takes dateTimeString and offset as inputs and returns RGA DDateTIme
+	 * @param dateTimeString
+	 * @param offset
+	 * @return
+	 */
+	public DDateTime buildDDateTime(String dateTimeString, int offset) {
+		DDateTime currentDDateTimeValue = new DDateTime();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime dateTime = LocalDateTime.parse(dateTimeString, formatter);
+
+		currentDDateTimeValue.setYear(dateTime.getYear());
+		currentDDateTimeValue.setMonth(dateTime.getMonthValue());
+		currentDDateTimeValue.setDay(dateTime.getDayOfMonth());
+		currentDDateTimeValue.setHour(dateTime.getHour());
+		currentDDateTimeValue.setMinute(dateTime.getMinute());
+		currentDDateTimeValue.setSecond(dateTime.getSecond());
+		currentDDateTimeValue.setOffset(offset);
+
+		return currentDDateTimeValue;
+	}
+
+	/**
 	 * This method creates and returns RGA IndvMtrVehLaneGeometryInfo object for each of the motor vehicle lanes
 	 * @param drivingLane
 	 * @param referencePoint
@@ -482,6 +566,9 @@ public class IntersectionSituationDataBuilder {
 		IndvMtrVehLaneGeometryInfo indvMtrVehLaneGeometryInfo = new IndvMtrVehLaneGeometryInfo();
 		indvMtrVehLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvMtrVehLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
+		if(drivingLane.timeRestrictions != null) {
+			indvMtrVehLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
+		}
 		return indvMtrVehLaneGeometryInfo;
 	}
 
@@ -496,6 +583,9 @@ public class IntersectionSituationDataBuilder {
 		IndvBikeLaneGeometryInfo indvBikeLaneGeometryInfo = new IndvBikeLaneGeometryInfo();
 		indvBikeLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvBikeLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
+		if(drivingLane.timeRestrictions != null) {
+			indvBikeLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
+		}
 		return indvBikeLaneGeometryInfo;
 	}
 
@@ -510,6 +600,9 @@ public class IntersectionSituationDataBuilder {
 		IndvCrosswalkLaneGeometryInfo indvCrosswalkLaneGeometryInfo = new IndvCrosswalkLaneGeometryInfo();
 		indvCrosswalkLaneGeometryInfo.setLaneID(Integer.valueOf(crosswalkLane.laneID));
 		indvCrosswalkLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(crosswalkLane, referencePoint, offsetEncoding));
+		if(crosswalkLane.timeRestrictions != null) {
+			indvCrosswalkLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(crosswalkLane.timeRestrictions));
+		}
 		return indvCrosswalkLaneGeometryInfo;
 	}
 
@@ -545,6 +638,20 @@ public class IntersectionSituationDataBuilder {
 
 				NodeXYZOffsetInfo nodeXYZOffsetInfo = offsetEncoding.encodeRGAOffset(refPoint, nextPoint);
 				individualXYZNodeGeometryInfo.setNodeXYZOffsetInfo(nodeXYZOffsetInfo);
+
+				WayWidth wayWidth = new WayWidth();
+				// Here, primary node is set to full width while rest of the nodes are set to delta width
+				if(laneNode.nodeNumber == 0) {
+					wayWidth.setChoice(WayWidth.FULL_WIDTH);
+					wayWidth.setFullWidth(referencePoint.masterLaneWidth + laneNode.laneWidthDelta);
+				} else {
+					wayWidth.setChoice(WayWidth.DELTA_WIDTH);
+					wayWidth.setDeltaWidth(laneNode.laneWidthDelta);
+				}
+
+				WayPlanarGeometryInfo nodeLocPlanarGeomInfo = new WayPlanarGeometryInfo();
+				nodeLocPlanarGeomInfo.setWayWidth(wayWidth);
+				individualXYZNodeGeometryInfo.setNodeLocPlanarGeomInfo(nodeLocPlanarGeomInfo);
 				physicalXYZNodeInfo.addIndividualXYZNodeGeometryInfo(individualXYZNodeGeometryInfo);
 
 				// refPoint is updated to nextPoint at the end of for loop
@@ -569,14 +676,20 @@ public class IntersectionSituationDataBuilder {
 
 			NodeXYZOffsetValue nodeZOffsetValue = new NodeXYZOffsetValue();
 			nodeZOffsetValue.setChoice(NodeXYZOffsetValue.OFFSET_B12);
-			nodeZOffsetValue.setOffsetB12((long)lane.computedLane.offsetZ); //replace this with computedLane.offsetZ
+			nodeZOffsetValue.setOffsetB12((long)lane.computedLane.offsetZ);
 			laneCenterLineXYZOffset.setNodeZOffsetValue(nodeZOffsetValue);
 
-			WayPlanarGeometryInfo lanePlanarGeomInfo = new WayPlanarGeometryInfo(); 
+			WayWidth wayWidth = new WayWidth();
+			wayWidth.setChoice(WayWidth.FULL_WIDTH);
+			wayWidth.setFullWidth(referencePoint.masterLaneWidth);
 
+			WayPlanarGeometryInfo lanePlanarGeomInfo = new WayPlanarGeometryInfo(); 
+			lanePlanarGeomInfo.setWayWidth(wayWidth);
+			
 			computedXYZNodeInfo.setRefLaneID(Integer.valueOf(lane.computedLane.referenceLaneID));
 			computedXYZNodeInfo.setLaneCenterLineXYZOffset(laneCenterLineXYZOffset);
 			computedXYZNodeInfo.setLanePlanarGeomInfo(lanePlanarGeomInfo);
+			laneConstructorType.setComputedXYZNodeInfo(computedXYZNodeInfo);
 		}
 		return laneConstructorType;
 	}

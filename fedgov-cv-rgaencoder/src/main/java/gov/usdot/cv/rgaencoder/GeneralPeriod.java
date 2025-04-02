@@ -17,7 +17,7 @@
 package gov.usdot.cv.rgaencoder;
 
 public class GeneralPeriod {
-    private short generalPeriodValue;
+    private int generalPeriodValue;
 
     // Constants for choice field
     public static final int DAY = 0;
@@ -26,7 +26,7 @@ public class GeneralPeriod {
     public GeneralPeriod() {
     }
 
-    public GeneralPeriod(short generalPeriodValue) {
+    public GeneralPeriod(int generalPeriodValue) {
         this.generalPeriodValue = generalPeriodValue;
     }
 
@@ -34,7 +34,7 @@ public class GeneralPeriod {
         return generalPeriodValue;
     }
 
-    public void setGeneralPeriodValue(short generalPeriodValue) {
+    public void setGeneralPeriodValue(int generalPeriodValue) {
         this.generalPeriodValue = generalPeriodValue;
     }
 
