@@ -56,7 +56,6 @@ let rga_enabled=false;
 function set_rga_status() {
     if($('#rga_switch').is(":checked")){
         rga_enabled = true;
-		console.log("RGA IS ENABLED");
     }else{
         rga_enabled = false;
     }
