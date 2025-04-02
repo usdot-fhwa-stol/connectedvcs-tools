@@ -1603,7 +1603,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 		dot.attributes={"lane": i, "number": j, "LatLon": latlon,
 	    		"descriptiveName" : lanes.features[i].attributes.descriptiveName,
 				"laneNumber": laneNumber, "laneWidth": lanes.features[i].attributes.laneWidth, "laneType": lanes.features[i].attributes.laneType, "sharedWith": lanes.features[i].attributes.sharedWith,
-				"laneInfoDaySelection": lanes.features[r].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[r].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[r].attributes.laneInfoTimePeriodValue,
+				"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue,
 		        "stateConfidence": lanes.features[i].attributes.stateConfidence, "spatRevision": lanes.features[i].attributes.spatRevision, "signalGroupID": lanes.features[i].attributes.signalGroupID, "lane_attributes": lanes.features[i].attributes.lane_attributes,
 		        "startTime": lanes.features[i].attributes.startTime, "minEndTime": lanes.features[i].attributes.minEndTime, "maxEndTime": lanes.features[i].attributes.maxEndTime,
 		        "likelyTime": lanes.features[i].attributes.likelyTime, "nextTime": lanes.features[i].attributes.nextTime, "signalPhase": lanes.features[i].attributes.signalPhase, "typeAttribute": lanes.features[i].attributes.typeAttribute,
