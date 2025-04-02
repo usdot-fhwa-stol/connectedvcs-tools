@@ -1310,9 +1310,7 @@ async function placeComputedLane(newDotFeature) {
     
     // Await the computed elevation
     const newZ = await getComputedElevation(newLonLat);
-    console.log("Elevation (newZ) is: " + newZ);
-
-
+    
 	// We no longer need the newDotFeature since we only needed to save it's x/y values
 	// to calculate the offset from the old x/y values
 	lanes.removeFeatures(newDotFeature);
