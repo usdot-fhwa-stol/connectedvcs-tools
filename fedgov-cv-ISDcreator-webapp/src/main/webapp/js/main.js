@@ -206,7 +206,9 @@ function addLaneInfoTimeRestrictions(time_restrictions) {
     // Update time restrictions with lane info specific identifiers
     let lane_info_time_restrictions = $(time_restrictions).clone();
     lane_info_time_restrictions.find('*').each(function() {
+        
         if (this.id) {
+            $(this).addClass("extra_rga_field_input");
             $(this).attr('id', "lane_info_" + this.id);
         }
         if (this.name) {

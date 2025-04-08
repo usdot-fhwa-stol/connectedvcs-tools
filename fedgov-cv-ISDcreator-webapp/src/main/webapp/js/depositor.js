@@ -261,7 +261,8 @@ function createMessageJSON()
                     "timeRestrictions": {                        
                         "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
                         "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
+                        "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange  
                     }
                 };
                 if(!lanes.features[j].attributes.computed) {
@@ -322,7 +323,8 @@ function createMessageJSON()
                     "timeRestrictions": {                        
                         "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
                         "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
+                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
+                        "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange 
                     }
                 };
                 if(!lanes.features[j].attributes.computed) {
