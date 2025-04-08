@@ -284,8 +284,12 @@ function updateTimeRestrictionsHTML(){
         buttonText: function (options, select) {
             
             if (options.length === 0) {
+                $('.day_selection').find('input').each(function () {
+                    $(this).prop('disabled', false);
+                    $(this).parents('a').first().css({ 'color': 'black' });
+                });
                 return 'Select Day Of The Week'
-            } else if (options.length > 1) {
+            } else if (options.length > 1) {                
                 return options.length + ' selected';
             } else {
                 let labels = [];
@@ -296,6 +300,15 @@ function updateTimeRestrictionsHTML(){
                     else {
                         labels.push($(this).html());
                     }
+                    let value = $(this).val();
+                    if (value === "0") {
+                        $('.day_selection').find('input').each(function () {
+                            if ($(this).val() !== "0") {
+                                $(this).prop('disabled', true);
+                                $(this).parents('a').first().css({ 'color': 'grey' });
+                            }
+                        });
+                    }                    
                 });
                 return labels.join(', ') + '';
             }
