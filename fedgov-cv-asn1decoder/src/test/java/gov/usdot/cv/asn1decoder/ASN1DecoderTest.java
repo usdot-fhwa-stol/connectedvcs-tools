@@ -53,6 +53,7 @@ public class ASN1DecoderTest {
         System.out.print("mockMsg");
         logger.info("Type: %s\n", mockMsg.getType());
         String decodedMessage= decoder.decode(mockMsg);
+        System.out.println(decodedMessage);
         //Test passes if decoded message has a length greater than 0
         Assert.assertTrue("Decoded result should not be empty",!decodedMessage.isEmpty());
     }

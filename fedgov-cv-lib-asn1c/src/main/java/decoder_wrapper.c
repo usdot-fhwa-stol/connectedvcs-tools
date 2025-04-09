@@ -23,7 +23,7 @@
 JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg)
 {
 	
-	const char *resultStr;
+	const char *resultStr="";
 	asn_dec_rval_t rval; /* Decoder return value */
 	MessageFrame_t *message = 0; /* Type to decode */
 	
@@ -41,10 +41,12 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 		// If message decoding is sucessful print the message id
 		printf("Message ID: %ld\n", message->messageId);
 	
-		//copying decoded message to char Array outputBuffer
-		char outputBuffer[4096]; 
-		//Open memory stream of size outputBuffer to write into char array outputBuffer
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		//copying decoded message to char  outputBuffer
+		char *outputBuffer = NULL;
+		size_t outputSize; // Output Size
+
+		//Open memory stream outputBuffer to write into outputBuffer
+		FILE *stream = open_memstream(&outputBuffer, &outputSize);
 
 		if (stream) {
 			/*if stream is sucessfully created by fmemopen*/				
