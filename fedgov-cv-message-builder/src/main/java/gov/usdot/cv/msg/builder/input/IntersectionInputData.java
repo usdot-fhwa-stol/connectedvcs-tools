@@ -324,8 +324,6 @@ public class IntersectionInputData {
 		public Approach() {
 			super();
 		}
-
-
 	}
 	
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -336,6 +334,7 @@ public class IntersectionInputData {
 		public int[] typeAttributes;		
 		public int[] sharedWith;
 		public int[] laneManeuvers;
+		public TimeRestrictions timeRestrictions;
 		public LaneConnection[] connections;
 		public LaneNode[] laneNodes;
 		public boolean isComputed;
@@ -356,6 +355,35 @@ public class IntersectionInputData {
 					+ ", connections=" + Arrays.toString(connections)
 					+ ", isComputed=" + isComputed
 					+ ", " + nodeListType + "]";
+		}
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class TimeRestrictions {
+		public int[] daysOfTheWeek;
+		public String timePeriodType;
+		public String laneInfoTimePeriodValue;
+		public LaneInfoTimePeriodRange laneInfoTimePeriodRange;
+		
+		@Override
+		public String toString() {
+			return "TimeRestrictions [daysOfTheWeek=" + Arrays.toString(daysOfTheWeek) + ", timePeriodType="
+					+ timePeriodType + ", laneInfoTimePeriodValue=" + laneInfoTimePeriodValue
+					+ ", laneInfoTimePeriodRange=" + laneInfoTimePeriodRange + "]";
+		}
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class LaneInfoTimePeriodRange {
+		public String startDatetime;
+		public int startOffset;
+		public String endDatetime;
+		public int endOffset;
+
+		@Override
+		public String toString() {
+			return "LaneInfoTimePeriodValue [startDatetime=" + startDatetime + ", startOffset=" + startOffset
+					+ ", endDatetime=" + endDatetime + ", endOffset=" + endOffset + "]";
 		}
 	}
 	
@@ -425,6 +453,7 @@ public class IntersectionInputData {
         public String referenceLaneID;
         public int offsetX;
         public int offsetY;
+		public int offsetZ;
         public double rotation;
         public double scaleX;
         public double scaleY;
@@ -434,6 +463,7 @@ public class IntersectionInputData {
 			return "CopmutedLane [referenceLaneID=" + referenceLaneID +
 					", offsetX=" + offsetX +
 					", offsetY=" + offsetY +
+					", offsetZ=" + offsetZ +
 					", rotation=" + rotation +
 					", scaleX=" + scaleX +
 					", scaleY=" + scaleY + "]";
