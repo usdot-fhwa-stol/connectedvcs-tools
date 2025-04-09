@@ -182,6 +182,15 @@ function createMessageJSON()
         for(var j=0; j< laneFeat.length; j++){
 
             var inside = (box.features[i].geometry).containsPoint(lanes.features[j].geometry.components[0]);
+            var data_frame_rga_lane_time_restrictions = {}
+            if (rga_enabled) {
+                data_frame_rga_lane_time_restrictions["timeRestrictions"] = {
+                    "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,
+                    "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                    "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
+                    "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange
+                }
+            }
             if (inside && lanes.features[j].attributes.laneType != "Crosswalk"){
                 //console.log("Stop Box: " + i + " contains lead point of feature " + j);
                 lanes.features[j].attributes.inBox = true;
@@ -258,12 +267,7 @@ function createMessageJSON()
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
                     "isComputed": lanes.features[j].attributes.computed,
-                    "timeRestrictions": {                        
-                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
-                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
-                        "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange  
-                    }
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	drivingLaneArray[temp_j].laneNodes = nodeArray;
@@ -320,12 +324,7 @@ function createMessageJSON()
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
                     "isComputed": lanes.features[j].attributes.computed,
-                    "timeRestrictions": {                        
-                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
-                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
-                        "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange 
-                    }
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;

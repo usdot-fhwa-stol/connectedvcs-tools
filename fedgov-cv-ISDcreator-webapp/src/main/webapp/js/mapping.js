@@ -56,9 +56,13 @@ let rga_enabled = false;
 function set_rga_status() {
 	if ($('#rga_switch').is(":checked")) {
 		rga_enabled = true;
+		$('.day_selection_dropdown').multiselect('enable');
+ 
 	} else {
 		rga_enabled = false;
+		$('.day_selection_dropdown').multiselect('disable');
 	}
+	$('.day_selection_dropdown').multiselect('refresh');
 	enable_rga_fields(enable = rga_enabled);
 }
 
@@ -954,7 +958,7 @@ async function init() {
 	$('#OpenLayers_Control_MaximizeDiv_innerImage').attr('src', "img/layer-switcher-maximize.png");
 
 	//Init toggle switches for the layers
-
+	set_rga_status();
 }
 
 
