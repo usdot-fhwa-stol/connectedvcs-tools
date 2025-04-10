@@ -196,8 +196,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	    if(inRange) {	    	
 			$("#attributes").hide();
 		    $('#shared_with').multiselect('deselectAll', false);
-			let sharedWithFromSource = computedLaneSource.get("sharedWith");
-		    $('#shared_with').multiselect('select', sharedWithFromSource);
+		    $('#shared_with').multiselect('select', computedLaneSource.get("sharedWith"));
 			for (let i = 0; i < laneTypeOptions.length; i++) {
 				if (laneTypeOptions[i] != typeAttributeNameSaved && $('.' + laneTypeOptions[i] + '_type_attributes').length !== 0) {
 					$('#' + laneTypeOptions[i] + '_type_attributes').multiselect('deselectAll', false);
