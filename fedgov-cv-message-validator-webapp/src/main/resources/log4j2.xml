@@ -20,7 +20,7 @@ the License.
             <PatternLayout pattern="%d{ISO8601} %5p %c{1}:%L - %m%n"/>
         </Console>
         <!-- RollingFile Appender -->
-        <RollingFile name="RollingFileAppender" fileName="logs/isd.log" filePattern="logs/$${date:yyyy-MM}/isd-%d{MM-dd-yyyy}-%i.log.gz">
+        <RollingFile name="RollingFileAppender" fileName="logs/validator.log" filePattern="logs/$${date:yyyy-MM}/isd-%d{MM-dd-yyyy}-%i.log.gz">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="20 MB"/>

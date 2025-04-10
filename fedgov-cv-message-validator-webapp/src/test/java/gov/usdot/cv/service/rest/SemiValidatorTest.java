@@ -71,7 +71,7 @@ public class SemiValidatorTest extends JerseyTest {
 
 		}
 		catch (Exception e) {
-           // LOGGER.log("Failed to retrieve content from jsonObject", e);
+       
 			logger.info("Context",e);
         }	
 	}
