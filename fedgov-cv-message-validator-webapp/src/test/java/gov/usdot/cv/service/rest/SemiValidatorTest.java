@@ -48,7 +48,7 @@ public class SemiValidatorTest extends JerseyTest {
 			JSONObject jsonObject = new JSONObject(decodedMessage);
 			//Accessing messageframe
             String messageContent = jsonObject.getString("decodedMessage");
-			System.out.println(messageContent);
+		//	System.out.println(messageContent);
 
 			//Using Java regular expression to find a match of messgae ID
 			Pattern pattern = Pattern.compile("messageId:\\s*(\\d+)");
