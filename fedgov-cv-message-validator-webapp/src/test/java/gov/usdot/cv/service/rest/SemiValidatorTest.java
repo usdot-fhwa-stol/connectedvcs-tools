@@ -21,10 +21,15 @@ import org.junit.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.sun.jersey.test.framework.JerseyTest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class SemiValidatorTest extends JerseyTest {
 	
 	private static SemiValidator validator;
+	    private static final Logger logger = LogManager.getLogger(SemiValidatorTest.class);
+
 
 	
 	public SemiValidatorTest() throws Exception {
@@ -48,7 +53,7 @@ public class SemiValidatorTest extends JerseyTest {
 			JSONObject jsonObject = new JSONObject(decodedMessage);
 			//Accessing messageframe
             String messageContent = jsonObject.getString("decodedMessage");
-		//	System.out.println(messageContent);
+			System.out.println(messageContent);
 
 			//Using Java regular expression to find a match of messgae ID
 			Pattern pattern = Pattern.compile("messageId:\\s*(\\d+)");
@@ -66,7 +71,8 @@ public class SemiValidatorTest extends JerseyTest {
 
 		}
 		catch (Exception e) {
-            e.printStackTrace();
+           // LOGGER.log("Failed to retrieve content from jsonObject", e);
+			logger.info("Context",e);
         }	
 	}
 
