@@ -56,9 +56,13 @@ let rga_enabled = false;
 function set_rga_status() {
 	if ($('#rga_switch').is(":checked")) {
 		rga_enabled = true;
+		$('.day_selection_dropdown').multiselect('enable');
+ 
 	} else {
 		rga_enabled = false;
+		$('.day_selection_dropdown').multiselect('disable');
 	}
+	$('.day_selection_dropdown').multiselect('refresh');
 	enable_rga_fields(enable = rga_enabled);
 }
 
@@ -702,7 +706,7 @@ async function init() {
 				}
 
 				updateLaneInfoDaySelection(selected_marker.attributes.laneInfoDaySelection)
-				updateLaneInfoTimePeriod(selected_marker.attributes.laneInfoTimePeriodType, selected_marker.attributes.laneInfoTimePeriodValue);
+				updateLaneInfoTimePeriod(selected_marker.attributes.laneInfoTimePeriodType, selected_marker.attributes.laneInfoTimePeriodValue, selected_marker.attributes.laneInfoTimePeriodRange);
 
 				if (!selected_marker.attributes.spatRevision) {
 					$('#spat_revision').val(1);
@@ -954,7 +958,7 @@ async function init() {
 	$('#OpenLayers_Control_MaximizeDiv_innerImage').attr('src', "img/layer-switcher-maximize.png");
 
 	//Init toggle switches for the layers
-
+	set_rga_status();
 }
 
 
@@ -1296,7 +1300,7 @@ function buildDots(i, j, dot, latlon) {
 			"lane": i, "number": j, "LatLon": latlon,
 			"descriptiveName": lanes.features[i].attributes.descriptiveName,
 			"laneNumber": lanes.features[i].attributes.laneNumber, "laneWidth": lanes.features[i].attributes.laneWidth, "laneType": lanes.features[i].attributes.laneType, "sharedWith": lanes.features[i].attributes.sharedWith,
-			"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue,
+			"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": lanes.features[i].attributes.laneInfoTimePeriodRange,
 			"stateConfidence": lanes.features[i].attributes.stateConfidence, "spatRevision": lanes.features[i].attributes.spatRevision, "signalGroupID": lanes.features[i].attributes.signalGroupID, "lane_attributes": lanes.features[i].attributes.lane_attributes,
 			"startTime": lanes.features[i].attributes.startTime, "minEndTime": lanes.features[i].attributes.minEndTime, "maxEndTime": lanes.features[i].attributes.maxEndTime,
 			"likelyTime": lanes.features[i].attributes.likelyTime, "nextTime": lanes.features[i].attributes.nextTime, "signalPhase": lanes.features[i].attributes.signalPhase, "typeAttribute": lanes.features[i].attributes.typeAttribute,
@@ -1597,7 +1601,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"lane": i, "number": j, "LatLon": latlon,
 			"descriptiveName": "",
 			"laneNumber": laneNumber, "laneWidth": lanes.features[r].attributes.laneWidth, "laneType": lanes.features[r].attributes.laneType, "sharedWith": lanes.features[r].attributes.sharedWith,
-			"laneInfoDaySelection": lanes.features[r].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[r].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[r].attributes.laneInfoTimePeriodValue,
+			"laneInfoDaySelection": lanes.features[r].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[r].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[r].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": lanes.features[r].attributes.laneInfoTimePeriodRange, 
 			"stateConfidence": lanes.features[r].attributes.stateConfidence, "spatRevision": lanes.features[r].attributes.spatRevision, "signalGroupID": lanes.features[r].attributes.signalGroupID, "lane_attributes": lanes.features[r].attributes.lane_attributes,
 			"startTime": lanes.features[r].attributes.startTime, "minEndTime": lanes.features[r].attributes.minEndTime, "maxEndTime": lanes.features[r].attributes.maxEndTime,
 			"likelyTime": lanes.features[r].attributes.likelyTime, "nextTime": lanes.features[r].attributes.nextTime, "signalPhase": lanes.features[r].attributes.signalPhase, "typeAttribute": lanes.features[r].attributes.typeAttribute,
@@ -1610,7 +1614,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"lane": i, "number": j, "LatLon": latlon,
 			"descriptiveName": lanes.features[i].attributes.descriptiveName,
 			"laneNumber": laneNumber, "laneWidth": lanes.features[i].attributes.laneWidth, "laneType": lanes.features[i].attributes.laneType, "sharedWith": lanes.features[i].attributes.sharedWith,
-			"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue,
+			"laneInfoDaySelection": lanes.features[i].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": lanes.features[i].attributes.laneInfoTimePeriodType, "laneInfoTimePeriodValue": lanes.features[i].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": lanes.features[i].attributes.laneInfoTimePeriodRange, 
 			"stateConfidence": lanes.features[i].attributes.stateConfidence, "spatRevision": lanes.features[i].attributes.spatRevision, "signalGroupID": lanes.features[i].attributes.signalGroupID, "lane_attributes": lanes.features[i].attributes.lane_attributes,
 			"startTime": lanes.features[i].attributes.startTime, "minEndTime": lanes.features[i].attributes.minEndTime, "maxEndTime": lanes.features[i].attributes.maxEndTime,
 			"likelyTime": lanes.features[i].attributes.likelyTime, "nextTime": lanes.features[i].attributes.nextTime, "signalPhase": lanes.features[i].attributes.signalPhase, "typeAttribute": lanes.features[i].attributes.typeAttribute,
@@ -1669,7 +1673,7 @@ function connectComputedDots(i, points, initialize) {
 			"connections": laneMarkers.features[m].attributes.connections, "elevation": lanes.features[r].attributes.elevation,
 			"laneNumber": laneMarkers.features[m].attributes.laneNumber, "laneType": laneMarkers.features[m].attributes.laneType,
 			"laneInfoDaySelection": laneMarkers.features[m].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": laneMarkers.features[m].attributes.laneInfoTimePeriodType,
-			"laneInfoTimePeriodValue": laneMarkers.features[m].attributes.laneInfoTimePeriodValue,
+			"laneInfoTimePeriodValue": laneMarkers.features[m].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": lanes.features[m].attributes.laneInfoTimePeriodRange, 
 			"laneWidth": laneMarkers.features[m].attributes.laneWidth, "lane_attributes": laneMarkers.features[m].attributes.lane_attributes,
 			"likelyTime": laneMarkers.features[m].attributes.likelyTime, "maxEndTime": laneMarkers.features[m].attributes.maxEndTime,
 			"minEndTime": laneMarkers.features[m].attributes.minEndTime, "nextTime": laneMarkers.features[m].attributes.nextTime,
@@ -2291,6 +2295,7 @@ $(".btnDone").click(function () {
 		let laneInfoTimePeriod = getLaneInfoTimePeriod();
 		let laneInfoTimePeriodType = laneInfoTimePeriod?.type;
 		let laneInfoTimePeriodValue = laneInfoTimePeriod?.value;
+		let laneInfoTimePeriodRange = laneInfoTimePeriod?.range;		
 
 		typeAttributeNameSaved = typeAttributeName;
 		typeAttribute = [];
@@ -2322,6 +2327,7 @@ $(".btnDone").click(function () {
 				selected_marker.attributes.laneInfoDaySelection = laneInfoDaySelection;
 				selected_marker.attributes.laneInfoTimePeriodType = laneInfoTimePeriodType;
 				selected_marker.attributes.laneInfoTimePeriodValue = laneInfoTimePeriodValue;
+				selected_marker.attributes.laneInfoTimePeriodRange = laneInfoTimePeriodRange;
 
 				if (nodeObject != null) {
 					selected_marker.attributes.connections = nodeObject;
@@ -2360,6 +2366,7 @@ $(".btnDone").click(function () {
 				(lanes.features[selected_marker.attributes.lane]).attributes.laneInfoDaySelection = laneInfoDaySelection;
 				(lanes.features[selected_marker.attributes.lane]).attributes.laneInfoTimePeriodType = laneInfoTimePeriodType;
 				(lanes.features[selected_marker.attributes.lane]).attributes.laneInfoTimePeriodValue = laneInfoTimePeriodValue;
+				(lanes.features[selected_marker.attributes.lane]).attributes.laneInfoTimePeriodRange = laneInfoTimePeriodRange;
 			}
 			selected_marker.attributes.LatLon = new OpenLayers.LonLat($('#long').val(), $('#lat').val());
 
@@ -2795,25 +2802,33 @@ function getLaneInfoTimePeriod() {
 	let laneInfoTimePeriodType = $("input[name='lane_info_time_period']:checked")?.val();
 	laneInfoTimePeriodType = laneInfoTimePeriodType?.trim()?.toLowerCase()
 	let laneInfoTimePeriodValue = undefined;
+	let laneInfoTimePeriodRange = undefined;
 	if (laneInfoTimePeriodType === "range") {
-		laneInfoTimePeriodValue = {};
-		laneInfoTimePeriodValue["startDatetime"] = $('#lane_info_time_period_start_datetime').val();
-		laneInfoTimePeriodValue["startOffset"] = $('#lane_info_time_period_start_offset').val();
-		laneInfoTimePeriodValue["endDatetime"] = $('#lane_info_time_period_end_datetime').val();
-		laneInfoTimePeriodValue["endOffset"] = $('#lane_info_time_period_end_offset').val();
+		laneInfoTimePeriodRange = {};
+		laneInfoTimePeriodRange["startDatetime"] = $('#lane_info_time_period_start_datetime').val();
+		laneInfoTimePeriodRange["startOffset"] = $('#lane_info_time_period_start_offset').val();
+		laneInfoTimePeriodRange["endDatetime"] = $('#lane_info_time_period_end_datetime').val();
+		laneInfoTimePeriodRange["endOffset"] = $('#lane_info_time_period_end_offset').val();
+
+		return {
+			type: laneInfoTimePeriodType,
+			range: laneInfoTimePeriodRange
+			
+		}
 	} else if (laneInfoTimePeriodType === "general") {
 		laneInfoTimePeriodValue = $('input[name="lane_info_time_period_general"]:checked').val();
-	}
-	return {
-		type: laneInfoTimePeriodType,
-		value: laneInfoTimePeriodValue
+
+		return {
+			type: laneInfoTimePeriodType,
+			value: laneInfoTimePeriodValue
+		}
 	}
 }
 
 /***
  * @brief Populate lane info dialog with selected time period
  */
-function updateLaneInfoTimePeriod(laneInfoTimePeriodType, laneInfoTimePeriodValue) {
+function updateLaneInfoTimePeriod(laneInfoTimePeriodType, laneInfoTimePeriodValue, laneInfoTimePeriodRange) {
 	if (laneInfoTimePeriodType) {
 		$('input[name="lane_info_time_period"][value="' + laneInfoTimePeriodType + '"]').prop('checked', true);
 	} else {
@@ -2828,13 +2843,13 @@ function updateLaneInfoTimePeriod(laneInfoTimePeriodType, laneInfoTimePeriodValu
 	$('.time_period_general_fields').css('display', 'none');
 	$('.time_period_range_fields').css('display', 'none');
 
-	if (laneInfoTimePeriodValue && laneInfoTimePeriodType == "range") {
+	if (laneInfoTimePeriodRange && laneInfoTimePeriodType == "range") {
 		$('.time_period_general_fields').css('display', 'none');
 		$('.time_period_range_fields').css('display', '');
-		$("#lane_info_time_period_start_datetime").val(laneInfoTimePeriodValue['startDatetime']);
-		$("#lane_info_time_period_end_datetime").val(laneInfoTimePeriodValue['endDatetime']);
-		$("#lane_info_time_period_start_offset").val(laneInfoTimePeriodValue['startOffset']);
-		$("#lane_info_time_period_end_offset").val(laneInfoTimePeriodValue['endOffset']);
+		$("#lane_info_time_period_start_datetime").val(laneInfoTimePeriodRange['startDatetime']);
+		$("#lane_info_time_period_end_datetime").val(laneInfoTimePeriodRange['endDatetime']);
+		$("#lane_info_time_period_start_offset").val(laneInfoTimePeriodRange['startOffset']);
+		$("#lane_info_time_period_end_offset").val(laneInfoTimePeriodRange['endOffset']);
 	} else if (laneInfoTimePeriodValue && laneInfoTimePeriodType == "general") {
 		$('.time_period_range_fields').css('display', 'none');
 		$('.time_period_general_fields').css('display', '');
