@@ -622,6 +622,9 @@ function initTopNavBar() {
   $("#deleteTrace").click(() => {
     deleteTrace();
   });
+  $("#clearMap").click(() => {
+    clearMap();
+  });
 
   /***
    * Purpose: Autocomplete for allowing place search
@@ -1370,6 +1373,24 @@ function clearAllInteractions(){
   if(temporaryBoxMarkers){
     temporaryBoxMarkers.getSource().clear();
   }
+}
+
+/**
+ * Purpose: removes features from the map
+ */
+function clearMap(){
+	let r = confirm("Clear and reset all of the map features?");
+	if (r == true) {
+		lanes.getSource().clear();
+		laneMarkers.getSource().clear();
+		vectors.getSource().clear();
+		box.getSource().clear();
+    errors.getSource().clear();
+    deleteTrace();
+    laneWidths.getSource().clear();
+	}
+  $("#map-type").text("");
+  $("#builder, #drawLanes, #editLanes, #measureLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel, #dragSigns").hide();
 }
 
 $(document).ready(() => {
