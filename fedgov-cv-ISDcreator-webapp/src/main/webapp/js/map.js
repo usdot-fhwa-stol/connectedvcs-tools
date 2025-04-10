@@ -574,7 +574,7 @@ function registerDrawInteractions(){
     let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
     $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
     laneNum = nextAvailableLaneNum;
-    placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
+    placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, laneTypeOptions, typeAttributeNameSaved, controls);
 
     stateConfidence = null;
     signalPhase = null;    
