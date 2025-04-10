@@ -1019,6 +1019,7 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
+    let laneFeatures = lanes.getSource().getFeatures();
     //Update Reference Point Configuration fields with parsley attributes
     let road_authority_id = $("#road_authority_id");
     let road_authority_id_type = $("#road_authority_id_type");
@@ -1076,7 +1077,7 @@ function registerModalButtonEvents() {
         }
 
         buildComputedFeature(
-          lanes.getSource().getFeatures().length,
+          laneFeatures.length,
           laneNum,
           $("#referenceLaneID").val(),
           $("#referenceLaneNumber").val(),
@@ -1089,14 +1090,19 @@ function registerModalButtonEvents() {
           lanes,
           laneMarkers
         );
+        //Get updated laneFeatures after adding computed lane to lanes layer
+        laneFeatures = lanes.getSource().getFeatures();
         selectedMarker = selectComputedFeature(laneNum, laneMarkers);
+        //Need to update selectedMarker lane to the correct lane features index
+        let laneFeatureIndex = laneFeatures.findIndex((feat) => feat.get("laneNumber") == selectedMarker.get("laneNumber"));
+        selectedMarker.set("lane", laneFeatureIndex);
 
         // The Latitude and Longitude text boxes in the Lane Info tab have not yet been set
         // since the lane's nodes were just created
         $("#lat").val(selectedMarker.get("LonLat").lat);
         $("#long").val(selectedMarker.get("LonLat").lon);
 
-        nodeLaneWidth = lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth");
+        nodeLaneWidth = laneFeatures[selectedMarker.get("lane")].get("laneWidth");
       }
 
       setLaneAttributes(selectedMarker);
@@ -1125,7 +1131,7 @@ function registerModalButtonEvents() {
       if (selectedLayer.get("title") == "Lane Marker Layer") {
 
         let currentLaneSpeedLimits = saveSpeedForm(speedForm);
-        lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
+        laneFeatures[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.getGeometry().setCoordinates(move);
         if (selectedMarker?.get("number") == 0) {
@@ -1141,41 +1147,40 @@ function registerModalButtonEvents() {
 
           if (nodeObject != null) {
             selectedMarker.set("connections", nodeObject);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("connections", nodeObject);
+            laneFeatures[selectedMarker.get("lane")].set("connections", nodeObject);
           }
 
           if (laneNum != null) {
             let orignalLaneNum = selectedMarker.get("laneNumber");
             selectedMarker.set("laneNumber", laneNum);
-            let features = lanes.getSource().getFeatures();
-            features[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            laneFeatures[selectedMarker.get("lane")].set("laneNumber", laneNum);
             //Synchronize computed lane reference lane number: Checking if there is computed lane reference to this lane. If so, update computed lane reference lane number to this lane number
-            features.find(feat=>feat.get("referenceLaneID") === orignalLaneNum)?.set("referenceLaneID", laneNum);
+            laneFeatures.find(feat=>feat.get("referenceLaneID") === orignalLaneNum && feat.get("computed"))?.set("referenceLaneID", laneNum);
           }
           if (laneType != null) {
             selectedMarker.set("laneType", laneType);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneType", laneType);
+            laneFeatures[selectedMarker.get("lane")].set("laneType", laneType);
           }
           if (stateConfidence != null) {
             selectedMarker.set("stateConfidence", stateConfidence);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set(  "stateConfidence",  stateConfidence);
+            laneFeatures[selectedMarker.get("lane")].set(  "stateConfidence",  stateConfidence);
           }
           if (signalPhase != null) {
             selectedMarker.set("signalPhase", signalPhase);
-            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("signalPhase", signalPhase);
+            laneFeatures[selectedMarker.get("lane")].set("signalPhase", signalPhase);
           }
 
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("descriptiveName",$("#descriptive_name").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("spatRevision",$("#spat_revision").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("signalGroupID",$("#signal_group_id").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("startTime",$("#start_time").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("minEndTime",$("#min_end_time").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("maxEndTime",$("#max_end_time").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("likelyTime",$("#likely_time").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("nextTime", $("#next_time").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("sharedWith", sharedWith);
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("typeAttribute", typeAttribute);
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("lane_attributes",selectedMarker.get("lane_attributes"));
+          laneFeatures[selectedMarker.get("lane")].set("descriptiveName",$("#descriptive_name").val());
+          laneFeatures[selectedMarker.get("lane")].set("spatRevision",$("#spat_revision").val());
+          laneFeatures[selectedMarker.get("lane")].set("signalGroupID",$("#signal_group_id").val());
+          laneFeatures[selectedMarker.get("lane")].set("startTime",$("#start_time").val());
+          laneFeatures[selectedMarker.get("lane")].set("minEndTime",$("#min_end_time").val());
+          laneFeatures[selectedMarker.get("lane")].set("maxEndTime",$("#max_end_time").val());
+          laneFeatures[selectedMarker.get("lane")].set("likelyTime",$("#likely_time").val());
+          laneFeatures[selectedMarker.get("lane")].set("nextTime", $("#next_time").val());
+          laneFeatures[selectedMarker.get("lane")].set("sharedWith", sharedWith);
+          laneFeatures[selectedMarker.get("lane")].set("typeAttribute", typeAttribute);
+          laneFeatures[selectedMarker.get("lane")].set("lane_attributes",selectedMarker.get("lane_attributes"));
         }
         selectedMarker.set("LonLat", {
           lat: parseFloat($("#lat").val()),
@@ -1183,12 +1188,12 @@ function registerModalButtonEvents() {
         });
 
         nodeLaneWidth[selectedMarker.get("number")] = $("#lane_width").val();
-        lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneWidth", nodeLaneWidth);
+        laneFeatures[selectedMarker.get("lane")].set("laneWidth", nodeLaneWidth);
         nodeLaneWidth = [];
 
         selectedMarker.set("elevation", $("#elev").val());
-        lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
-        lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].edited = true;
+        laneFeatures[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
+        laneFeatures[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].edited = true;
 
         if (selectedMarker.get("computed")) {
           selectedMarker.set("offsetX", $("#offset-X").val());
@@ -1196,11 +1201,11 @@ function registerModalButtonEvents() {
           selectedMarker.set("rotation", $("#rotation").val());
           selectedMarker.set("scaleX", $("#scale-X").val());
           selectedMarker.set("scaleY", $("#scale-Y").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("offsetX", $("#offset-X").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("offsetY", $("#offset-Y").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("rotation", $("#rotation").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("scaleX", $("#scale-X").val());
-          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("scaleY", $("#scale-Y").val());
+          laneFeatures[selectedMarker.get("lane")].set("offsetX", $("#offset-X").val());
+          laneFeatures[selectedMarker.get("lane")].set("offsetY", $("#offset-Y").val());
+          laneFeatures[selectedMarker.get("lane")].set("rotation", $("#rotation").val());
+          laneFeatures[selectedMarker.get("lane")].set("scaleX", $("#scale-X").val());
+          laneFeatures[selectedMarker.get("lane")].set("scaleY", $("#scale-Y").val());
         }
       }
 

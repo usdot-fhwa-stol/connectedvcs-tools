@@ -205,7 +205,6 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 					$('#' + laneTypeOptions[i] + '_type_attributes').multiselect('refresh');
 				}
 			}
-		    removeSpeedForm(speedForm);
 			$('#attributes').parsley().reset();
 			// Don't do anything to the connections, we want to preserve them
 		    //rebuildConnections([]);
