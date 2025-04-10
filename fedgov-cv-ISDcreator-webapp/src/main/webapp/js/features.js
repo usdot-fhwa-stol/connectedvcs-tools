@@ -159,13 +159,11 @@ function buildDots(i, j, dot, latLon, lanes, laneMarkers){
  * @param {Object} laneWidths - The lane widths layer.
  * @param {boolean} computingLane - Flag indicating if a lane is being computed.
  * @param {Object} computedLaneSource - The source of the computed lane.
- * @param {Object} speedForm - The speed form element.
- * @param {Array} sharedWith - Array of shared lane attributes.
  * @param {Array} laneTypeOptions - Array of lane type options.
  * @param {string} typeAttributeNameSaved - Saved type attribute name.
  * @param {Object} controls - The controls object.
  */
-function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls) {
+function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, laneTypeOptions, typeAttributeNameSaved, controls) {
 	let laneFeatures = lanes.getSource().getFeatures();
 	let newX = newDotFeature.getGeometry().getCoordinates()[0];
 	let newY = newDotFeature.getGeometry().getCoordinates()[1];
@@ -198,7 +196,8 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	    if(inRange) {	    	
 			$("#attributes").hide();
 		    $('#shared_with').multiselect('deselectAll', false);
-		    $('#shared_with').multiselect('select', sharedWith);
+			let sharedWithFromSource = computedLaneSource.get("sharedWith");
+		    $('#shared_with').multiselect('select', sharedWithFromSource);
 			for (let i = 0; i < laneTypeOptions.length; i++) {
 				if (laneTypeOptions[i] != typeAttributeNameSaved && $('.' + laneTypeOptions[i] + '_type_attributes').length !== 0) {
 					$('#' + laneTypeOptions[i] + '_type_attributes').multiselect('deselectAll', false);
