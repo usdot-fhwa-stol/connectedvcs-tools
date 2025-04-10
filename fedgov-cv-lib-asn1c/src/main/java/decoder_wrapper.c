@@ -42,12 +42,10 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 		printf("Message ID: %ld\n", message->messageId);
 	
 		//copying decoded message to char  outputBuffer
-		char *outputBuffer = NULL;
-		size_t outputSize; // Output Size
 
+		char outputBuffer[65536]; //Output buffer of size 64 KB
 		//Open memory stream outputBuffer to write into outputBuffer
-		FILE *stream = open_memstream(&outputBuffer, &outputSize);
-
+ 		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
 		if (stream) {
 			/*if stream is sucessfully created by fmemopen*/				
 			asn_fprint(stream, &asn_DEF_MessageFrame, message); // Write the ASN.1 encoded message ('message') to the memory stream ('stream').
