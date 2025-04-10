@@ -11,7 +11,7 @@ var vectors, lanes, laneMarkers, box, laneConnections, errors, trace, laneWidths
 var fromProjection, toProjection;
 var temp_lat, temp_lon, selected_marker, selected_layer;
 var intersection_url = '//api.geonames.org/findNearestIntersectionJSON';
-var google_elevation_url = '/msp/googlemap/api/elevation';
+var esri_elevation_url = '/msp/esrimap/api/elevation';
 var computingLane = false;
 var computedLaneSource;
 var sharedWith_object = '';
@@ -2158,10 +2158,10 @@ async function populateRefWindow(feature, lat, lon) {
 	if (!feature.attributes.elevation) {
 		var elev;
 		$.ajax({
-			url: google_elevation_url + "/" + lat + '/' + lon,
+			url: esri_elevation_url + "/" + lat + '/' + lon,
 			success: function (result) {
 				console.log(result);
-				elev = result?.elevation;
+				elev = result?.z;
 				// elev = result.resourceSets[0].resources[0].elevations[0];
 				if (elev == null || elev == undefined) {
 					elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
@@ -2518,9 +2518,9 @@ async function getElevation(dot, latlon, i, j, callback) {
 	const apiKey = await getApiKey();
 
 	$.ajax({
-		url: google_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+		url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
 		success: function (result) {
-			elev = result?.elevation;
+			elev = result?.z;
 			if (elev == null || elev == undefined) {
 				elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
 			} else {
@@ -2538,9 +2538,10 @@ async function getComputedElevation(latlon) {
 	const apiKey = await getApiKey();
 	return new Promise((resolve, reject) => {
 		$.ajax({
-			url: google_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+			url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
 			success: function (result) {
-				let elev = result?.elevation;
+				console.log(result?.z);
+				let elev = result?.z;
 				if (elev == null || elev === undefined) {
 					elev = -9999;
 				} else {
