@@ -34,7 +34,9 @@ public class SemiValidator {
         try {
             // Using Decoder class to decode the message directly using byte[]
             decodedMessage = messageDecoder.decodeMsg(bytes);
-            /*Hard Coded message name will be replaced with actual values in future*/
+          
+            // TODO: Once asn1C Decoder returns a message type that name will be used instead of Hardcoded messagename below
+
             messageName="messageName"; 
             if (decodedMessage.isEmpty()) {
                
