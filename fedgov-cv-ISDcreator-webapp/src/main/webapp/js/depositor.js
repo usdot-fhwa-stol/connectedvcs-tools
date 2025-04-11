@@ -37,6 +37,8 @@ $(document).ready(function()
     $('#message_deposit_modal').on('show.bs.modal', function (e) {
         resetMessageForm()
         if( !errorCheck() ){
+            var messageTypeEl = document.getElementById("message_type");
+            disableOrEnableExplicitRGA(messageTypeEl.value);
             var message = createMessageJSON();
             message_json_input.val( JSON.stringify(message, null, 2) )
         } else {
@@ -595,6 +597,32 @@ function errorCheck(){
 }
 
 /**
+ * This function contains the common logic to enable or disabled the explicit node offset 
+ * @param {*} value 
+ */
+function disableOrEnableExplicitRGA(value) {
+    var nodeOffsetsEl = document.getElementById("node_offsets");
+    if (value === "RGA" || value === "Frame+RGA") {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = true;
+                    nodeOffsetsEl.selectedIndex = 1;
+                }
+            }
+        }
+    } else {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = false;
+                }
+            }
+        }
+    }
+}
+
+/**
  * Purpose: Greys out explicit node offsets when RGA message type is selected
  * @event: just checking if RGA message type is selected
  */
@@ -603,25 +631,7 @@ function removeExplicitRGA() {
     if (!messageTypeEl) return;
 
     messageTypeEl.addEventListener("change", function () {
-        var nodeOffsetsEl = document.getElementById("node_offsets");
-        if (this.value === "RGA" || this.value === "Frame+RGA") {
-            if (nodeOffsetsEl) {
-                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
-                    if (nodeOffsetsEl.options[i].value === "Explicit") {
-                        nodeOffsetsEl.options[i].disabled = true;
-                        nodeOffsetsEl.selectedIndex = 1;
-                    }
-                }
-            }
-        } else {
-            if (nodeOffsetsEl) {
-                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
-                    if (nodeOffsetsEl.options[i].value === "Explicit") {
-                        nodeOffsetsEl.options[i].disabled = false;
-                    }
-                }
-            }
-        }
+        disableOrEnableExplicitRGA(this.value);
     });
 }
 document.addEventListener("DOMContentLoaded", removeExplicitRGA);  
