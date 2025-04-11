@@ -1342,13 +1342,10 @@ async function placeComputedLane(newDotFeature) {
 			alert("Current offset in Y axis from source lane is " + offsetY + "cm. Offset value should be between -2047 and 2047.");
 			inRange = false;
 		}
-
-		// TODO: Commenting out code as we change Elevation API for correct world model result.
-
-		// if(offsetZ > 2047 || offsetZ < -2047) {
-		// 	alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
-		// 	inRange = false;
-		// }
+		if(offsetZ > 2047 || offsetZ < -2047) {
+			alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 
 
 		if (inRange) {
@@ -1483,11 +1480,10 @@ async function placeComputedLane(newDotFeature) {
 			alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
 			inRange = false;
 		}
-		// TODO: Commenting out code as we change Elevation API for correct world model result.
-		// if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
-		// 	alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
-		// 	inRange = false;
-		// }
+		if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
+			alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 
 		if (inRange) {
 			// Just need to update the lane's offset values since the drawing in the UI
@@ -1528,7 +1524,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var zeroPoint = new OpenLayers.Geometry.Point(
 				lanes.features[r].geometry.getVertices()[j].x + offsetX / 100,
 				lanes.features[r].geometry.getVertices()[j].y + offsetY / 100);
-			//TODO: SIMILAR FOR ELEVATION??
+		
 			var zeroDot = new OpenLayers.Feature.Vector(zeroPoint);
 			zeroLatlon = new OpenLayers.LonLat(zeroDot.geometry.x, zeroDot.geometry.y).transform(toProjection, fromProjection);
 			points.push(zeroPoint);
@@ -1549,7 +1545,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var tempPoint = new OpenLayers.Geometry.Point(
 				lanes.features[r].geometry.getVertices()[j].x + deltaScaleX + (offsetX / 100),
 				lanes.features[r].geometry.getVertices()[j].y + deltaScaleY + (offsetY / 100));
-			//SIMILAR FOR ELEVATION???
+			
 			var tempDot = new OpenLayers.Feature.Vector(tempPoint);
 			var tempLatlon = new OpenLayers.LonLat(tempDot.geometry.x, tempDot.geometry.y).transform(toProjection, fromProjection);
 
@@ -2160,7 +2156,6 @@ async function populateRefWindow(feature, lat, lon) {
 		$.ajax({
 			url: esri_elevation_url + "/" + lat + '/' + lon,
 			success: function (result) {
-				console.log(result);
 				elev = result?.z;
 				// elev = result.resourceSets[0].resources[0].elevations[0];
 				if (elev == null || elev == undefined) {
@@ -2540,7 +2535,6 @@ async function getComputedElevation(latlon) {
 		$.ajax({
 			url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
 			success: function (result) {
-				console.log(result?.z);
 				let elev = result?.z;
 				if (elev == null || elev === undefined) {
 					elev = -9999;
