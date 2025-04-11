@@ -268,11 +268,11 @@ function registerSelectInteraction() {
     condition: ol.events.condition.click,
     layers: [lanes],
     filter: (feature, layer) => {
-      // Check if laneMarkersInteraction or box/stopBarInteraction has been selected
+      // If laneMarkersInteraction or box/stopBarInteraction has been selected, do not allow lane selection
       if (selectedInteractions.some((layer) => layer === laneMarkers || layer === box)) {
         return false;
       }
-      // Otherwise, allow box selection
+      // Otherwise, allow lane selection
       return true;
     },
   });
@@ -289,7 +289,7 @@ function registerSelectInteraction() {
     condition: ol.events.condition.click,
     layers: [laneMarkers],
     filter: (feature, layer)=>{
-      //Check if it is in edit mode (edit an approach). Do not allow lane marker selection
+      //If it is in edit mode (edit an approach), do not allow lane marker selection
       if (controls.edit?.getActive()) {
         return false;
       }
@@ -352,7 +352,7 @@ function registerSelectInteraction() {
     condition: ol.events.condition.click,
     layers: [box],
     filter: (feature, layer) => {
-      // Check if laneMarkersInteraction has been selected and not in edit mode (edit an approach)
+      // If laneMarkersInteraction has been selected and not in edit mode (edit an approach), do not allow box selection
       if (!controls.edit?.getActive() && selectedInteractions.some((layer) => layer === laneMarkers)) {
         return false;
       }  
