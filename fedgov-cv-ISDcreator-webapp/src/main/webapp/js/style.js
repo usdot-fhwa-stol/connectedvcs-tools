@@ -4,12 +4,12 @@ const laneDefault = {
   // fillColor: "${getFillColor}",
   fillColor: "#FF9900",
   strokeOpacity: 1,
-  strokeWidth: 4,
+  strokeWidth: 5,
   fillOpacity: .9,
-  pointRadius: 6,
+  pointRadius: 8,
   label: "${getLabel}",
   fontFamily: "Arial",
-  fontSize: "8px",
+  fontSize: "10px",
   cursor: "pointer"
 };
 
@@ -17,10 +17,10 @@ const measureDefault = {
   strokeColor: "#FF9900",
   fillColor: "#FF9900",
   strokeOpacity: 1,
-  strokeWidth: 2,
+  strokeWidth: 4,
   fillOpacity: .9,
   fontFamily: "Arial",
-  fontSize: "8px",
+  fontSize: "10px",
   cursor: "pointer"
 };
 
@@ -28,9 +28,9 @@ const barDefault = {
   strokeColor: "#FF0000",
   fillColor: "#FF0000",
   strokeOpacity: 1,
-  strokeWidth: 3,
+  strokeWidth: 4,
   fillOpacity: 0,
-  pointRadius: 2
+  pointRadius: 3
 };
 
 const vectorDefault = {
@@ -75,7 +75,8 @@ const laneStyle = (feature) => {
       opacity: laneDefault.fillOpacity
     }),
     text: new ol.style.Text({
-      text: feature.getGeometry().getType() === "LineString"? '': feature.get('laneNumber') ? feature.get('laneNumber').toString() : '',
+      text: feature.getGeometry().getType() === "LineString" ? '' : feature.get('laneNumber') ? 
+        (parseInt(feature.get('laneNumber'), 10) < 10 ? parseInt(feature.get('laneNumber'), 10).toString() : feature.get('laneNumber').toString()) : '',
       font: `${laneDefault.fontSize} ${laneDefault.fontFamily}`,
       fill: new ol.style.Fill({
         color: '#000'

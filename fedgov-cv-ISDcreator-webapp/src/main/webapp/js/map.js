@@ -44,7 +44,8 @@ let $imgs;
 let rowHtml;
 let speedForm;
 let rgaEnabled = false;
-let laneSelectInteraction;
+let laneSelectInteraction, laneMarkersInteraction, vectorInteraction, boxSelectInteraction;
+let selectedInteractions = [];
 let temporaryLaneMarkers;
 let temporaryBoxMarkers;
 
@@ -98,7 +99,7 @@ function initMap() {
     source: vectorSource,
     style: vectorStyle,
     visible: true,
-    zIndex: 2,
+    zIndex: 5,
   });
 
   const boxSource = new ol.source.Vector();
@@ -107,7 +108,7 @@ function initMap() {
     source: boxSource,
     style: barStyle,
     visible: true,
-    zIndex: 1,
+    zIndex: 3,
   });
 
   const laneMarkersSource = new ol.source.Vector();
@@ -116,7 +117,7 @@ function initMap() {
     source: laneMarkersSource,
     style: laneStyle,
     visible: true,
-    zIndex: 3,
+    zIndex: 4,
   });
 
   const laneWidthsSource = new ol.source.Vector();
@@ -227,9 +228,17 @@ function initMap() {
 
   temporaryBoxMarkers = new ol.layer.Vector({
     source: new ol.source.Vector(),
-    style: laneStyle
+    style: laneStyle,
+    zIndex: 6,
   });
   map.addLayer(temporaryBoxMarkers);
+
+  map.on('click', (event)=>{
+    selectedInteractions = []; //reset for every click
+    map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
+      selectedInteractions.push(layer);
+    });
+  })
 } //END map init
 
 function registerMapEvents() {
@@ -258,6 +267,14 @@ function registerSelectInteraction() {
   laneSelectInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [lanes],
+    filter: (feature, layer) => {
+      // If laneMarkersInteraction or box/stopBarInteraction has been selected, do not allow lane selection
+      if (selectedInteractions.some((layer) => layer === laneMarkers || layer === box)) {
+        return false;
+      }
+      // Otherwise, allow lane selection
+      return true;
+    },
   });
 
   laneSelectInteraction.on("select", (event) => {
@@ -268,13 +285,23 @@ function registerSelectInteraction() {
   /***
    * Lane Markers layer interactions
    */
-  const laneMarkersInteraction = new ol.interaction.Select({
+  laneMarkersInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [laneMarkers],
+    filter: (feature, layer)=>{
+      //If it is in edit mode (edit an approach), do not allow lane marker selection
+      if (controls.edit?.getActive()) {
+        return false;
+      }
+      return true;
+    }
   });
   laneMarkersInteraction.on("select", (event) => {
-    selectedLayer = laneMarkers;
-    selectedMarker = laneMarkersInteractionCallback( event, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
+    laneMarkersInteractionCallback( event, map, overlayLayersGroup, lanes, laneConnections, deleteMode, selected, speedForm);
+    if(event.selected?.length > 0){
+      selectedMarker = event.selected[0];
+      selectedLayer = laneMarkers;
+    }
     if (selectedMarker) {
       signalPhase = selectedMarker.get("signalPhase")? selectedMarker.get("signalPhase"): null;
       stateConfidence = selectedMarker.get("stateConfidence")? selectedMarker.get("stateConfidence"): null;
@@ -289,15 +316,18 @@ function registerSelectInteraction() {
    * Vectors layer interactions
    */
   //Add select feature event on vectors layer
-  const vectorInteraction = new ol.interaction.Select({
+  vectorInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [vectors],
   });
   vectorInteraction.on("select", (event) => {
     draggableFeature.clear(); // Ensure only one feature is draggable at a time
     draggableFeature.push(event.selected[0]);
-    selectedLayer = vectors;
-    selectedMarker = vectorSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
+    vectorSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected, rgaEnabled, speedForm);
+    if(event.selected?.length > 0){
+      selectedMarker = event.selected[0];
+      selectedLayer = vectors;
+    }
   });
 
   map.addInteraction(vectorInteraction);
@@ -318,15 +348,26 @@ function registerSelectInteraction() {
   /***
    * Box/Stop Bar layer interactions
    */
-  const boxSelectInteraction = new ol.interaction.Select({
+  boxSelectInteraction = new ol.interaction.Select({
     condition: ol.events.condition.click,
     layers: [box],
+    filter: (feature, layer) => {
+      // If laneMarkersInteraction has been selected and not in edit mode (edit an approach), do not allow box selection
+      if (!controls.edit?.getActive() && selectedInteractions.some((layer) => layer === laneMarkers)) {
+        return false;
+      }  
+      // Otherwise, allow box selection
+      return true;
+    },
   });
   boxSelectInteraction.on("select", (event) => {
     temporaryBoxMarkers.getSource().clear();
-    selectedLayer = box;
     if(!controls.edit?.getActive()){
-      selectedMarker = boxSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected);
+      boxSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected);
+      if(event.selected?.length > 0){
+        selectedMarker = event.selected[0];
+        selectedLayer = box;
+      }
     }else if(event.selected?.length>0 ){
         selectedMarker = event.selected[0];
         selectedMarker.setStyle(barHighlightedStyle);
@@ -440,6 +481,7 @@ function registerDrawInteractions(){
 
   //Start modifying approach/box: Move and rotate
   controls.edit.on('modifystart', event=>{
+    map.getTargetElement().style.cursor = 'move';
     let centerFeat = temporaryBoxMarkers.getSource().getFeatureById("boxCenter");
     let draggableFeat = temporaryBoxMarkers.getSource().getFeatureById("draggablePoint");
     let initRadius = getGeodesicDistance(centerFeat, draggableFeat);
@@ -447,40 +489,51 @@ function registerDrawInteractions(){
     event.features.forEach(feature => {
       if (feature === centerFeat) {
         feature.getGeometry().on('change', function () {
-          movePolygon(selectedMarker, centerFeat);
-          temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+          map.getTargetElement().style.cursor = 'move';
+          if(selectedMarker && centerFeat){
+            movePolygon(selectedMarker, centerFeat);
+            temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+          }
         })
       }else if(feature === draggableFeat){
         feature.getGeometry().on('change', function () {
-          scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, startRotatePosition, initRadius);
-          //Calculate the updated initial position
-          startRotatePosition = draggableFeat.getGeometry().getCoordinates();
-          //Calculate the updated radius and set it to the initRadius property
-          initRadius = getGeodesicDistance(centerFeat, draggableFeat); ;
-          draggableFeat.set("initRadius", initRadius);
-          draggableFeat.set("initialPosition", startRotatePosition);  
+          map.getTargetElement().style.cursor = 'move';
+          if(selectedMarker && draggableFeat && centerFeat){
+            scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, startRotatePosition, initRadius);
+            //Calculate the updated initial position
+            startRotatePosition = draggableFeat.getGeometry().getCoordinates();
+            //Calculate the updated radius and set it to the initRadius property
+            initRadius = getGeodesicDistance(centerFeat, draggableFeat); ;
+            draggableFeat.set("initRadius", initRadius);
+            draggableFeat.set("initialPosition", startRotatePosition);  
+          }
         });
       }
     });
   });
   //End modifying approach/box: Move and rotate
   controls.edit.on('modifyend', event=>{
+    map.getTargetElement().style.cursor = 'move';
     let centerFeat = temporaryBoxMarkers.getSource().getFeatureById("boxCenter");
     let draggableFeat = temporaryBoxMarkers.getSource().getFeatureById("draggablePoint");
     if (event.features.getArray().includes(centerFeat)) {
-      movePolygon(selectedMarker, centerFeat);
-      temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
-      let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
-      let offsetY = getMaxSquareDistance(selectedMarker)/2;
-      let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
-      temporaryBoxMarkers.getSource().addFeature(newPoint);
+      if(selectedMarker && centerFeat){
+        movePolygon(selectedMarker, centerFeat);
+        temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+        let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
+        let offsetY = getMaxSquareDistance(selectedMarker)/2;
+        let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
+        temporaryBoxMarkers.getSource().addFeature(newPoint);
+      }
     }else if (event.features.getArray().includes(draggableFeat)){
-      scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, draggableFeat.get("initialPosition"), draggableFeat.get("initRadius"));      
-      temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
-      let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
-      let offsetY = getMaxSquareDistance(selectedMarker)/2;
-      let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
-      temporaryBoxMarkers.getSource().addFeature(newPoint);
+      if(selectedMarker && draggableFeat && centerFeat){
+        scaleAndRotatePolygon(selectedMarker, centerFeat, draggableFeat, draggableFeat.get("initialPosition"), draggableFeat.get("initRadius"));      
+        temporaryBoxMarkers.getSource().removeFeature(draggableFeat);
+        let offsetX = getMaxSquareDistance(selectedMarker)*3/4;
+        let offsetY = getMaxSquareDistance(selectedMarker)/2;
+        let newPoint = createPointFeature("draggablePoint",centerFeat, offsetX, offsetY );
+        temporaryBoxMarkers.getSource().addFeature(newPoint);
+      }
     }
   });
   
@@ -521,7 +574,7 @@ function registerDrawInteractions(){
     let nextAvailableLaneNum = $('#lane_number .dropdown-menu li:not([style*="display: none"]):first').text();
     $('#lane_number .dropdown-toggle').html(nextAvailableLaneNum + " <span class='caret'></span>");
     laneNum = nextAvailableLaneNum;
-    placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, speedForm, sharedWith, laneTypeOptions, typeAttributeNameSaved, controls);
+    placeComputedLane(event.feature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, laneTypeOptions, typeAttributeNameSaved, controls);
 
     stateConfidence = null;
     signalPhase = null;    
@@ -568,6 +621,9 @@ function initTopNavBar() {
 
   $("#deleteTrace").click(() => {
     deleteTrace();
+  });
+  $("#clearMap").click(() => {
+    clearMap();
   });
 
   /***
@@ -622,6 +678,7 @@ function initSideBar() {
    * Register sidebar bottom layer control events
    */
   $("button[name='layerControl']").click(function (e) {
+    clearAllInteractions();
     deleteMode = false;
     $("#dragSigns i").removeClass("fa-unlock").addClass("fa-lock");
     $(this).addClass("current").siblings().removeClass("active");
@@ -849,6 +906,31 @@ function initMISC() {
     typeAttribute_object = toggleLaneTypeAttributes(laneType);
     typeAttributeName = laneType;
   });
+  
+  $('#shared_with').multiselect({
+    onChange: function(option, checked){
+      sharedWith_object = updateSharedWith()
+    },
+    maxHeight: 200,
+    buttonText: function(options, select) {
+        if (options.length === 0) {
+            return 'Select Shared With Type'
+        } else if (options.length > 1) {
+            return options.length + ' selected';
+        } else {
+            var labels = [];
+            options.each(function() {
+                if ($(this).attr('label') !== undefined) {
+                    labels.push($(this).attr('label'));
+                }
+                else {
+                    labels.push($(this).html());
+                }
+            });
+            return labels.join(', ') + '';
+        }
+    }
+});
 
   $(".lane_type ul li").each(() => {
     laneTypeOptions.push($(this).text());
@@ -961,7 +1043,7 @@ function registerModalButtonEvents() {
     if (
       selectedLayer.get("title") == "Lane Marker Layer" &&
       (computingLane || // Check if in computingLane since that means this is the first time this lane is created
-        selectedMarker.get("number") == 0)
+        selectedMarker?.get("number") == 0)
     ) {
       if (laneType != null && laneNum != null) {
         dropdownCheck = true;
@@ -1011,6 +1093,9 @@ function registerModalButtonEvents() {
           laneMarkers
         );
         selectedMarker = selectComputedFeature(laneNum, laneMarkers);
+        //Need to update selectedMarker lane to the correct lane features index
+        let laneFeatureIndex = lanes.getSource().getFeatures().findIndex((feat) => feat.get("laneNumber") == selectedMarker.get("laneNumber"));
+        selectedMarker.set("lane", laneFeatureIndex);
 
         // The Latitude and Longitude text boxes in the Lane Info tab have not yet been set
         // since the lane's nodes were just created
@@ -1049,7 +1134,7 @@ function registerModalButtonEvents() {
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.set("speedLimitType", currentLaneSpeedLimits);
         selectedMarker.getGeometry().setCoordinates(move);
-        if (selectedMarker.get("number") == 0) {
+        if (selectedMarker?.get("number") == 0) {
           selectedMarker.set("spatRevision", $("#spat_revision").val());
           selectedMarker.set("signalGroupID", $("#signal_group_id").val());
           selectedMarker.set("startTime", $("#start_time").val());
@@ -1068,10 +1153,9 @@ function registerModalButtonEvents() {
           if (laneNum != null) {
             let orignalLaneNum = selectedMarker.get("laneNumber");
             selectedMarker.set("laneNumber", laneNum);
-            let features = lanes.getSource().getFeatures();
-            features[selectedMarker.get("lane")].set("laneNumber", laneNum);
+            lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneNumber", laneNum);
             //Synchronize computed lane reference lane number: Checking if there is computed lane reference to this lane. If so, update computed lane reference lane number to this lane number
-            features.find(feat=>feat.get("referenceLaneID") === orignalLaneNum)?.set("referenceLaneID", laneNum);
+            lanes.getSource().getFeatures().find(feat=>feat.get("referenceLaneID") === orignalLaneNum && feat.get("computed"))?.set("referenceLaneID", laneNum);
           }
           if (laneType != null) {
             selectedMarker.set("laneType", laneType);
@@ -1255,6 +1339,55 @@ function registerModalButtonEvents() {
       controls
     );
   });
+}
+
+/**
+ * Purpose: Clear selected features for all interactions
+ */
+function clearAllInteractions(){
+  if (laneSelectInteraction) {
+    laneSelectInteraction.getFeatures().clear();
+  }
+  if (laneMarkersInteraction) {
+    laneMarkersInteraction.getFeatures().clear();
+  }
+  if (vectorInteraction) {
+    vectorInteraction.getFeatures().clear();
+  }
+  if (boxSelectInteraction) {
+    //Check selected feature  and update style
+    let selectedFeatures = boxSelectInteraction.getFeatures().getArray();
+    selectedFeatures.forEach((feature) => {
+        feature.setStyle(barStyle);
+    });
+    boxSelectInteraction.getFeatures().clear();
+
+
+  }
+  if(temporaryLaneMarkers){
+    temporaryLaneMarkers.getSource().clear();
+  }
+  if(temporaryBoxMarkers){
+    temporaryBoxMarkers.getSource().clear();
+  }
+}
+
+/**
+ * Purpose: removes features from the map
+ */
+function clearMap(){
+	let r = confirm("Clear and reset all of the map features?");
+	if (r == true) {
+		lanes.getSource().clear();
+		laneMarkers.getSource().clear();
+		vectors.getSource().clear();
+		box.getSource().clear();
+    errors.getSource().clear();
+    deleteTrace();
+    laneWidths.getSource().clear();
+	}
+  $("#map-type").text("");
+  $("#builder, #drawLanes, #editLanes, #measureLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel, #dragSigns").hide();
 }
 
 $(document).ready(() => {
