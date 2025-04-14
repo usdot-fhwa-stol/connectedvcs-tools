@@ -37,6 +37,8 @@ $(document).ready(function()
     $('#message_deposit_modal').on('show.bs.modal', function (e) {
         resetMessageForm()
         if( !errorCheck() ){
+            var messageTypeEl = document.getElementById("message_type");
+            disableOrEnableExplicitRGA(messageTypeEl.value);
             var message = createMessageJSON();
             message_json_input.val( JSON.stringify(message, null, 2) )
         } else {
@@ -182,6 +184,15 @@ function createMessageJSON()
         for(var j=0; j< laneFeat.length; j++){
 
             var inside = (box.features[i].geometry).containsPoint(lanes.features[j].geometry.components[0]);
+            var data_frame_rga_lane_time_restrictions = {}
+            if (rga_enabled) {
+                data_frame_rga_lane_time_restrictions["timeRestrictions"] = {
+                    "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,
+                    "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                    "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
+                    "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange
+                }
+            }
             if (inside && lanes.features[j].attributes.laneType != "Crosswalk"){
                 //console.log("Stop Box: " + i + " contains lead point of feature " + j);
                 lanes.features[j].attributes.inBox = true;
@@ -258,11 +269,7 @@ function createMessageJSON()
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
                     "isComputed": lanes.features[j].attributes.computed,
-                    "timeRestrictions": {                        
-                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
-                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
-                    }
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	drivingLaneArray[temp_j].laneNodes = nodeArray;
@@ -319,11 +326,7 @@ function createMessageJSON()
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
                     "isComputed": lanes.features[j].attributes.computed,
-                    "timeRestrictions": {                        
-                        "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,                        
-                        "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
-                        "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue
-                    }
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
@@ -594,6 +597,32 @@ function errorCheck(){
 }
 
 /**
+ * This function contains the common logic to enable or disabled the explicit node offset 
+ * @param {*} value 
+ */
+function disableOrEnableExplicitRGA(value) {
+    var nodeOffsetsEl = document.getElementById("node_offsets");
+    if (value === "RGA" || value === "Frame+RGA") {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = true;
+                    nodeOffsetsEl.selectedIndex = 1;
+                }
+            }
+        }
+    } else {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = false;
+                }
+            }
+        }
+    }
+}
+
+/**
  * Purpose: Greys out explicit node offsets when RGA message type is selected
  * @event: just checking if RGA message type is selected
  */
@@ -602,25 +631,7 @@ function removeExplicitRGA() {
     if (!messageTypeEl) return;
 
     messageTypeEl.addEventListener("change", function () {
-        var nodeOffsetsEl = document.getElementById("node_offsets");
-        if (this.value === "RGA" || this.value === "Frame+RGA") {
-            if (nodeOffsetsEl) {
-                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
-                    if (nodeOffsetsEl.options[i].value === "Explicit") {
-                        nodeOffsetsEl.options[i].disabled = true;
-                        nodeOffsetsEl.selectedIndex = 1;
-                    }
-                }
-            }
-        } else {
-            if (nodeOffsetsEl) {
-                for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
-                    if (nodeOffsetsEl.options[i].value === "Explicit") {
-                        nodeOffsetsEl.options[i].disabled = false;
-                    }
-                }
-            }
-        }
+        disableOrEnableExplicitRGA(this.value);
     });
 }
 document.addEventListener("DOMContentLoaded", removeExplicitRGA);  
