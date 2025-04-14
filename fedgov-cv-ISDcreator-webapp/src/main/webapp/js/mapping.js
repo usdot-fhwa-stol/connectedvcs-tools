@@ -1673,7 +1673,7 @@ function connectComputedDots(i, points, initialize) {
 			"connections": laneMarkers.features[m].attributes.connections, "elevation": lanes.features[r].attributes.elevation,
 			"laneNumber": laneMarkers.features[m].attributes.laneNumber, "laneType": laneMarkers.features[m].attributes.laneType,
 			"laneInfoDaySelection": laneMarkers.features[m].attributes.laneInfoDaySelection, "laneInfoTimePeriodType": laneMarkers.features[m].attributes.laneInfoTimePeriodType,
-			"laneInfoTimePeriodValue": laneMarkers.features[m].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": lanes.features[m].attributes.laneInfoTimePeriodRange, 
+			"laneInfoTimePeriodValue": laneMarkers.features[m].attributes.laneInfoTimePeriodValue, "laneInfoTimePeriodRange": laneMarkers.features[m].attributes.laneInfoTimePeriodRange, 
 			"laneWidth": laneMarkers.features[m].attributes.laneWidth, "lane_attributes": laneMarkers.features[m].attributes.lane_attributes,
 			"likelyTime": laneMarkers.features[m].attributes.likelyTime, "maxEndTime": laneMarkers.features[m].attributes.maxEndTime,
 			"minEndTime": laneMarkers.features[m].attributes.minEndTime, "nextTime": laneMarkers.features[m].attributes.nextTime,
@@ -2292,10 +2292,13 @@ $(".btnDone").click(function () {
 		}
 		let laneInfoDaySelection = getLaneInfoDaySelection();
 
-		let laneInfoTimePeriod = getLaneInfoTimePeriod();
-		let laneInfoTimePeriodType = laneInfoTimePeriod?.type;
-		let laneInfoTimePeriodValue = laneInfoTimePeriod?.value;
-		let laneInfoTimePeriodRange = laneInfoTimePeriod?.range;		
+		let laneInfoTimePeriod = getLaneInfoTimePeriod() || {};
+		let laneInfoTimePeriodType = "", laneInfoTimePeriodValue = "";		
+		let laneInfoTimePeriodRange = {};		
+
+		laneInfoTimePeriodType = laneInfoTimePeriod.type || "";
+		laneInfoTimePeriodValue = laneInfoTimePeriod.value || "";
+		laneInfoTimePeriodRange = laneInfoTimePeriod.range || {};
 
 		typeAttributeNameSaved = typeAttributeName;
 		typeAttribute = [];
@@ -2799,10 +2802,13 @@ function updateLaneInfoDaySelection(laneInfoDaySelection) {
  * @brief Get selected time period from time period selection field on the lane info dialog
  */
 function getLaneInfoTimePeriod() {
-	let laneInfoTimePeriodType = $("input[name='lane_info_time_period']:checked")?.val();
-	laneInfoTimePeriodType = laneInfoTimePeriodType?.trim()?.toLowerCase()
-	let laneInfoTimePeriodValue = undefined;
-	let laneInfoTimePeriodRange = undefined;
+	let laneInfoTimePeriodType = "";
+	let laneInfoTimePeriodValue = "";
+	let laneInfoTimePeriodRange = {};
+
+	let selectedType = $("input[name='lane_info_time_period']:checked").val();
+	laneInfoTimePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
+
 	if (laneInfoTimePeriodType === "range") {
 		laneInfoTimePeriodRange = {};
 		laneInfoTimePeriodRange["startDatetime"] = $('#lane_info_time_period_start_datetime').val();
@@ -2813,7 +2819,6 @@ function getLaneInfoTimePeriod() {
 		return {
 			type: laneInfoTimePeriodType,
 			range: laneInfoTimePeriodRange
-			
 		}
 	} else if (laneInfoTimePeriodType === "general") {
 		laneInfoTimePeriodValue = $('input[name="lane_info_time_period_general"]:checked').val();
@@ -2823,6 +2828,8 @@ function getLaneInfoTimePeriod() {
 			value: laneInfoTimePeriodValue
 		}
 	}
+
+	return {}; // fallback
 }
 
 /***
