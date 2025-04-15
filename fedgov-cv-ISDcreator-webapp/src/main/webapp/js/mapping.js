@@ -11,7 +11,7 @@ var vectors, lanes, laneMarkers, box, laneConnections, errors, trace, laneWidths
 var fromProjection, toProjection;
 var temp_lat, temp_lon, selected_marker, selected_layer;
 var intersection_url = '//api.geonames.org/findNearestIntersectionJSON';
-var google_elevation_url = '/msp/googlemap/api/elevation';
+var esri_elevation_url = '/msp/esrimap/api/elevation';
 var computingLane = false;
 var computedLaneSource;
 var sharedWith_object = '';
@@ -1346,13 +1346,10 @@ async function placeComputedLane(newDotFeature) {
 			alert("Current offset in Y axis from source lane is " + offsetY + "cm. Offset value should be between -2047 and 2047.");
 			inRange = false;
 		}
-
-		// TODO: Commenting out code as we change Elevation API for correct world model result.
-
-		// if(offsetZ > 2047 || offsetZ < -2047) {
-		// 	alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
-		// 	inRange = false;
-		// }
+		if(offsetZ > 2047 || offsetZ < -2047) {
+			alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 
 
 		if (inRange) {
@@ -1487,11 +1484,10 @@ async function placeComputedLane(newDotFeature) {
 			alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
 			inRange = false;
 		}
-		// TODO: Commenting out code as we change Elevation API for correct world model result.
-		// if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
-		// 	alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
-		// 	inRange = false;
-		// }
+		if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
+			alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 
 		if (inRange) {
 			// Just need to update the lane's offset values since the drawing in the UI
@@ -1532,7 +1528,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var zeroPoint = new OpenLayers.Geometry.Point(
 				lanes.features[r].geometry.getVertices()[j].x + offsetX / 100,
 				lanes.features[r].geometry.getVertices()[j].y + offsetY / 100);
-			//TODO: SIMILAR FOR ELEVATION??
+		
 			var zeroDot = new OpenLayers.Feature.Vector(zeroPoint);
 			zeroLatlon = new OpenLayers.LonLat(zeroDot.geometry.x, zeroDot.geometry.y).transform(toProjection, fromProjection);
 			points.push(zeroPoint);
@@ -1553,7 +1549,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			var tempPoint = new OpenLayers.Geometry.Point(
 				lanes.features[r].geometry.getVertices()[j].x + deltaScaleX + (offsetX / 100),
 				lanes.features[r].geometry.getVertices()[j].y + deltaScaleY + (offsetY / 100));
-			//SIMILAR FOR ELEVATION???
+			
 			var tempDot = new OpenLayers.Feature.Vector(tempPoint);
 			var tempLatlon = new OpenLayers.LonLat(tempDot.geometry.x, tempDot.geometry.y).transform(toProjection, fromProjection);
 
@@ -2162,10 +2158,9 @@ async function populateRefWindow(feature, lat, lon) {
 	if (!feature.attributes.elevation) {
 		var elev;
 		$.ajax({
-			url: google_elevation_url + "/" + lat + '/' + lon,
+			url: esri_elevation_url + "/" + lat + '/' + lon,
 			success: function (result) {
-				console.log(result);
-				elev = result?.elevation;
+				elev = result?.z;
 				// elev = result.resourceSets[0].resources[0].elevations[0];
 				if (elev == null || elev == undefined) {
 					elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
@@ -2528,9 +2523,9 @@ async function getElevation(dot, latlon, i, j, callback) {
 	const apiKey = await getApiKey();
 
 	$.ajax({
-		url: google_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+		url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
 		success: function (result) {
-			elev = result?.elevation;
+			elev = result?.z;
 			if (elev == null || elev == undefined) {
 				elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
 			} else {
@@ -2548,9 +2543,9 @@ async function getComputedElevation(latlon) {
 	const apiKey = await getApiKey();
 	return new Promise((resolve, reject) => {
 		$.ajax({
-			url: google_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+			url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
 			success: function (result) {
-				let elev = result?.elevation;
+				let elev = result?.z;
 				if (elev == null || elev === undefined) {
 					elev = -9999;
 				} else {
