@@ -608,6 +608,7 @@ function disableOrEnableExplicitRGA(value) {
                 if (nodeOffsetsEl.options[i].value === "Explicit") {
                     nodeOffsetsEl.options[i].disabled = true;
                     nodeOffsetsEl.selectedIndex = 1;
+                    $('#node_offsets').trigger("change");
                 }
             }
         }
