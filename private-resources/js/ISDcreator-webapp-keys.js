@@ -1,2 +1,2 @@
-const apiKey = "<bingMaps-isd-api-key>";
-const geoNamesUserName = "<bingMaps-isd-api-username>";
+const apiKey = "AjicerIt5MpzLjpjIIeC9tPTfYspCXApgBxWIEWEZ4AtBYByxJ7BBiiefwAZtCBD";
+const geoNamesUserName = "ChrisC027";
