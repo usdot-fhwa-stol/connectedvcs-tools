@@ -566,7 +566,7 @@ public class IntersectionSituationDataBuilder {
 		IndvMtrVehLaneGeometryInfo indvMtrVehLaneGeometryInfo = new IndvMtrVehLaneGeometryInfo();
 		indvMtrVehLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvMtrVehLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
-		if(drivingLane.timeRestrictions != null && (drivingLane.timeRestrictions.daysOfTheWeek != null || drivingLane.timeRestrictions.timePeriodType != null)) {
+		if(drivingLane.timeRestrictions != null && checkTimeRestrictionsObject(drivingLane.timeRestrictions)) {
 			indvMtrVehLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
 		}
 		return indvMtrVehLaneGeometryInfo;
@@ -583,7 +583,7 @@ public class IntersectionSituationDataBuilder {
 		IndvBikeLaneGeometryInfo indvBikeLaneGeometryInfo = new IndvBikeLaneGeometryInfo();
 		indvBikeLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvBikeLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
-		if (drivingLane.timeRestrictions != null && (drivingLane.timeRestrictions.daysOfTheWeek != null || drivingLane.timeRestrictions.timePeriodType != null)) {
+		if (drivingLane.timeRestrictions != null && checkTimeRestrictionsObject(drivingLane.timeRestrictions)) {
 			indvBikeLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
 		}
 		return indvBikeLaneGeometryInfo;
@@ -600,12 +600,26 @@ public class IntersectionSituationDataBuilder {
 		IndvCrosswalkLaneGeometryInfo indvCrosswalkLaneGeometryInfo = new IndvCrosswalkLaneGeometryInfo();
 		indvCrosswalkLaneGeometryInfo.setLaneID(Integer.valueOf(crosswalkLane.laneID));
 		indvCrosswalkLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(crosswalkLane, referencePoint, offsetEncoding));
-		if(crosswalkLane.timeRestrictions != null && (crosswalkLane.timeRestrictions.daysOfTheWeek != null || crosswalkLane.timeRestrictions.timePeriodType != null)) {
+		if(crosswalkLane.timeRestrictions != null && checkTimeRestrictionsObject(crosswalkLane.timeRestrictions)) {
 			indvCrosswalkLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(crosswalkLane.timeRestrictions));
 		}
 		return indvCrosswalkLaneGeometryInfo;
 	}
 
+	/**
+	 * Checks if time restrictions object is not empty
+	 * @param timeRestrictions
+	 * @return
+	 */
+	public boolean checkTimeRestrictionsObject(TimeRestrictions timeRestrictions) {
+		if (timeRestrictions == null) return false;
+	
+		boolean hasDays = timeRestrictions.daysOfTheWeek != null && timeRestrictions.daysOfTheWeek.length > 0;
+		boolean hasType = timeRestrictions.timePeriodType != null && !timeRestrictions.timePeriodType.trim().isEmpty();
+	
+		return hasDays || hasType;
+	}
+	
 	/**
 	 * This method creates and returns RGA LaneConstructorType object for each of motor vehicle, bike and crosswalk lanes
 	 * Both Physical and Computed Lane Node Offsets are set in this method

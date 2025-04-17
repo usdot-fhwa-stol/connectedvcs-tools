@@ -232,6 +232,13 @@ public class IntersectionSituationDataBuilderTest {
         runIntersectionSituationDataBuilderTests(filePath, expectedHexString);
     }
 
+    @Test
+    public void rgaMessageComputedLaneTimeRestrictionsFields() {
+        String filePath = "src/test/resources/samplerga10.json"; 
+        String expectedHexString = "002b810f0200404a66e7c801ea6e24108c33f461540c08a4740a050e4302e641fdfa30ae3000cda404078744001010948000024c000035000004540000558000065c00007600000806032020010014a857c53eb22a019100b725447e29fad150000b0001240233e119da4d0c8805b8020014a866a53f582a000100b7254448a9fb0150000b000060029505f0a8488540002016e4a82545427b29fe716000100052a06a950aa4a8000402dc950490a85a853fce2c0002800a53b98aa0b1550000805b929e73d503fca80005800060014a76e9540aaaa000100b7253cac2a088950000b0000e00294f7f8a7b07540322016e4a7dd053dc0aa000160002000529f7954f47aa8064402dc94fc8ea7bf7540002c000";
+        runIntersectionSituationDataBuilderTests(filePath, expectedHexString);
+    }
+    
     public void runIntersectionSituationDataBuilderTests(String filePath, String expectedHexString) {
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
