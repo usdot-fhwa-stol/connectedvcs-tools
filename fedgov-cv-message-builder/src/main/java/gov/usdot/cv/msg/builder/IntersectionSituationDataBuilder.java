@@ -566,7 +566,7 @@ public class IntersectionSituationDataBuilder {
 		IndvMtrVehLaneGeometryInfo indvMtrVehLaneGeometryInfo = new IndvMtrVehLaneGeometryInfo();
 		indvMtrVehLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvMtrVehLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
-		if(drivingLane.timeRestrictions != null) {
+		if(drivingLane.timeRestrictions != null && (drivingLane.timeRestrictions.daysOfTheWeek != null || drivingLane.timeRestrictions.timePeriodType != null)) {
 			indvMtrVehLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
 		}
 		return indvMtrVehLaneGeometryInfo;
@@ -583,7 +583,7 @@ public class IntersectionSituationDataBuilder {
 		IndvBikeLaneGeometryInfo indvBikeLaneGeometryInfo = new IndvBikeLaneGeometryInfo();
 		indvBikeLaneGeometryInfo.setLaneID(Integer.valueOf(drivingLane.laneID));
 		indvBikeLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(drivingLane, referencePoint, offsetEncoding));
-		if(drivingLane.timeRestrictions != null) {
+		if (drivingLane.timeRestrictions != null && (drivingLane.timeRestrictions.daysOfTheWeek != null || drivingLane.timeRestrictions.timePeriodType != null)) {
 			indvBikeLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(drivingLane.timeRestrictions));
 		}
 		return indvBikeLaneGeometryInfo;
@@ -600,7 +600,7 @@ public class IntersectionSituationDataBuilder {
 		IndvCrosswalkLaneGeometryInfo indvCrosswalkLaneGeometryInfo = new IndvCrosswalkLaneGeometryInfo();
 		indvCrosswalkLaneGeometryInfo.setLaneID(Integer.valueOf(crosswalkLane.laneID));
 		indvCrosswalkLaneGeometryInfo.setLaneConstructorType(buildLaneConstructorType(crosswalkLane, referencePoint, offsetEncoding));
-		if(crosswalkLane.timeRestrictions != null) {
+		if(crosswalkLane.timeRestrictions != null && (crosswalkLane.timeRestrictions.daysOfTheWeek != null || crosswalkLane.timeRestrictions.timePeriodType != null)) {
 			indvCrosswalkLaneGeometryInfo.setTimeRestrictions(buildLaneTimeRestriction(crosswalkLane.timeRestrictions));
 		}
 		return indvCrosswalkLaneGeometryInfo;
