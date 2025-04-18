@@ -14,6 +14,10 @@ mvn install -DskipTests=true
 cd ../fedgov-cv-message-builder/
 mvn install -DskipTests=true
 
+cd ../fedgov-cv-asn1decoder/
+mvn install -DskipTests=true
+
+
 cd ../fedgov-cv-ISDcreator-webapp/
 mvn install -DskipTests=true
 
@@ -21,6 +25,9 @@ cd ../fedgov-cv-TIMcreator-webapp/
 mvn install -DskipTests=true
 
 cd ../fedgov-cv-map-services-proxy/
+mvn install -DskipTests=true
+
+cd ../fedgov-cv-message-validator-webapp/
 mvn install -DskipTests=true
 
 jar cvf ../private-resources.war -C ../private-resources .

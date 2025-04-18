@@ -33,6 +33,7 @@ ARG USE_SSL
 # Install the generated WAR files
 COPY --from=mvn-build /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
+COPY --from=mvn-build /root/fedgov-cv-message-validator-webapp/target/validator.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/private-resources.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/root.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
