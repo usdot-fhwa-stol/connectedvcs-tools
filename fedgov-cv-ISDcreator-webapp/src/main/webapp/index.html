@@ -962,7 +962,7 @@
 				<div class="modal-header"> 
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title" id="rgainstructions_modal_label">RGA Instructions</h4>
-					<p class="help-block">Guide on how to create an RGA message from an intersection and deposit it to the warehouse.</p>
+					<p class="help-block">Guide on how to create an RGA message from an intersection and road segments.</p>
 				</div>
 				<div class="modal-body">
 					<!-- Nav tabs -->
@@ -985,11 +985,11 @@
 									<p class = "help-block">There are five different layers defined in the J2945/A RGA Message: the Base layer, Geometry Container, Movements Container,  Way Use Container, and Signal Control Support Container. Here, we can define the Base Layer, which can be generated through the reference point marker and verified point marker information. </p>
 								<ol>
 									<li>Begin by selecting the RGA Enabled toggle at the top</li>
-                                    <li>Navigate to the <strong>File</strong> drop down menu. Select <strong>New Parent Map</strong> or <strong>New Child Map</strong>.</li>
+                                    <li>Navigate to the <strong>File</strong> drop down menu. Select <strong>New Parent Map</strong>.</li>
                                     <ul>
-										<li>Parent maps only allow reference points that define an intersection location whereas child maps define the features of a given parent map. </li>
+										<li>The parent map defines an intersection location by using reference points whereas child maps define the features (lanes, approaches, etc.) of a given parent map. </li>
 									</ul>
-                                    <li>If you choose parent map, zoom into the intersection you wish you begin building.</li>
+                                    <li>Zoom into the intersection you wish you begin building.</li>
 									<li>From the top navbar, go to <strong>Show</strong> <i class="fa fa-arrow-right"></i> <strong>Builder</strong> to bring up the menu to begin building your intersection.</li>
 									<ul>
 										<li>In the <strong>Intersection</strong> tab, you should see the <strong>Reference Point Marker</strong> and the <strong>Verified Point Marker</strong>.</li>
@@ -1007,6 +1007,7 @@
 										<li>Click on the marker to open up the <strong>Configuration</strong> dialog.
 											You can view the location of the marker on the map, as well as view and modify the verified location of the marker.</li>
 										<li>Check the verified marker information and edit as necessary.  Click <strong>Done</strong> when finished.</li>
+										<li>Note: The verified point marker is not part of the RGA message, but it is used to correct errors in the aerial imagery, which is essential to improve accuracy.</li>
 									</ul>
 									<li>Close the <strong>Builder</strong> once you are finished placing the two markers.</li>
                                     <li>Continue the process by viewing the <strong>Save/Load</strong> instruction tab.</li>
@@ -1021,7 +1022,7 @@
 									<li>Click the <strong>Draw Approaches</strong> (<i class="fa fa-pencil-square-o"></i>) Control from the bottom Control Panel. The control should turn green when activated.</li>
 									<li>Drawing an Approach</li>
 									<ol type="a">
-										<li>Click and drag the mouse to create a rectangular box, symbolizing a stop bar, to define an approach.
+										<li>Click and drag the mouse to create a rectangular box where a lane meets an intersection to define an approach.
 										  Make the box the approximate size of one of the stop bars in the intersection.</li>
 										<li>Do not worry about the exact size/shape/position of the box as it can be modified.</li>
 									</ol>
@@ -1032,6 +1033,7 @@
 										<li>Click and drag from the center dot on the approach to move the box around.</li>
 										<li>Click and drag from the outside dot to rotate and resize the box.</li>
 										<li>Modify the box as to best fit the stop bar of the intersection.</li>
+										<li>Note: An approach should cover a group of lanes that go in the same direction.</li>
 									</ol>
 									<li>Configuring an Approach</li>
 									<ol type="a">
@@ -1060,8 +1062,9 @@
 									<ol type="a">
 										<li>Place the mouse button inside of the approach box you wish to begin defining lanes.</li>
 										<li>Click the mouse once to create the first node of the lane.</li>
-										<li>Click the mouse again to define all subsequent nodes on the lane.</li>
+										<li>Click the mouse again to define all subsequent nodes on the lane. When drawing out the nodes, nodes should be placed closer together in curved sections of lanes, and farther apart for straight segments.</li>
 										<li>Double-click the mouse on the final node you wish to define on the lane.</li>
+										
 									</ol>
 									<li>Modifying a Lane</li>
 									<ol type="a">
@@ -1076,7 +1079,7 @@
 										<li>Verify that all of the Controls on the bottom panel are unselected.</li>
 										<li>Click on the lane node you wish to configure in order to bring up the <strong>Lane Configuration</strong> dialog.
 											<br><strong>Note:</strong> Only the first node of the lane will hold the Lane Number and Attribute information.</li>
-										<li>Define a Lane Number (node 1).  Modify any other desired settings, including the Days of the Week and Time Period fields
+										<li>Define a Lane Number (node 1).  Modify any other desired settings. If desired, also fill out Days of the Week and Time Period fields, which are RGA specific fields.
 											<br><strong>Note:</strong> Lane Attributes will be explained in the next section. Furthermore, RGA only supports "Vehicle", "Crosswalk" and "Bike" lane types.</li>
 										<li>Click <strong>Done</strong> when finished.</li>
 									</ol>
@@ -1134,8 +1137,10 @@
 									<li>Select desired nodes offsets encoding (in the descending order of the message size, explicit encoding is not availble for RGA)</li>
 									<ul>
 										<li><b>Standard (32 bit)</b> - SAE J2945/A  Node-XY-32b offset values </li>
-										<li><b>Compact</b> – determines and uses the same minimal SAE J2945/A  Node-XY-??b offset value encoding for all nodes </li>
-										<li><b>Tight</b> - uses the absolute minimal SAE J2945/A  Node-XY-??b offset value encoding for each node</li>
+										<li><b>Compact</b> – determines and uses the same minimal SAE J2945/A  Node-XY-??b offset value encoding for all nodes.</li>
+										<li><b>Tight</b> - uses the absolute minimal SAE J2945/A  Node-XY-??b offset value encoding for each node.</li>
+										<li><b>Note:</b> For compact encoding, the minimal Node-XY-??b offset value is determined by comparing the difference between two offsets and determining which offset value each difference is closest to.</li>
+
 									</ul>
 									<li>Encode the Message</li>
 									<ol type="a">
