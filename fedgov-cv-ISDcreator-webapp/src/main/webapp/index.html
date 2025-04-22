@@ -1020,7 +1020,7 @@
 								<p class = "help-block">Here, we can create approaches, which contain additional fields specific to the J945/A RGA message in the Geometry Container </p>
 								<ol>
 									<li>Click the <strong>Draw Approaches</strong> (<i class="fa fa-pencil-square-o"></i>) Control from the bottom Control Panel. The control should turn green when activated.</li>
-									<li>Drawing an Approach</li>
+									<li>Drawing an Approach (An approach should cover a group of lanes that go in the same direction.)</li>
 									<ol type="a">
 										<li>Click and drag the mouse to create a rectangular box where a lane meets an intersection to define an approach.
 										  Make the box the approximate size of one of the stop bars in the intersection.</li>
@@ -1033,7 +1033,6 @@
 										<li>Click and drag from the center dot on the approach to move the box around.</li>
 										<li>Click and drag from the outside dot to rotate and resize the box.</li>
 										<li>Modify the box as to best fit the stop bar of the intersection.</li>
-										<li>Note: An approach should cover a group of lanes that go in the same direction.</li>
 									</ol>
 									<li>Configuring an Approach</li>
 									<ol type="a">
@@ -1137,9 +1136,8 @@
 									<li>Select desired nodes offsets encoding (in the descending order of the message size, explicit encoding is not availble for RGA)</li>
 									<ul>
 										<li><b>Standard (32 bit)</b> - SAE J2945/A  Node-XY-32b offset values </li>
-										<li><b>Compact</b> – determines and uses the same minimal SAE J2945/A  Node-XY-??b offset value encoding for all nodes.</li>
+										<li><b>Compact</b> – determines and uses the same minimal SAE J2945/A  Node-XY-??b offset value encoding for all nodes. (For compact encoding, the minimal Node-XY-??b offset value is determined by comparing the difference between two offsets and determining which offset value each difference is closest to.)</li>
 										<li><b>Tight</b> - uses the absolute minimal SAE J2945/A  Node-XY-??b offset value encoding for each node.</li>
-										<li><b>Note:</b> For compact encoding, the minimal Node-XY-??b offset value is determined by comparing the difference between two offsets and determining which offset value each difference is closest to.</li>
 
 									</ul>
 									<li>Encode the Message</li>
