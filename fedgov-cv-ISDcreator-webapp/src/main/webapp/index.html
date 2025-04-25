@@ -7,7 +7,7 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<title>Connected Vehicle ISD Message Creator</title>
+<title>Connected Vehicle MAP/RGA Message Creator</title>
 
 	<link rel="stylesheet" href="css/normalize.css">
 	<link rel="stylesheet" href="external/font-awesome-4.3.0/css/font-awesome.css">
@@ -48,7 +48,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/"><img id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
+                <a class="navbar-brand" href="/"><img style="display: none;" id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -119,7 +119,7 @@
 							<li><a href="#instructions_modal" data-toggle="modal" data-target="#instructions_modal">MAP Instructions</a></li>
 							<li class="divider"></li>
 							<li><a href="#" onclick="alert('To request support or report problems please email\nthe CAV Support Services at: CAVSupportServices@dot.gov.');">Support</a></li>
-							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('ISD Builder Tool for J2735 9/2024 (UPER encoding)\n\n\t  Version 4.0.0, Released on 4/25/2024');">About</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('MAP Builder Tool for J2735 9/2024 (UPER encoding) and RGA Builder Tool for J2945/A 10/2024 (UPER encoding)\n\n\t  Version 4.0.0, Released on 4/25/2024');">About</a></li>
 						</ul>
 					</li>
                 </ul>
@@ -178,7 +178,7 @@
 		</div>
         <ul class="nav nav-tabs" id="attribute-tabs">
             <li class="lane-info-tab active"><a href="#lane-info-tab" onclick="$('#attribute-tabs a[href=\'#lane-info-tab\']').tab('show'); return false;">Lane Info</a></li>
-            <li class="spat-info-tab"><a href="#spat-info-tab" onclick="$('#attribute-tabs a[href=\'#spat-info-tab\']').tab('show'); return false;">SPaT</a></li>
+            <li style="display: none;" class="spat-info-tab"><a href="#spat-info-tab" onclick="$('#attribute-tabs a[href=\'#spat-info-tab\']').tab('show'); return false;">SPaT</a></li>
             <li class="intersection-info-tab"><a href="#intersection-info-tab" onclick="$('#attribute-tabs a[href=\'#intersection-info-tab\']').tab('show'); return false;">Intersection Info</a></li>
             <li class="connection-tab"><a href="#connection-tab" onclick="$('#attribute-tabs a[href=\'#connection-tab\']').tab('show'); return false;">Connections</a></li>
 			<li class="computed-tab"><a href="#computed-tab" onclick="$('#attribute-tabs a[href=\'#computed-tab\']').tab('show'); return false;">Computed</a></li>
@@ -481,7 +481,7 @@
 
                     </div>
                 </div>
-            <div class="tab-pane" id="spat-info-tab">
+            <div style="display: none;" class="tab-pane" id="spat-info-tab">
             	<div class="panel-body">
                     <form class="spat-message">
                  
@@ -816,7 +816,7 @@
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title" id="message_deposit_modal_label">Message Encoder</h4>
-					<p class="help-block">Check the generated map data JSON then "Encode" it as SDC/SDW ISD message.</p>
+					<p class="help-block">Check the generated map data JSON then "Encode" it as MAP/RGA message.</p>
 				</div>
 				<div class="modal-body">
 					<div class="container-fluid">
@@ -847,14 +847,14 @@
 				<div class="modal-footer">
 					<label for="message_type" class="pull-left">Message Type: &nbsp;&nbsp;</label>
                    	<select id="message_type" class="pull-left">
-                       <option value="ISD">ISD</option>
+                       <!-- <option style="display: none;" value="ISD">ISD</option> -->
                        <option value="Map">Map</option>
 					   <option value="Frame+Map">Frame+Map</option>
                        <option value="RGA">RGA</option>
 					   <option value="Frame+RGA">Frame+RGA</option>
-                       <option value="SPaT">SPaT</option>
-					   <option value="Frame+SPaT">Frame+SPaT</option>
-					   <option value="SpatRecord">SpatRecord</option>
+                       <option style="display: none;" value="SPaT">SPaT</option>
+					   <option style="display: none;" value="Frame+SPaT">Frame+SPaT</option>
+					   <option style="display: none;" value="SpatRecord">SpatRecord</option>
                   	</select>
 
 					<label for="node_offsets" class="pull-left">&nbsp;&nbsp;Node Offsets: &nbsp;&nbsp;</label>
@@ -1134,10 +1134,10 @@
 										<li><b>RGA</b> – SAE J2945/A RGAData message</li>
 										<li><b>Frame+RGA</b> – SAE J2945/A MessageFrame message with RGAData contents</li>
 									</ul>
-									<li>Select desired nodes offsets encoding (in the descending order of the message size, explicit encoding is not availble for RGA)</li>
+									<li>Select desired nodes offsets encoding (in the descending order of the message size, explicit encoding is not available for RGA)</li>
 									<ul>
-										<li><b>Standard (32 bit)</b> - SAE J2945/A  Node-XY-32b offset values </li>
-										<li><b>Compact</b> – determines and uses the same minimal SAE J2945/A  Node-XY-??b offset value encoding for all nodes. (For compact encoding, the minimal Node-XY-??b offset value is determined by comparing the difference between two offsets and determining which offset value each difference is closest to.)</li>
+										<li><b>Standard (32 bit)</b> - SAE J2945/A Node-XY-32b offset values. </li>
+										<li><b>Compact</b> – determines the minimal SAE J2945/A Node-XY-??b offset value encoding for all nodes and uses the largest minimal encoding that can support all nodes </li>
 										<li><b>Tight</b> - uses the absolute minimal SAE J2945/A  Node-XY-??b offset value encoding for each node.</li>
 
 									</ul>
@@ -1415,18 +1415,18 @@
 									<li>From the top navbar, go to  <strong>Tools</strong> <i class="fa fa-arrow-right"></i> <strong>Encoder</strong>.</li>
 									<li>Select desired Message Type</li>
 									<ul>
-										<li><b>ISD</b> – SDC/SDW Intersection Situation Data</li>
+										<!-- <li><b>ISD</b> – SDC/SDW Intersection Situation Data</li> -->
 										<li><b>Map</b> – SAE J2735 MapData message</li>
 										<li><b>Frame+Map</b> – SAE J2735 MessageFrame message with MapData contents</li>
-										<li><b>SPaT</b> – SAE J2735 SPAT message</li>
-										<li><b>Frame+SPaT</b> – SAE J2735 MessageFrame message with SPAT contents</li>
-										<li><b>SpatRecord</b>  – ISD message SPaT part</li>
+										<li style="display: none;"><b>SPaT</b> – SAE J2735 SPAT message</li>
+										<li style="display: none;"><b>Frame+SPaT</b> – SAE J2735 MessageFrame message with SPAT contents</li>
+										<li style="display: none;" ><b>SpatRecord</b>  – ISD message SPaT part</li>
 									</ul>
 									<li>Select desired nodes offsets encoding (in the descending order of the message size)</li>
 									<ul>
 										<li><b>Explicit (64 bit)</b> - SAE J2735 Node-LLmD-64b encoding using explicit lat/lon values</li>
 										<li><b>Standard (32 bit)</b> - SAE J2735 Node-XY-32b offset values </li>
-										<li><b>Compact</b> – determines and uses the same minimal SAE J2735 Node-XY-??b offset value encoding for all nodes </li>
+										<li><b>Compact</b> – determines the minimal SAE J2735 Node-XY-??b offset value encoding for all nodes and uses the largest minimal encoding that can support all nodes </li>
 										<li><b>Tight</b> - uses the absolute minimal SAE J2735 Node-XY-??b offset value encoding for each node</li>
 									</ul>
 									<li>Encode the Message</li>
