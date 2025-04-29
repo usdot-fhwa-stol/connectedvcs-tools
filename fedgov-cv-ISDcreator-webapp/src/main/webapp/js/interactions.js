@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus } from "./utils.js";
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -73,7 +73,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     console.log('Lane marker feature selected:', evt.selected[0]);
 
     let selectedMarker = evt.selected[0];
-    $('#attributes').parsley().reset();
+    $('#attributes').parsley().reset();    
     if(selectedMarker.get("computed")) {
       $(".selection-panel").text('Computed Lane Configuration');
     } else {
@@ -148,6 +148,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $(".lane_width").show();
 
     if (selectedMarker.get("number") == 0) {
+      setRGAStatus();
       updateDisplayedLaneAttributes(selectedMarker);
       rebuildConnections(selectedMarker.get("connections"));
       $("#lane_attributes").show();

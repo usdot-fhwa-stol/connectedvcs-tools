@@ -1116,9 +1116,12 @@ function setRGAStatus() {
   let rgaEnabled = false;
   if($('#rga_switch').is(":checked")){
       rgaEnabled = true;
+      $('.day_selection_dropdown').multiselect('enable');
   }else{
       rgaEnabled = false;
+      $('.day_selection_dropdown').multiselect('disable');
   }
+  $('.day_selection_dropdown').multiselect('refresh');
   enableRGAFields(rgaEnabled);
   return rgaEnabled;
 }

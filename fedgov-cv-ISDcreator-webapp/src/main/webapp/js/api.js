@@ -23,7 +23,6 @@ async function getElevation(dot, latlon, i, j, callback){
   }
 
 async function getComputedElevation(latlon) {
-  const apiKey = await getApiKey();
   return new Promise((resolve, reject) => {
     $.ajax({
       url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,

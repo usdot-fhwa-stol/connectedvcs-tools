@@ -170,7 +170,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	let newLonLat = ol.proj.toLonLat([newX, newY]);
 
 	// Await the computed elevation
-	const newZ = getComputedElevation(newLonLat);
+	const newZ = getComputedElevation({lon: newLonLat[0], lat: newLonLat[1]});
 	
 	// We no longer need the newDotFeature since we only needed to save it's x/y values
 	// to calculate the offset from the old x/y values
