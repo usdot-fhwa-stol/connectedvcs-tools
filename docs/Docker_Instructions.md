@@ -29,12 +29,12 @@ and API key in [application.properties](/fedgov-cv-map-services-proxy/src/main/r
 
 6. Using SSL vs not using SSL:
 
-    - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the [Dockerfile](/Dockerfile) will need to be updated to copy your applicable keystore information to the image. **NOTE**: Only the last two lines in the Dockerfile will need to be updated.
+    - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the ssl.ini and keystore files will need to be updated or replaced to copy your applicable keystore information to the image. **NOTE**: The current ssl.ini and keystore files are examples only. Please update or replace before running the following command.
     ```
     sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
     ```
 
-    - If running the tool without certificates, the default Dockerfile may be used as is.
+    - If running the tool without certificates, no changes are needed. Run the following command.
     ```
     sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
     ```

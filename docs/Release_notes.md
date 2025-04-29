@@ -1,6 +1,56 @@
 Map Tool Release Notes
 ----------------------------
 
+Version 2.1.0, released 31st, 2024
+----------------------------------------
+
+### **Summary**  
+This release focuses on compliance with the 2024 J2735 standard and initial integration of J2945/A RGA messages. Updates include enhancements to the UI and new message generation capabilities.  
+
+### **<ins>Enhancements in Release:</ins>** 
+
+**Epic MAP-124: MAP Tool UI Improvements for J2735 2024 Standard**  
+
+**Summary:**  Updated the MAP Tool to comply with the 2024 J2735 version. Added the following features:
+  - Road Regulator ID  
+  - Road Authority ID  
+  - Speed Limits by lane  
+- Includes bug fixes to improve functionality.  
+- Updated MAP Tool Deployment Documentation.  
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/30, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/34, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/12, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/29, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/26, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/16, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/17, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/28
+
+**<ins>Fixed Issues:</ins>**  
+- Fixed occasionally saving child map dialog box popup multiple times after clicking on save.  
+
+**Epic MAP-148: Implement J2945/A RGA Base Layer Message with the ISD Tool**  
+
+**Summary:** Updated the ISD Tool to support J2945/A RGA-encoded base layer messages, allowing users to generate updated JSON messages with RGA base layer details and encode them.
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/21, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/68, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/24, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/66, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/36, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/45, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/33, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/19, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/49, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/22, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/50
+
+**<ins>Known Issues:</ins>**  
+- None  
+
+**Epic MAP-163: Integrate J2945/A RGA Base Layer Message with ISD Message Creator UI**  
+
+**Summary:** Enhanced the ISD Tool UI to generate both J2735 MAP and J2945/A RGA-encoded JSON messages.
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/31, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/27, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/67
+
+**<ins>Known Issues:</ins>**  
+- None  
+
+### **<ins>Fixes in Release:</ins>**
+- N/A
+  
+### **<ins>Known Issues in Release:</ins>**  
+- Currently, only values up to **2,147,483,647** are permitted for nodes in **RoadAuthorityID** and **MappedGeometryID**.  
+
+
 Version 2.0.2, released Nov 8th, 2024
 ----------------------------------------
 

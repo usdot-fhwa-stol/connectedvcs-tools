@@ -3,7 +3,7 @@
       "minuteOfTheYear": 435324,
       "layerType": "intersectionData",
       "majorVersion": 1,
-      "minorVersion": 2,
+      "minorVersion": 1,
       "contentVersion": 1,
       "timeOfCalculation": {
         "day": 28,
@@ -840,6 +840,6 @@
       }
     },
     "messageType": "Frame+RGA",
-    "nodeOffsets": "Explicit",
+    "nodeOffsets": "Tight",
     "enableElevation": true
   }

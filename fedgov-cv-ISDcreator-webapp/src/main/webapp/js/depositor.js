@@ -37,6 +37,8 @@ $(document).ready(function()
     $('#message_deposit_modal').on('show.bs.modal', function (e) {
         resetMessageForm()
         if( !errorCheck() ){
+            var messageTypeEl = document.getElementById("message_type");
+            disableOrEnableExplicitRGA(messageTypeEl.value);
             var message = createMessageJSON();
             message_json_input.val( JSON.stringify(message, null, 2) )
         } else {
@@ -62,6 +64,7 @@ $(document).ready(function()
         message_json_input.val(JSON.stringify(createMessageJSON(), null, 2));
     });
 
+    removeExplicitRGA();
 
     /**
      * Purpose: to allow conversion of message
@@ -181,6 +184,15 @@ function createMessageJSON()
         for(var j=0; j< laneFeat.length; j++){
 
             var inside = (box.features[i].geometry).containsPoint(lanes.features[j].geometry.components[0]);
+            var data_frame_rga_lane_time_restrictions = {}
+            if (rga_enabled) {
+                data_frame_rga_lane_time_restrictions["timeRestrictions"] = {
+                    "daysOfTheWeek": lanes.features[j].attributes.laneInfoDaySelection,
+                    "timePeriodType": lanes.features[j].attributes.laneInfoTimePeriodType,
+                    "laneInfoTimePeriodValue": lanes.features[j].attributes.laneInfoTimePeriodValue,
+                    "laneInfoTimePeriodRange": lanes.features[j].attributes.laneInfoTimePeriodRange
+                }
+            }
             if (inside && lanes.features[j].attributes.laneType != "Crosswalk"){
                 //console.log("Stop Box: " + i + " contains lead point of feature " + j);
                 lanes.features[j].attributes.inBox = true;
@@ -195,7 +207,7 @@ function createMessageJSON()
                             let mapSpeedLimits = lanes.features[j].attributes.speedLimitType;
 
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type") {
+                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     currentSpeedLimits.push(mapSpeedLimit)
                                 }
                             }
@@ -224,12 +236,17 @@ function createMessageJSON()
                           }                 
 	                }
                 } else {
+                    var data_frame_rga_offset_z = {}
+                    if (rga_enabled){
+                        data_frame_rga_offset_z["offsetZ"] = lanes.features[j].attributes.offsetZ;
+                    }
                 	computedLane = {
                 			"computedLaneNumber": lanes.features[j].attributes.computedLaneNumber,
                             "computedLaneID": lanes.features[j].attributes.computedLaneID,
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            ...data_frame_rga_offset_z,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
@@ -251,7 +268,8 @@ function createMessageJSON()
                     "sharedWith": lanes.features[j].attributes.sharedWith,
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": lanes.features[j].attributes.computed
+                    "isComputed": lanes.features[j].attributes.computed,
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	drivingLaneArray[temp_j].laneNodes = nodeArray;
@@ -264,7 +282,7 @@ function createMessageJSON()
             } else if(lanes.features[j].attributes.laneType == "Crosswalk"){
                 //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
                 lanes.features[j].attributes.inBox = true;
-
+                
                 if(!lanes.features[j].attributes.computed) {
 	                for(var m=0; m< lanes.features[j].geometry.components.length; m++){
 	                    var latlon = new OpenLayers.LonLat(lanes.features[j].geometry.components[m].x,lanes.features[j].geometry.components[m].y).transform(toProjection, fromProjection);
@@ -277,10 +295,15 @@ function createMessageJSON()
 	                    }
 	                }
                 } else {
+                    var data_frame_rga_offset_z = {}
+                    if (rga_enabled){
+                        data_frame_rga_offset_z["offsetZ"] = parseInt(lanes.features[j].attributes.offsetZ);
+                    }
                 	computedLane = {
                             "referenceLaneID": lanes.features[j].attributes.referenceLaneID,
                             "offsetX": lanes.features[j].attributes.offsetX,
                             "offsetY": lanes.features[j].attributes.offsetY,
+                            ...data_frame_rga_offset_z,
                             "rotation": lanes.features[j].attributes.rotation,
                             "scaleX": lanes.features[j].attributes.scaleX,
                             "scaleY": lanes.features[j].attributes.scaleY
@@ -302,7 +325,8 @@ function createMessageJSON()
                     "sharedWith": lanes.features[j].attributes.sharedWith,
                     "connections": lanes.features[j].attributes.connections,
                     "laneManeuvers": attributeArray,
-                    "isComputed": lanes.features[j].attributes.computed
+                    "isComputed": lanes.features[j].attributes.computed,
+                    ...data_frame_rga_lane_time_restrictions
                 };
                 if(!lanes.features[j].attributes.computed) {
                 	crosswalkLaneArray[temp_j_c].laneNodes = nodeArray;
@@ -313,7 +337,7 @@ function createMessageJSON()
                 //since some lanes are not in the driving lane
                 temp_j_c++;
 
-            }
+            } 
             nodeArray = [];
             computedLane = "";
         }
@@ -378,9 +402,18 @@ function createMessageJSON()
             }
 
         } else {
-            $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
+            // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
         }
+
+        if (lanes.features[a].attributes.laneType != null && (lanes.features[a].attributes.laneType == "Parking" || lanes.features[a].attributes.laneType == "Sidewalk")) {
+                var messageType = $('#message_type').val();
+                if (messageType == "Frame+RGA") {
+                    $('#alert_placeholder').append('<div id="rga-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + lanes.features[a].attributes.laneNumber + " cannot be encoded for RGA, as " + lanes.features[a].attributes.laneType + " lane type is not supported." + '</span></div>');
+                }
+        }
+
     }
+
     errors.clearMarkers();
     var size = new OpenLayers.Size(21,25);
     var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
@@ -423,8 +456,6 @@ function createMessageJSON()
             var data_frame_rga_base_layer_fields = {} //Ensure to clear the data for each call
             //Only populate JSON with RGA fields when the RGA toggle is enabled
             if(rga_enabled){ // Global variable rga_enabled is defined in mapping.js
-                data_frame_rga_base_layer_fields["majorVersion"]=parseInt(feature.attributes.majorVersion);
-                data_frame_rga_base_layer_fields["minorVersion"]= parseInt(feature.attributes.minorVersion);
                 data_frame_rga_base_layer_fields["contentVersion"]= parseInt(feature.attributes.contentVersion);
                 let date_time = parse_datetime_str(feature.attributes.contentDateTime);
                 data_frame_rga_base_layer_fields["timeOfCalculation"] = date_time.date;
@@ -436,11 +467,12 @@ function createMessageJSON()
                 //Validate RGA required fields
                 validate_required_rga_fields(feature);
             }
-
-
+            
             var referenceChild = {
-                "speedLimitType": feature.attributes.speedLimitType
-            }
+                "speedLimitType": (feature.attributes.speedLimitType || []).filter(
+                    (item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== ""
+                )
+            };
 
             if (feature.attributes.intersectionName == undefined || feature.attributes.intersectionName == ""){
                 $("#message_deposit").prop('disabled', true);
@@ -523,12 +555,10 @@ function parse_datetime_str(datetimestring){
 }
 
 /***
- * @brief According to J2945_A RGA definition,  majorVersion, minorVersion, mappedGeometryId, contentVersion, contentDateTime are required
+ * @brief According to J2945_A RGA definition, mappedGeometryId, contentVersion, contentDateTime are required
  */
 function validate_required_rga_fields(feature){    
     let map_fields_descriptions= {
-        "majorVersion": "RGA message no major version defined",
-        "minorVersion": "RGA message no minor version defined",
         "mappedGeometryId": "RGA message no mapped geometry ID defined",
         "contentVersion": "RGA message no content version defined",
         "contentDateTime": "RGA message no content datetime defined",
@@ -540,6 +570,8 @@ function validate_required_rga_fields(feature){
         }
     }
 }
+
+
 
 /**
  * Purpose: pretty terrible error check
@@ -563,3 +595,44 @@ function errorCheck(){
 
     return status;
 }
+
+/**
+ * This function contains the common logic to enable or disabled the explicit node offset 
+ * @param {*} value 
+ */
+function disableOrEnableExplicitRGA(value) {
+    var nodeOffsetsEl = document.getElementById("node_offsets");
+    if (value === "RGA" || value === "Frame+RGA") {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = true;
+                    nodeOffsetsEl.selectedIndex = 1;
+                    $('#node_offsets').trigger("change");
+                }
+            }
+        }
+    } else {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = false;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Purpose: Greys out explicit node offsets when RGA message type is selected
+ * @event: just checking if RGA message type is selected
+ */
+function removeExplicitRGA() {
+    var messageTypeEl = document.getElementById("message_type");
+    if (!messageTypeEl) return;
+
+    messageTypeEl.addEventListener("change", function () {
+        disableOrEnableExplicitRGA(this.value);
+    });
+}
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);  

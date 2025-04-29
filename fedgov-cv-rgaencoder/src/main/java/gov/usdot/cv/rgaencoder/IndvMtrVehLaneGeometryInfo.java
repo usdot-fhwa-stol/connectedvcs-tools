@@ -19,15 +19,18 @@ package gov.usdot.cv.rgaencoder;
 public class IndvMtrVehLaneGeometryInfo {
     private int laneID; // Represents LaneID
     private LaneConstructorType laneConstructorType;
+    private RGATimeRestrictions timeRestrictions;
 
     public IndvMtrVehLaneGeometryInfo() {
         this.laneID = 0;
         this.laneConstructorType = null;
+        this.timeRestrictions = null;
     }
 
-    public IndvMtrVehLaneGeometryInfo(int laneID, LaneConstructorType laneConstructorType) {
+    public IndvMtrVehLaneGeometryInfo(int laneID, LaneConstructorType laneConstructorType, RGATimeRestrictions timeRestrictions) {
         this.laneID = laneID;
         this.laneConstructorType = laneConstructorType;
+        this.timeRestrictions = timeRestrictions;
     }
 
     public int getLaneID() {
@@ -46,8 +49,16 @@ public class IndvMtrVehLaneGeometryInfo {
         this.laneConstructorType = laneConstructorType;
     }
 
+    public RGATimeRestrictions getTimeRestrictions() {
+        return timeRestrictions;
+    }
+
+    public void setTimeRestrictions(RGATimeRestrictions timeRestrictions) {
+        this.timeRestrictions = timeRestrictions;
+    }
+
     @Override
     public String toString() {
-        return "IndvMtrVehLaneGeometryInfo [laneID=" + laneID + ", laneConstructorType=" + laneConstructorType + "]";
-    }
+        return "IndvMtrVehLaneGeometryInfo [laneID=" + laneID + ", laneConstructorType=" + laneConstructorType + " timeRestrictions= " + timeRestrictions + "]";
+     }
 }

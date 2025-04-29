@@ -18,13 +18,16 @@ package gov.usdot.cv.rgaencoder;
 
 public class IndividualXYZNodeGeometryInfo {
     private NodeXYZOffsetInfo nodeXYZOffsetInfo;
+    private WayPlanarGeometryInfo nodeLocPlanarGeomInfo;
 
     public IndividualXYZNodeGeometryInfo() {
         this.nodeXYZOffsetInfo = null;
+        this.nodeLocPlanarGeomInfo = null;
     }
 
-    public IndividualXYZNodeGeometryInfo(NodeXYZOffsetInfo nodeXYZOffsetInfo) {
+    public IndividualXYZNodeGeometryInfo(NodeXYZOffsetInfo nodeXYZOffsetInfo, WayPlanarGeometryInfo nodeLocPlanarGeomInfo) {
         this.nodeXYZOffsetInfo = nodeXYZOffsetInfo;
+        this.nodeLocPlanarGeomInfo = nodeLocPlanarGeomInfo;
     }
 
     public NodeXYZOffsetInfo getNodeXYZOffsetInfo() {
@@ -35,8 +38,16 @@ public class IndividualXYZNodeGeometryInfo {
         this.nodeXYZOffsetInfo = nodeXYZOffsetInfo;
     }
 
+    public WayPlanarGeometryInfo getNodeLocPlanarGeomInfo() {
+        return nodeLocPlanarGeomInfo;
+    }
+
+    public void setNodeLocPlanarGeomInfo(WayPlanarGeometryInfo nodeLocPlanarGeomInfo) {
+        this.nodeLocPlanarGeomInfo = nodeLocPlanarGeomInfo;
+    }
+
     @Override
     public String toString() {
-        return "IndividualXYZNodeGeometryInfo [nodeXYZOffsetInfo=" + nodeXYZOffsetInfo + "]";
+        return "IndividualXYZNodeGeometryInfo [nodeXYZOffsetInfo=" + nodeXYZOffsetInfo + " nodeLocPlanarInfo= " + nodeLocPlanarGeomInfo + "]";
     }
 }

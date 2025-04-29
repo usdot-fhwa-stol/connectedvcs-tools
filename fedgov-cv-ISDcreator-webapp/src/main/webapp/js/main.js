@@ -13,7 +13,8 @@
     var numRows = -1;
     var rowHtml;
     var speedLimits = [];
-    var speedForm;
+var speedForm;
+let time_restrictions;
 
 /**
  * Define functions that must bind on load
@@ -176,14 +177,155 @@ $(document).ready(function() {
     });
     
     $(".datetimepicker").each(function(){
-        $(this).datetimepicker(
-            {
-            format:'d/m/Y H:m:s'
-            }
-        );
+        let config={
+            enableTime: true,
+            enableSeconds: true,
+            allowInput: true,
+            minuteIncrement: 1,
+            secondIncrement: 1,
+            dateFormat: "d/m/Y H:i:s",
+            time_24hr: true
+        }
+        $(this).flatpickr(config);
+    });
+
+    $.get("js/time-restrictions.html", function (data) {
+        time_restrictions = data;
+        //Add lane info specific time restrictions HTML
+        addLaneInfoTimeRestrictions(time_restrictions);
+        //Update time restrictions HTML after add HTML to the main page
+        updateTimeRestrictionsHTML();        
     });
 
 });
+
+/**
+ * @brief Add time restrictions HTML to the lane info popup on the main page.
+ */
+function addLaneInfoTimeRestrictions(time_restrictions) {
+    // Update time restrictions with lane info specific identifiers
+    let lane_info_time_restrictions = $(time_restrictions).clone();
+    lane_info_time_restrictions.find('*').each(function() {
+        
+        if (this.id) {
+            $(this).addClass("extra_rga_field_input");
+            $(this).attr('id', "lane_info_" + this.id);
+        }
+        if (this.name) {
+            $(this).attr('name', "lane_info_" + this.name);
+        }
+    });
+    $(".lane_info_time_restrictions").html(lane_info_time_restrictions.html());
+}
+
+/**
+ * @brief function to update the time restriction HTML.
+ */
+function updateTimeRestrictionsHTML(){
+    let startDateTimePicker = $('.start_datetime_picker');
+    let endDateTimePicker = $('.end_datetime_picker');
+    let dateConfig = {
+        dateFormat: "Y-m-d H:i:S",
+        allowInput: true,        
+        enableTime: true,
+        enableSeconds: true,
+        minuteIncrement: 1,
+        secondIncrement: 1,
+        time_24hr: true
+    };
+    startDateTimePicker.flatpickr(dateConfig);
+    endDateTimePicker.flatpickr(dateConfig);
+
+    $(document).on('change', '.form-check-input.time_period', function () {
+        $('.time_period_range_fields').hide();
+        $('.time_period_general_fields').hide();
+        if ($(this).val() === 'range') {
+            $('.time_period_range_fields').show();
+        } else if ($(this).val() === 'general') {
+            $('.time_period_general_fields').show();
+        }
+    });
+    $('.day_selection_dropdown').multiselect({
+        maxHeight: 200,        
+        onChange: function(option, checked, select) {            
+            if ($(option).val() === '0' && checked) {
+                $('.day_selection').find('input').each(function() {
+                    if ($(this).val() !== '0') {
+                        $(this).prop('disabled', true);
+                        $(this).prop('checked', false).trigger('change');
+                        $(this).parents('a').first().css({ 'color': 'grey' });
+                        $(this).parents('li').first().removeClass('active');
+                    }
+                });
+            } else {
+                let isAllSelected = false;
+                $('.day_selection').find('input').each(function () {
+                    if ($(this).val() === '0' && $(this).prop('checked')) {
+                        isAllSelected = true
+                    }
+                });
+                $('.day_selection').find('input').each(function () {
+                    if (isAllSelected) {
+                        //Disable all options except 0 (All)
+                        if ($(this).val() !== '0') {
+                            $(this).prop('disabled', true);
+                            $(this).parents('a').first().css({ 'color': 'grey' });
+                            $(this).parents('li').first().removeClass('active');
+                        }
+                    }else{
+                        //Reset all options to enabled 
+                        $(this).prop('disabled', false);
+                        $(this).parents('a').first().css({ 'color': 'black' });
+                    }
+                   
+                });
+            }
+        },
+        buttonText: function (options, select) {
+            
+            if (options.length === 0) {
+                $('.day_selection').find('input').each(function () {
+                    $(this).prop('disabled', false);
+                    $(this).parents('a').first().css({ 'color': 'black' });
+                });
+                return 'Select Day Of The Week'
+            } else if (options.length > 1) {                
+                return options.length + ' selected';
+            } else {
+                let labels = [];
+                options.each(function () {                    
+                    if ($(this).attr('label') !== undefined) {
+                        labels.push($(this).attr('label'));
+                    }
+                    else {
+                        labels.push($(this).html());
+                    }
+                    let value = $(this).val();
+                    if (value === "0") {
+                        $('.day_selection').find('input').each(function () {
+                            if ($(this).val() !== "0") {
+                                $(this).prop('disabled', true);
+                                $(this).parents('a').first().css({ 'color': 'grey' });
+                            }
+                        });
+                    }                    
+                });
+                return labels.join(', ') + '';
+            }
+        }
+    });
+    
+    $('.fa-question-circle').click(function(){
+        let tag = $(this).attr('tag');
+        let obj = $.grep(help_notes, function(e){ return e.value === tag; });
+        $('#help_modal').modal('show');
+        $('#min').html(obj[0].min)
+        $('#max').html(obj[0].max)
+        $('#units').html(obj[0].units)
+        $('#description').html(obj[0].description)
+        $('#help_modal h4').html(obj[0].title)
+    });
+}
 
 /***
  * Purpose: Display list of autocomplete places suggested by predictionPlaces returned by google places API.

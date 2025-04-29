@@ -21,13 +21,16 @@ import java.util.List;
 
 public class PhysicalXYZNodeInfo {
     private List<IndividualXYZNodeGeometryInfo> nodeXYZGeometryNodeSet;
+    private ReferencePointInfo referencePointInfo;
 
     public PhysicalXYZNodeInfo() {
         this.nodeXYZGeometryNodeSet = new ArrayList<>();
+        this.referencePointInfo = null;
     }
 
-    public PhysicalXYZNodeInfo(List<IndividualXYZNodeGeometryInfo> nodeXYZGeometryNodeSet) {
+    public PhysicalXYZNodeInfo(List<IndividualXYZNodeGeometryInfo> nodeXYZGeometryNodeSet, ReferencePointInfo referencePointInfo) {
         this.nodeXYZGeometryNodeSet = nodeXYZGeometryNodeSet;
+        this.referencePointInfo = referencePointInfo;
     }
 
     public List<IndividualXYZNodeGeometryInfo> getNodeXYZGeometryNodeSet() {
@@ -44,8 +47,17 @@ public class PhysicalXYZNodeInfo {
         }
     }
 
+    public ReferencePointInfo getReferencePointInfo() {
+        return referencePointInfo;
+    }
+
+    public void setReferencePointInfo(ReferencePointInfo referencePointInfo) {
+        this.referencePointInfo = referencePointInfo;
+    }
+
     @Override
     public String toString() {
-        return "PhysicalXYZNodeInfo [nodeXYZGeometryNodeSet=" + nodeXYZGeometryNodeSet + "]";
+        return "PhysicalXYZNodeInfo [nodeXYZGeometryNodeSet=" + nodeXYZGeometryNodeSet + ", referencePointInfo="
+                + referencePointInfo + "]";
     }
 }

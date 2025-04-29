@@ -1,0 +1,93 @@
+<div class="time_restrictions">
+    <div class="row day_selection" data-toggle="tooltip">
+        <div class="col-sm-4"><label for="day_selection">Day Selection:</label></div>
+        <div class="col-sm-7">
+            <select id="day_selection" name="day_selection" class="day_selection_dropdown form-control" multiple="multiple">
+                <option value="0">All (0)</option>
+                <option value="1">Mon (1)</option>
+                <option value="2">Tue (2)</option>
+                <option value="3">Wed (3)</option>
+                <option value="4">Thu (4)</option>
+                <option value="5">Fri (5)</option>
+                <option value="6">Sat (6)</option>
+                <option value="7">Sun (7)</option>
+            </select>
+        </div>
+        <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="day_selection"></i></div>
+    </div>
+    <div class="row time_period" data-toggle="tooltip">
+        <div class="col-sm-4 align-self-center" style="display: flex; align-items: center;"><label for="time_period">Time Period:</label></div>
+        <div class="col-sm-7">
+            <!--Period Type-->
+            <div class="form-check form-check-inline" style="display: inline;">
+                <input class="form-check-input time_period" type="radio" name="time_period" id="time_period_none" value="none">
+                <label for="time_period_none" style="font-weight: normal; margin-right: 5px">None</label>
+            </div>
+            <div class="form-check form-check-inline" style="display: inline;">
+                <input class="form-check-input time_period" type="radio" name="time_period" id="time_period_range" value="range">
+                <label for="time_period_range" style="font-weight: normal; margin-right: 5px">Range</label>
+            </div>
+            <div class="form-check form-check-inline" style="display: inline;">
+                <input class="form-check-input time_period" type="radio" name="time_period" id="time_period_general" value="general">
+                <label for="time_period_general" style="font-weight: normal; margin-right: 5px">General</label>
+            </div>  
+        </div>
+        <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="time_period"></i></div>
+    </div>
+    <div class="row time_period_additional_fields" data-toggle="tooltip">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-7">
+            <!--Range Period Additional Fields-->
+            <div id="range_fields" class="time_period_range_fields" style="display: none;">
+                <div class="row" >
+                    <div class="col-sm-12">      
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label for="time_period_start_datetime" style="font-weight: normal; margin-right: 2px">Start (UTC):</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8" style="padding-right: 0px;">
+                                <input type="text" id="time_period_start_datetime" class="form-control start_datetime_picker" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true" >
+                            </div>
+                            <div class="col-sm-4" style="padding-right: 0px;">
+                                <input type="number"  id="time_period_start_offset" class="form-control start_offset"  min="-840" max="840" title="Offset in minute" data-parsley-required="true" >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">      
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label for="time_period_end_datetime" style="font-weight: normal; margin-right: 2px">End (UTC):</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8" style="padding-right: 0px;">
+                                <input type="text" class="form-control end_datetime_picker"  id="time_period_end_datetime" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
+                            </div>
+                            <div class="col-sm-4" style="padding-right: 0px;">
+                                <input type="number" class="form-control end_offset"  id="time_period_end_offset" min="-840" max="840" title="Offset in minute" data-parsley-required="true">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--General Period Additional Fields-->
+            <div id="general_fields"  class="time_period_general_fields" style="display: none;">
+                <div class="row">
+                    <div class="col-sm-11">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="time_period_general" id="time_period_day" value="day" data-parsley-required="true" required>
+                            <label for="time_period_day" style="font-weight: normal;">Day</label>
+                            <input class="form-check-input" type="radio" name="time_period_general" id="time_period_night" value="night">
+                            <label for="time_period_night" style="font-weight: normal;">Night</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
