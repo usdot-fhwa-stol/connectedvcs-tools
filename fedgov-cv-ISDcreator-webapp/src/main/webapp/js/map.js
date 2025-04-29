@@ -1,4 +1,4 @@
-import {addRow, deleteRow, getCookie, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTypeAttributes } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -48,6 +48,7 @@ let laneSelectInteraction, laneMarkersInteraction, vectorInteraction, boxSelectI
 let selectedInteractions = [];
 let temporaryLaneMarkers;
 let temporaryBoxMarkers;
+let timeRestrictions;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -1010,6 +1011,14 @@ function initMISC() {
     }
     $(this).flatpickr(config);
   });
+
+  $.get("js/time-restrictions.html", function (data) {
+    timeRestrictions = data;
+    //Add lane info specific time restrictions HTML
+    addLaneInfoTimeRestrictions(timeRestrictions);
+    //Update time restrictions HTML after add HTML to the main page
+    updateTimeRestrictionsHTML();        
+  });
 }
 
 function registerModalButtonEvents() {
@@ -1117,6 +1126,16 @@ function registerModalButtonEvents() {
         sharedWith[i] = sharedWith_object[i];
       }
 
+      let laneInfoDaySelection = getLaneInfoDaySelection();
+
+      let laneInfoTimePeriod = getLaneInfoTimePeriod() || {};
+      let laneInfoTimePeriodType = "", laneInfoTimePeriodValue = "";		
+      let laneInfoTimePeriodRange = {};		
+
+      laneInfoTimePeriodType = laneInfoTimePeriod.type || "";
+      laneInfoTimePeriodValue = laneInfoTimePeriod.value || "";
+      laneInfoTimePeriodRange = laneInfoTimePeriod.range || {};
+
       typeAttributeNameSaved = typeAttributeName;
       typeAttribute = [];
       for (let i = 0; i < typeAttribute_object.length; i++) {
@@ -1144,6 +1163,10 @@ function registerModalButtonEvents() {
           selectedMarker.set("nextTime", $("#next_time").val());
           selectedMarker.set("sharedWith", sharedWith);
           selectedMarker.set("typeAttribute", typeAttribute);
+          selectedMarker.set("laneInfoDaySelection", laneInfoDaySelection);
+          selectedMarker.set("laneInfoTimePeriodType", laneInfoTimePeriodType);
+          selectedMarker.set("laneInfoTimePeriodValue", laneInfoTimePeriodValue);
+          selectedMarker.set("laneInfoTimePeriodRange", laneInfoTimePeriodRange);
 
           if (nodeObject != null) {
             selectedMarker.set("connections", nodeObject);
@@ -1181,6 +1204,10 @@ function registerModalButtonEvents() {
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("sharedWith", sharedWith);
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("typeAttribute", typeAttribute);
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("lane_attributes",selectedMarker.get("lane_attributes"));
+          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneInfoDaySelection", laneInfoDaySelection);
+          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneInfoTimePeriodType", laneInfoTimePeriodType);
+          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneInfoTimePeriodValue", laneInfoTimePeriodValue);
+          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneInfoTimePeriodRange", laneInfoTimePeriodRange);
         }
         selectedMarker.set("LonLat", {
           lat: parseFloat($("#lat").val()),
@@ -1245,8 +1272,6 @@ function registerModalButtonEvents() {
             $("#road_authority_id_type").val()
           );
           selectedMarker.set("roadAuthorityId", $("#road_authority_id").val());
-          selectedMarker.set("majorVersion", $("#major_version").val());
-          selectedMarker.set("minorVersion", $("#minor_version").val());
           selectedMarker.set(
             "mappedGeometryId",
             $("#mapped_geometry_id").val()

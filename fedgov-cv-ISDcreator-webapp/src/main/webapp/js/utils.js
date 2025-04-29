@@ -23,6 +23,99 @@ function getCookie(cname) {
 function isOdd(num) { return (num % 2) == 1;}
 
 
+/***
+ * @brief Get selected days of the week from day selection field on the lane info dialog 
+ */
+function getLaneInfoDaySelection() {
+	let laneInfoDaySelection = []
+	let daySelectionOptions = $('#lane_info_day_selection option:selected')?.map(function (a, item) { return item.value; });
+	if (daySelectionOptions) {
+		for (let i = 0; i < daySelectionOptions.length; i++) {
+			laneInfoDaySelection.push(daySelectionOptions[i]);
+		}
+	}
+	return laneInfoDaySelection;
+}
+
+/**
+ * @brief Populate lane info dialog with selected days of the week
+ */
+function updateLaneInfoDaySelection(laneInfoDaySelection) {
+	$('#lane_info_day_selection').multiselect('deselectAll', false);
+	$("#lane_info_day_selection").multiselect("refresh");
+	if (laneInfoDaySelection) {
+		$("#lane_info_day_selection").multiselect('select', laneInfoDaySelection);
+		$("#lane_info_day_selection").multiselect("refresh");
+	}
+}
+
+
+/**
+ * @brief Get selected time period from time period selection field on the lane info dialog
+ */
+function getLaneInfoTimePeriod() {
+	let laneInfoTimePeriodType = "";
+	let laneInfoTimePeriodValue = "";
+	let laneInfoTimePeriodRange = {};
+
+	let selectedType = $("input[name='lane_info_time_period']:checked").val();
+	laneInfoTimePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
+
+	if (laneInfoTimePeriodType === "range") {
+		laneInfoTimePeriodRange = {};
+		laneInfoTimePeriodRange["startDatetime"] = $('#lane_info_time_period_start_datetime').val();
+		laneInfoTimePeriodRange["startOffset"] = $('#lane_info_time_period_start_offset').val();
+		laneInfoTimePeriodRange["endDatetime"] = $('#lane_info_time_period_end_datetime').val();
+		laneInfoTimePeriodRange["endOffset"] = $('#lane_info_time_period_end_offset').val();
+
+		return {
+			type: laneInfoTimePeriodType,
+			range: laneInfoTimePeriodRange
+		}
+	} else if (laneInfoTimePeriodType === "general") {
+		laneInfoTimePeriodValue = $('input[name="lane_info_time_period_general"]:checked').val();
+
+		return {
+			type: laneInfoTimePeriodType,
+			value: laneInfoTimePeriodValue
+		}
+	}
+
+	return {}; // fallback
+}
+
+/***
+ * @brief Populate lane info dialog with selected time period
+ */
+function updateLaneInfoTimePeriod(laneInfoTimePeriodType, laneInfoTimePeriodValue, laneInfoTimePeriodRange) {
+	if (laneInfoTimePeriodType) {
+		$('input[name="lane_info_time_period"][value="' + laneInfoTimePeriodType + '"]').prop('checked', true);
+	} else {
+		$('input[name="lane_info_time_period"]').prop('checked', false);
+	}
+
+	$("#lane_info_time_period_start_datetime").val("");
+	$("#lane_info_time_period_end_datetime").val("");
+	$("#lane_info_time_period_start_offset").val("");
+	$("#lane_info_time_period_end_offset").val("");
+	$('input[name="lane_info_time_period_general"]').prop('checked', false);
+	$('.time_period_general_fields').css('display', 'none');
+	$('.time_period_range_fields').css('display', 'none');
+
+	if (laneInfoTimePeriodRange && laneInfoTimePeriodType == "range") {
+		$('.time_period_general_fields').css('display', 'none');
+		$('.time_period_range_fields').css('display', '');
+		$("#lane_info_time_period_start_datetime").val(laneInfoTimePeriodRange['startDatetime']);
+		$("#lane_info_time_period_end_datetime").val(laneInfoTimePeriodRange['endDatetime']);
+		$("#lane_info_time_period_start_offset").val(laneInfoTimePeriodRange['startOffset']);
+		$("#lane_info_time_period_end_offset").val(laneInfoTimePeriodRange['endOffset']);
+	} else if (laneInfoTimePeriodValue && laneInfoTimePeriodType == "general") {
+		$('.time_period_range_fields').css('display', 'none');
+		$('.time_period_general_fields').css('display', '');
+		$('input[name="lane_info_time_period_general"][value="' + laneInfoTimePeriodValue + '"]').prop('checked', true);
+	}
+}
+
  /***
   * @brief Show and hide RGA related fields. 
   * Note: extra RGA fields in addition to MAP message should only appear at the "Reference Point" dialog.
@@ -154,6 +247,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".lane_type_attributes").hide();
   $(".lane_number").hide();
   $(".lane_width").hide();
+  $(".lane_info_time_restrictions").hide();
   $(".descriptive_name").hide();
   $(".lane_type").hide();
   $(".approach_type").hide();
@@ -245,19 +339,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
       $("#region").val("");
   } else {
       $("#region").val(feature.get("regionID"));
-  }
-  
-  if (! feature.get("majorVersion")){
-      $("#major_version").val("");
-  } else {
-      $("#major_version").val(feature.get("majorVersion"));
-  }
-  
-  if (! feature.get("minorVersion")){
-      $("#minor_version").val("");
-  } else {
-      $("#minor_version").val(feature.get("minorVersion"));
-  }
+  }  
   
   if (!feature.get("roadAuthorityId")){
       $("#road_authority_id").val("");
@@ -1048,8 +1130,10 @@ function resetRGAStatus(){
 function enableRGAFields(enable=true){    
   if(enable){        
       $(".extra_rga_field_input").prop('disabled', false);
+      $(".extra_rga_field_input").css('backgroundColor', "#fff");
   }else{     
       $(".extra_rga_field_input").prop('disabled', true);
+      $(".extra_rga_field_input").css('backgroundColor', "#eee");
   }
   addRGAFieldsValidation(enable);
  }
@@ -1185,6 +1269,135 @@ function debounceModifyEvent(callback, delay) {
   };
 }
 
+
+/**
+ * @brief Add time restrictions HTML to the lane info popup on the main page.
+ */
+function addLaneInfoTimeRestrictions(time_restrictions) {
+  // Update time restrictions with lane info specific identifiers
+  let lane_info_time_restrictions = $(time_restrictions).clone();
+  lane_info_time_restrictions.find('*').each(function() {
+      
+      if (this.id) {
+          $(this).addClass("extra_rga_field_input");
+          $(this).attr('id', "lane_info_" + this.id);
+      }
+      if (this.name) {
+          $(this).attr('name', "lane_info_" + this.name);
+      }
+  });
+  $(".lane_info_time_restrictions").html(lane_info_time_restrictions.html());
+}
+
+/**
+* @brief function to update the time restriction HTML.
+*/
+function updateTimeRestrictionsHTML(){
+  let startDateTimePicker = $('.start_datetime_picker');
+  let endDateTimePicker = $('.end_datetime_picker');
+  let dateConfig = {
+      dateFormat: "Y-m-d H:i:S",
+      allowInput: true,        
+      enableTime: true,
+      enableSeconds: true,
+      minuteIncrement: 1,
+      secondIncrement: 1,
+      time_24hr: true
+  };
+  startDateTimePicker.flatpickr(dateConfig);
+  endDateTimePicker.flatpickr(dateConfig);
+
+  $(document).on('change', '.form-check-input.time_period', function () {
+      $('.time_period_range_fields').hide();
+      $('.time_period_general_fields').hide();
+      if ($(this).val() === 'range') {
+          $('.time_period_range_fields').show();
+      } else if ($(this).val() === 'general') {
+          $('.time_period_general_fields').show();
+      }
+  });
+  $('.day_selection_dropdown').multiselect({
+      maxHeight: 200,        
+      onChange: function(option, checked, select) {            
+          if ($(option).val() === '0' && checked) {
+              $('.day_selection').find('input').each(function() {
+                  if ($(this).val() !== '0') {
+                      $(this).prop('disabled', true);
+                      $(this).prop('checked', false).trigger('change');
+                      $(this).parents('a').first().css({ 'color': 'grey' });
+                      $(this).parents('li').first().removeClass('active');
+                  }
+              });
+          } else {
+              let isAllSelected = false;
+              $('.day_selection').find('input').each(function () {
+                  if ($(this).val() === '0' && $(this).prop('checked')) {
+                      isAllSelected = true
+                  }
+              });
+              $('.day_selection').find('input').each(function () {
+                  if (isAllSelected) {
+                      //Disable all options except 0 (All)
+                      if ($(this).val() !== '0') {
+                          $(this).prop('disabled', true);
+                          $(this).parents('a').first().css({ 'color': 'grey' });
+                          $(this).parents('li').first().removeClass('active');
+                      }
+                  }else{
+                      //Reset all options to enabled 
+                      $(this).prop('disabled', false);
+                      $(this).parents('a').first().css({ 'color': 'black' });
+                  }
+                 
+              });
+          }
+      },
+      buttonText: function (options, select) {
+          
+          if (options.length === 0) {
+              $('.day_selection').find('input').each(function () {
+                  $(this).prop('disabled', false);
+                  $(this).parents('a').first().css({ 'color': 'black' });
+              });
+              return 'Select Day Of The Week'
+          } else if (options.length > 1) {                
+              return options.length + ' selected';
+          } else {
+              let labels = [];
+              options.each(function () {                    
+                  if ($(this).attr('label') !== undefined) {
+                      labels.push($(this).attr('label'));
+                  }
+                  else {
+                      labels.push($(this).html());
+                  }
+                  let value = $(this).val();
+                  if (value === "0") {
+                      $('.day_selection').find('input').each(function () {
+                          if ($(this).val() !== "0") {
+                              $(this).prop('disabled', true);
+                              $(this).parents('a').first().css({ 'color': 'grey' });
+                          }
+                      });
+                  }                    
+              });
+              return labels.join(', ') + '';
+          }
+      }
+  });
+  
+  $('.fa-question-circle').click(function(){
+      let tag = $(this).attr('tag');
+      let obj = $.grep(help_notes, function(e){ return e.value === tag; });
+      $('#help_modal').modal('show');
+      $('#min').html(obj[0].min)
+      $('#max').html(obj[0].max)
+      $('#units').html(obj[0].units)
+      $('#description').html(obj[0].description)
+      $('#help_modal h4').html(obj[0].title)
+  });
+}
+
 export {
   getCookie,
   isOdd,
@@ -1229,6 +1442,12 @@ export {
   resetRGAStatus,
   getLength,
   copyTextToClipboard,
-  debounceModifyEvent
+  debounceModifyEvent,
+  getLaneInfoDaySelection,
+  getLaneInfoTimePeriod,
+  updateLaneInfoDaySelection,
+  updateLaneInfoTimePeriod,
+  updateTimeRestrictionsHTML,
+  addLaneInfoTimeRestrictions
   
 }

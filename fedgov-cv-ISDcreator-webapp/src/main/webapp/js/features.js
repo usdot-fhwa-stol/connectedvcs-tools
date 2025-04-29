@@ -1,4 +1,4 @@
-import { getElevation } from "./api.js";
+import { getComputedElevation, getElevation } from "./api.js";
 import { toggleControlsOn } from "./files.js";
 import { laneStyle, pointStyle } from "./style.js";
 import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
@@ -167,6 +167,10 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	let laneFeatures = lanes.getSource().getFeatures();
 	let newX = newDotFeature.getGeometry().getCoordinates()[0];
 	let newY = newDotFeature.getGeometry().getCoordinates()[1];
+	let newLonLat = ol.proj.toLonLat([newX, newY]);
+
+	// Await the computed elevation
+	const newZ = getComputedElevation(newLonLat);
 	
 	// We no longer need the newDotFeature since we only needed to save it's x/y values
 	// to calculate the offset from the old x/y values
@@ -182,7 +186,8 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	    // Note: Measurement is in meters so multiply by 100 for CM
 		let offsetX = Math.round((newX - laneFeatures[computedLaneSource.get("lane")].getGeometry().getCoordinates()[0][0]) * 100);
 		let offsetY = Math.round((newY - laneFeatures[computedLaneSource.get("lane")].getGeometry().getCoordinates()[0][1]) * 100);
-	    let inRange = true;
+	    let offsetZ = Math.round((newZ - laneFeatures[computedLaneSource.get("lane")].get("elevation")[0].value) * 100);
+		let inRange = true;
 	    if(offsetX > 2047 || offsetX < -2047) {
 	    	alert("Current offset in X axis from source lane is " + offsetX + "cm. Offset value should be between -2047 and 2047.");
 	    	inRange = false;
@@ -192,6 +197,11 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	    	alert("Current offset in Y axis from source lane is " + offsetY + "cm. Offset value should be between -2047 and 2047.");
 	    	inRange = false;
 	    }
+
+		if(offsetZ > 2047 || offsetZ < -2047) {
+			alert("current offset in Z axis from source lane is " + offsetZ + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 	    
 	    if(inRange) {	    	
 			$("#attributes").hide();
@@ -260,6 +270,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 			$("#lane_attributes").show();
 			$(".descriptive_name").show();
 			$(".lane_type").show();
+			$(".lane_info_time_restrictions").show();
 			$(".lane_type_attributes").show();
 			$(".lane_type_attributes btn-group").show();
 			$("label[for='lane_type_attributes']").show();
@@ -268,7 +279,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 			$('#lat').val(0);
 			$('#long').prop('readonly', true);
 			$('#long').val(0);
-		    $('.spat-info-tab').show();
+		    $('.spat-info-tab').hide(); // Hiding SPaT tab. Revert to .show() when needed
 		    $('.connection-tab').show();
 			$('#computed-tab').addClass('active');
 			$('.computed-tab').addClass('active');
@@ -300,6 +311,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 		// amount of offset from the source lane
 		let offsetXFromSource = Number(computedLaneSource.get("offsetX")) + offsetX;
 		let offsetYFromSource = Number(computedLaneSource.get("offsetY")) + offsetY;
+		let offsetZFromSource = Number(computedLaneSource.get("offsetZ")) + offsetZ;
 	    let inRange = true;
 	    if(offsetXFromSource > 2047 || offsetXFromSource < -2047) {
 	    	alert("Current offset in X axis from source lane is " + offsetXFromSource + "cm. Offset value should be between -2047 and 2047.");
@@ -310,12 +322,18 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	    	alert("Current offset in Y axis from source lane is " + offsetYFromSource + "cm. Offset value should be between -2047 and 2047.");
 	    	inRange = false;
 	    }
+		
+		if(offsetZFromSource > 2047 || offsetZFromSource < -2047) {
+			alert("Current offset in Z axis from source lane is " + offsetZFromSource + "cm. Offset value should be between -2047 and 2047.");
+			inRange = false;
+		}
 	    
 	    if(inRange) {
 	    	// Just need to update the lane's offset values since the drawing in the UI
 		    // is based off the them
 			computedLaneSource.set("offsetX", offsetXFromSource);
 			computedLaneSource.set("offsetY", offsetYFromSource);
+			computedLaneSource.set("offsetZ", offsetZFromSource);
 			
 			// Unset the source computed lane since we are done moving it
 			computedLaneSource = null;
@@ -464,6 +482,10 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"laneNumber": laneNumber, 
 			"laneWidth": laneFeatures[r].get("laneWidth"), 
 			"laneType": laneFeatures[r].get("laneType"), 
+			"laneInfoDaySelection": laneFeatures[r].get("laneInfoDaySelection"), 
+			"laneInfoTimePeriodType": laneFeatures[r].get("laneInfoTimePeriodType"), 
+			"laneInfoTimePeriodValue": laneFeatures[r].get("laneInfoTimePeriodValue"), 
+			"laneInfoTimePeriodRange": laneFeatures[r].get("laneInfoTimePeriodRange"), 
 			"sharedWith": laneFeatures[r].get("sharedWith"),
 			"stateConfidence": laneFeatures[r].get("stateConfidence"), 
 			"spatRevision": laneFeatures[r].get("spatRevision"), 
@@ -497,6 +519,10 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"laneNumber": laneNumber, 
 			"laneWidth": laneFeatures[i].get("laneWidth"), 
 			"laneType": laneFeatures[i].get("laneType"), 
+			"laneInfoDaySelection": laneFeatures[i].get("laneInfoDaySelection"), 
+			"laneInfoTimePeriodType": laneFeatures[i].get("laneInfoTimePeriodType"), 
+			"laneInfoTimePeriodValue": laneFeatures[i].get("laneInfoTimePeriodValue"), 
+			"laneInfoTimePeriodRange": laneFeatures[i].get("laneInfoTimePeriodRange"),
 			"sharedWith": laneFeatures[i].get("sharedWith"),
 			"stateConfidence": laneFeatures[i].get("stateConfidence"), 
 			"spatRevision": laneFeatures[i].get("spatRevision"), 

@@ -1,11 +1,11 @@
 
-const google_elevation_url = "/msp/googlemap/api/elevation";
+const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
 const intersection_url = "/api.geonames.org/findNearestIntersectionJSON"
 async function getElevation(dot, latlon, i, j, callback){
     try {
-      const response = await fetch(google_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
+      const response = await fetch(esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
       if (!response.ok) {
         throw new Error('Server response was not ok');
       }
@@ -22,9 +22,31 @@ async function getElevation(dot, latlon, i, j, callback){
     }
   }
 
+async function getComputedElevation(latlon) {
+  const apiKey = await getApiKey();
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
+      success: function (result) {
+        let elev = result?.z;
+        if (elev == null || elev === undefined) {
+          elev = -9999;
+        } else {
+          elev = Math.round(elev);
+        }
+        resolve(elev);
+      },
+      error: function (error) {
+        console.log("ERROR GETTING ELEVATION: " + error);
+        resolve(-9999);
+      }
+    });
+  });
+}
+
 async function getElev(lat, lon) {
   try {
-    const response = await fetch(google_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
+    const response = await fetch(esri_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
     if (!response.ok) {
       throw new Error('Server response was not ok');
     }
@@ -149,5 +171,6 @@ export {
   getElevation,
   getElev,
   getNearestIntersectionJSON,
-  populateAutocompleteSearchPlacesDropdown
+  populateAutocompleteSearchPlacesDropdown,
+  getComputedElevation
 }

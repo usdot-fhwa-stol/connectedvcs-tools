@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection } from "./utils.js";
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -73,6 +73,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     console.log('Lane marker feature selected:', evt.selected[0]);
 
     let selectedMarker = evt.selected[0];
+    $('#attributes').parsley().reset();
     if(selectedMarker.get("computed")) {
       $(".selection-panel").text('Computed Lane Configuration');
     } else {
@@ -153,13 +154,14 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       $(".descriptive_name").show();
       $(".lane_type").show();
       $(".lane_number").show();
-      $('.spat-info-tab').show();
+      $('.spat-info-tab').hide(); // Hiding SPaT tab. Revert to .show() when needed
       $('.connection-tab').show();
       $(".intersection-info-tab").find('a:contains("Intersection Info")').text('Speed Limits');
       $('.intersection-info-tab').show();
       $('.layer').hide();
       $('.lane-speed-text').show();
       $(".shared_with").show();
+      $(".lane_info_time_restrictions").show();
       if(!selectedMarker.get("computed")) {
         // Only show the button if this lane is already defined with a lane number
         if(typeof selectedMarker.get("laneNumber") !== 'undefined') {
@@ -174,6 +176,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       $(".descriptive_name").hide();
       $(".lane_type").hide();
       $(".lane_number").hide();
+      $(".lane_info_time_restrictions").hide();
     }
     let nodeLaneWidth;
     if(laneFeatures[selectedMarker.get("lane")]?.get("laneWidth")){
@@ -236,6 +239,9 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       $('#' + selectedMarker.get("laneType") + '_type_attributes').multiselect('select', selectedMarker.get("typeAttribute"));
       $('#' + selectedMarker.get("laneType") + '_type_attributes').multiselect("refresh");
     } 
+
+    updateLaneInfoDaySelection(selectedMarker.get("laneInfoDaySelection"));
+    updateLaneInfoTimePeriod(selectedMarker.get("laneInfoTimePeriodType"), selectedMarker.get("laneInfoTimePeriodValue"), selectedMarker.get("laneInfoTimePeriodRange"));
 
     if (! selectedMarker.get("spatRevision")){
       $('#spat_revision').val(1);
@@ -449,6 +455,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".selection-panel").text('Approach Configuration');
       $("#lane_attributes").hide();
       $(".lane_type_attributes").hide();
+      $(".lane_info_time_restrictions").hide();
       $(".lane_number").hide();
       $(".lat").hide();
       $(".long").hide();

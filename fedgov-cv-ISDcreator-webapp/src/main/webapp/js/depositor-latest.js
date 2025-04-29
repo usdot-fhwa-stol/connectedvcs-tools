@@ -40,6 +40,8 @@ $(document).ready(function()
     $('#message_deposit_modal').on('show.bs.modal', function (e) {
         resetMessageForm()
         if( !errorCheck() ){
+            let messageTypeEl = document.getElementById("message_type");
+            disableOrEnableExplicitRGA(messageTypeEl.value);
             let message = createMessageJSON();
             message_json_input.val( JSON.stringify(message, null, 2) )
         } else {
@@ -65,6 +67,7 @@ $(document).ready(function()
         message_json_input.val(JSON.stringify(createMessageJSON(), null, 2));
     });
 
+    removeExplicitRGA();
 
     /**
      * Purpose: to allow conversion of message
@@ -198,6 +201,15 @@ function createMessageJSON()
         for(let j=0; j< laneFeat.length; j++){
 
             let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
+            let dfRGALaneTimeRestrictions = {}
+            if (rgaEnabled) {
+                dfRGALaneTimeRestrictions["timeRestrictions"] = {
+                    "daysOfTheWeek": laneFeat[j].get('laneInfoDaySelection'),
+                    "timePeriodType": laneFeat[j].get('laneInfoTimePeriodType'),
+                    "laneInfoTimePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
+                    "laneInfoTimePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
+                };
+            }
             if (inside && laneFeat[j].get('laneType') != "Crosswalk"){
                 laneFeat[j].set('inBox', true);
 
@@ -211,7 +223,7 @@ function createMessageJSON()
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
 
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type") {
+                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type"  && mapSpeedLimit.speedLimitType != "") {
                                     currentSpeedLimits.push(mapSpeedLimit)
                                 }
                             }
@@ -240,12 +252,17 @@ function createMessageJSON()
                         }                 
                     }
                 } else {
+                    let dfRGAOffsetZ = {}
+                    if (rgaEnabled){
+                        dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
+                    }
                     computedLane = {
                         "computedLaneNumber": laneFeat[j].get('computedLaneNumber'),
                         "computedLaneID": laneFeat[j].get('computedLaneID'),
                         "referenceLaneID": laneFeat[j].get('referenceLaneID'),
                         "offsetX": laneFeat[j].get('offsetX'),
                         "offsetY": laneFeat[j].get('offsetY'),
+                        ...dfRGAOffsetZ,
                         "rotation": laneFeat[j].get('rotation'),
                         "scaleX": laneFeat[j].get('scaleX'),
                         "scaleY": laneFeat[j].get('scaleY')
@@ -264,7 +281,8 @@ function createMessageJSON()
                     "sharedWith": laneFeat[j].get('sharedWith'),
                     "connections": laneFeat[j].get('connections'),
                     "laneManeuvers": attributeArray,
-                    "isComputed": laneFeat[j].get('computed')
+                    "isComputed": laneFeat[j].get('computed'),
+                    ...dfRGALaneTimeRestrictions
                 };
                 if(!laneFeat[j].get('computed')) {
                     drivingLaneArray[tempJ].laneNodes = nodeArray;
@@ -291,10 +309,15 @@ function createMessageJSON()
                         }
                     }
                 } else {
+                    let dfRGAOffsetZ = {}
+                    if (rgaEnabled){
+                        dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
+                    }
                     computedLane = {
                         "referenceLaneID": laneFeat[j].get('referenceLaneID'),
                         "offsetX": laneFeat[j].get('offsetX'),
                         "offsetY": laneFeat[j].get('offsetY'),
+                        ...dfRGAOffsetZ,
                         "rotation": laneFeat[j].get('rotation'),
                         "scaleX": laneFeat[j].get('scaleX'),
                         "scaleY": laneFeat[j].get('scaleY')
@@ -315,7 +338,8 @@ function createMessageJSON()
                     "sharedWith": laneFeat[j].get('sharedWith'),
                     "connections": laneFeat[j].get('connections'),
                     "laneManeuvers": attributeArray,
-                    "isComputed": laneFeat[j].get('computed')
+                    "isComputed": laneFeat[j].get('computed'),
+                    ...dfRGALaneTimeRestrictions
                 };
                 if(!laneFeat[j].get('computed')) {
                     crosswalkLaneArray[tempJC].laneNodes = nodeArray;
@@ -387,7 +411,7 @@ function createMessageJSON()
             }
 
         } else {
-            $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
+            // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
         }
     }
     errors.getSource().clear();
@@ -434,8 +458,6 @@ function createMessageJSON()
             rgaBaseLayerFields = {}; // Ensure to clear the data for each call
             // Only populate JSON with RGA fields when the RGA toggle is enabled
             if (rgaEnabled) { // Global variable rgaEnabled is defined in mapping.js
-                rgaBaseLayerFields["majorVersion"] = parseInt(feature.get('majorVersion'));
-                rgaBaseLayerFields["minorVersion"] = parseInt(feature.get('minorVersion'));
                 rgaBaseLayerFields["contentVersion"] = parseInt(feature.get('contentVersion'));
                 let datetime = parseDatetimeStr(feature.get('contentDateTime'));
                 rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
@@ -449,7 +471,9 @@ function createMessageJSON()
             }
 
             referenceChild = {
-                "speedLimitType": feature.get('speedLimitType')
+                "speedLimitType": (feature.get('speedLimitType') || []).filter(
+                    (item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== ""
+                )
             };
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
@@ -546,12 +570,10 @@ function parseDatetimeStr(datetimestring){
 }
 
 /***
- * @brief According to J2945_A RGA definition,  majorVersion, minorVersion, mappedGeometryId, contentVersion, contentDateTime are required
+ * @brief According to J2945_A RGA definition, mappedGeometryId, contentVersion, contentDateTime are required
  */
 function validateRequiredRGAFields(feature){    
     let map_fields_descriptions= {
-        "majorVersion": "RGA message no major version defined",
-        "minorVersion": "RGA message no minor version defined",
         "mappedGeometryId": "RGA message no mapped geometry ID defined",
         "contentVersion": "RGA message no content version defined",
         "contentDateTime": "RGA message no content datetime defined",
@@ -583,3 +605,45 @@ function errorCheck(){
     }
     return status;
 }
+
+
+/**
+ * This function contains the common logic to enable or disabled the explicit node offset 
+ * @param {*} value 
+ */
+function disableOrEnableExplicitRGA(value) {
+    var nodeOffsetsEl = document.getElementById("node_offsets");
+    if (value === "RGA" || value === "Frame+RGA") {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = true;
+                    nodeOffsetsEl.selectedIndex = 1;
+                    $('#node_offsets').trigger("change");
+                }
+            }
+        }
+    } else {
+        if (nodeOffsetsEl) {
+            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+                if (nodeOffsetsEl.options[i].value === "Explicit") {
+                    nodeOffsetsEl.options[i].disabled = false;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Purpose: Greys out explicit node offsets when RGA message type is selected
+ * @event: just checking if RGA message type is selected
+ */
+function removeExplicitRGA() {
+    var messageTypeEl = document.getElementById("message_type");
+    if (!messageTypeEl) return;
+
+    messageTypeEl.addEventListener("change", function () {
+        disableOrEnableExplicitRGA(this.value);
+    });
+}
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);  
