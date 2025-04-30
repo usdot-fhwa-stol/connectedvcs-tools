@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, revisionNum, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -356,24 +356,30 @@ function registerSelectInteraction() {
       // If laneMarkersInteraction has been selected and not in edit mode (edit an approach), do not allow box selection
       if (!controls.edit?.getActive() && selectedInteractions.some((layer) => layer === laneMarkers)) {
         return false;
-      }  
+      }
+      //If it places computed lane, do not allow box selection
+      if(!controls.placeComputed?.getActive()){
+        return false;
+      } 
       // Otherwise, allow box selection
       return true;
     },
   });
   boxSelectInteraction.on("select", (event) => {
     temporaryBoxMarkers.getSource().clear();
-    if(!controls.edit?.getActive()){
+    if(! (controls.edit?.getActive() || controls.placeComputed?.getActive())){
+      //Select approach when not in edit approach nor placeComputed mode
       boxSelectInteractionCallback(event, map, overlayLayersGroup, lanes, deleteMode, selected);
       if(event.selected?.length > 0){
         selectedMarker = event.selected[0];
         selectedLayer = box;
       }
-    }else if(event.selected?.length>0 ){
+    }else if(controls.edit?.getActive() && event.selected?.length>0 ){
+        //Edit approach
         selectedMarker = event.selected[0];
         selectedMarker.setStyle(barHighlightedStyle);
         
-        //Createa point at the center of the polygon
+        //Create a point at the center of the polygon
         let center = selectedMarker.getGeometry().getInteriorPoint().getCoordinates();
         let centerFeat = new ol.Feature(new ol.geom.Point([center[0], center[1]]));
         centerFeat.setStyle(pointStyle);
@@ -1094,6 +1100,7 @@ function registerModalButtonEvents() {
           $("#referenceLaneNumber").val(),
           $("#offset-X").val(),
           $("#offset-Y").val(),
+          $("#offset-Z").val(),
           $("#rotation").val(),
           $("#scale-X").val(),
           $("#scale-Y").val(),
@@ -1225,11 +1232,10 @@ function registerModalButtonEvents() {
         if (selectedMarker.get("computed")) {
           selectedMarker.set("offsetX", $("#offset-X").val());
           selectedMarker.set("offsetY", $("#offset-Y").val());
-          selectedMarker.set("rotation", $("#rotation").val());
-          selectedMarker.set("scaleX", $("#scale-X").val());
-          selectedMarker.set("scaleY", $("#scale-Y").val());
+          selectedMarker.set("offsetZ", $("#offset-Z").val());
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("offsetX", $("#offset-X").val());
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("offsetY", $("#offset-Y").val());
+          lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("offsetZ", $("#offset-Z").val());
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("rotation", $("#rotation").val());
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("scaleX", $("#scale-X").val());
           lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("scaleY", $("#scale-Y").val());
@@ -1332,8 +1338,10 @@ function registerModalButtonEvents() {
     onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
 
     if (computingLane) {
+      hideRGAFields(false);
       $("#offset-X").val("");
       $("#offset-Y").val("");
+      $("#offset-Z").val("");
       $("#rotation").val("");
       $("#scale-X").val("");
       $("#scale-Y").val("");

@@ -109,6 +109,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 					laneFeat.get("referenceLaneNumber"),
 					laneFeat.get("offsetX"),
 					laneFeat.get("offsetY"),
+					laneFeat.get("offsetZ"),
 					laneFeat.get("rotation"),
 					laneFeat.get("scaleX"),
 					laneFeat.get("scaleY"),
@@ -163,14 +164,14 @@ function buildDots(i, j, dot, latLon, lanes, laneMarkers){
  * @param {string} typeAttributeNameSaved - Saved type attribute name.
  * @param {Object} controls - The controls object.
  */
-function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, laneTypeOptions, typeAttributeNameSaved, controls) {
+async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidths, computingLane, computedLaneSource, laneTypeOptions, typeAttributeNameSaved, controls) {
 	let laneFeatures = lanes.getSource().getFeatures();
 	let newX = newDotFeature.getGeometry().getCoordinates()[0];
 	let newY = newDotFeature.getGeometry().getCoordinates()[1];
 	let newLonLat = ol.proj.toLonLat([newX, newY]);
 
 	// Await the computed elevation
-	const newZ = getComputedElevation({lon: newLonLat[0], lat: newLonLat[1]});
+	const newZ = await getComputedElevation({lon: newLonLat[0], lat: newLonLat[1]});
 	
 	// We no longer need the newDotFeature since we only needed to save it's x/y values
 	// to calculate the offset from the old x/y values
@@ -288,6 +289,8 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
 	
 		    $("#offset-X").val(offsetX);
 		    $("#offset-Y").val(offsetY);
+			hideRGAFields(false);
+			$("#offset-Z").val(offsetZ);
 		    $("#rotation").val(0);
 		    $("#scale-X").val(0);
 		    $("#scale-Y").val(0);
@@ -356,6 +359,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
  * @param {*} referenceLaneNumber  Reference lane Number used to uniquely identify the lane.
  * @param {*} offsetX X offset
  * @param {*} offsetY Y offset
+ * @param {*} offsetZ Z offset
  * @param {*} rotation Rotation angle
  * @param {*} scaleX 
  * @param {*} scaleY 
@@ -363,7 +367,7 @@ function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, laneWidth
  * @param {*} lanes 
  * @param {*} laneMarkers 
  */
-function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID, lanes, laneMarkers){
+function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumber, offsetX, offsetY, offsetZ, rotation, scaleX, scaleY, computedLaneID, lanes, laneMarkers){
 
 	let laneFeatures = lanes.getSource().getFeatures();
 	let referenceLaneFeat = laneFeatures.find(feat=>feat.get("laneNumber") == referenceLaneID);
@@ -408,7 +412,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			buildComputedDot(i, j, laneNumber,
 								referenceLaneID, referenceLaneNumber, 
 								zeroDot, zeroLonLat,
-								offsetX, offsetY,
+								offsetX, offsetY, offsetZ,
 								rotation,
 								scaleX, scaleY,
 								computedLaneID,
@@ -442,7 +446,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 			buildComputedDot(i, j, laneNumber,
 				referenceLaneID, referenceLaneNumber,
 				newDot, newLonLat,
-				offsetX, offsetY,
+				offsetX, offsetY, offsetZ,
 				rotation,
 				scaleX, scaleY,
 				computedLaneID,
@@ -465,7 +469,7 @@ function buildComputedFeature(i, laneNumber, referenceLaneID, referenceLaneNumbe
 	}
 }
 
-function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber, dot, lonLat, offsetX, offsetY, rotation, scaleX, scaleY, computedLaneID, initialize, lanes, laneMarkers){
+function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber, dot, lonLat, offsetX, offsetY, offsetZ, rotation, scaleX, scaleY, computedLaneID, initialize, lanes, laneMarkers){
 	if(typeof initialize === 'undefined') {
 		initialize = false;
 	}
@@ -506,6 +510,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"referenceLaneNumber": referenceLaneNumber, 
 			"offsetX": offsetX, 
 			"offsetY": offsetY, 
+			"offsetZ": offsetZ, 
 			"rotation": rotation, 
 			"scaleX": scaleX, 
 			"scaleY": scaleY
@@ -542,6 +547,7 @@ function buildComputedDot(i, j, laneNumber, referenceLaneID, referenceLaneNumber
 			"referenceLaneNumber": laneFeatures[i].get("referenceLaneNumber"),
 			"offsetX": laneFeatures[i].get("offsetX"), 
 			"offsetY": laneFeatures[i].get("offsetY"),
+			"offsetZ": laneFeatures[i].get("offsetZ"),
 			"rotation": laneFeatures[i].get("rotation"),
 			"scaleX": laneFeatures[i].get("scaleX"), 
 			"scaleY": laneFeatures[i].get("scaleY")
@@ -608,6 +614,7 @@ function connectComputedDots(i, points, initialize, lanes, laneMarkers){
 			"referenceLaneNumber": laneMarkerFeatures[m].get("referenceLaneNumber"),
 			"offsetX": laneMarkerFeatures[m].get("offsetX"),
 			"offsetY": laneMarkerFeatures[m].get("offsetY"),
+			"offsetZ": laneMarkerFeatures[m].get("offsetZ"),
 			"rotation": laneMarkerFeatures[m].get("rotation"),
 			"scaleX": laneMarkerFeatures[m].get("scaleX"),
 			"scaleY": laneMarkerFeatures[m].get("scaleY")

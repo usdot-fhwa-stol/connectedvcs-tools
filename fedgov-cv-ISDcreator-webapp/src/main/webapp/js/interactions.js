@@ -310,6 +310,8 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     }
         
     if(selectedMarker.get("computed")) {
+      //Show offsetZ in the computed tab
+      $(".row.offset-Z").show();
       if (! selectedMarker.get("referenceLaneNumber")){
             $("#referenceLaneNumber").val("");
         } else {
@@ -332,6 +334,12 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
             $("#offset-Y").val("");
         } else {
             $("#offset-Y").val(selectedMarker.get("offsetY"));
+        }
+
+        if (! selectedMarker.get("offsetZ")){
+          $("#offset-Z").val("");
+        } else {
+            $("#offset-Z").val(selectedMarker.get("offsetZ"));
         }
 
         if (! selectedMarker.get("rotation")){
