@@ -1338,7 +1338,7 @@ function registerModalButtonEvents() {
     onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
 
     if (computingLane) {
-      hideRGAFields(false);
+      $(".row.offset-Z").show();
       $("#offset-X").val("");
       $("#offset-Y").val("");
       $("#offset-Z").val("");

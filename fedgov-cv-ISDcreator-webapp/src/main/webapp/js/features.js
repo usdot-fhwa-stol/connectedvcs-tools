@@ -289,8 +289,8 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 	
 		    $("#offset-X").val(offsetX);
 		    $("#offset-Y").val(offsetY);
-			hideRGAFields(false);
 			$("#offset-Z").val(offsetZ);
+			$(".row.offset-Z").show();
 		    $("#rotation").val(0);
 		    $("#scale-X").val(0);
 		    $("#scale-Y").val(0);
