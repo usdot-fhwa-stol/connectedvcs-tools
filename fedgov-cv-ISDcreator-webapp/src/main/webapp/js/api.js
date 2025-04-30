@@ -10,7 +10,7 @@ async function getElevation(dot, latlon, i, j, callback){
         throw new Error('Server response was not ok');
       }
       const result = await response.json();
-      let elev = result?.elevation;
+      let elev = result?.z;
       if (elev == null || elev == undefined) {
         elev = -9999; // any sea value is set to -9999 by default. This brings it back to sea level as we know it
       } else {
@@ -50,7 +50,7 @@ async function getElev(lat, lon) {
       throw new Error('Server response was not ok');
     }
     const result = await response.json();
-    let elev = result?.elevation;
+    let elev = result?.z;
     if (elev == null || elev == undefined) {
       elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
     } else {
