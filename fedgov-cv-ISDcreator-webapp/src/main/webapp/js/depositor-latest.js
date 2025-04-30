@@ -413,6 +413,13 @@ function createMessageJSON()
         } else {
             // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
         }
+
+        if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
+            let messageType = $('#message_type').val();
+            if (messageType === "Frame+RGA") {
+            $('#alert_placeholder').append('<div id="rga-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');
+            }
+        }
     }
     errors.getSource().clear();
     
@@ -612,10 +619,10 @@ function errorCheck(){
  * @param {*} value 
  */
 function disableOrEnableExplicitRGA(value) {
-    var nodeOffsetsEl = document.getElementById("node_offsets");
+    let nodeOffsetsEl = document.getElementById("node_offsets");
     if (value === "RGA" || value === "Frame+RGA") {
         if (nodeOffsetsEl) {
-            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+            for (let i = 0; i < nodeOffsetsEl.options.length; i++) {
                 if (nodeOffsetsEl.options[i].value === "Explicit") {
                     nodeOffsetsEl.options[i].disabled = true;
                     nodeOffsetsEl.selectedIndex = 1;
@@ -625,7 +632,7 @@ function disableOrEnableExplicitRGA(value) {
         }
     } else {
         if (nodeOffsetsEl) {
-            for (var i = 0; i < nodeOffsetsEl.options.length; i++) {
+            for (let i = 0; i < nodeOffsetsEl.options.length; i++) {
                 if (nodeOffsetsEl.options[i].value === "Explicit") {
                     nodeOffsetsEl.options[i].disabled = false;
                 }
