@@ -608,7 +608,7 @@ async function init() {
 					$(".descriptive_name").show();
 					$(".lane_type").show();
 					$(".lane_number").show();
-					$('.spat-info-tab').show();
+					$('.spat-info-tab').hide(); // Hiding SPaT tab. Revert to .show() when needed
 					$('.connection-tab').show();
 					$(".intersection-info-tab").find('a:contains("Intersection Info")').text('Speed Limits');
 					$('.intersection-info-tab').show();
@@ -1437,7 +1437,7 @@ async function placeComputedLane(newDotFeature) {
 			$('#lat').val(0);
 			$('#long').prop('readonly', true);
 			$('#long').val(0);
-			$('.spat-info-tab').show();
+			$('.spat-info-tab').hide(); // Hiding SPaT tab. Revert to .show() when needed
 			$('.connection-tab').show();
 			$('#computed-tab').addClass('active');
 			$('.computed-tab').addClass('active');

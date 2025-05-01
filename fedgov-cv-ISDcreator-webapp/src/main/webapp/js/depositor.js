@@ -207,7 +207,7 @@ function createMessageJSON()
                             let mapSpeedLimits = lanes.features[j].attributes.speedLimitType;
 
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type") {
+                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     currentSpeedLimits.push(mapSpeedLimit)
                                 }
                             }
@@ -402,7 +402,7 @@ function createMessageJSON()
             }
 
         } else {
-            $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
+            // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + lanes.features[a].attributes.laneNumber + "." +'</span></div>');
         }
 
         if (lanes.features[a].attributes.laneType != null && (lanes.features[a].attributes.laneType == "Parking" || lanes.features[a].attributes.laneType == "Sidewalk")) {
@@ -468,11 +468,11 @@ function createMessageJSON()
                 validate_required_rga_fields(feature);
             }
             
-
-
             var referenceChild = {
-                "speedLimitType": feature.attributes.speedLimitType
-            }
+                "speedLimitType": (feature.attributes.speedLimitType || []).filter(
+                    (item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== ""
+                )
+            };
 
             if (feature.attributes.intersectionName == undefined || feature.attributes.intersectionName == ""){
                 $("#message_deposit").prop('disabled', true);
