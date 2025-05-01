@@ -150,10 +150,12 @@ function updatePlaceLocationView(map, inputPlaceText){
               let location = response["location"];
               let search_lat = location.lat;
               let search_lon = location.lng;
+              let viewZoom = 18;
               setCookie("isd_latitude", search_lat, 365);
               setCookie("isd_longitude", search_lon, 365);
-              setCookie("isd_zoom", map.getView().getZoom(), 365);
-              map.getView().setCenter(new ol.proj.fromLonLat([search_lon, search_lat]), 18);
+              setCookie("isd_zoom", viewZoom, 365);
+              map.getView().setCenter(new ol.proj.fromLonLat([search_lon, search_lat]));
+              map.getView().setZoom(viewZoom);
           }
           catch (err) {
               console.log("No vectors to reset view");
