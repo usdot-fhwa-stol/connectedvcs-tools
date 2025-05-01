@@ -358,7 +358,7 @@ function registerSelectInteraction() {
         return false;
       }
       //If it places computed lane, do not allow box selection
-      if(!controls.placeComputed?.getActive()){
+      if(controls.placeComputed?.getActive()){
         return false;
       } 
       // Otherwise, allow box selection
