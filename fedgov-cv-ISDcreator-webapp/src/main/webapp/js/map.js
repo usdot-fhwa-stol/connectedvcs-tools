@@ -198,7 +198,8 @@ function initMap() {
   } else {
     $("#enable_elevation").prop("checked", true);
   }
-
+  viewLonLat = [viewLon, viewLat];
+  viewCenter = ol.proj.fromLonLat(viewLonLat);
   map = new ol.Map({
     view: new ol.View({
       center: viewCenter,

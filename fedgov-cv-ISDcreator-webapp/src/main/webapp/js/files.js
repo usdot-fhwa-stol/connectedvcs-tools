@@ -162,36 +162,38 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		laneMarkers.setSource(laneMarkersSource);
 		box.setSource(stopBoxSource);
 
-		let feat = vectors.getSource().getFeatures();   
-		for (let a = 0; a < feat.length; a++) {
-			let iconAddress = feat[a].getProperties().marker.img_src;
+		let vectorFeats = vectors.getSource().getFeatures();   
+		for (let a = 0; a < vectorFeats.length; a++) {
+			let iconAddress = vectorFeats[a].getProperties().marker.img_src;
 			let IconInfo = {src: iconAddress, height: 50, width: 50, anchor: [0.5,1], anchorXUnits: 'fraction',
 				anchorYUnits: 'fraction'};
-			feat[a].setStyle(new ol.style.Style({
+			vectorFeats[a].setStyle(new ol.style.Style({
 				image: new ol.style.Icon(IconInfo)
 			}));
-			if (feat[a].getProperties().marker.name == "Reference Point Marker") {
-				let intersectionID = feat[a].getProperties().intersectionID;
-				let regionID = feat[a].getProperties().regionID ? feat[a].getProperties().regionID : '';
+			if (vectorFeats[a].getProperties().marker.name == "Reference Point Marker") {
+				let intersectionID = vectorFeats[a].getProperties().intersectionID;
+				let regionID = vectorFeats[a].getProperties().regionID ? vectorFeats[a].getProperties().regionID : '';
         		console.log("intersection ID" + intersectionID + ", region ID" + regionID)
 			}
 		};
 
-		let ft = lanes.getSource().getFeatures();    
-		for (let i = 0; i < ft.length; i++) {
-			if ( typeof ft[i].getProperties().elevation == 'string') {
-				let temp = ft[i].getProperties().elevation;
-        		// console.log(temp)
-				ft[i].getProperties().elevation = [];
-				for (let j = 0; j < ft[i].getGeometry().getCoordinates().length; j++) {
-          			let latlon = new ol.proj.toLonLat(ft[i].getGeometry().getCoordinates()[j])
-					ft[i].getProperties().elevation[j] = ({'value': temp, 'edited': false, 'latlon': latlon});
+		let laneFeat = lanes.getSource().getFeatures();    
+		for (let i = 0; i < laneFeat.length; i++) {
+			if ( typeof laneFeat[i].getProperties().elevation == 'string') {
+				let temp = laneFeat[i].getProperties().elevation;
+				laneFeat[i].getProperties().elevation = [];
+				for (let j = 0; j < laneFeat[i].getGeometry().getCoordinates().length; j++) {
+          			let latlon = new ol.proj.toLonLat(laneFeat[i].getGeometry().getCoordinates()[j])
+					laneFeat[i].getProperties().elevation[j] = ({'value': temp, 'edited': false, 'latlon': {lat: latlon[1], lon: latlon[0]}});
 				}
 			}
 		}
 
 		try {
-			let center = new ol.proj.fromLonLat([feat[0].getProperties().LonLat.lon, feat[0].getProperties().LonLat.lat]);
+			for(let pointFeat of vectorFeats){
+				updateLonLatPropertiesWithCoordinates(pointFeat);
+			}
+			let center = new ol.proj.fromLonLat([vectorFeats[0].getProperties().LonLat.lon, vectorFeats[0].getProperties().LonLat.lat]);
 			let viewZoom = 18;
 			if (getCookie("isd_zoom") !== "") {
 				viewZoom = getCookie("isd_zoom") < viewZoom ? getCookie("isd_zoom") : viewZoom;
@@ -202,7 +204,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 				title: 'Overlays',
 				layers: [vectors]
 			  });
-			unselectFeature(map, overlayLayersGroup, feat[0]);
+			unselectFeature(map, overlayLayersGroup, vectorFeats[0]);
 		}
 		catch (err) {
 			console.error(err)
@@ -220,24 +222,27 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		});
 		vectors.setSource(vectorsSource);
 
-		let feat = vectors.getSource().getFeatures();
-		for (let a = 0; a < feat.length; a++) {
-			let iconAddress = feat[a].getProperties().marker.img_src;
+		let vectorFeats = vectors.getSource().getFeatures();
+		for (let a = 0; a < vectorFeats.length; a++) {
+			let iconAddress = vectorFeats[a].getProperties().marker.img_src;
 			let IconInfo = {src: iconAddress, height: 50, width: 50, anchor: [0.5,1], anchorXUnits: 'fraction', anchorYUnits: 'fraction'};
-			feat[a].setStyle(new ol.style.Style({
+			vectorFeats[a].setStyle(new ol.style.Style({
 				image: new ol.style.Icon(IconInfo)
 			}));
-			if (feat[a].getProperties().marker.name == "Reference Point Marker") {
-				feat[a].setProperties({
+			if (vectorFeats[a].getProperties().marker.name == "Reference Point Marker") {
+				vectorFeats[a].setProperties({
 					speedLimitType: tempSpeedLimits,
 					layerID: tempLayerID,
-					regionID: feat[a].getProperties().regionID ? feat[a].getProperties().regionID : ''
+					regionID: vectorFeats[a].getProperties().regionID ? vectorFeats[a].getProperties().regionID : ''
 				});
 			}
 		}
 
 		try {
-			let center = new ol.proj.fromLonLat([feat[0].getProperties().LonLat.lon, feat[0].getProperties().LonLat.lat]);
+			for(let pointFeat of vectorFeats){
+				updateLonLatPropertiesWithCoordinates(pointFeat);
+			}
+			let center = new ol.proj.fromLonLat([vectorFeats[0].getProperties().LonLat.lon, vectorFeats[0].getProperties().LonLat.lat]);
 			let viewZoom = 18;
 
 			if (getCookie("isd_zoom") !== "") {
@@ -250,7 +255,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 				title: 'Overlays',
 				layers: [vectors]
 			});
-			unselectFeature(map, overlayLayersGroup, feat[0]);
+			unselectFeature(map, overlayLayersGroup, vectorFeats[0]);
 		}
 		catch (err) {
 			console.log("No vectors to reset view");
@@ -265,6 +270,21 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, false, controls);
 	}
 
+}
+
+/**
+ * @brief Updates the LonLat properties of a feature with its coordinates
+ * @param {*} feature to be updated
+ */
+function updateLonLatPropertiesWithCoordinates (feature){
+	let coordinates = feature.getGeometry().getCoordinates();
+	let lonlat = ol.proj.toLonLat(coordinates);
+	feature.setProperties({
+		LonLat: {
+			lon: lonlat[0],
+			lat: lonlat[1]
+		}
+	});
 }
 
 /**
