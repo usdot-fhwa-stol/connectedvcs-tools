@@ -13,6 +13,7 @@ the License.
 */
 package gov.usdot.cv.service.rest;
 import gov.usdot.cv.asn1decoder.Decoder;
+import gov.usdot.cv.libasn1decoder.DecodedResult;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -30,20 +31,20 @@ public class SemiValidator {
         */
 
         String messageName = null;
-    	String decodedMessage = null;
+        DecodedResult decodedResult;
         try {
             // Using Decoder class to decode the message directly using byte[]
-            decodedMessage = messageDecoder.decodeMsg(bytes);
-          
-            // TODO: Once asn1C Decoder returns a message type that name will be used instead of Hardcoded messagename below
+            decodedResult = messageDecoder.decodeMsg(bytes);
+        
+            //Getting message name from decoder
 
-            messageName="messageName"; 
-            if (decodedMessage.isEmpty()) {
+            messageName=decodedResult.messageType; 
+            if (decodedResult.decodedMessage.isEmpty()) {
                
                 throw new SemiValidatorException("Couldn't decode message using Decoder");
             }
             
-            return formatResult(messageName, decodedMessage);
+            return formatResult(messageName, decodedResult.decodedMessage);
         } catch (Exception ex) {
             throw new SemiValidatorException("Error during decoding: " + ex.getMessage());
         }

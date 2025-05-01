@@ -15,10 +15,9 @@
  */
 
 package gov.usdot.cv.asn1decoder;
-
+import gov.usdot.cv.libasn1decoder.DecodedResult;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.apache.commons.codec.binary.Hex;
@@ -47,22 +46,27 @@ public class Decoder {
 	 *
 	 * @return JSON string decoded message
 	 */
-	public native String decodeMsg(byte[] message);
+	public native DecodedResult decodeMsg(byte[] message);
 
+	public DecodedResult decode(ByteArrayObject binaryMessage) {
+		logger.debug("Decoding the binary message...");
 
-	public String decode(ByteArrayObject binaryMessage) {
-		logger.debug("Decoding the binary message :");
+		DecodedResult result = decodeMsg(binaryMessage.getMessage());
 
-		/*Decoding the binary Message */
-		String decodedMsg = decodeMsg(binaryMessage.getMessage());
-
-		if (decodedMsg == null) {
-			// cannot decode message
-			logger.error("Cannot decode!");
-			return "";
+		if (result == null || !result.success) {
+			logger.error("Decoding failed or returned null.");
+			if (result == null) {
+				result = new DecodedResult();
+				result.decodedMessage = "";
+				result.messageType = "";
+				result.success = false;
+			}
 		}
 
-		return decodedMsg;
+		logger.info("Decoded Message Type: {}", result.messageType);
+		logger.debug("Decoded Message: {}", result.decodedMessage);
+
+		return result;
 	}
 
 }
