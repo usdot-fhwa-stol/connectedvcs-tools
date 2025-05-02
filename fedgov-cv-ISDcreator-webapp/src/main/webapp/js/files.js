@@ -763,23 +763,34 @@ function addKmltoMap(map, kmlDocument)
 		source: new ol.source.Vector(),
 		title: 'Trace Layer',
 		style: new ol.style.Style({ 
+			image: new ol.style.Icon({
+				src: 'http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png',
+				anchor: [0.5, 1],
+				anchorXUnits: 'fraction',
+				anchorYUnits: 'fraction'
+			}),
 			fill: new ol.style.Fill({
-			  color: 'rgba(241, 146, 12, 0.83)' 
+			  color: 'rgba(242, 26, 40, 0.83)' 
 			}),
 			stroke: new ol.style.Stroke({
-			  color:  'rgba(242, 127, 26, 0.83)',
+			  color:  'rgba(242, 26, 40, 0.83)',
 			  width: 2
-			})
+			}),			
 		  })
 	});
-	trace.getSource().addFeatures(featureList);
+	const filteredFeatures = featureList.filter(feature => {
+		return feature.getGeometry().getType() !== 'GeometryCollection';
+	});
+	trace.getSource().addFeatures(filteredFeatures);	
 	map.addLayer(trace);
     $('#open_file_modal').modal('hide');
 
     //Center on new layer and with current zoom
     let ft = trace.getSource().getFeatures()[0];
 	let extent = ft.getGeometry().getExtent();
-	map.getView().fit(extent, { duration: 1000 });
+	const center = ol.extent.getCenter(extent);
+	map.getView().setCenter(center);
+    map.getView().setZoom(18);
 }
 
 /**
