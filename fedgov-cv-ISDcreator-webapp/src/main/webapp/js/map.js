@@ -1038,6 +1038,7 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
+    laneConnections.getSource().clear();
     //Update Reference Point Configuration fields with parsley attributes
     let road_authority_id = $("#road_authority_id");
     let road_authority_id_type = $("#road_authority_id_type");
@@ -1308,6 +1309,7 @@ function registerModalButtonEvents() {
    */
 
   $(".btnClose").click(() => {
+    laneConnections.getSource().clear();
     $("#attributes").hide();
     $("#shared_with").multiselect("deselectAll", false);
     $("#shared_with").multiselect("select", sharedWith);
