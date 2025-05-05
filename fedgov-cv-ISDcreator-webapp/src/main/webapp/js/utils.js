@@ -79,9 +79,11 @@ function getLaneInfoTimePeriod() {
 			type: laneInfoTimePeriodType,
 			value: laneInfoTimePeriodValue
 		}
-	}
-
-	return {}; // fallback
+	} else {
+    return {
+      type: laneInfoTimePeriodType
+    }
+  }
 }
 
 /***
