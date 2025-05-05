@@ -1,6 +1,6 @@
 body{padding-top: 50px;}
 
-.navbar{background-image: none;}
+.navbar{background-image: none; max-height: 50px !important;}
 .navbar-inverse .navbar-brand {color: #ffffff;}
 #logoimg{height: 100%; margin-top: -4px; display: inline-block;}
 
@@ -122,4 +122,11 @@ footer {
 
 .navbar-form .form-control {
 	height: 33px;
+}
+
+#zoomLevel{
+	margin-left: 30px !important;
+}
+#map-type{
+	left: 40px !important;
 }
