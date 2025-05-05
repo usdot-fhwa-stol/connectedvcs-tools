@@ -261,6 +261,11 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     populateAttributeWindow(selectedMarker.get("LonLat").lat, selectedMarker.get("LonLat").lon);
     $("#attributes").show();
 
+
+    if(evt.deselected?.length > 0) {
+      //Clear previous lane connections
+      laneConnections.getSource().clear();
+    }
     for(let attrConnection in selectedMarker.get("connections")) {
         if (selectedMarker.get("connections").hasOwnProperty(attrConnection) && selectedMarker.get("number") == 0){
           let connection = selectedMarker.get("connections")[attrConnection];
@@ -278,33 +283,37 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
           let angleDeg = 0;
           if(typeof startPoint !== 'undefined' && typeof endPoint !== 'undefined') {
               //Q III
-              if (startPoint.x > endPoint.x && startPoint.y > endPoint.y) {
-                  angleDeg = 270 - (Math.atan2(startPoint.y - endPoint.y, startPoint.x - endPoint.x) * 180 / Math.PI);
+              const startPointCoords = startPoint.getCoordinates();
+              const endPointCoords = endPoint.getCoordinates();
+              if (startPointCoords[0] > endPointCoords[0] && startPointCoords[1] > endPointCoords[1]) {
+                  angleDeg = 270 - (Math.atan2(startPointCoords[1] - endPointCoords[1], startPointCoords[0] - endPointCoords[0]) * 180 / Math.PI);
               }
               //Q IV
-              if (startPoint.x > endPoint.x && startPoint.y < endPoint.y) {
-                  angleDeg = 270 - (Math.atan2(startPoint.y - endPoint.y, startPoint.x - endPoint.x) * 180 / Math.PI);
+              if (startPointCoords[0] > endPointCoords[0] && startPointCoords[1] < endPointCoords[1]) {
+                  angleDeg = 270 - (Math.atan2(startPointCoords[1] - endPointCoords[1], startPointCoords[0] - endPointCoords[0]) * 180 / Math.PI);
               }
               //Q II
-              if (startPoint.x < endPoint.x && startPoint.y > endPoint.y) {
-                  angleDeg = 90 - (Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x) * 180 / Math.PI);
+              if (startPointCoords[0] < endPointCoords[0] && startPointCoords[1] > endPointCoords[1]) {
+                  angleDeg = 90 - (Math.atan2(endPointCoords[1] - startPointCoords[1], endPointCoords[0] - startPointCoords[0]) * 180 / Math.PI);
               }
               //Q I
-              if (startPoint.x < endPoint.x && startPoint.y < endPoint.y) {
-                  angleDeg = 90 - (Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x) * 180 / Math.PI);
+              if (startPointCoords[0] < endPointCoords[0] && startPointCoords[1] < endPointCoords[1]) {
+                  angleDeg = 90 - (Math.atan2(endPointCoords[1] - startPointCoords[1], endPointCoords[0] - startPointCoords[0]) * 180 / Math.PI);
               }
 
-              let xlen = endPoint.x - startPoint.x;
-              let ylen = endPoint.y - startPoint.y;
+              let xlen = endPointCoords[0] - startPointCoords[0];
+              let ylen = endPointCoords[1] - startPointCoords[1];
               let hlen = Math.sqrt(Math.pow(xlen, 2) + Math.pow(ylen, 2));
               let smallerLen = hlen - 1;
               let ratio = smallerLen / hlen;
               let smallerXLen = xlen * ratio;
               let smallerYLen = ylen * ratio;
-              let smallerX = startPoint.x + smallerXLen;
-              let smallerY = startPoint.y + smallerYLen;
-              laneConnections.getSource().addFeature(new ol.Feature(new ol.geom.LineString([startPoint, endPoint])));
-              laneConnections.getSource().addFeature(new ol.Feature(new ol.geom.Point(smallerX, smallerY), {angle: angleDeg}));
+              let smallerX = startPointCoords[0] + smallerXLen;
+              let smallerY = startPointCoords[1] + smallerYLen;
+              laneConnections.getSource().addFeature(new ol.Feature(new ol.geom.LineString([startPointCoords, endPointCoords])));
+              let pointFeat = new ol.Feature(new ol.geom.Point([smallerX, smallerY]));
+              pointFeat.set("angle", angleDeg);
+              laneConnections.getSource().addFeature(pointFeat);
             }
         }
     }
