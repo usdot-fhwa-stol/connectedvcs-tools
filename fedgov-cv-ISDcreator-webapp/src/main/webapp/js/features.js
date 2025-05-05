@@ -313,6 +313,7 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 	    // Get the offset from the first old point of the computed lane
 		let offsetX = Math.round((newX - computedLaneSource.getGeometry().getCoordinates()[0][0]) * 100);
 		let offsetY = Math.round((newY - computedLaneSource.getGeometry().getCoordinates()[0][1]) * 100);
+		let offsetZ = Math.round((newZ - computedLaneSource.get("elevation")[0].value) * 100);
 
 		// Combining the offsets with the computed lane's current offsets will give the
 		// amount of offset from the source lane
