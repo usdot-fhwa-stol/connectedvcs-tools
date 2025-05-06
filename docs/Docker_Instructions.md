@@ -23,9 +23,13 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 3. Enter a map API key and username in [ISDcreator-webapp-keys](/private-resources/js/ISDcreator-webapp-keys.js)
 and API key in [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L2).
 
-4. Create a new Google Maps API Key using the [Google Maps Platform](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys).
+4. Create a new API Keys for Google Maps, Esri, and Azure. Use the [Google Maps Platform](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys), [ArcGIS Location Platform](https://developers.arcgis.com/documentation/security-and-authentication/get-started/), [Azure Maps Platform](https://learn.microsoft.com/en-us/azure/azure-maps/quick-demo-map-app#create-an-azure-maps-account).
     - Please read the [Google Maps API Key Guidance](/docs/GoogleMaps_API_Key_Guidance.md).
-5. Enter your key to the end of the Geocomplete src link (indicated by "google.map.api.key") at the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1)
+    - Please read the [Esri Maps API Key Guidance](/docs/Azure_Maps_API_Key_Guidance.md)
+    - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
+
+5. Enter your key to the end of the Geocomplete src link (indicated by "google.map.api.key", "azure.map.api.key", and "esri.map.api.key") at the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1).
+
 
 6. Using SSL vs not using SSL:
 
