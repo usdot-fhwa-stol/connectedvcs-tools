@@ -65,8 +65,7 @@ mv /tmp/web.xml.tmp fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
     - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
 
 3. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
-4. Enter your Google API key to the end of the Geocomplete src link (indicated by "YOUR_API_KEY") at the [index.html](/fedgov-cv-ISDcreator-webapp/src/main/webapp/index.html)
-5. Run:
+4. Run:
 ```
 sudo ./build.sh
 ```
