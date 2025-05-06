@@ -62,9 +62,12 @@ public class DecodeMessageResource {
 			//initializing variable to hold converted Hex string
 			byte[] encoded_ba = null;
 			try{
+			//Trimming white spaces and newlines
+			String encodedMsgtrimmed = encodedMsg.replaceAll("\\s+", "");
+	
+			//Converting provided Hex String toBytes
 
-				//Converting provided Hex String toBytes
-				encoded_ba=DatatypeConverter.parseHexBinary(encodedMsg);
+			encoded_ba=DatatypeConverter.parseHexBinary(encodedMsgtrimmed);
 			} catch (Exception e) {
 				DecodeMessageResult result = new DecodeMessageResult();
 				JSONObject returnStatusObject = new JSONObject();

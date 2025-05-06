@@ -35,6 +35,8 @@ public class ASN1DecoderTest {
 
         mockMsg = mock(ByteArrayObject.class);
         mockMsg2 = mock(ByteArrayObject.class); // For testing empty case
+        
+
 
         decoder = new Decoder();
         when(mockMsg.getType()).thenReturn("MapData");
@@ -43,6 +45,7 @@ public class ASN1DecoderTest {
 
         when(mockMsg.getMessage()).thenReturn(testData);
         when(mockMsg2.getMessage()).thenReturn(new byte[]{}); // Mock for empty message
+       
 
     }
 
@@ -54,11 +57,11 @@ public class ASN1DecoderTest {
         logger.info("Type: %s\n", mockMsg.getType());
         DecodedResult result = decoder.decode(mockMsg);
        // String decodedMessage= decoder.decode(mockMsg);
-        //Test passes if decoded message has a length greater than 0
+        //Test passes if decoded message is non empty
         Assert.assertTrue("Decoded result should not be empty",!result.decodedMessage.isEmpty());
-        //Test Passes if the result returned is true
+        //Test Passes if the result returned success field is set to true
         Assert.assertTrue("Decoding result should be True", result.success);
-        //Test passes if the messageType is MapData
+        //Test passes if the returned messageType is MapData
         Assert.assertEquals("Expected decoded message type to be 'MapData'", "MapData", result.messageType);
 
         logger.info("Decoded Message Type: {}", result.messageType);
