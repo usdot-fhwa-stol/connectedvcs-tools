@@ -69,6 +69,9 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 			case 19:
 				msgTypeStr = "SPAT";
 				break;
+			case 32:
+				msgTypeStr = "PersonalSafetyMessage ";
+				break;	
 			default:
 				msgTypeStr = "UnknownMessageType";
 				break;
@@ -87,24 +90,27 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 		printf("Decoding Failed");
 
 	}
-	//converting char array to Java String
-   // return (*env)->NewStringUTF(env, resultStr);
-	//creating Java Object
+	//getting the class of the DecodedResult
 	jclass resultClass = (*env)->FindClass(env, "gov/usdot/cv/libasn1decoder/DecodedResult");
 
+	// getting the id of the DecodedResult() constructor
 	jmethodID ctor = (*env)->GetMethodID(env, resultClass, "<init>", "()V");
 	if (ctor == NULL) return NULL;
-
+	// creating an object of DecodedResult class to return
 	jobject resultObj = (*env)->NewObject(env, resultClass, ctor);
 	if (resultObj == NULL) return NULL;
 
+	//Retrieving the field of DecodedResult class
 	jfieldID decodedField = (*env)->GetFieldID(env, resultClass, "decodedMessage", "Ljava/lang/String;");
 	jfieldID typeField = (*env)->GetFieldID(env, resultClass, "messageType", "Ljava/lang/String;");
 	jfieldID successField = (*env)->GetFieldID(env, resultClass, "success", "Z");
 
+	// Converting the 'decodedStr' to a Java UTF string (jstring)
 	jstring jDecodedStr = (*env)->NewStringUTF(env, decodedStr);
+	//Converting the message type to a Java UTF string (jstring)
 	jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
 
+	// Set the corresponding fields in the DecodedResult Java object
 	(*env)->SetObjectField(env, resultObj, decodedField, jDecodedStr);
 	(*env)->SetObjectField(env, resultObj, typeField, jMsgTypeStr);
 	(*env)->SetBooleanField(env, resultObj, successField, success);
