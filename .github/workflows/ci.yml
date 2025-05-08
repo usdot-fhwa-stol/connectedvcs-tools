@@ -95,17 +95,17 @@ jobs:
             sonar.host.url=https://sonarcloud.io
             sonar.organization=usdot-fhwa-stol
             sonar.scanner.force-deprecated-java-version=true
-            sonar.projectBaseDir=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools
+            sonar.projectBaseDir=$GITHUB_WORKSPACE
             sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
             sonar.projectName=connectedvcs-tools
-            sonar.sources=fedgov-cv-TIMcreator-webapp/src,\
-                fedgov-cv-ISDcreator-webapp/src,\
-                fedgov-cv-lib-asn1c/src,\
-                fedgov-cv-asn1decoder/src,\
-                fedgov-cv-message-validator-webapp/src,\
-                fedgov-cv-mapencoder/src,\
-                fedgov-cv-message-builder/src,\
-                fedgov-cv-map-services-proxy/src
+            sonar.sources=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/src,\
+                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/src
             sonar.exclusions=**/target/**
             sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
@@ -115,7 +115,6 @@ jobs:
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
-
             sonar.java.binaries=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
