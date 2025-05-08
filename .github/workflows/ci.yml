@@ -91,6 +91,9 @@ jobs:
             version: 5.0.1.3006
         - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
           run: |
+            # Dynamically find all `src` folders under the connectedvcs-tools directory
+            SONAR_SOURCES=$(find "$GITHUB_WORKSPACE/connectedvcs-tools" -type d -path "*/src" | paste -sd, -)
+
             cat <<EOF > /tmp/sonar-scanner.properties
             sonar.host.url=https://sonarcloud.io
             sonar.organization=usdot-fhwa-stol
@@ -98,12 +101,13 @@ jobs:
             sonar.projectBaseDir=$GITHUB_WORKSPACE
             sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
             sonar.projectName=connectedvcs-tools
+            sonar.sources=$SONAR_SOURCES
             sonar.exclusions=**/target/**
             sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target/site/jacoco/jacoco.xml,\
-               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
+              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
@@ -112,7 +116,7 @@ jobs:
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target,\
-               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
+              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target
