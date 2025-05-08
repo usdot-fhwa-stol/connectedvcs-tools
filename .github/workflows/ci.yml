@@ -91,9 +91,6 @@ jobs:
             version: 5.0.1.3006
         - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
           run: |
-            # Dynamically find all `src` folders under the connectedvcs-tools directory
-            SONAR_SOURCES=$(find "$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools" -type d -path "*/src" | paste -sd, -)
-
             cat <<EOF > /tmp/sonar-scanner.properties
             sonar.host.url=https://sonarcloud.io
             sonar.organization=usdot-fhwa-stol
@@ -101,7 +98,14 @@ jobs:
             sonar.projectBaseDir=$GITHUB_WORKSPACE
             sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
             sonar.projectName=connectedvcs-tools
-            sonar.sources=$SONAR_SOURCES
+            sonar.sources=connectedvcs-tools/fedgov-cv-TIMcreator-webapp/src,\
+              connectedvcs-tools/fedgov-cv-ISDcreator-webapp/src,\
+              connectedvcs-tools/fedgov-cv-lib-asn1c/src,\
+              connectedvcs-tools/fedgov-cv-asn1decoder/src,\
+              connectedvcs-tools/fedgov-cv-message-validator-webapp/src,\
+              connectedvcs-tools/fedgov-cv-mapencoder/src,\
+              connectedvcs-tools/fedgov-cv-message-builder/src,\
+              connectedvcs-tools/fedgov-cv-map-services-proxy/src
             sonar.exclusions=**/target/**
             sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
