@@ -92,7 +92,7 @@ jobs:
         - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
           run: |
             # Dynamically find all `src` folders under the connectedvcs-tools directory
-            SONAR_SOURCES=$(find "$GITHUB_WORKSPACE/connectedvcs-tools" -type d -path "*/src" | paste -sd, -)
+            SONAR_SOURCES=$(find "$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools" -type d -path "*/src" | paste -sd, -)
 
             cat <<EOF > /tmp/sonar-scanner.properties
             sonar.host.url=https://sonarcloud.io
