@@ -2,7 +2,6 @@
 const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
-const intersection_url = "/api.geonames.org/findNearestIntersectionJSON"
 async function getElevation(dot, latlon, i, j, callback){
     try {
       const response = await fetch(esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
@@ -67,17 +66,22 @@ async function getNearestIntersectionJSON(feature, lat, lon) {
   document.getElementById('intersection_name').value =  feature.get("intersectionName")? feature.get("intersectionName") : "Temporary Name";
   try {
     let proj_name = window.location.pathname.split( '/' )[1];
-    intersection_url = '/' + proj_name + '/builder/geonames/findNearestIntersectionJSON'
-
+    let intersection_url = '/' + proj_name + '/builder/geonames/findNearestIntersectionJSON'
+    
     const response = await fetch(`${intersection_url}?lat=${lat}&lng=${lon}&username=NA`);
-    const result = await response.json();
-    if (result.intersection) {
-      let name = result.intersection.street1 + " & " + result.intersection.street2;
-      document.getElementById('intersection_name').value = name;
-      feature.set("intersectionName", name);
-    } else {
-      console.log("intersection not found");      
+    let responseData = await response.text();
+
+    if (responseData != '') {
+      const result = JSON.parse(responseData);
+      if (result.intersection) {
+        let name = result.intersection.street1 + " & " + result.intersection.street2;
+        document.getElementById('intersection_name').value = name;
+        feature.set("intersectionName", name);
+      } else {
+        console.log("intersection not found");
+      }
     }
+    
   } catch (error) {
     console.error("Error fetching nearest intersection");
   }
