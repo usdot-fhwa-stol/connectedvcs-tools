@@ -66,6 +66,9 @@ async function getElev(lat, lon) {
 async function getNearestIntersectionJSON(feature, lat, lon) {
   document.getElementById('intersection_name').value =  feature.get("intersectionName")? feature.get("intersectionName") : "Temporary Name";
   try {
+    let proj_name = window.location.pathname.split( '/' )[1];
+    intersection_url = '/' + proj_name + '/builder/geonames/findNearestIntersectionJSON'
+
     const response = await fetch(`${intersection_url}?lat=${lat}&lng=${lon}&username=NA`);
     const result = await response.json();
     if (result.intersection) {
