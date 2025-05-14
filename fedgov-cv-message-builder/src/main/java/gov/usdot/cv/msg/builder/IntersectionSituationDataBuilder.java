@@ -1304,11 +1304,13 @@ public class IntersectionSituationDataBuilder {
 						}
 					} else {
 						for (DrivingLane drivingLane : approach.drivingLanes) {
-							int longestLaneOffsetInCm = Math
-									.abs(getLongestOffsetDistanceInCm(referencePoint, drivingLane.laneNodes));
-							if (longestLaneOffsetInCm > longestApproachOffsetInCm) {
-								longestApproachOffsetInCm = longestLaneOffsetInCm;
-							}
+							if (!drivingLane.isComputed) {
+								int longestLaneOffsetInCm = Math
+										.abs(getLongestOffsetDistanceInCm(referencePoint, drivingLane.laneNodes));
+								if (longestLaneOffsetInCm > longestApproachOffsetInCm) {
+									longestApproachOffsetInCm = longestLaneOffsetInCm;
+								}
+							}							
 						}
 					}
 				}
