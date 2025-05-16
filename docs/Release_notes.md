@@ -1,6 +1,86 @@
 Map Tool Release Notes
 ----------------------------
 
+Version 2.2.0, released May 16th, 2025
+----------------------------------------
+
+### **Summary**  
+This release focuses on replacing the MAP Tool’s base map, improving its security, and integrating the RGA Geometry Container. Key updates include switching from Bing Maps to Azure Maps, implementing the Esri API for elevation data, supporting RGA lane-level time restrictions, updating encoder pop-up warnings, incorporating RGA instructions, and updating the documentation. 
+
+### **<ins>Enhancements in Release:</ins>** 
+
+**Epic MAP-171: Add Geometry Container to RGA Message**  
+
+**Summary:**  Below are the Updates made under this Epic:
+  - **RGA Geometry Container Integration with JNI:** Introduced Java classes and an updated RGA JNI wrapper required to support mandatory and optional fields of the Geometry Container for RGA Geometry Container.  
+
+  - **RGA Geometry Container Integration with Message Builder:** Implemented mandatory and optional fields for the RGA Geometry Container in the MAP Tool message builder. Test cases were updated, and bugs were resolved. 
+
+  - **Addition of Time Restrictions to Lane Info Configuration and Encoder:** For RGA messages, lane-level time restrictions can be specified that includes days of the week, start date, end date, as well define time period as day or night. To support this, UI is updated with time restrictions in lane info configuration. 
+
+  - **Implementation of Esri Elevation API:** Replaced Google elevation API with Esri elevation API to retrieve elevation relative to ellipsoid.   
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/87, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/106, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/86, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/91, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/85, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/92, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/79, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/97, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/88, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/107, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/102, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/103, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/84, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/96, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/78, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/101
+
+
+**Epic MAP-209: Update Base Maps**  
+
+**Summary:** The implementation of Map Tool has been using Bing Maps as the base tile set provider, which is planned for retirement in June 2025. This epic involves migrating to Azure Maps to ensure continued platform support, improved performance. 
+
+Map Tool also uses OpenLayers 2, which is outdated and incompatible with modern JavaScript standards. Now, we upgraded the mapping library to OpenLayers 10.4.0. The migration requires full refactoring of the map interaction logic, layers, controls, and event handling to align with the modular architecture of the latest version. This upgrade is critical for long-term maintainability, browser compatibility, and performance optimization. 
+
+Note: Since we updated Openlayers library from v2 to v10, a mismatch is introduced with lat/lon between v2 and v10 after 7 decimal points (~1mm difference) and this happens because of changes to the internal projection library used by the two versions. 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/115, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/116
+
+
+### **<ins>Fixes in Release:</ins>**
+
+**Epic MAP-289: Production Bug Fixes**  
+
+**Summary:** This Epic captured general bugs found in the production environment as below:
+
+  - Latitude and longitude mismatch with decoded result. 
+  - Fixed an issue where MAP tool was not able to encode the messages due to speed limit issues on map tool. 
+  - Fixed a bug where RGA fields in reference point marker were still greyed out even when RGA is enabled.
+  - Removed SPAT warning messages, SPAT related message types and hidden lane SPAT tab in lane config 
+  - Removed all the SPAT and ISD references from the entire tool. 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/109, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/110
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Version 2.1.0, released 31st, 2024
 ----------------------------------------
 

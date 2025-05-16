@@ -840,6 +840,6 @@
       }
     },
     "messageType": "Frame+RGA",
-    "nodeOffsets": "Explicit",
+    "nodeOffsets": "Tight",
     "enableElevation": true
   }

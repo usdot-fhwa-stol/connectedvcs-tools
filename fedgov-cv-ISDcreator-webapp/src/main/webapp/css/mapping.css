@@ -125,6 +125,10 @@ p.parsley-error {
   padding-top: 2px;
 }
 
+.parsley-errors-list:empty {
+    display: none;
+}
+
 .styled-select select {
     background: transparent;
     border: none;

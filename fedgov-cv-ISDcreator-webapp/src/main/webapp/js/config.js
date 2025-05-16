@@ -375,6 +375,14 @@ var help_notes = [
 		description: "A path Y offset for translations."
 	},
 	{
+		value: "offsetZ",
+		title: "Offset Z",
+		max: "2047",
+		min: "-2047",
+		units: "Centimeters",
+		description: "A path Z offset for translations."
+	},
+	{
 		value: "rotation",
 		title: "Rotation",
 		max: "359.9875",
@@ -437,5 +445,21 @@ var help_notes = [
 		min: "NA",
 		units: "Datetime",
 		description: "Timestamp corresponding to the contents in format yyyy, mm, dd, hh, mm, ss (sss+)"
-	}
+	},
+	{
+    	value: "day_selection",
+    	title: "Day Selection",
+    	max: "7",
+    	min: "0",
+    	units: "N/A",
+    	description: "Indicates which days of the week an attribute is applicable. Unless the application requirements specify otherwise, if all the days of the week apply, then ‘allDays’ should be selected rather than selecting each of the individual days of the week."
+    },
+	{
+    	value: "time_period",
+    	title: "Time Period",
+    	max: "NA",
+    	min: "NA",
+    	units: "NA",
+    	description: "Provides different options for providing the time window control information for an attribute. Depending on how the time window is defined, more than one option may need to be used. For example, if an attribute is valid from 3:00 pm to 6:00 pm Monday through Friday, then the daysOfTheWeek, startPeriod, and endPeriod would need to be included. However, if the attribute applies all day Monday through Friday, then only the daysOf TheWeek would need to be included. General ndicates the general period of the day the attribute is applicable."
+    }
 ];

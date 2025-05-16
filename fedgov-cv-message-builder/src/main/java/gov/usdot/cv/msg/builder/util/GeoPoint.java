@@ -1,3 +1,18 @@
+/*
+* Copyright (C) 2025 LEIDOS.
+*
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
 package gov.usdot.cv.msg.builder.util;
 
 import gov.usdot.cv.msg.builder.util.Vincenty.DistanceAndBearing;
@@ -6,12 +21,20 @@ public class GeoPoint {
 	
 	private double lat;
 	private double lon;
+	private double elevation; // New field for elevation in meters
 	
 	public GeoPoint(double lat, double lon) {
 		super();
 		this.lat = lat;
 		this.lon = lon;
 	}
+
+	public GeoPoint(double lat, double lon, double elevation) {
+        super();
+        this.lat = lat;
+        this.lon = lon;
+        this.elevation = elevation;
+    }
 
 	public double getLat() {
 		return lat;
@@ -27,6 +50,28 @@ public class GeoPoint {
 
 	public void setLon(double lon) {
 		this.lon = lon;
+	}
+
+	public double getElevation() {
+        return elevation;
+    }
+
+    public void setElevation(double elevation) {
+        this.elevation = elevation;
+    }
+
+	public short getElevationOffsetInCentimeters(GeoPoint fromPoint) {
+		// Check if either elevation is invalid
+		// Note: from the J2735 standard, 6143.9 is the maximum elevation and -409.5 is the minimum elevation 
+		if (this.elevation < -409.5 || this.elevation > 6143.9 || fromPoint.elevation < -409.5
+				|| fromPoint.elevation > 6143.9) {
+			return 0;
+		}
+
+		// Calculate the elevation offset in centimeters
+		double elevationOffset = (this.elevation - fromPoint.elevation) * 100;
+
+		return (short) Math.round(elevationOffset);
 	}
 	
 	public short getLatOffsetInCentimeters(GeoPoint fromPoint) {

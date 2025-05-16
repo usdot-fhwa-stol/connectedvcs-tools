@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 LEIDOS.
+ * Copyright (C) 2025 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,7 @@
 
  package gov.usdot.cv.rgaencoder;
  
+ import java.util.List;
  import org.apache.commons.codec.binary.Hex;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -47,13 +48,13 @@
       * @return encoded RGA message
       */
 
-     public native byte[] encodeRGA(BaseLayer baseLayer);
+     public native byte[] encodeRGA(BaseLayer baseLayer, List<GeometryContainer> geometryContainers);
  
      //
      public ByteArrayObject encode(RGAData message) {
          logger.debug("Encoding the RGA message " + message.toString() + "!");
  
-         byte[] encodeMsg = encodeRGA(message.getBaseLayer());
+         byte[] encodeMsg = encodeRGA(message.getBaseLayer(), message.getGeometryContainers());
  
          if (encodeMsg == null) {
              // cannot encode RGA message

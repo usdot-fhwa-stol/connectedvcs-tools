@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 LEIDOS.
+ * Copyright (C) 2025 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,17 +15,22 @@
  */
 
 package gov.usdot.cv.rgaencoder; 
+import java.util.List;
+import java.util.ArrayList;
 
 public class RGAData {
     private BaseLayer baseLayer;
+    private List<GeometryContainer> geometryContainers;
     
     public RGAData()
     {
         this.baseLayer = null;
+        this.geometryContainers = new ArrayList<>();
     }
     
-    public RGAData(BaseLayer baseLayer) {
+    public RGAData(BaseLayer baseLayer, List<GeometryContainer> geometryContainers) {
         this.baseLayer = baseLayer;
+        this.geometryContainers = geometryContainers;
     }
 
     public BaseLayer getBaseLayer() {
@@ -36,8 +41,23 @@ public class RGAData {
         this.baseLayer = baseLayer;
     }
 
+    public List<GeometryContainer> getGeometryContainers() {
+        return geometryContainers;
+    }
+
+    public void setGeometryContainers(List<GeometryContainer> geometryContainers) {
+        this.geometryContainers = geometryContainers;
+    }
+
+    public void addGeometryContainer(GeometryContainer geometryContainer) {
+        if (geometryContainer != null) {
+            this.geometryContainers.add(geometryContainer);
+        }
+    }
+
     @Override
     public String toString() {
-        return "RGAData [baseLayer" + baseLayer + "]";
+        return "RGAData [baseLayer" + baseLayer + ", geometryContainers=" + 
+               (geometryContainers.isEmpty() ? "[]" : geometryContainers.toString()) + "]";
     }
 }
