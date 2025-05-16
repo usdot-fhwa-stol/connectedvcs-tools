@@ -1,5 +1,10 @@
 Map Tool Release Notes
 ----------------------------
+Version 2.2.1, released May 16th, 2025
+----------------------------------------
+
+### **Summary**  
+This release updates the release version of the MAP tool UI when clicked on About button under the Help Menu. 
 
 Version 2.2.0, released May 16th, 2025
 ----------------------------------------
