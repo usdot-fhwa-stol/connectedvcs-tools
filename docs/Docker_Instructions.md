@@ -18,16 +18,17 @@ https://docs.docker.com/desktop/install/linux-install/.
 ```
 git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 ```
-2. Note: Placeholder for map API key generation.
 
-3. Enter a map API key and username in [ISDcreator-webapp-keys](/private-resources/js/ISDcreator-webapp-keys.js)
-and API key in [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L2).
+2. To generate API keys required for the MAP Tool, first create user accounts with [Google Maps Platform](https://developers.google.com/maps/get-started), [Esri ArcGIS Location Platform](https://developers.arcgis.com/documentation/security-and-authentication/get-started/), [Azure Maps Platform](https://learn.microsoft.com/en-us/azure/azure-maps/quick-demo-map-app#create-an-azure-maps-account).
 
-4. Create a new Google Maps API Key using the [Google Maps Platform](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys).
+3. Generate new API Keys for Google Maps, Esri, and Azure. Use the [Google Maps Platform](https://developers.google.com/maps/documentation/javascript/get-api-key#create-api-keys), [Esri ArcGIS Location Platform](https://developers.arcgis.com/documentation/security-and-authentication/api-key-authentication/tutorials/create-an-api-key/), [Azure Maps Platform](https://learn.microsoft.com/en-us/azure/azure-maps/quick-demo-map-app#get-the-subscription-key-for-your-account).
     - Please read the [Google Maps API Key Guidance](/docs/GoogleMaps_API_Key_Guidance.md).
-5. Enter your key to the end of the Geocomplete src link (indicated by "google.map.api.key") at the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1)
+    - Please read the [Esri Maps API Key Guidance](/docs/Azure_Maps_API_Key_Guidance.md)
+    - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
 
-6. Using SSL vs not using SSL:
+4. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
+
+4. Using SSL vs not using SSL:
 
     - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the ssl.ini and keystore files will need to be updated or replaced to copy your applicable keystore information to the image. **NOTE**: The current ssl.ini and keystore files are examples only. Please update or replace before running the following command.
     ```
