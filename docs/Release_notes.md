@@ -18,7 +18,7 @@ This release focuses on replacing the MAP Tool’s base map, improving its secur
 
   - **Addition of Time Restrictions to Lane Info Configuration and Encoder:** For RGA messages, lane-level time restrictions can be specified that includes days of the week, start date, end date, as well define time period as day or night. To support this, UI is updated with time restrictions in lane info configuration. 
 
-  - **Implentation of Esri Elevation API:** Replaced Google elevation API with Esri elevation API to retrieve elevation relative to ellipsoid.   
+  - **Implementation of Esri Elevation API:** Replaced Google elevation API with Esri elevation API to retrieve elevation relative to ellipsoid.   
 
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/87, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/106, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/86, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/91, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/85, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/92, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/79, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/97, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/88, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/107, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/102, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/103, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/84, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/96, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/78, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/101
@@ -40,7 +40,7 @@ Note: Since we updated Openlayers library from v2 to v10, a mismatch is introduc
 
 **Epic MAP-289: Production Bug Fixes**  
 
-**Summary:** TThis Epic captured general bugs found in the production environment as below:
+**Summary:** This Epic captured general bugs found in the production environment as below:
 
   - Latitude and longitude mismatch with decoded result. 
   - Fixed an issue where MAP tool was not able to encode the messages due to speed limit issues on map tool. 
