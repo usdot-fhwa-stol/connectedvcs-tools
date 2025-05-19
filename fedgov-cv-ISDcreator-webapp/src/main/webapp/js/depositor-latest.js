@@ -364,7 +364,7 @@ function createMessageJSON()
         };
 
         if (approachArray[i].approachType === undefined) {
-            incompleteApproaches.push(drivingLaneArray[0].laneID);
+            incompleteApproaches.push(drivingLaneArray.length>0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
         }
