@@ -1048,6 +1048,10 @@ function removeSpeedForm(speedForm) {
 
 function addSpeedForm(speedForm) {
     speedForm.addForm();
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits    
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
 }
 
 function rebuildSpeedForm(speedForm, speedLimitArray) {
@@ -1060,6 +1064,7 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
             {'velocity': speedLimitArray[i].velocity}
         );
         $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType)
+        $(`input[name="speedForm_${i}_speedLimitChoice"][value="${speedLimitArray[i].speedLimitChoice}"]`).prop('checked', true);
     }
     resetSpeedDropdowns(speedForm);
 }
@@ -1070,7 +1075,8 @@ function saveSpeedForm(speedForm) {
     for (let i = 0; i < forms; i++) {
       tmpSpeedLimits.push({
             speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-            velocity: $("#speedForm_" + i + "_velocity").val()
+            velocity: $("#speedForm_" + i + "_velocity").val(),
+            speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val()
         });
     }
     removeSpeedForm(speedForm);
@@ -1083,6 +1089,11 @@ function resetSpeedDropdowns(speedForm){
             $(this).prop('disabled', false);
         }
     });
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
+
     let forms = (speedForm.getForms()).length;
     for (let i = 0; i < forms; i++) {
         let current = $("#speedForm_"+ i + "_speedLimitType option:selected").text();
@@ -1403,6 +1414,14 @@ function updateTimeRestrictionsHTML(){
   });
 }
 
+/**
+ * @brief Disables RGA fields associated with speed limits
+ */
+function disableRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='advisory']").prop('disabled', true);
+}
 export {
   getCookie,
   isOdd,
