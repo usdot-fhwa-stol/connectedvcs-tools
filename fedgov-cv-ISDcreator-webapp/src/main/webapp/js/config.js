@@ -348,7 +348,7 @@ var help_notes = [
 		max: "N/A",
 		min: "N/A",
 		units: "N/A",
-		description: "Indicates if the speed limit choice is a regulatory or an advisory one. Statutory speed limits should be classified as regulatory. Speed limit choice should default to regulatory in MAP. Speed limit choice can be advisory or regulatory in RGA."
+		description: "Indicates if the speed limit choice is a regulatory or an advisory one. Statutory speed limits should be classified as regulatory. Speed limit choice defaults to regulatory in MAP. Speed limit choice can be advisory or regulatory in RGA."
 	},
     {
     	value: "velocity",

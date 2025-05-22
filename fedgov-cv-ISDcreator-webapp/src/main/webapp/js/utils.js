@@ -392,6 +392,11 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
      rebuildSpeedForm(speedForm, feature.get("speedLimitType"));
   }
 
+   if(feature.get("marker").name == "Reference Point Marker"){    
+    //Hide RGA related fields in speed limit form
+    hideRGAFieldsAssociatedToSpeedLimits();
+  }
+
   $("#attributes").show();
 }
 
@@ -1423,11 +1428,22 @@ function disableRGAFieldsAssociatedToSpeedLimits(){
     $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='advisory']").prop('disabled', true);
 }
 
+/**
+ * @brief Hides RGA fields associated with speed limits
+ * @details This function hides the speed limit type options for Passenger Vehicles Max Speed and Min Speed
+ */
+function hideRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").hide();
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").hide();
+    $(".speed_limit_choice").hide();
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='regulatory']").prop('checked', false);
+}
+
 /***
  * @brief Check if the selected speed limit type is Passenger Vehicles Max Speed
  * @return {boolean} true if selected speed limit type is Passenger Vehicles Max Speed, false otherwise
  */
-function checkSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
+function isSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
   let isChecked = false;
   $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").each(function() {
     if ($(this).is(":selected")) {
@@ -1441,7 +1457,7 @@ function checkSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
  * @brief Check if the selected speed limit type is Passenger Vehicles Min Speed
  * @return {boolean} true if selected speed limit type is Passenger Vehicles Min Speed, false otherwise
  */
-function checkSpeedLimitTypePassengerVehicleMinSpeedSelected(){
+function isSpeedLimitTypePassengerVehicleMinSpeedSelected(){
   let isChecked = false;
   $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").each(function() {
     if ($(this).is(":selected")) {
@@ -1502,6 +1518,7 @@ export {
   updateTimeRestrictionsHTML,
   addLaneInfoTimeRestrictions,
   disableRGAFieldsAssociatedToSpeedLimits,
-  checkSpeedLimitTypePassengerVehicleMaxSpeedSelected,
-  checkSpeedLimitTypePassengerVehicleMinSpeedSelected,
+  isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
+  isSpeedLimitTypePassengerVehicleMinSpeedSelected,
+  hideRGAFieldsAssociatedToSpeedLimits
 }
