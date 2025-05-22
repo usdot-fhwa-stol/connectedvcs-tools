@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addRow, checkSpeedLimitTypePassengerVehicleMaxSpeedSelected, checkSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -965,6 +965,16 @@ function initMISC() {
   resetRGAStatus();
   $("#rga_switch").on("click", () => {
     rgaEnabled = setRGAStatus();
+
+    //Disabled ""Passenger Vehicles Max Speed" oiption when it is selected even though RGA is enabled
+    if(rgaEnabled && checkSpeedLimitTypePassengerVehicleMaxSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);      
+    }
+
+    //Disabled ""Passenger Vehicles Min Speed" option when it is selected even though RGA is enabled
+    if(rgaEnabled && checkSpeedLimitTypePassengerVehicleMinSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    }
   });
 
   $("#road_authority_id").on("keyup", () => {

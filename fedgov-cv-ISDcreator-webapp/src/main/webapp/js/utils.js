@@ -1422,6 +1422,34 @@ function disableRGAFieldsAssociatedToSpeedLimits(){
     $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
     $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='advisory']").prop('disabled', true);
 }
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Max Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Max Speed, false otherwise
+ */
+function checkSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Min Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Min Speed, false otherwise
+ */
+function checkSpeedLimitTypePassengerVehicleMinSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
 export {
   getCookie,
   isOdd,
@@ -1472,6 +1500,8 @@ export {
   updateLaneInfoDaySelection,
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
-  addLaneInfoTimeRestrictions
-  
+  addLaneInfoTimeRestrictions,
+  disableRGAFieldsAssociatedToSpeedLimits,
+  checkSpeedLimitTypePassengerVehicleMaxSpeedSelected,
+  checkSpeedLimitTypePassengerVehicleMinSpeedSelected,
 }
