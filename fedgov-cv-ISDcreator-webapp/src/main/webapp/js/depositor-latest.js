@@ -222,27 +222,11 @@ function createMessageJSON()
                         let currentSpeedLimits = [];
                         if(laneFeat[j].get('speedLimitType')) {
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
-                            // Filter out "Speed Limit Choice" if RGA is not enabled
-                            if (!rgaEnabled && Array.isArray(mapSpeedLimits)) {
-                                mapSpeedLimits = mapSpeedLimits.map(item => {
-                                    const { speedLimitChoice, ...rest } = item;
-                                    return rest;
-                                });
-                            }
-                            let showSpeedLimitAlert = false;
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 // Filter out "Speed Limit Type" and empty strings
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type"  && mapSpeedLimit.speedLimitType != "") {
                                     currentSpeedLimits.push(mapSpeedLimit)
                                 }
-                                if(!rgaEnabled && RGASpeedLimitTypes.includes(mapSpeedLimit?.speedLimitType)){
-                                    showSpeedLimitAlert = true;
-                                }
-                            }
-
-                            if(showSpeedLimitAlert){
-                               $("#message_deposit").prop('disabled', true);
-                               $('#alert_placeholder').append('<div id="speed-limit-type-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ RGASpeedLimitTypes.join(", ") + " are not allowed for node " + m + " in lane " + laneFeat[j].get('laneNumber') + " when RGA is not enabled." +'</span></div>');
                             }
                         }
 
@@ -496,35 +480,14 @@ function createMessageJSON()
                 validateRequiredRGAFields(feature);
             }
             //Filter out "Speed Limit Type" and empty strings
-            let speedLimitType = (feature.get('speedLimitType') || []).filter((item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== "");
-            // Filter out "Speed Limit Choice" if RGA is not enabled
-            if (!rgaEnabled && Array.isArray(speedLimitType)) {
-                speedLimitType = speedLimitType.map(item => {
-                    const { speedLimitChoice, ...rest } = item;
-                    return rest;
-                });
-            }
             referenceChild = {
-                "speedLimitType": speedLimitType
+                "speedLimitType": (feature.get('speedLimitType') || []).filter((item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== "");
             };
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
                 $("#message_deposit").prop('disabled', true);
                 $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
             }
-
-            let showSpeedLimitAlert = false;
-            for (let mapSpeedLimit of speedLimitType) {
-                if(!rgaEnabled && RGASpeedLimitTypes.includes(mapSpeedLimit?.speedLimitType)){
-                    showSpeedLimitAlert = true;
-                }
-            }
-
-            if(showSpeedLimitAlert){
-                $("#message_deposit").prop('disabled', true);
-                $('#alert_placeholder').append('<div id="speed-limit-type-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ RGASpeedLimitTypes.join(", ") + " are not allowed for reference point when RGA is not enabled." +'</span></div>');
-            }
-
         }
 
         if (feature.get('marker').name == "Verified Point Marker") {
