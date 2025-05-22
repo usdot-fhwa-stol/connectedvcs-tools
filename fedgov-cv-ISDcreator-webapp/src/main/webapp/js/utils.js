@@ -1430,7 +1430,7 @@ function disableRGAFieldsAssociatedToSpeedLimits(){
 
 /**
  * @brief Hides RGA fields associated with speed limits
- * @details This function hides the speed limit type options for Passenger Vehicles Max Speed and Min Speed
+ * @details This function hides the speed limit type options for Passenger Vehicles Max Speed and Min Speed, and hides speed limit choices
  */
 function hideRGAFieldsAssociatedToSpeedLimits(){
     $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").hide();
