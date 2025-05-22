@@ -13,7 +13,6 @@ import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
 let proj_name, host;
 let message_json_input, message_hex_input, message_text_input;
 let message_status_div;
-const RGASpeedLimitTypes = ["Passenger Vehicles Max Speed", "Passenger Vehicles Min Speed"];
 
 
 /**
@@ -222,8 +221,8 @@ function createMessageJSON()
                         let currentSpeedLimits = [];
                         if(laneFeat[j].get('speedLimitType')) {
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
+
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                // Filter out "Speed Limit Type" and empty strings
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type"  && mapSpeedLimit.speedLimitType != "") {
                                     currentSpeedLimits.push(mapSpeedLimit)
                                 }
@@ -417,7 +416,7 @@ function createMessageJSON()
 
         if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
             let messageType = $('#message_type').val();
-            if (messageType === "Frame+RGA") {
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
                     $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');
@@ -479,15 +478,18 @@ function createMessageJSON()
                 // Validate RGA required fields
                 validateRequiredRGAFields(feature);
             }
-            //Filter out "Speed Limit Type" and empty strings
+
             referenceChild = {
-                "speedLimitType": (feature.get('speedLimitType') || []).filter((item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== "");
+                "speedLimitType": (feature.get('speedLimitType') || []).filter(
+                    (item) => item.speedLimitType !== "Speed Limit Type" && item.speedLimitType !== ""
+                )
             };
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
                 $("#message_deposit").prop('disabled', true);
                 $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
             }
+
         }
 
         if (feature.get('marker').name == "Verified Point Marker") {
