@@ -20,7 +20,7 @@
 #include "MessageFrame.h"
 #include <stdint.h>
 
-JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIEnv *env, jobject cls, jobject baseLayer, jobject geometryContainers)
+JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIEnv *env, jobject cls, jobject baseLayer, jobject geometryContainers, jobject movementsContainers)
 {
 	printf("\n ***Inside the rga_wrapper.c file **** \n");
 	uint8_t buffer[2302];
@@ -571,7 +571,126 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 			}
 		}
 	}
-	rgaDataSet.movementsContainer = NULL;
+	
+	if(movementsContainers != NULL) {
+		// Extracting and Setting Movements Containers
+		jclass movementsContainersList = (*env)->GetObjectClass(env, movementsContainers);
+		jmethodID movementsContainersListSizeMethod = (*env)->GetMethodID(env, movementsContainersList, "size", "()I");
+		jmethodID movementsContainersListGetMethod = (*env)->GetMethodID(env, movementsContainersList, "get", "(I)Ljava/lang/Object;");
+
+		jint movementsContainersListSize = (*env)->CallIntMethod(env, movementsContainers, movementsContainersListSizeMethod);
+
+		if (movementsContainersListSize > 0)
+		{
+			rgaDataSet.movementsContainer = calloc(1, sizeof(*rgaDataSet.movementsContainer));
+
+			for (int mIndex = 0; mIndex < movementsContainersListSize; mIndex++)
+			{
+				RGAMovementsLayers_t *movementsLayer = calloc(1, sizeof(RGAMovementsLayers_t));
+				jobject movementsContainerObject = (*env)->CallObjectMethod(env, movementsContainers, movementsContainersListGetMethod, mIndex);
+				jclass movementsContainerClass = (*env)->GetObjectClass(env, movementsContainerObject);
+
+				// Retrieve geometryContainer-ID
+				jmethodID getMovementsContainerID = (*env)->GetMethodID(env, movementsContainerClass, "getMovementsContainerId", "()I");
+				jint movementsContainerID = (*env)->CallIntMethod(env, movementsContainerObject, getMovementsContainerID);
+
+				movementsLayer->movementsContainer_ID = movementsContainerID;
+
+				// Populate the movementsContainer_Value based on the containerID
+				switch (movementsContainerID)
+				{
+				case MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID: // MtrVehLaneDirectionOfTravelLayer
+					movementsLayer->movementsContainer_Value.present = RGAMovementsLayers__movementsContainer_Value_PR_MtrVehLaneDirectionOfTravelLayer;
+
+					// Retrieving the MtrVehLaneDirectionOfTravelLayer object
+					jmethodID getMtrVehLaneDirectionOfTravelLayerMethod = (*env)->GetMethodID(env, movementsContainerClass, "getMtrVehLaneDirectionOfTravelLayer", "()Lgov/usdot/cv/rgaencoder/MtrVehLaneDirectionOfTravelLayer;");
+					jobject mtrVehLaneDirectionOfTravelLayerObj = (*env)->CallObjectMethod(env, movementsContainerObject, getMtrVehLaneDirectionOfTravelLayerMethod);
+
+					// Populating MtrVehLaneDirectionOfTravelLayer_t
+					MtrVehLaneDirectionOfTravelLayer_t *mtrVehLaneDirectionOfTravelLayer = calloc(1, sizeof(MtrVehLaneDirectionOfTravelLayer_t));
+
+					// Populating the laneDirOfTravelLaneSet from the MtrVehLaneDirectionOfTravelLayer object
+					jclass mtrVehLaneDirectionOfTravelLayerClass = (*env)->GetObjectClass(env, mtrVehLaneDirectionOfTravelLayerObj);
+					jmethodID getLaneDirOfTravelLaneSetMethod = (*env)->GetMethodID(env, mtrVehLaneDirectionOfTravelLayerClass, "getLaneDirOfTravelLaneSet", "()Ljava/util/List;");
+					jobject laneDirOfTravelLaneSetList = (*env)->CallObjectMethod(env, mtrVehLaneDirectionOfTravelLayerObj, getLaneDirOfTravelLaneSetMethod);
+
+					jclass laneDirOfTravelLaneSetClass = (*env)->GetObjectClass(env, laneDirOfTravelLaneSetList);
+					jmethodID laneDirOfTravelLaneSetSizeMethod = (*env)->GetMethodID(env, laneDirOfTravelLaneSetClass, "size", "()I");
+					jmethodID laneDirOfTravelLaneSetGetMethod = (*env)->GetMethodID(env, laneDirOfTravelLaneSetClass, "get", "(I)Ljava/lang/Object;");
+
+					jint laneDirOfTravelLaneSetSize = (*env)->CallIntMethod(env, laneDirOfTravelLaneSetList, laneDirOfTravelLaneSetSizeMethod);
+
+					for (jint lIndex = 0; lIndex < laneDirOfTravelLaneSetSize; lIndex++)
+					{
+						jobject individualWayDirectionsOfTravelObj = (*env)->CallObjectMethod(env, laneDirOfTravelLaneSetList, laneDirOfTravelLaneSetGetMethod, lIndex);
+						jclass individualWayDirectionsOfTravelClass = (*env)->GetObjectClass(env, individualWayDirectionsOfTravelObj);
+
+						jmethodID getIndividualWayDirectionsOfTravelLaneIDMethod = (*env)->GetMethodID(env, individualWayDirectionsOfTravelClass, "getWayID", "()I");
+						jint individualWayDirectionsOfTravelLaneID = (*env)->CallIntMethod(env, individualWayDirectionsOfTravelObj, getIndividualWayDirectionsOfTravelLaneIDMethod);
+
+						IndividualWayDirectionsOfTravel_t *indWayDirOfTravel = calloc(1, sizeof(IndividualWayDirectionsOfTravel_t));
+
+						indWayDirOfTravel->wayID = individualWayDirectionsOfTravelLaneID;
+
+						// Get the directionsOfTravelSet
+						jmethodID getDirectionsOfTravelSetMethod = (*env)->GetMethodID(env, individualWayDirectionsOfTravelClass, "getDirectionsOfTravelSet", "()Ljava/util/List;");
+						jobject directionsOfTravelSetList = (*env)->CallObjectMethod(env, individualWayDirectionsOfTravelObj, getDirectionsOfTravelSetMethod); // this is a list
+
+						jclass directionsOfTravelSetClass = (*env)->GetObjectClass(env, directionsOfTravelSetList);
+						jmethodID directionsOfTravelSetSizeMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "size", "()I");
+						jmethodID directionsOfTravelSetGetMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "get", "(I)Ljava/lang/Object;");
+
+						jint directionsOfTravelSetSize = (*env)->CallIntMethod(env, directionsOfTravelSetList, directionsOfTravelSetSizeMethod);
+
+						for (jint dIndex = 0; dIndex < directionsOfTravelSetSize; dIndex++)
+						{
+							jobject wayDirectionOfTravelInfoObj = (*env)->CallObjectMethod(env, directionsOfTravelSetList, directionsOfTravelSetGetMethod, dIndex);
+							jclass wayDirectionOfTravelInfoClass = (*env)->GetObjectClass(env, wayDirectionOfTravelInfoObj);
+
+							jmethodID getWayNodeDirectionOfTravelMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getWayNodeDirectionOfTravel", "()S");
+							jshort wayNodeDirectionOfTravelShort = (*env)->CallShortMethod(env, wayDirectionOfTravelInfoObj, getWayNodeDirectionOfTravelMethod);
+
+							WayDirectionOfTravelInfo_t *wayDirectionOfTravelInfo = calloc(1, sizeof(WayDirectionOfTravelInfo_t));
+
+							WayNodeDirOfTravel_t wayNodeDirOfTravel;
+							wayNodeDirOfTravel.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
+							*wayNodeDirOfTravel.buf = (uint8_t)wayNodeDirectionOfTravelShort;
+							wayNodeDirOfTravel.size = 1;
+							wayNodeDirOfTravel.bits_unused = 6;
+
+							wayDirectionOfTravelInfo->wayNodeDirectionOfTravel = wayNodeDirOfTravel;
+
+							// Check to see if timeRestrictions in WayDirectionOfTravelInfo exists
+							jmethodID getWayDirectionOfTravelInfoTimeRestrictionsMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
+							jobject wayDirectionOfTravelInfoTimeRestrictionsObj = (*env)->CallObjectMethod(env, wayDirectionOfTravelInfoObj, getWayDirectionOfTravelInfoTimeRestrictionsMethod);
+
+							if (wayDirectionOfTravelInfoTimeRestrictionsObj != NULL)
+							{
+								RGATimeRestrictions_t *wayDirectionOfTravelInfoTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
+								populateTimeRestrictions(env, wayDirectionOfTravelInfoTimeRestrictionsObj, wayDirectionOfTravelInfoTimeRestrictions);
+								wayDirectionOfTravelInfo->timeRestrictions = wayDirectionOfTravelInfoTimeRestrictions;
+							}
+							else
+							{
+								wayDirectionOfTravelInfo->timeRestrictions = NULL;
+							}
+							ASN_SEQUENCE_ADD(&indWayDirOfTravel->directionsOfTravelSet.list, wayDirectionOfTravelInfo);
+						} // dIndex for loop ends
+						ASN_SEQUENCE_ADD(&mtrVehLaneDirectionOfTravelLayer->laneDirOfTravelLaneSet.list, indWayDirOfTravel);
+					} // lIndex for loops ends
+					movementsLayer->movementsContainer_Value.choice.MtrVehLaneDirectionOfTravelLayer = *mtrVehLaneDirectionOfTravelLayer;
+					break;
+				default:
+					// Handle unknown ID
+					movementsLayer->movementsContainer_Value.present = RGAMovementsLayers__movementsContainer_Value_PR_NOTHING;
+					break;
+				} // switch ends
+				ASN_SEQUENCE_ADD(&rgaDataSet.movementsContainer->list, movementsLayer);
+			}
+		}
+	}
+
+	// rgaDataSet.movementsContainer = NULL;
 	rgaDataSet.wayUseContainer = NULL;
 	rgaDataSet.signalControlSupportContainer = NULL;
 
