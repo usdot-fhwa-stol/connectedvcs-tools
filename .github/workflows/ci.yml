@@ -98,16 +98,23 @@ jobs:
             sonar.projectBaseDir=$GITHUB_WORKSPACE
             sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
             sonar.projectName=connectedvcs-tools
+            sonar.sources=fedgov-cv-TIMcreator-webapp/src,\
+                fedgov-cv-ISDcreator-webapp/src,\
+                fedgov-cv-lib-asn1c/src,\
+                fedgov-cv-asn1decoder/src,\
+                fedgov-cv-message-validator-webapp/src,\
+                fedgov-cv-mapencoder/src,\
+                fedgov-cv-message-builder/src,\
+                fedgov-cv-map-services-proxy/src
             sonar.exclusions=**/target/**
             sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target/site/jacoco/jacoco.xml,\
-               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
+              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
-
             sonar.java.binaries=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
