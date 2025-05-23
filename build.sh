@@ -31,4 +31,3 @@ mvn  install -DskipTests=true
 
 jar cvf ../private-resources.war -C ../private-resources .
 jar cvf ../root.war -C ../root .
-
