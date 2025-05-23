@@ -48,13 +48,13 @@
       * @return encoded RGA message
       */
 
-     public native byte[] encodeRGA(BaseLayer baseLayer, List<GeometryContainer> geometryContainers);
+     public native byte[] encodeRGA(BaseLayer baseLayer, List<GeometryContainer> geometryContainers, List<MovementsContainer> movementsContainers);
  
      //
      public ByteArrayObject encode(RGAData message) {
          logger.debug("Encoding the RGA message " + message.toString() + "!");
  
-         byte[] encodeMsg = encodeRGA(message.getBaseLayer(), message.getGeometryContainers());
+         byte[] encodeMsg = encodeRGA(message.getBaseLayer(), message.getGeometryContainers(), message.getMovementsContainers());
  
          if (encodeMsg == null) {
              // cannot encode RGA message
