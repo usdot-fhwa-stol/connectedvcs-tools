@@ -35,7 +35,6 @@ public class MovementsContainer {
     }
 
     public int getMovementsContainerId() {
-        System.out.println("Getting id");
         return movementsContainerId;
     }
 
