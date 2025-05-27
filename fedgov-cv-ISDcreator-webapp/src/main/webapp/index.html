@@ -686,6 +686,8 @@
 										<option value="Vehicles w/ Trailers Min Speed">Vehicles w/ Trailers Min Speed</option>
 										<option value="Vehicles w/ Trailers Max Speed">Vehicles w/ Trailers Max Speed</option>
 										<option value="Vehicles w/ Trailers Night Max Speed">Vehicles w/ Trailers Night Max Speed</option>
+										<option class="extra_rga_field_input" value="Passenger Vehicles Min Speed">Passenger Vehicles Min Speed</option>
+										<option class="extra_rga_field_input" value="Passenger Vehicles Max Speed">Passenger Vehicles Max Speed</option>
 									</select>
 								</div>
 								<div class="col-sm-1">
@@ -701,6 +703,27 @@
 								<div class="col-sm-7"><input type="text" class="form-control" id="speedForm_#index#_velocity"
 															 placeholder="0 to 366" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-range="[0, 366]" data-parsley-pattern-message="This value must include numbers only."></div>
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="velocity"></i></div>
+							</div>
+
+							<div class="row speed_limit_choice">
+								<div class="col-sm-4"><label>Speed Limit Choice:</label></div>
+								<div class="col-sm-7">
+									<div style="display: flex; gap: 20px;">
+										<div class="radio" style="margin: 0;">
+											<label style="margin: 0;">
+												<input type="radio" name="speedForm_#index#_speedLimitChoice" value="regulatory" checked>
+												Regulatory
+											</label>
+										</div>
+										<div class="radio" style="margin: 0;">
+											<label style="margin: 0;">
+												<input type="radio" name="speedForm_#index#_speedLimitChoice" class="extra_rga_field_input" value="advisory">
+												Advisory
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="speed_limit_choice"></i></div>
 							</div>
 
 						</div>

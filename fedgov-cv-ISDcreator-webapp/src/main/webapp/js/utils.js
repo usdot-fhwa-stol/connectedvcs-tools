@@ -392,6 +392,11 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
      rebuildSpeedForm(speedForm, feature.get("speedLimitType"));
   }
 
+   if(feature.get("marker").name == "Reference Point Marker"){    
+    //Hide RGA related fields in speed limit form
+    hideRGAFieldsAssociatedToSpeedLimits();
+  }
+
   $("#attributes").show();
 }
 
@@ -1048,6 +1053,10 @@ function removeSpeedForm(speedForm) {
 
 function addSpeedForm(speedForm) {
     speedForm.addForm();
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits    
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
 }
 
 function rebuildSpeedForm(speedForm, speedLimitArray) {
@@ -1060,6 +1069,7 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
             {'velocity': speedLimitArray[i].velocity}
         );
         $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType)
+        $(`input[name="speedForm_${i}_speedLimitChoice"][value="${speedLimitArray[i].speedLimitChoice}"]`).prop('checked', true);
     }
     resetSpeedDropdowns(speedForm);
 }
@@ -1070,7 +1080,8 @@ function saveSpeedForm(speedForm) {
     for (let i = 0; i < forms; i++) {
       tmpSpeedLimits.push({
             speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-            velocity: $("#speedForm_" + i + "_velocity").val()
+            velocity: $("#speedForm_" + i + "_velocity").val(),
+            speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val()
         });
     }
     removeSpeedForm(speedForm);
@@ -1083,6 +1094,11 @@ function resetSpeedDropdowns(speedForm){
             $(this).prop('disabled', false);
         }
     });
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
+
     let forms = (speedForm.getForms()).length;
     for (let i = 0; i < forms; i++) {
         let current = $("#speedForm_"+ i + "_speedLimitType option:selected").text();
@@ -1403,6 +1419,53 @@ function updateTimeRestrictionsHTML(){
   });
 }
 
+/**
+ * @brief Disables RGA fields associated with speed limits
+ */
+function disableRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='advisory']").prop('disabled', true);
+}
+
+/**
+ * @brief Hides RGA fields associated with speed limits
+ * @details This function hides the speed limit type options for Passenger Vehicles Max Speed and Min Speed, and hides speed limit choices
+ */
+function hideRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").hide();
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").hide();
+    $(".speed_limit_choice").hide();
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='regulatory']").prop('checked', false);
+}
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Max Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Max Speed, false otherwise
+ */
+function isSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Min Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Min Speed, false otherwise
+ */
+function isSpeedLimitTypePassengerVehicleMinSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
 export {
   getCookie,
   isOdd,
@@ -1453,6 +1516,9 @@ export {
   updateLaneInfoDaySelection,
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
-  addLaneInfoTimeRestrictions
-  
+  addLaneInfoTimeRestrictions,
+  disableRGAFieldsAssociatedToSpeedLimits,
+  isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
+  isSpeedLimitTypePassengerVehicleMinSpeedSelected,
+  hideRGAFieldsAssociatedToSpeedLimits
 }
