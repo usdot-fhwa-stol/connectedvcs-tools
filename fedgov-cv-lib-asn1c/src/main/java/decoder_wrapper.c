@@ -23,7 +23,10 @@
 JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg)
 {
 	
-	const char *resultStr="";
+	const char *decodedStr = "";
+	const char *msgTypeStr = "";
+	jboolean success = JNI_FALSE;
+
 	asn_dec_rval_t rval; /* Decoder return value */
 	MessageFrame_t *message = 0; /* Type to decode */
 	
@@ -50,10 +53,28 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 			/*if stream is sucessfully created by fmemopen*/				
 			asn_fprint(stream, &asn_DEF_MessageFrame, message); // Write the ASN.1 encoded message ('message') to the memory stream ('stream').
 			fclose(stream); //closing the memory stream
-			resultStr = strdup(outputBuffer);    // Copy the content of 'outputBuffer' to 'resultStr' using 'strdup()'.
+			decodedStr  = strdup(outputBuffer); // Copy the content of 'outputBuffer' to 'resultStr' using 'strdup()'.
+			success = JNI_TRUE;   
 		} else {
 			   // If 'fmemopen()' failed to create the memory stream ('stream' is NULL)
-			resultStr = "Failed to allocate memory for output";
+			   decodedStr = "Failed to allocate memory for output";
+		}
+		switch (message->messageId) {
+			case 20:
+				msgTypeStr = "BasicSafetyMessage";
+				break;
+			case 18:
+				msgTypeStr = "MapData";
+				break;
+			case 19:
+				msgTypeStr = "SPAT";
+				break;
+			case 32:
+				msgTypeStr = "PersonalSafetyMessage ";
+				break;	
+			default:
+				msgTypeStr = "UnknownMessageType";
+				break;
 		}
 
 	}
@@ -69,6 +90,30 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 		printf("Decoding Failed");
 
 	}
-	//converting char array to Java String
-    return (*env)->NewStringUTF(env, resultStr);
+	//getting the class of the DecodedResult
+	jclass resultClass = (*env)->FindClass(env, "gov/usdot/cv/libasn1decoder/DecodedResult");
+
+	// getting the id of the DecodedResult() constructor
+	jmethodID ctor = (*env)->GetMethodID(env, resultClass, "<init>", "()V");
+	if (ctor == NULL) return NULL;
+	// creating an object of DecodedResult class to return
+	jobject resultObj = (*env)->NewObject(env, resultClass, ctor);
+	if (resultObj == NULL) return NULL;
+
+	//Retrieving the field of DecodedResult class
+	jfieldID decodedField = (*env)->GetFieldID(env, resultClass, "decodedMessage", "Ljava/lang/String;");
+	jfieldID typeField = (*env)->GetFieldID(env, resultClass, "messageType", "Ljava/lang/String;");
+	jfieldID successField = (*env)->GetFieldID(env, resultClass, "success", "Z");
+
+	// Converting the 'decodedStr' to a Java UTF string (jstring)
+	jstring jDecodedStr = (*env)->NewStringUTF(env, decodedStr);
+	//Converting the message type to a Java UTF string (jstring)
+	jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
+
+	// Set the corresponding fields in the DecodedResult Java object
+	(*env)->SetObjectField(env, resultObj, decodedField, jDecodedStr);
+	(*env)->SetObjectField(env, resultObj, typeField, jMsgTypeStr);
+	(*env)->SetBooleanField(env, resultObj, successField, success);
+
+	return resultObj;
 }
