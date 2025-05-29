@@ -55,16 +55,18 @@ public class Decoder {
 
 		if (result == null || !result.success) {
 			logger.error("Decoding failed or returned null.");
+			//If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();
 				result.decodedMessage = "";
 				result.messageType = "";
 				result.success = false;
 			}
-		}
+		} else{
 
 		logger.info("Decoded Message Type: {}", result.messageType);
 		logger.debug("Decoded Message: {}", result.decodedMessage);
+		}
 
 		return result;
 	}
