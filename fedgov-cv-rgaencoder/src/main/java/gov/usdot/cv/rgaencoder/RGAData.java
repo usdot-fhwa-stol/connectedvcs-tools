@@ -21,6 +21,7 @@ import java.util.ArrayList;
 public class RGAData {
     private BaseLayer baseLayer;
     private List<GeometryContainer> geometryContainers;
+    private List<MovementsContainer> movementsContainers;
     
     public RGAData()
     {
@@ -49,9 +50,23 @@ public class RGAData {
         this.geometryContainers = geometryContainers;
     }
 
+    public List<MovementsContainer> getMovementsContainers() {
+        return movementsContainers;
+    }
+
+    public void setMovementsContainers(List<MovementsContainer> movementsContainers) {
+        this.movementsContainers = movementsContainers;
+    }
+
     public void addGeometryContainer(GeometryContainer geometryContainer) {
         if (geometryContainer != null) {
             this.geometryContainers.add(geometryContainer);
+        }
+    }
+
+    public void addMovementsContainer(MovementsContainer movementsContainer) {
+        if (movementsContainer != null) {
+            this.movementsContainers.add(movementsContainer);
         }
     }
 

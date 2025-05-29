@@ -31,6 +31,9 @@ extern "C" {
 #define BICYCLE_LANE_GEOMETRY_LAYER_ID 3
 #define CROSSWALK_LANE_GEOMETRY_LAYER_ID 4
 
+// Constants for Movements Layer IDs
+#define MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID 1
+
 // Constants for LaneConstructorType Choice
 #define PHYSICAL_NODE 1
 #define COMPUTED_NODE 2
@@ -56,7 +59,7 @@ extern "C" {
  * @return jbyteArray - Encoded ASN.1 message as a Java byte array, or NULL if encoding fails
  */
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA
-  (JNIEnv *, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject, jobject);
 
 /*
  * Method to populate a LaneConstructorType_t structure from corresponding Java object
