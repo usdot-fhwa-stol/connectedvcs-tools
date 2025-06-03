@@ -1,11 +1,9 @@
 name: connectedvcs-tools
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
-    branches:
-      - "develop"
-      - "master"
-      - "release/*"
+    branches: [develop, master]
 env:
   working-directory: $GITHUB_WORKSPACE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -85,44 +83,10 @@ jobs:
           run: |
             mv setenv.sh /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/
             sudo /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/catalina.sh start
-        - name: Setup SonarScanner
-          uses: warchant/setup-sonar-scanner@v7 # This action is to setup sonar scanner with required dep's
-          with:
-            version: 5.0.1.3006
-        - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
-          run: |
-            cat <<EOF > /tmp/sonar-scanner.properties
-            sonar.host.url=https://sonarcloud.io
-            sonar.organization=usdot-fhwa-stol
-            sonar.scanner.force-deprecated-java-version=true
-            sonar.projectBaseDir=$GITHUB_WORKSPACE
-            sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
-            sonar.projectName=connectedvcs-tools
-            sonar.exclusions=**/target/**
-            sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target/site/jacoco/jacoco.xml,\
-               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
 
-            sonar.java.binaries=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target
-            sonar.c.file.suffixes=-
-            sonar.cpp.file.suffixes=-
-            sonar.objc.file.suffixes=-
-            EOF
-        - name: Run SonarScanner # This action is used to run sonar scan with above properties and upload results to sonar cloud project
-          uses: usdot-fhwa-stol/actions/sonar-scanner@main
+        - name: SonarCloud scan
+          uses: SonarSource/sonarcloud-github-action@v2
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           with:
-            sonar-properties-path: /tmp/sonar-scanner.properties
-            sonar-token: ${{ secrets.SONAR_TOKEN }}
-            working-dir: $GITHUB_WORKSPACE
+            args: -Dproject.settings=.sonarqube/sonar-project.properties
