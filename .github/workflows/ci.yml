@@ -28,16 +28,16 @@ jobs:
           run: |
             cd $GITHUB_WORKSPACE
             export LD_LIBRARY_PATH=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/third_party_lib
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -B -fae -e -X clean verify
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -B -fae -e -X clean verify
             jar cvf /__w/connectedvcs-tools/connectedvcs-tools/root.war -C /__w/connectedvcs-tools/connectedvcs-tools/root .
         - name: Archive generated Class files
           uses: actions/upload-artifact@v4 # Archive the generated class files after the build action used for deployment
