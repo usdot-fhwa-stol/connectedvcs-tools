@@ -89,4 +89,4 @@ jobs:
           env:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           with:
-            args: -Dproject.settings=.sonarqube/sonar-project.properties
+            args: -Dproject.settings=.sonarqube/sonar-scanner.properties
