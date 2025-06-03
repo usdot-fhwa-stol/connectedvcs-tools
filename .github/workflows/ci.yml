@@ -39,6 +39,12 @@ jobs:
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -B -fae -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -B -fae -e -X clean install -Dmaven.test.failure.ignore=true
             jar cvf /__w/connectedvcs-tools/connectedvcs-tools/root.war -C /__w/connectedvcs-tools/connectedvcs-tools/root .
+
+        - name: List Jacoco reports
+          run: |
+            echo "Looking for jacoco.xml files..."
+            find . -path "*/target/site/jacoco/jacoco.xml" -print
+            
         - name: Archive generated Class files
           uses: actions/upload-artifact@v4 # Archive the generated class files after the build action used for deployment
           with:
