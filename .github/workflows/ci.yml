@@ -42,7 +42,7 @@ jobs:
         - name: Download Apache tomcat # Download apache tomcat for deployment
           run: |
             apt-get update -y
-            apt-get -y install wget unzip sudo
+            apt-get -y install wget unzip sudo git
             wget https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.34/bin/apache-tomcat-9.0.34.tar.gz
             tar -xzf apache-tomcat-9.0.34.tar.gz
             mv apache-tomcat-9.0.34 tomcat
