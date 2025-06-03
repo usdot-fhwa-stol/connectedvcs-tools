@@ -220,6 +220,36 @@ public class RGAEncodeTest {
     TimeWindowItemControlInfo mockFixedTimeWindowCtrl6;
     RGATimeRestrictions mockTimeRestrictions6;
 
+    MovementsContainer mockMovementsContainer3;
+    MtrVehLaneConnectionsLayer mockMtrVehLaneConnectionsLayer1;
+    IndividualWayConnections mockIndividualWayConnections1;
+    List<IndividualWayConnections> mockIndividualWayConnectionsList1;
+    WayToWayConnectionInfo mockWayToWayConnectionInfo1;
+    List<WayToWayConnectionInfo> mockWayToWayConnectionInfoList1;
+    LaneConnectionFromInfo mockLaneConnectionFromInfo1;
+    LaneConnectionToInfo mockLaneConnectionToInfo1;
+    WayType mockWayType3;
+    GeneralPeriod mockGeneralPeriod7;
+    TimeWindowInformation mockTimeWindowInformation7;
+    List<TimeWindowInformation> mockTimeWindowSet7;
+    TimeWindowItemControlInfo mockFixedTimeWindowCtrl7;
+    RGATimeRestrictions mockTimeRestrictions7;
+
+    MovementsContainer mockMovementsContainer4;
+    BicycleLaneConnectionsLayer mockBicycleLaneConnectionsLayer1;
+    IndividualWayConnections mockIndividualWayConnections2;
+    List<IndividualWayConnections> mockIndividualWayConnectionsList2;
+    WayToWayConnectionInfo mockWayToWayConnectionInfo2;
+    List<WayToWayConnectionInfo> mockWayToWayConnectionInfoList2;
+    LaneConnectionFromInfo mockLaneConnectionFromInfo2;
+    LaneConnectionToInfo mockLaneConnectionToInfo2;
+    WayType mockWayType4;
+    GeneralPeriod mockGeneralPeriod8;
+    TimeWindowInformation mockTimeWindowInformation8;
+    List<TimeWindowInformation> mockTimeWindowSet8;
+    TimeWindowItemControlInfo mockFixedTimeWindowCtrl8;
+    RGATimeRestrictions mockTimeRestrictions8;
+
     @Before
     public void setup() {
         mockRGA = mock(RGAData.class);
@@ -375,6 +405,30 @@ public class RGAEncodeTest {
         mockFixedTimeWindowCtrl6 = mock(TimeWindowItemControlInfo.class);
         mockGeneralPeriod6 = mock(GeneralPeriod.class);
         mockTimeWindowInformation6 = mock(TimeWindowInformation.class);
+
+        mockMovementsContainer3 = mock(MovementsContainer.class);
+        mockMtrVehLaneConnectionsLayer1 = mock(MtrVehLaneConnectionsLayer.class);
+        mockIndividualWayConnections1 = mock(IndividualWayConnections.class);
+        mockWayToWayConnectionInfo1 = mock(WayToWayConnectionInfo.class);
+        mockLaneConnectionFromInfo1 = mock(LaneConnectionFromInfo.class);
+        mockLaneConnectionToInfo1 = mock(LaneConnectionToInfo.class);
+        mockWayType3 = mock(WayType.class);
+        mockTimeRestrictions7 = mock(RGATimeRestrictions.class);
+        mockFixedTimeWindowCtrl7 = mock(TimeWindowItemControlInfo.class);
+        mockGeneralPeriod7 = mock(GeneralPeriod.class);
+        mockTimeWindowInformation7 = mock(TimeWindowInformation.class);
+
+        mockMovementsContainer4 = mock(MovementsContainer.class);
+        mockBicycleLaneConnectionsLayer1 = mock(BicycleLaneConnectionsLayer.class);
+        mockIndividualWayConnections2 = mock(IndividualWayConnections.class);
+        mockWayToWayConnectionInfo2 = mock(WayToWayConnectionInfo.class);
+        mockLaneConnectionFromInfo2 = mock(LaneConnectionFromInfo.class);
+        mockLaneConnectionToInfo2 = mock(LaneConnectionToInfo.class);
+        mockWayType4 = mock(WayType.class);
+        mockTimeRestrictions8 = mock(RGATimeRestrictions.class);
+        mockFixedTimeWindowCtrl8 = mock(TimeWindowItemControlInfo.class);
+        mockGeneralPeriod8 = mock(GeneralPeriod.class);
+        mockTimeWindowInformation8 = mock(TimeWindowInformation.class);
 
         encoder = new Encoder();
 
@@ -772,12 +826,58 @@ public class RGAEncodeTest {
         when(mockMovementsContainer2.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID);
         when(mockMovementsContainer2.getMtrVehLaneDirectionOfTravelLayer()).thenReturn(mockMtrVehLaneDirectionOfTravelLayer2);
 
+        when(mockGeneralPeriod7.getGeneralPeriodValue()).thenReturn(GeneralPeriod.DAY);
+        when(mockTimeWindowInformation7.getGeneralPeriod()).thenReturn(mockGeneralPeriod7);
+        mockTimeWindowSet7 = Arrays.asList(mockTimeWindowInformation7);
+        when(mockFixedTimeWindowCtrl7.getTimeWindowSet()).thenReturn(mockTimeWindowSet7);
+        when(mockTimeRestrictions7.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
+        when(mockTimeRestrictions7.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl7);
+        when(mockWayType3.getWayTypeValue()).thenReturn(WayType.MOTOR_VEHICLE_LANE);
+        when(mockLaneConnectionToInfo1.getWayType()).thenReturn(mockWayType3);
+        when(mockLaneConnectionToInfo1.getWayID()).thenReturn(20);
+        when(mockLaneConnectionToInfo1.getNodeToPosition()).thenReturn(LaneConnectionToInfo.FIRST_NODE);
+        when(mockLaneConnectionFromInfo1.getNodeFromPosition()).thenReturn(LaneConnectionFromInfo.LAST_NODE);
+        when(mockWayToWayConnectionInfo1.getLaneConnectionID()).thenReturn(101);
+        when(mockWayToWayConnectionInfo1.getConnectionFromInfo()).thenReturn(mockLaneConnectionFromInfo1);
+        when(mockWayToWayConnectionInfo1.getConnectionToInfo()).thenReturn(mockLaneConnectionToInfo1);
+        when(mockWayToWayConnectionInfo1.getTimeRestrictions()).thenReturn(mockTimeRestrictions7);
+        mockWayToWayConnectionInfoList1 = Arrays.asList(mockWayToWayConnectionInfo1);
+        when(mockIndividualWayConnections1.getWayID()).thenReturn(19);
+        when(mockIndividualWayConnections1.getConnectionsSet()).thenReturn(mockWayToWayConnectionInfoList1);
+        mockIndividualWayConnectionsList1 = Arrays.asList(mockIndividualWayConnections1);
+        when(mockMtrVehLaneConnectionsLayer1.getMtrVehLaneCnxnsLaneSet()).thenReturn(mockIndividualWayConnectionsList1);
+        when(mockMovementsContainer3.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_LAYER_ID);
+        when(mockMovementsContainer3.getMtrVehLnCnxnsLayer()).thenReturn(mockMtrVehLaneConnectionsLayer1);
+
+        when(mockGeneralPeriod8.getGeneralPeriodValue()).thenReturn(GeneralPeriod.NIGHT);
+        when(mockTimeWindowInformation8.getGeneralPeriod()).thenReturn(mockGeneralPeriod8);
+        mockTimeWindowSet8 = Arrays.asList(mockTimeWindowInformation8);
+        when(mockFixedTimeWindowCtrl8.getTimeWindowSet()).thenReturn(mockTimeWindowSet8);
+        when(mockTimeRestrictions8.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
+        when(mockTimeRestrictions8.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl8);
+        when(mockWayType4.getWayTypeValue()).thenReturn(WayType.BICYCLE_LANE);
+        when(mockLaneConnectionToInfo2.getWayType()).thenReturn(mockWayType4);
+        when(mockLaneConnectionToInfo2.getWayID()).thenReturn(22);
+        when(mockLaneConnectionToInfo2.getNodeToPosition()).thenReturn(LaneConnectionToInfo.LAST_NODE);
+        when(mockLaneConnectionFromInfo2.getNodeFromPosition()).thenReturn(LaneConnectionFromInfo.FIRST_NODE);
+        when(mockWayToWayConnectionInfo2.getLaneConnectionID()).thenReturn(102);
+        when(mockWayToWayConnectionInfo2.getConnectionFromInfo()).thenReturn(mockLaneConnectionFromInfo2);
+        when(mockWayToWayConnectionInfo2.getConnectionToInfo()).thenReturn(mockLaneConnectionToInfo2);
+        when(mockWayToWayConnectionInfo2.getTimeRestrictions()).thenReturn(mockTimeRestrictions8);
+        mockWayToWayConnectionInfoList2 = Arrays.asList(mockWayToWayConnectionInfo2);
+        when(mockIndividualWayConnections2.getWayID()).thenReturn(21);
+        when(mockIndividualWayConnections2.getConnectionsSet()).thenReturn(mockWayToWayConnectionInfoList2);
+        mockIndividualWayConnectionsList2 = Arrays.asList(mockIndividualWayConnections2);
+        when(mockBicycleLaneConnectionsLayer1.getBicycleLaneCnxnsLaneSet()).thenReturn(mockIndividualWayConnectionsList2);
+        when(mockMovementsContainer4.getMovementsContainerId()).thenReturn(MovementsContainer.BIKE_LANE_CONNECTIONS_LAYER_ID);
+        when(mockMovementsContainer4.getBikeLnCnxnsLayer()).thenReturn(mockBicycleLaneConnectionsLayer1);
+
         when(mockRGA.getBaseLayer()).thenReturn(mockBaseLayer);
         mockGeometryContainerList = Arrays.asList(mockGeometryContainer1, mockGeometryContainer2,
                 mockGeometryContainer3, mockGeometryContainer4, mockGeometryContainer5, mockGeometryContainer6,
                 mockGeometryContainer7, mockGeometryContainer8, mockGeometryContainer9, mockGeometryContainer10,
                 mockGeometryContainer11);
-        mockMovementsContainerList = Arrays.asList(mockMovementsContainer1, mockMovementsContainer2);
+        mockMovementsContainerList = Arrays.asList(mockMovementsContainer1, mockMovementsContainer2, mockMovementsContainer3, mockMovementsContainer4);
         when(mockRGA.getGeometryContainers()).thenReturn(mockGeometryContainerList);
         when(mockRGA.getMovementsContainers()).thenReturn(mockMovementsContainerList);
     }
@@ -786,7 +886,7 @@ public class RGAEncodeTest {
     public void rgaEncodeTester() {
         ByteArrayObject res = encoder.encode(mockRGA);
         System.out.println(res.getMessage());
-        byte[] expected = { 0, 43, -127, 10, 3, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
+        byte[] expected = { 0, 43, -127, 31, 3, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
                         16, 32, 19, 9, -20, 20, 2, 6, 12, 2, 8, 3, 4, 110, 42, 40, 27, -3, -6, 34, -83, -52, 0, 81, -92,
                         40, 2, 65, 72, 68, 0, 50, 0, 21, 56, 0, 0, 12, 5, 32, 0, 65, 0, 0, -76, 23, 4, -128, 1, 12, 33,
                         -127, 32, 34, -64, 51, 64, 34, 0, 9, 0, 60, 15, -3, -6, 34, -83, -52, 0, 81, -2, 127, 126, -120,
@@ -796,8 +896,9 @@ public class RGAEncodeTest {
                         -83, -3, -6, 79, -52, -56, 0, 1, -92, 0, 8, 52, 0, 32, 0, 8, -16, 10, 68, 1, -22, -128, 20, 88,
                         4, -63, 0, 4, 80, -84, 12, 40, 0, 72, -117, 4, -128, -117, 0, -51, 0, -128, -57, -64, 68, -64,
                         0, 30, 12, -88, -126, 93, 80, 25, 32, 7, -127, 127, -65, 62, 89, 79, 0, 0, 58, 47, -17, -46,
-                        -74, 80, 0, 0, 13, 33, 1, 0, -72, 0, 56, 20, 0, 120, 3, -5, -12, 94, 80, -96, 0, 123, -64, -2,
-                        -3, 67, -76, 40, 0, 30, -46, 0, 1, -128, 1, -32, -112, 0, 80, 0 };
+                        -74, 80, 0, 0, 13, 33, 3, 0, -72, 0, 56, 20, 0, 120, 3, -5, -12, 94, 80, -96, 0, 123, -64, -2,
+                        -3, 67, -76, 40, 0, 30, -46, 0, 1, -128, 1, -32, -112, 0, 80, 2, 18, 0, 19, 5, -108, -112, 40,
+                        0, 2, 0, 48, -112, 1, 80, 89, -127, 34, -56, 0, 40, 0 };
 
         Assert.assertArrayEquals(expected, res.getMessage()); 
     }
