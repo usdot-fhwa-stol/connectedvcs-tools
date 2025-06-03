@@ -22,6 +22,8 @@ jobs:
 
         - name: Checkout ${{ github.event.repository.name }}
           uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
         - name: Install # This action is to install and build subfolders in project
           run: |
             cd $GITHUB_WORKSPACE
@@ -44,6 +46,13 @@ jobs:
             path: |
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/classes
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/test-classes
+        - name: SonarCloud scan
+          uses: SonarSource/sonarcloud-github-action@v2
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          with:
+            args: >
+              -Dproject.settings=.sonarqube/sonar-scanner.properties
         - name: Download Apache tomcat # Download apache tomcat for deployment
           run: |
             wget https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.34/bin/apache-tomcat-9.0.34.tar.gz
@@ -86,10 +95,3 @@ jobs:
           run: |
             mv setenv.sh /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/
             sudo /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/catalina.sh start
-
-        - name: SonarCloud scan
-          uses: SonarSource/sonarcloud-github-action@v2
-          env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          with:
-            args: -Dproject.settings=.sonarqube/sonar-scanner.properties
