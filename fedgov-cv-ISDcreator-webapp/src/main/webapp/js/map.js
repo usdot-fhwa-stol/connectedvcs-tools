@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes, rebuildApproaches } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -42,6 +42,7 @@ let signalPhase, stateConfidence, laneNum, laneType, approachType, intersectionI
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
 let rowHtml;
+let approachRowHtml;
 let speedForm;
 let rgaEnabled = false;
 let laneSelectInteraction, laneMarkersInteraction, vectorInteraction, boxSelectInteraction;
@@ -951,8 +952,36 @@ function initMISC() {
     rebuildConnections(nodeObject);
   });
 
+  $.get("js/approachRow.html", function (data) {
+    approachRowHtml = data;
+    rebuildApproaches(approachObject);
+  });
+
   $("#add_row").click(() => {
     addRow(null, null);
+  });
+
+  $("#add_approach_row").click(() => {
+    addApproachRow(null, null);
+  });
+
+  // Add this to your document ready or initialization function
+  $(document).on('click', '#tab_approaches .dropdown-menu a', function(e) {
+    e.preventDefault();
+    var selectedText = $(this).text();
+    var selectedValue = $(this).data('value') || selectedText.toLowerCase();
+    
+    // Update the button text
+    $(this).closest('.btn-group').find('.btn-select').html(selectedText + ' <span class="caret"></span>');
+    
+    console.log('Selected:', selectedText); // For debugging
+  });
+
+  $(document).on("click", "[id^=rowDeleteApproach]", function () {
+    let id = $(this)
+      .attr("id")
+      .replace(/^rowDeleteApproach/, "");
+    deleteApproachRow(id);
   });
 
   $(document).on("click", "[id^=rowDelete]", function () {
@@ -1026,6 +1055,12 @@ function initMISC() {
     //Update time restrictions HTML after add HTML to the main page
     updateTimeRestrictionsHTML();        
   });
+
+  $.get("js/time-restrictions.html", function (data) {
+    timeRestrictions = data;
+    addApproachTimeRestrictions(timeRestrictions);
+    updateTimeRestrictionsHTML();
+  })
 }
 
 function registerModalButtonEvents() {

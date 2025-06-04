@@ -1,5 +1,7 @@
 
 let numRows = -1;
+let approachNumRows = -1;
+let timeRestrictions;
 let tmpLaneAttributes = {}
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
@@ -253,6 +255,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".descriptive_name").hide();
   $(".lane_type").hide();
   $(".approach_type").hide();
+  $("#approach-table").hide();
   $(".verified_lat").hide();
   $(".verified_long").hide();
   $(".verified_elev").hide();
@@ -297,6 +300,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
     $(".master_lane_width").hide();
     $(".intersection_name").hide();
     $(".approach_name").hide();
+    $("#approach-table").hide();
     $('.intersection-info-tab').hide();
     hideRGAFields(true);
     $('.road_authority_id').hide();
@@ -574,6 +578,107 @@ function populateAttributeWindow(lat, lon) {
 	$('#long').val(lon);
 }
 
+//Add saveApproach
+function saveApproaches() {
+  let approachObject = [];
+  
+  for(let i = 1; i <= approachNumRows; i++) {
+    // Get approach type from dropdown
+    let approachType = $('#row' + i + ' .approach_type .dropdown-toggle').text().trim();
+    if (approachType === 'Select an Approach Type') {
+      approachType = null; // or empty string if preferred
+    }
+    
+    // Get day selection values
+    let daySelection = [];
+    $('#row' + i + ' .day_selection_dropdown option:selected').each(function() {
+      daySelection.push($(this).val());
+    });
+    
+    // Get time period type
+    let timePeriodType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    
+    // Initialize time period data object
+    let timePeriodData = {
+      type: timePeriodType || null
+    };
+    
+    // Get additional time period data based on type
+    if (timePeriodType === 'range') {
+      timePeriodData.startDateTime = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
+      timePeriodData.startOffset = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
+      timePeriodData.endDateTime = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
+      timePeriodData.endOffset = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+    } else if (timePeriodType === 'general') {
+      timePeriodData.generalType = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val();
+    }
+    
+    // Build the approach object
+    approachObject.push({
+      rowId: i,
+      approachType: approachType,
+      daySelection: daySelection,
+      timePeriod: timePeriodData
+    });
+  }
+  
+  return approachObject;
+}
+
+//Add rebuildApproaches
+function rebuildApproaches(approaches) {
+  $('#tab_approaches > tbody').empty();
+  numRows = -1;
+  if (approaches === null || approaches === undefined || approaches.length < 1) {
+     addApproachRow(null, null);
+  } else {
+    for(let i = 0; i < approaches.length; i++) {
+       addApproachRow(null, approaches[i]);
+    }
+  }
+}
+//Add addApproachRow
+async function addApproachRow(readOnly, valueSets) {
+  let rowHTML;
+  $.get("js/approachRow.html", function(data) {
+    rowHTML = data;
+    $('#tab_approaches tbody').append(rowHTML);
+    approachNumRows++;
+    changeApproachRow('New', approachNumRows, readOnly, valueSets);
+
+    if (approachNumRows === 0) {
+      $('input[name="rowSelection"][value="row0"]').prop('checked', true);
+    }
+    $.get("js/time-restrictions.html", function (data) {
+        timeRestrictions = data;
+        addApproachTimeRestrictions(approachNumRows, timeRestrictions);
+        updateApproachTimeRestrictionsHTML();
+    })
+  });
+}
+//Add deleteApproachRow
+function deleteApproachRow(approachRowNum) {
+  $('#row' + approachRowNum).remove();
+  for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
+      changeApproachRow(i, i - 1, null, null);
+  }
+  approachNumRows--;
+}
+
+//Add changeApproachRow
+function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
+  $('#row' + oldVal).attr('id', 'row' + newVal);
+  $('#approachSelection' + oldVal).attr('id', 'approachSelection' + newVal);
+  $('#approachType' + oldVal).attr('id', 'approachType' + newVal);
+  $('#approachTimeRestriction' + oldVal).attr('id', 'approachTimeRestriction' + newVal);
+  $('#rowDeleteApproach' + oldVal).attr('id', 'rowDeleteApproach' + newVal);
+  if (readOnly && readOnly !== undefined) {
+      for (let i = 0; i < readOnly.length; i++) {
+          $('input[name="' + readOnly[i] + newVal + '"').prop('readonly', true);
+      }
+  }
+}
+//Add populateApproachTypeDropdown
 
 function saveConnections(selectedMarker) {
   let nodeObject = [];
@@ -594,6 +699,7 @@ function saveConnections(selectedMarker) {
   }
   return nodeObject;
 }
+
 
 function rebuildConnections(connections) {
   //TODO clear if empty rows
@@ -1294,6 +1400,143 @@ function addLaneInfoTimeRestrictions(time_restrictions) {
   $(".lane_info_time_restrictions").html(lane_info_time_restrictions.html());
 }
 
+function addApproachTimeRestrictions(rowNum, time_restrictions) {
+   // Create a jQuery object from the HTML string
+  let approach_time_restrictions = $(time_restrictions).clone();
+  
+  // Update time restrictions with lane info specific identifiers for a specific row
+  approach_time_restrictions.find('*').each(function() {
+      if (this.id) {
+          $(this).addClass("extra_rga_field_input");
+          $(this).attr('id', "approach_" + this.id + rowNum);
+      }
+      if (this.name) {
+          $(this).attr('name', "approach_" + this.name + rowNum);
+      }
+  });
+  
+  // Target the specific row's time restrictions container
+  $("#row" + rowNum + " .approach_time_restrictions").html(approach_time_restrictions);
+}
+
+function updateApproachTimeRestrictionsHTML(){
+  let startDateTimePicker = $('.start_datetime_picker');
+  let endDateTimePicker = $('.end_datetime_picker');
+  let dateConfig = {
+      dateFormat: "Y-m-d H:i:S",
+      allowInput: true,        
+      enableTime: true,
+      enableSeconds: true,
+      minuteIncrement: 1,
+      secondIncrement: 1,
+      time_24hr: true
+  };
+  
+  // Initialize flatpickr for new elements
+  startDateTimePicker.flatpickr(dateConfig);
+  endDateTimePicker.flatpickr(dateConfig);
+
+  // Handle time period radio button changes (using event delegation)
+  $(document).off('change', '.form-check-input.time_period').on('change', '.form-check-input.time_period', function () {
+      let currentRow = $(this).closest('tr');
+      currentRow.find('.time_period_range_fields').hide();
+      currentRow.find('.time_period_general_fields').hide();
+      
+      if ($(this).val() === 'range') {
+          currentRow.find('.time_period_range_fields').show();
+      } else if ($(this).val() === 'general') {
+          currentRow.find('.time_period_general_fields').show();
+      }
+  });
+
+  // Initialize multiselect for day selection dropdowns
+  $('.day_selection_dropdown').each(function() {
+    if (!$(this).hasClass('multiselect')) {
+      $(this).multiselect({
+          maxHeight: 200,        
+          onChange: function(option, checked, select) {
+              let currentDropdown = $(select);
+              let currentRow = currentDropdown.closest('tr');
+              
+              if ($(option).val() === '0' && checked) {
+                  currentRow.find('.day_selection input').each(function() {
+                      if ($(this).val() !== '0') {
+                          $(this).prop('disabled', true);
+                          $(this).prop('checked', false).trigger('change');
+                          $(this).parents('a').first().css({ 'color': 'grey' });
+                          $(this).parents('li').first().removeClass('active');
+                      }
+                  });
+              } else {
+                  let isAllSelected = false;
+                  currentRow.find('.day_selection input').each(function () {
+                      if ($(this).val() === '0' && $(this).prop('checked')) {
+                          isAllSelected = true;
+                      }
+                  });
+                  currentRow.find('.day_selection input').each(function () {
+                      if (isAllSelected) {
+                          if ($(this).val() !== '0') {
+                              $(this).prop('disabled', true);
+                              $(this).parents('a').first().css({ 'color': 'grey' });
+                              $(this).parents('li').first().removeClass('active');
+                          }
+                      } else {
+                          $(this).prop('disabled', false);
+                          $(this).parents('a').first().css({ 'color': 'black' });
+                      }
+                  });
+              }
+          },
+          buttonText: function (options, select) {
+              if (options.length === 0) {
+                  let currentRow = $(select).closest('tr');
+                  currentRow.find('.day_selection input').each(function () {
+                      $(this).prop('disabled', false);
+                      $(this).parents('a').first().css({ 'color': 'black' });
+                  });
+                  return 'Select Day Of The Week';
+              } else if (options.length > 1) {                
+                  return options.length + ' selected';
+              } else {
+                  let labels = [];
+                  options.each(function () {                    
+                      if ($(this).attr('label') !== undefined) {
+                          labels.push($(this).attr('label'));
+                      } else {
+                          labels.push($(this).html());
+                      }
+                      let value = $(this).val();
+                      if (value === "0") {
+                          let currentRow = $(select).closest('tr');
+                          currentRow.find('.day_selection input').each(function () {
+                              if ($(this).val() !== "0") {
+                                  $(this).prop('disabled', true);
+                                  $(this).parents('a').first().css({ 'color': 'grey' });
+                              }
+                          });
+                      }                    
+                  });
+                  return labels.join(', ') + '';
+              }
+          }
+      });
+    }
+  });
+  
+  // Help modal functionality
+  $('.fa-question-circle').off('click').on('click', function(){
+      let tag = $(this).attr('tag');
+      let obj = $.grep(help_notes, function(e){ return e.value === tag; });
+      $('#help_modal').modal('show');
+      $('#min').html(obj[0].min);
+      $('#max').html(obj[0].max);
+      $('#units').html(obj[0].units);
+      $('#description').html(obj[0].description);
+      $('#help_modal h4').html(obj[0].title);
+  });
+}
+
 /**
 * @brief function to update the time restriction HTML.
 */
@@ -1428,18 +1671,22 @@ export {
   updateDisplayedLaneAttributes,
   removeLaneAttributes,
   rebuildConnections,
+  rebuildApproaches,
   makeDraggable,
   makeDroppable,
   setLaneAttributes,
   saveConnections,
+  saveApproaches,
   addSpeedForm,
   resetSpeedDropdowns,
   saveSpeedForm,
   rebuildSpeedForm,
   unselectFeature,
   removeSpeedForm,
+  addApproachRow,
   addRow,
   deleteRow,
+  deleteApproachRow,
   resetLaneAttributes,
   onMappedGeomIdChangeCallback,
   onRegionIdChangeCallback,
@@ -1453,6 +1700,6 @@ export {
   updateLaneInfoDaySelection,
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
-  addLaneInfoTimeRestrictions
-  
+  addLaneInfoTimeRestrictions,
+  addApproachTimeRestrictions
 }

@@ -124,6 +124,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $(".verified_long").hide();
     $(".verified_elev").hide();
     $(".approach_type").hide();
+    $("#approach-table").hide();
     $(".intersection").hide();
     $(".region").hide();
     $(".revision").hide();
@@ -497,6 +498,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".btnClone").hide();
       //----------------------------------------
       $(".approach_type").show();
+      $("#approach-table").show();
       $(".approach_name").show();
       $('#approach_name li').show();
       for (let boxFeature of boxLayer.getSource().getFeatures()) {
