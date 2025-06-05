@@ -579,7 +579,7 @@ function populateAttributeWindow(lat, lon) {
 }
 
 //Add saveApproach
-function saveApproaches() {
+function saveApproaches(selectedMarker) {
   let approachObject = [];
   
   for(let i = 1; i <= approachNumRows; i++) {
@@ -618,7 +618,8 @@ function saveApproaches() {
       rowId: i,
       approachType: approachType,
       daySelection: daySelection,
-      timePeriod: timePeriodData
+      timePeriod: timePeriodData,
+      approachID: selectedMarker.get('approachID')
     });
   }
   
@@ -640,21 +641,21 @@ function rebuildApproaches(approaches) {
 //Add addApproachRow
 async function addApproachRow(readOnly, valueSets) {
   let rowHTML;
-  $.get("js/approachRow.html", function(data) {
-    rowHTML = data;
-    $('#tab_approaches tbody').append(rowHTML);
-    approachNumRows++;
-    changeApproachRow('New', approachNumRows, readOnly, valueSets);
+  let response = await fetch("js/approachRow.html");
+  rowHTML = await response.text();
+  $('#tab_approaches tbody').append(rowHTML);
+  approachNumRows++;
+  changeApproachRow('New', approachNumRows, readOnly, valueSets);
 
-    if (approachNumRows === 0) {
-      $('input[name="rowSelection"][value="row0"]').prop('checked', true);
-    }
-    $.get("js/time-restrictions.html", function (data) {
-        timeRestrictions = data;
-        addApproachTimeRestrictions(approachNumRows, timeRestrictions);
-        updateApproachTimeRestrictionsHTML();
-    })
-  });
+  if (approachNumRows === 0) {
+    $('input[name="rowSelection"][value="row0"]').prop('checked', true);
+  }
+  $.get("js/time-restrictions.html", function (data) {
+      timeRestrictions = data;
+      addApproachTimeRestrictions(approachNumRows, timeRestrictions);
+      updateApproachTimeRestrictionsHTML();
+  })
+  
 }
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
@@ -677,6 +678,15 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
           $('input[name="' + readOnly[i] + newVal + '"').prop('readonly', true);
       }
   }
+  if (valueSets && valueSets !== undefined) {
+    for (let set in valueSets) {
+        if (valueSets.hasOwnProperty(set)) {
+            if (set === 'approachType'){
+              $('#approach_type' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>')
+            } 
+        }
+    }
+}
 }
 //Add populateApproachTypeDropdown
 

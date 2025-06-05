@@ -9,6 +9,7 @@ import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 let nodeObject = [];
+let approachObject = [];
 const aerialTilesetId = "microsoft.imagery";
 const roadTilesetId = "microsoft.base.road";
 const hybridTilesetId = "microsoft.base.hybrid.road";
@@ -1164,7 +1165,7 @@ function registerModalButtonEvents() {
       sharedWith_object = updateSharedWith();
       typeAttribute_object = updateTypeAttributes(typeAttributeName);
       nodeObject = saveConnections(selectedMarker);
-
+      
       sharedWith = [];
       for (let i = 0; i < sharedWith_object.length; i++) {
         sharedWith[i] = sharedWith_object[i];
@@ -1280,7 +1281,9 @@ function registerModalButtonEvents() {
       }
 
       if (selectedLayer.get("title") == "Stop Bar Layer") {
-        if (approachType != null) {
+        if (approachObject != null) {
+          selectedMarker.set("approaches", approachObject);
+        } else if (approachType != null) {
           selectedMarker.set("approachType", approachType);
           approachType = null;
         }
@@ -1385,8 +1388,7 @@ function registerModalButtonEvents() {
       computingLane = false;
       computedLaneSource = null;
     }
-    approachID = null;
-    approachType = null;
+    rebuildApproaches([]);
   });
 
   $(".btnClone").click(() => {

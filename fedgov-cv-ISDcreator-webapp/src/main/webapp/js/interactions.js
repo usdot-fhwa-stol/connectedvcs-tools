@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -509,12 +509,28 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $("#approach_title").val(selectedBox.get("approach"));
       $("#attributes").show();
     }
-    
-    if (!selectedBox.get("approachType")) {
-      $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
-    } else {
-      $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
+    let approaches = selectedBox.get("approaches") || []; // Use default empty array if undefined
+
+    if (approaches.length === 0) { // Check if empty instead of undefined
+      let approachObject = [];
+      approachObject.push({
+        rowId: 0,
+        approachType: selectedBox.get("approachType"),
+        daySelection: null,
+        timePeriod: null,
+      });
+
+      approaches.push(approachObject);
     }
+
+    rebuildApproaches(approaches);
+    
+
+    // if (!selectedBox.get("approachType")) {
+    //   $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
+    // } else {
+    //   $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
+    // }
         
     if (!selectedBox.get("approachID")) {
       $('#approach_name .dropdown-toggle').html("Select an Approach ID <span class='caret'></span>");
