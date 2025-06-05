@@ -45,6 +45,12 @@ jobs:
             echo "Looking for jacoco.xml files..."
             find . -path "*/target/site/jacoco/jacoco.xml" -print
             
+        - name: Validate JaCoCo Coverage Reports
+          run: |
+            cd $GITHUB_WORKSPACE
+            cd /__w/connectedvcs-tools/connectedvcs-tools/
+            python3 validate_coverage.py
+
         - name: Archive generated Class files
           uses: actions/upload-artifact@v4 # Archive the generated class files after the build action used for deployment
           with:
