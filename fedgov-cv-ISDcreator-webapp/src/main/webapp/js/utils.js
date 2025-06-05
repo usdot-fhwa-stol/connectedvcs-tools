@@ -682,7 +682,7 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
     for (let set in valueSets) {
         if (valueSets.hasOwnProperty(set)) {
             if (set === 'approachType'){
-              $('#approach_type' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>')
+              $('#approachType' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>')
             } 
         }
     }

@@ -512,15 +512,12 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
     let approaches = selectedBox.get("approaches") || []; // Use default empty array if undefined
 
     if (approaches.length === 0) { // Check if empty instead of undefined
-      let approachObject = [];
-      approachObject.push({
+      approaches.push({
         rowId: 0,
         approachType: selectedBox.get("approachType"),
         daySelection: null,
         timePeriod: null,
       });
-
-      approaches.push(approachObject);
     }
 
     rebuildApproaches(approaches);
