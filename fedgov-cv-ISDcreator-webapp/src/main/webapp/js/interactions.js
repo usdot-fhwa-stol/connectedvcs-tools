@@ -517,6 +517,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
         approachType: selectedBox.get("approachType"),
         daySelection: null,
         timePeriod: null,
+        selected: true,
       });
     }
 

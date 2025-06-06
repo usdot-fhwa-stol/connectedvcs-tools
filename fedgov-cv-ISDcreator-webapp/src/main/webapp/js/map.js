@@ -39,7 +39,7 @@ let typeAttributeNameSaved = "";
 let sharedWith = [];
 let typeAttribute = [];
 let nodeLaneWidth = [];
-let signalPhase, stateConfidence, laneNum, laneType, approachType, intersectionID, approachID;
+let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID;
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
 let rowHtml;
@@ -398,7 +398,7 @@ function registerSelectInteraction() {
       
       if(event.selected?.length === 0){
         approachID = null;
-        approachType = null;
+        approaches = null;
       }
   });
   map.addInteraction(boxSelectInteraction);
@@ -858,14 +858,14 @@ function initMISC() {
    * Note: the ul/li select boxes should one da become select boxes with options, but the styling was hard to replicate
    * at first.
    */
-  $("#approach_type .dropdown-menu li a").click(function () {
-    let selText = $(this).text();
-    approachType = selText;
-    $(this)
-      .parents(".btn-group")
-      .find(".dropdown-toggle")
-      .html(selText + ' <span class="caret"></span>');
-  });
+  // $("#approach_type .dropdown-menu li a").click(function () {
+  //   let selText = $(this).text();
+  //   approachType = selText;
+  //   $(this)
+  //     .parents(".btn-group")
+  //     .find(".dropdown-toggle")
+  //     .html(selText + ' <span class="caret"></span>');
+  // });
 
   $("#phase .dropdown-menu li a").click(function () {
     let selText = $(this).text();
@@ -1165,6 +1165,7 @@ function registerModalButtonEvents() {
       sharedWith_object = updateSharedWith();
       typeAttribute_object = updateTypeAttributes(typeAttributeName);
       nodeObject = saveConnections(selectedMarker);
+      approachObject = saveApproaches(selectedMarker);
       
       sharedWith = [];
       for (let i = 0; i < sharedWith_object.length; i++) {
@@ -1283,11 +1284,7 @@ function registerModalButtonEvents() {
       if (selectedLayer.get("title") == "Stop Bar Layer") {
         if (approachObject != null) {
           selectedMarker.set("approaches", approachObject);
-        } else if (approachType != null) {
-          selectedMarker.set("approachType", approachType);
-          approachType = null;
         }
-
         if (approachID != null) {
           selectedMarker.set("approachID", approachID);
           approachID = null;

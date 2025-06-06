@@ -582,28 +582,25 @@ function populateAttributeWindow(lat, lon) {
 function saveApproaches(selectedMarker) {
   let approachObject = [];
   
-  for(let i = 1; i <= approachNumRows; i++) {
-    // Get approach type from dropdown
+  for(let i = 0; i <= approachNumRows; i++) {
     let approachType = $('#row' + i + ' .approach_type .dropdown-toggle').text().trim();
     if (approachType === 'Select an Approach Type') {
-      approachType = null; // or empty string if preferred
+      approachType = null;
     }
     
-    // Get day selection values
+    let isSelected = $('#row' + i + ' input[name="rowSelection"]').is(':checked');
+    
     let daySelection = [];
     $('#row' + i + ' .day_selection_dropdown option:selected').each(function() {
       daySelection.push($(this).val());
     });
     
-    // Get time period type
     let timePeriodType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
     
-    // Initialize time period data object
     let timePeriodData = {
       type: timePeriodType || null
     };
     
-    // Get additional time period data based on type
     if (timePeriodType === 'range') {
       timePeriodData.startDateTime = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
       timePeriodData.startOffset = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
@@ -613,28 +610,27 @@ function saveApproaches(selectedMarker) {
       timePeriodData.generalType = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val();
     }
     
-    // Build the approach object
     approachObject.push({
       rowId: i,
       approachType: approachType,
+      selected: isSelected,
       daySelection: daySelection,
       timePeriod: timePeriodData,
-      approachID: selectedMarker.get('approachID')
     });
   }
   
   return approachObject;
-}
+ }
 
 //Add rebuildApproaches
-function rebuildApproaches(approaches) {
+async function rebuildApproaches(approaches) {
   $('#tab_approaches > tbody').empty();
-  numRows = -1;
+  approachNumRows = -1;
   if (approaches === null || approaches === undefined || approaches.length < 1) {
-     addApproachRow(null, null);
+     await addApproachRow(null, null);
   } else {
     for(let i = 0; i < approaches.length; i++) {
-       addApproachRow(null, approaches[i]);
+      await addApproachRow(null, approaches[i]);
     }
   }
 }
@@ -647,9 +643,8 @@ async function addApproachRow(readOnly, valueSets) {
   approachNumRows++;
   changeApproachRow('New', approachNumRows, readOnly, valueSets);
 
-  if (approachNumRows === 0) {
-    $('input[name="rowSelection"][value="row0"]').prop('checked', true);
-  }
+  
+
   $.get("js/time-restrictions.html", function (data) {
       timeRestrictions = data;
       addApproachTimeRestrictions(approachNumRows, timeRestrictions);
@@ -659,9 +654,17 @@ async function addApproachRow(readOnly, valueSets) {
 }
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
+  let wasSelected = $('#row' + approachRowNum + ' input[name="rowSelection"]').is(':checked');
   $('#row' + approachRowNum).remove();
   for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
       changeApproachRow(i, i - 1, null, null);
+  }
+  
+  if (wasSelected) {
+    let firstRemainingRow = $('input[name="rowSelection"]').first();
+    if (firstRemainingRow.length > 0) {
+      firstRemainingRow.prop('checked', true);
+    }
   }
   approachNumRows--;
 }
@@ -673,20 +676,52 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
   $('#approachType' + oldVal).attr('id', 'approachType' + newVal);
   $('#approachTimeRestriction' + oldVal).attr('id', 'approachTimeRestriction' + newVal);
   $('#rowDeleteApproach' + oldVal).attr('id', 'rowDeleteApproach' + newVal);
+  
   if (readOnly && readOnly !== undefined) {
       for (let i = 0; i < readOnly.length; i++) {
           $('input[name="' + readOnly[i] + newVal + '"').prop('readonly', true);
       }
   }
+  
   if (valueSets && valueSets !== undefined) {
     for (let set in valueSets) {
         if (valueSets.hasOwnProperty(set)) {
             if (set === 'approachType'){
-              $('#approachType' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>')
-            } 
+              $('#approachType' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>');
+            } else if (set === 'selected') {
+              if (valueSets[set] === true) {
+                $('tr#row' + newVal + ' input[name="rowSelection"]').prop('checked', true);
+              }
+            } else if (set === 'daySelection') {
+              if (Array.isArray(valueSets[set])) {
+                setTimeout(() => {
+                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('deselectAll', false);
+                  valueSets[set].forEach(function(day) {
+                    $('#row' + newVal + ' .day_selection_dropdown').multiselect('select', day);
+                  });
+                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('refresh');
+                }, 100);
+              }
+            } else if (set === 'timePeriod') {
+              let timePeriod = valueSets[set];
+              if (timePeriod && timePeriod.type) {
+                setTimeout(() => {
+                  $('input[name="approach_time_period' + newVal + '"][value="' + timePeriod.type + '"]').prop('checked', true).trigger('change');
+                  
+                  if (timePeriod.type === 'range') {
+                    if (timePeriod.startDateTime) $('#approach_time_period_start_datetime' + newVal).val(timePeriod.startDateTime);
+                    if (timePeriod.startOffset) $('#approach_time_period_start_offset' + newVal).val(timePeriod.startOffset);
+                    if (timePeriod.endDateTime) $('#approach_time_period_end_datetime' + newVal).val(timePeriod.endDateTime);
+                    if (timePeriod.endOffset) $('#approach_time_period_end_offset' + newVal).val(timePeriod.endOffset);
+                  } else if (timePeriod.type === 'general' && timePeriod.generalType) {
+                    $('input[name="approach_time_period_general' + newVal + '"][value="' + timePeriod.generalType + '"]').prop('checked', true);
+                  }
+                }, 100);
+              }
+            }
         }
     }
-}
+  }
 }
 //Add populateApproachTypeDropdown
 
