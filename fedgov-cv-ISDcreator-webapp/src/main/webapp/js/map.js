@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes, rebuildApproaches } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes, rebuildApproaches } from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -990,6 +990,10 @@ function initMISC() {
       .attr("id")
       .replace(/^rowDelete/, "");
     deleteRow(id);
+  });
+
+  $(document).on('click change', 'input[name="rowSelection"]', function() {
+    updateDeleteButtonStates();
   });
 
   resetRGAStatus();

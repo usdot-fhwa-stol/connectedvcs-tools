@@ -631,8 +631,11 @@ async function rebuildApproaches(approaches) {
   } else {
     for(let i = 0; i < approaches.length; i++) {
       await addApproachRow(null, approaches[i]);
+      
     }
   }
+  setRGAStatus();
+  updateDeleteButtonStates();
 }
 //Add addApproachRow
 async function addApproachRow(readOnly, valueSets) {
@@ -649,22 +652,14 @@ async function addApproachRow(readOnly, valueSets) {
       timeRestrictions = data;
       addApproachTimeRestrictions(approachNumRows, timeRestrictions);
       updateApproachTimeRestrictionsHTML();
+      setRGAStatus();
   })
-  
 }
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
-  let wasSelected = $('#row' + approachRowNum + ' input[name="rowSelection"]').is(':checked');
   $('#row' + approachRowNum).remove();
   for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
       changeApproachRow(i, i - 1, null, null);
-  }
-  
-  if (wasSelected) {
-    let firstRemainingRow = $('input[name="rowSelection"]').first();
-    if (firstRemainingRow.length > 0) {
-      firstRemainingRow.prop('checked', true);
-    }
   }
   approachNumRows--;
 }
@@ -723,7 +718,19 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
     }
   }
 }
-//Add populateApproachTypeDropdown
+
+function updateDeleteButtonStates() {
+  $('input[name="rowSelection"]').each(function() {
+    let rowId = $(this).closest('tr').attr('id').replace('row', '');
+    let deleteButton = $('#rowDeleteApproach' + rowId);
+    
+    if ($(this).is(':checked')) {
+      deleteButton.prop('disabled', true).addClass('disabled');
+    } else {
+      deleteButton.prop('disabled', false).removeClass('disabled');
+    }
+  });
+}
 
 function saveConnections(selectedMarker) {
   let nodeObject = [];
@@ -1446,10 +1453,7 @@ function addLaneInfoTimeRestrictions(time_restrictions) {
 }
 
 function addApproachTimeRestrictions(rowNum, time_restrictions) {
-   // Create a jQuery object from the HTML string
   let approach_time_restrictions = $(time_restrictions).clone();
-  
-  // Update time restrictions with lane info specific identifiers for a specific row
   approach_time_restrictions.find('*').each(function() {
       if (this.id) {
           $(this).addClass("extra_rga_field_input");
@@ -1477,11 +1481,10 @@ function updateApproachTimeRestrictionsHTML(){
       time_24hr: true
   };
   
-  // Initialize flatpickr for new elements
+  
   startDateTimePicker.flatpickr(dateConfig);
   endDateTimePicker.flatpickr(dateConfig);
 
-  // Handle time period radio button changes (using event delegation)
   $(document).off('change', '.form-check-input.time_period').on('change', '.form-check-input.time_period', function () {
       let currentRow = $(this).closest('tr');
       currentRow.find('.time_period_range_fields').hide();
@@ -1494,7 +1497,6 @@ function updateApproachTimeRestrictionsHTML(){
       }
   });
 
-  // Initialize multiselect for day selection dropdowns
   $('.day_selection_dropdown').each(function() {
     if (!$(this).hasClass('multiselect')) {
       $(this).multiselect({
@@ -1746,5 +1748,6 @@ export {
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
   addLaneInfoTimeRestrictions,
-  addApproachTimeRestrictions
+  addApproachTimeRestrictions,
+  updateDeleteButtonStates
 }
