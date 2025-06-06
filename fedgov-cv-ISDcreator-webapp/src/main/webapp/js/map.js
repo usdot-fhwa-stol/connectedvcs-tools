@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes, rebuildApproaches } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -999,6 +999,16 @@ function initMISC() {
   resetRGAStatus();
   $("#rga_switch").on("click", () => {
     rgaEnabled = setRGAStatus();
+
+    //Disabled ""Passenger Vehicles Max Speed" oiption when it is selected even though RGA is enabled
+    if(rgaEnabled && isSpeedLimitTypePassengerVehicleMaxSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);      
+    }
+
+    //Disabled ""Passenger Vehicles Min Speed" option when it is selected even though RGA is enabled
+    if(rgaEnabled && isSpeedLimitTypePassengerVehicleMinSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    }
   });
 
   $("#road_authority_id").on("keyup", () => {
@@ -1034,6 +1044,9 @@ function initMISC() {
 
   $("#speedForm_add").click(function () {
     resetSpeedDropdowns(speedForm);
+    if(selectedMarker?.get("marker")?.name == "Reference Point Marker"){
+      hideRGAFieldsAssociatedToSpeedLimits();
+    }
   });
 
   $(".close.builder").click(() => {
