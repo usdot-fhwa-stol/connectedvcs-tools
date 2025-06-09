@@ -1,5 +1,7 @@
 
 let numRows = -1;
+let approachNumRows = -1;
+let timeRestrictions;
 let tmpLaneAttributes = {}
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
@@ -253,6 +255,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".descriptive_name").hide();
   $(".lane_type").hide();
   $(".approach_type").hide();
+  $("#approach-table").hide();
   $(".verified_lat").hide();
   $(".verified_long").hide();
   $(".verified_elev").hide();
@@ -297,6 +300,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
     $(".master_lane_width").hide();
     $(".intersection_name").hide();
     $(".approach_name").hide();
+    $("#approach-table").hide();
     $('.intersection-info-tab').hide();
     hideRGAFields(true);
     $('.road_authority_id').hide();
@@ -390,6 +394,11 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
      addSpeedForm(speedForm);
   } else {
      rebuildSpeedForm(speedForm, feature.get("speedLimitType"));
+  }
+
+   if(feature.get("marker").name == "Reference Point Marker"){    
+    //Hide RGA related fields in speed limit form
+    hideRGAFieldsAssociatedToSpeedLimits();
   }
 
   $("#attributes").show();
@@ -574,6 +583,159 @@ function populateAttributeWindow(lat, lon) {
 	$('#long').val(lon);
 }
 
+//Add saveApproach
+function saveApproaches(selectedMarker) {
+  let approachObject = [];
+  
+  for(let i = 0; i <= approachNumRows; i++) {
+    let approachType = $('#row' + i + ' .approach_type .dropdown-toggle').text().trim();
+    if (approachType === 'Select an Approach Type') {
+      approachType = null;
+    }
+    
+    let isSelected = $('#row' + i + ' input[name="rowSelection"]').is(':checked');
+    
+    let daySelection = [];
+    $('#row' + i + ' .day_selection_dropdown option:selected').each(function() {
+      daySelection.push($(this).val());
+    });
+    
+    let timePeriodType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    
+    let timePeriodData = {
+      type: timePeriodType || null
+    };
+    
+    if (timePeriodType === 'range') {
+      timePeriodData.startDateTime = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
+      timePeriodData.startOffset = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
+      timePeriodData.endDateTime = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
+      timePeriodData.endOffset = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+    } else if (timePeriodType === 'general') {
+      timePeriodData.generalType = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val();
+    }
+    
+    approachObject.push({
+      rowId: i,
+      approachType: approachType,
+      selected: isSelected,
+      daySelection: daySelection,
+      timePeriod: timePeriodData,
+    });
+  }
+  
+  return approachObject;
+ }
+
+//Add rebuildApproaches
+async function rebuildApproaches(approaches) {
+  $('#tab_approaches > tbody').empty();
+  approachNumRows = -1;
+  if (approaches === null || approaches === undefined || approaches.length < 1) {
+     await addApproachRow(null, null);
+  } else {
+    for(let i = 0; i < approaches.length; i++) {
+      await addApproachRow(null, approaches[i]);
+      
+    }
+  }
+  setRGAStatus();
+  updateDeleteButtonStates();
+}
+//Add addApproachRow
+async function addApproachRow(readOnly, valueSets) {
+  let rowHTML;
+  let response = await fetch("js/approachRow.html");
+  rowHTML = await response.text();
+  $('#tab_approaches tbody').append(rowHTML);
+  approachNumRows++;
+  changeApproachRow('New', approachNumRows, readOnly, valueSets);
+
+  
+
+  $.get("js/time-restrictions.html", function (data) {
+      timeRestrictions = data;
+      addApproachTimeRestrictions(approachNumRows, timeRestrictions);
+      updateApproachTimeRestrictionsHTML();
+      setRGAStatus();
+  })
+}
+//Add deleteApproachRow
+function deleteApproachRow(approachRowNum) {
+  $('#row' + approachRowNum).remove();
+  for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
+      changeApproachRow(i, i - 1, null, null);
+  }
+  approachNumRows--;
+}
+
+//Add changeApproachRow
+function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
+  $('#row' + oldVal).attr('id', 'row' + newVal);
+  $('#approachSelection' + oldVal).attr('id', 'approachSelection' + newVal);
+  $('#approachType' + oldVal).attr('id', 'approachType' + newVal);
+  $('#approachTimeRestriction' + oldVal).attr('id', 'approachTimeRestriction' + newVal);
+  $('#rowDeleteApproach' + oldVal).attr('id', 'rowDeleteApproach' + newVal);
+  
+  if (readOnly && readOnly !== undefined) {
+      for (let i = 0; i < readOnly.length; i++) {
+          $('input[name="' + readOnly[i] + newVal + '"').prop('readonly', true);
+      }
+  }
+  
+  if (valueSets && valueSets !== undefined) {
+    for (let set in valueSets) {
+        if (valueSets.hasOwnProperty(set)) {
+            if (set === 'approachType'){
+              $('#approachType' + newVal + ' .dropdown-toggle').html(valueSets[set]+'<span class="caret"></span>');
+            } else if (set === 'selected') {
+              if (valueSets[set] === true) {
+                $('tr#row' + newVal + ' input[name="rowSelection"]').prop('checked', true);
+              }
+            } else if (set === 'daySelection') {
+              if (Array.isArray(valueSets[set])) {
+                setTimeout(() => {
+                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('deselectAll', false);
+                  valueSets[set].forEach(function(day) {
+                    $('#row' + newVal + ' .day_selection_dropdown').multiselect('select', day);
+                  });
+                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('refresh');
+                }, 100);
+              }
+            } else if (set === 'timePeriod') {
+              let timePeriod = valueSets[set];
+              if (timePeriod && timePeriod.type) {
+                setTimeout(() => {
+                  $('input[name="approach_time_period' + newVal + '"][value="' + timePeriod.type + '"]').prop('checked', true).trigger('change');
+                  
+                  if (timePeriod.type === 'range') {
+                    if (timePeriod.startDateTime) $('#approach_time_period_start_datetime' + newVal).val(timePeriod.startDateTime);
+                    if (timePeriod.startOffset) $('#approach_time_period_start_offset' + newVal).val(timePeriod.startOffset);
+                    if (timePeriod.endDateTime) $('#approach_time_period_end_datetime' + newVal).val(timePeriod.endDateTime);
+                    if (timePeriod.endOffset) $('#approach_time_period_end_offset' + newVal).val(timePeriod.endOffset);
+                  } else if (timePeriod.type === 'general' && timePeriod.generalType) {
+                    $('input[name="approach_time_period_general' + newVal + '"][value="' + timePeriod.generalType + '"]').prop('checked', true);
+                  }
+                }, 100);
+              }
+            }
+        }
+    }
+  }
+}
+
+function updateDeleteButtonStates() {
+  $('input[name="rowSelection"]').each(function() {
+    let rowId = $(this).closest('tr').attr('id').replace('row', '');
+    let deleteButton = $('#rowDeleteApproach' + rowId);
+    
+    if ($(this).is(':checked')) {
+      deleteButton.prop('disabled', true).addClass('disabled');
+    } else {
+      deleteButton.prop('disabled', false).removeClass('disabled');
+    }
+  });
+}
 
 function saveConnections(selectedMarker) {
   let nodeObject = [];
@@ -594,6 +756,7 @@ function saveConnections(selectedMarker) {
   }
   return nodeObject;
 }
+
 
 function rebuildConnections(connections) {
   //TODO clear if empty rows
@@ -1048,6 +1211,10 @@ function removeSpeedForm(speedForm) {
 
 function addSpeedForm(speedForm) {
     speedForm.addForm();
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits    
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
 }
 
 function rebuildSpeedForm(speedForm, speedLimitArray) {
@@ -1060,6 +1227,7 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
             {'velocity': speedLimitArray[i].velocity}
         );
         $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType)
+        $(`input[name="speedForm_${i}_speedLimitChoice"][value="${speedLimitArray[i].speedLimitChoice}"]`).prop('checked', true);
     }
     resetSpeedDropdowns(speedForm);
 }
@@ -1070,7 +1238,8 @@ function saveSpeedForm(speedForm) {
     for (let i = 0; i < forms; i++) {
       tmpSpeedLimits.push({
             speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-            velocity: $("#speedForm_" + i + "_velocity").val()
+            velocity: $("#speedForm_" + i + "_velocity").val(),
+            speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val()
         });
     }
     removeSpeedForm(speedForm);
@@ -1083,6 +1252,11 @@ function resetSpeedDropdowns(speedForm){
             $(this).prop('disabled', false);
         }
     });
+    //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits
+    if(!$('#rga_switch').is(":checked")){
+      disableRGAFieldsAssociatedToSpeedLimits();
+    }
+
     let forms = (speedForm.getForms()).length;
     for (let i = 0; i < forms; i++) {
         let current = $("#speedForm_"+ i + "_speedLimitType option:selected").text();
@@ -1294,6 +1468,137 @@ function addLaneInfoTimeRestrictions(time_restrictions) {
   $(".lane_info_time_restrictions").html(lane_info_time_restrictions.html());
 }
 
+function addApproachTimeRestrictions(rowNum, time_restrictions) {  
+  let approach_time_restrictions = $(time_restrictions).clone();
+  approach_time_restrictions.find('*').each(function() {
+      if (this.id) {
+          $(this).addClass("extra_rga_field_input");
+          $(this).attr('id', "approach_" + this.id + rowNum);
+      }
+      if (this.name) {
+          $(this).attr('name', "approach_" + this.name + rowNum);
+      }
+  });
+  
+  $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
+}
+
+function updateApproachTimeRestrictionsHTML(){
+  let startDateTimePicker = $('.start_datetime_picker');
+  let endDateTimePicker = $('.end_datetime_picker');
+  let dateConfig = {
+      dateFormat: "Y-m-d H:i:S",
+      allowInput: true,        
+      enableTime: true,
+      enableSeconds: true,
+      minuteIncrement: 1,
+      secondIncrement: 1,
+      time_24hr: true
+  };
+  
+  
+  startDateTimePicker.flatpickr(dateConfig);
+  endDateTimePicker.flatpickr(dateConfig);
+
+  $(document).off('change', '.form-check-input.time_period').on('change', '.form-check-input.time_period', function () {
+      let currentRow = $(this).closest('tr');
+      currentRow.find('.time_period_range_fields').hide();
+      currentRow.find('.time_period_general_fields').hide();
+      
+      if ($(this).val() === 'range') {
+          currentRow.find('.time_period_range_fields').show();
+      } else if ($(this).val() === 'general') {
+          currentRow.find('.time_period_general_fields').show();
+      }
+  });
+
+  $('.day_selection_dropdown').each(function() {
+    if (!$(this).hasClass('multiselect')) {
+      $(this).multiselect({
+          maxHeight: 200,        
+          onChange: function(option, checked, select) {
+              let currentDropdown = $(select);
+              let currentRow = currentDropdown.closest('tr');
+              
+              if ($(option).val() === '0' && checked) {
+                  currentRow.find('.day_selection input').each(function() {
+                      if ($(this).val() !== '0') {
+                          $(this).prop('disabled', true);
+                          $(this).prop('checked', false).trigger('change');
+                          $(this).parents('a').first().css({ 'color': 'grey' });
+                          $(this).parents('li').first().removeClass('active');
+                      }
+                  });
+              } else {
+                  let isAllSelected = false;
+                  currentRow.find('.day_selection input').each(function () {
+                      if ($(this).val() === '0' && $(this).prop('checked')) {
+                          isAllSelected = true;
+                      }
+                  });
+                  currentRow.find('.day_selection input').each(function () {
+                      if (isAllSelected) {
+                          if ($(this).val() !== '0') {
+                              $(this).prop('disabled', true);
+                              $(this).parents('a').first().css({ 'color': 'grey' });
+                              $(this).parents('li').first().removeClass('active');
+                          }
+                      } else {
+                          $(this).prop('disabled', false);
+                          $(this).parents('a').first().css({ 'color': 'black' });
+                      }
+                  });
+              }
+          },
+          buttonText: function (options, select) {
+              if (options.length === 0) {
+                  let currentRow = $(select).closest('tr');
+                  currentRow.find('.day_selection input').each(function () {
+                      $(this).prop('disabled', false);
+                      $(this).parents('a').first().css({ 'color': 'black' });
+                  });
+                  return 'Select Day Of The Week';
+              } else if (options.length > 1) {                
+                  return options.length + ' selected';
+              } else {
+                  let labels = [];
+                  options.each(function () {                    
+                      if ($(this).attr('label') !== undefined) {
+                          labels.push($(this).attr('label'));
+                      } else {
+                          labels.push($(this).html());
+                      }
+                      let value = $(this).val();
+                      if (value === "0") {
+                          let currentRow = $(select).closest('tr');
+                          currentRow.find('.day_selection input').each(function () {
+                              if ($(this).val() !== "0") {
+                                  $(this).prop('disabled', true);
+                                  $(this).parents('a').first().css({ 'color': 'grey' });
+                              }
+                          });
+                      }                    
+                  });
+                  return labels.join(', ') + '';
+              }
+          }
+      });
+    }
+  });
+  
+  // Help modal functionality
+  $('.fa-question-circle').off('click').on('click', function(){
+      let tag = $(this).attr('tag');
+      let obj = $.grep(help_notes, function(e){ return e.value === tag; });
+      $('#help_modal').modal('show');
+      $('#min').html(obj[0].min);
+      $('#max').html(obj[0].max);
+      $('#units').html(obj[0].units);
+      $('#description').html(obj[0].description);
+      $('#help_modal h4').html(obj[0].title);
+  });
+}
+
 /**
 * @brief function to update the time restriction HTML.
 */
@@ -1403,6 +1708,53 @@ function updateTimeRestrictionsHTML(){
   });
 }
 
+/**
+ * @brief Disables RGA fields associated with speed limits
+ */
+function disableRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='advisory']").prop('disabled', true);
+}
+
+/**
+ * @brief Hides RGA fields associated with speed limits
+ * @details This function hides the speed limit type options for Passenger Vehicles Max Speed and Min Speed, and hides speed limit choices
+ */
+function hideRGAFieldsAssociatedToSpeedLimits(){
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").hide();
+    $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").hide();
+    $(".speed_limit_choice").hide();
+    $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='regulatory']").prop('checked', false);
+}
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Max Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Max Speed, false otherwise
+ */
+function isSpeedLimitTypePassengerVehicleMaxSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
+
+/***
+ * @brief Check if the selected speed limit type is Passenger Vehicles Min Speed
+ * @return {boolean} true if selected speed limit type is Passenger Vehicles Min Speed, false otherwise
+ */
+function isSpeedLimitTypePassengerVehicleMinSpeedSelected(){
+  let isChecked = false;
+  $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").each(function() {
+    if ($(this).is(":selected")) {
+      isChecked = true;
+    }
+  });
+  return isChecked;
+}
 export {
   getCookie,
   isOdd,
@@ -1428,18 +1780,22 @@ export {
   updateDisplayedLaneAttributes,
   removeLaneAttributes,
   rebuildConnections,
+  rebuildApproaches,
   makeDraggable,
   makeDroppable,
   setLaneAttributes,
   saveConnections,
+  saveApproaches,
   addSpeedForm,
   resetSpeedDropdowns,
   saveSpeedForm,
   rebuildSpeedForm,
   unselectFeature,
   removeSpeedForm,
+  addApproachRow,
   addRow,
   deleteRow,
+  deleteApproachRow,
   resetLaneAttributes,
   onMappedGeomIdChangeCallback,
   onRegionIdChangeCallback,
@@ -1453,6 +1809,11 @@ export {
   updateLaneInfoDaySelection,
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
-  addLaneInfoTimeRestrictions
-  
+  addLaneInfoTimeRestrictions,
+  addApproachTimeRestrictions,
+  updateDeleteButtonStates,
+  disableRGAFieldsAssociatedToSpeedLimits,
+  isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
+  isSpeedLimitTypePassengerVehicleMinSpeedSelected,
+  hideRGAFieldsAssociatedToSpeedLimits
 }

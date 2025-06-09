@@ -112,7 +112,7 @@ jobs:
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target,\
-               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
+              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target

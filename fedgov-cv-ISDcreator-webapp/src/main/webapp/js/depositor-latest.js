@@ -364,7 +364,7 @@ function createMessageJSON()
         };
 
         if (approachArray[i].approachType === undefined) {
-            incompleteApproaches.push(drivingLaneArray[0].laneID);
+            incompleteApproaches.push(drivingLaneArray.length>0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
         }
@@ -416,7 +416,7 @@ function createMessageJSON()
 
         if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
             let messageType = $('#message_type').val();
-            if (messageType === "Frame+RGA") {
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
                     $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');

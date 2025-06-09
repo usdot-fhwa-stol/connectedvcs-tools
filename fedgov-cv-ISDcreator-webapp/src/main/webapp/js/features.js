@@ -254,6 +254,7 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 			$(".verified_long").hide();
 			$(".verified_elev").hide();
 			$(".approach_type").hide();
+			$("#approach-table").hide();
 			$(".intersection").hide();
 			$(".region").hide();
 			hideRGAFields(true);

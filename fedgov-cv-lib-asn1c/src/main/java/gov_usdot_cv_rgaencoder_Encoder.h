@@ -17,6 +17,7 @@
 #include <jni.h>
 #include "LaneConstructorType.h" 
 #include "NodeXYZOffsetValue.h" 
+#include "IndividualWayConnections.h" 
 /* Header for class gov_usdot_cv_lib_asn1c_RGAMessage*/
 
 #ifndef _Included_gov_usdot_cv_lib_asn1c_RGAMessage
@@ -30,6 +31,15 @@ extern "C" {
 #define MOTOR_VEHICLE_LANE_GEOMETRY_LAYER_ID 2
 #define BICYCLE_LANE_GEOMETRY_LAYER_ID 3
 #define CROSSWALK_LANE_GEOMETRY_LAYER_ID 4
+
+// Constants for Movements Layer IDs
+#define MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID 1
+#define MTR_VEH_LANE_CONNECTIONS_LAYER_ID 2
+#define BIKE_LANE_CONNECTIONS__LAYER_ID 4
+
+// Constants for NodeSetNode Choice
+#define FIRST_NODE 0
+#define LAST_NODE 1
 
 // Constants for LaneConstructorType Choice
 #define PHYSICAL_NODE 1
@@ -56,7 +66,7 @@ extern "C" {
  * @return jbyteArray - Encoded ASN.1 message as a Java byte array, or NULL if encoding fails
  */
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA
-  (JNIEnv *, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject, jobject);
 
 /*
  * Method to populate a LaneConstructorType_t structure from corresponding Java object
@@ -73,6 +83,15 @@ void populateLaneConstructorType(JNIEnv *env, jobject laneConstructorTypeObj, La
  * @param offsetValue Pointer to the C structure
  */
 void populateNodeXYZOffsetValue(JNIEnv *env, jobject offsetValueObj, NodeXYZOffsetValue_t *offsetValue);
+
+/**
+ * Method to populate a IndividualWayConnections_t structure from corresponding Java object
+ * @param env JNI environment pointer.
+ * @param wayConnObj Java object containing IndividualWayConnection value data.
+ * @param indWayCnxn Pointer to the C structure
+ */
+void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, IndividualWayConnections_t *indWayCnxn); 
+
 
 #ifdef __cplusplus
 }
