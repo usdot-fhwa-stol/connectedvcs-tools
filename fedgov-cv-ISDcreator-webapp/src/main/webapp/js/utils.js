@@ -1468,7 +1468,7 @@ function addLaneInfoTimeRestrictions(time_restrictions) {
   $(".lane_info_time_restrictions").html(lane_info_time_restrictions.html());
 }
 
-function addApproachTimeRestrictions(rowNum, time_restrictions) {
+function addApproachTimeRestrictions(rowNum, time_restrictions) {  
   let approach_time_restrictions = $(time_restrictions).clone();
   approach_time_restrictions.find('*').each(function() {
       if (this.id) {
@@ -1480,8 +1480,7 @@ function addApproachTimeRestrictions(rowNum, time_restrictions) {
       }
   });
   
-  // Target the specific row's time restrictions container
-  $("#row" + rowNum + " .approach_time_restrictions").html(approach_time_restrictions);
+  $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
 }
 
 function updateApproachTimeRestrictionsHTML(){
