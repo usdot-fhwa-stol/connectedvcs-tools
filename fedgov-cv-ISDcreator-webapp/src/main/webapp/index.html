@@ -202,8 +202,55 @@
                         </ul>
                     </div>
                     <div class="panel-body">
+
+					<div class="row approach_name">
+					<div class="col-sm-4"><label for="approach_name">Approach ID:</label></div>
+					<div class="col-sm-7"><div id="approach_name" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach ID <span class="caret"></span></a>
+						<ul class="dropdown-menu scrollable-menu" role="menu">
+							<li><a href="#">01</a></li>
+							<li><a href="#">02</a></li>
+							<li><a href="#">03</a></li>
+							<li><a href="#">04</a></li>
+							<li><a href="#">05</a></li>
+							<li><a href="#">06</a></li>
+							<li><a href="#">07</a></li>
+							<li><a href="#">08</a></li>
+							<li><a href="#">09</a></li>
+							<li><a href="#">10</a></li>
+							<li><a href="#">11</a></li>
+							<li><a href="#">12</a></li>
+							<li><a href="#">13</a></li>
+							<li><a href="#">14</a></li>
+							<li><a href="#">15</a></li>
+						</ul>
+					</div></div>
+					<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_id"></i></div>
+					</div>
+
+					<div id="approach-table" class="panel-body approach-table">
+						<div class="row clearfix">
+							<div class="col-md-12 column">
+								<form id="approach_nodes">
+									<table class="table table-bordered table-hover" id="tab_approaches">
+										<thead>
+											<tr>
+												<th class="text-center"></th>
+												<th class="text-center">Approach Type</th>
+												<th class="text-center">Time Restrictions</th>
+												<th class="text-center">
+													<a id="add_approach_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</form>
+							</div>
+						</div>
+					</div> 	
                     
-                     <div class="row approach_type">
+                     <!-- <div class="row approach_type">
                    		<div class="col-sm-4"><label for="approach_type">Approach Type:</label></div>
                         <div class="col-sm-7"><div id="approach_type" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach Type <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -214,7 +261,7 @@
                             </ul>
                         </div></div>
                         <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_type"></i></div>
-                     </div>
+                     </div> -->
                      
 					<div class="row descriptive_name" data-toggle="tooltip" title="Short Descriptive Name">
 					  <div class="col-sm-4"><label for="descriptive_name">Descriptive Name:</label></div>
@@ -356,29 +403,6 @@
                             <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_number"></i></div>
                          </div>
                             
-                            <div class="row approach_name">
-							  <div class="col-sm-4"><label for="approach_name">Approach ID:</label></div>
-							  <div class="col-sm-7"><div id="approach_name" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach ID <span class="caret"></span></a>
-                                <ul class="dropdown-menu scrollable-menu" role="menu">
-                                    <li><a href="#">01</a></li>
-                                    <li><a href="#">02</a></li>
-                                    <li><a href="#">03</a></li>
-                                    <li><a href="#">04</a></li>
-                                    <li><a href="#">05</a></li>
-                                    <li><a href="#">06</a></li>
-                                    <li><a href="#">07</a></li>
-                                    <li><a href="#">08</a></li>
-                                    <li><a href="#">09</a></li>
-                                    <li><a href="#">10</a></li>
-                                    <li><a href="#">11</a></li>
-                                    <li><a href="#">12</a></li>
-                                    <li><a href="#">13</a></li>
-                                    <li><a href="#">14</a></li>
-                                    <li><a href="#">15</a></li>
-                                </ul>
-                              </div></div>
-							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_id"></i></div>
-							</div>
 							<div class="row intersection_name">
 							  <div class="col-sm-4"><label for="intersection_name">Intersection Name:</label></div>
 							  <div class="col-sm-7"><input type="text" class="form-control" id="intersection_name"></div>
@@ -742,6 +766,7 @@
 
                </div>
             </div>
+
             <div class="tab-pane" id="connection-tab">
             	<div class="panel-body">
             		<div class="row clearfix">
