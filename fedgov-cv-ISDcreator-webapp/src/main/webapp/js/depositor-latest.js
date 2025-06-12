@@ -206,8 +206,8 @@ function createMessageJSON()
                 dfRGALaneTimeRestrictions["timeRestrictions"] = {
                     "daysOfTheWeek": laneFeat[j].get('laneInfoDaySelection'),
                     "timePeriodType": laneFeat[j].get('laneInfoTimePeriodType'),
-                    "laneInfoTimePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
-                    "laneInfoTimePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
+                    "timePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
+                    "timePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
                 };
             }
             if (inside && laneFeat[j].get('laneType') != "Crosswalk"){
@@ -355,18 +355,99 @@ function createMessageJSON()
             computedLane = "";
         }
 
-        approachArray[i] = {
-            "approachType": stopFeat[i].get('approachType'),
-            "approachID": stopFeat[i].get('approachID'),
-            "descriptiveName": stopFeat[i].get('approachName'),
-            "speedLimit": stopFeat[i].get('speedLimit'),
-            "drivingLanes": drivingLaneArray
-        };
+        let approaches = stopFeat[i].get('approaches');
+        let approachType = stopFeat[i].get('approachType');
 
-        if (approachArray[i].approachType === undefined) {
-            incompleteApproaches.push(drivingLaneArray.length>0 ? drivingLaneArray[0]?.laneID : "NA");
+        if (rgaEnabled) {
+            if (approaches !== undefined) {
+                // Case 1: rgaEnabled = true, approaches exists
+                approachArray[i] = {
+                    "approachID": stopFeat[i].get('approachID'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray,
+                    "approachTypes": approaches
+                };
+            } else {
+                // Case 2: rgaEnabled = true, approaches undefined
+                let existingApproachType = stopFeat[i].get('approachType');
+                if (existingApproachType !== undefined) {
+                    // Dynamically create approaches array
+                    approaches = [{
+                        rowId: 0,
+                        approachType: existingApproachType,
+                        selected: true,
+                        timeRestrictions: {
+                            daysOfTheWeek: [],
+                            timePeriodType: "",
+                            timePeriodValue: "",
+                            timePeriodRange: {}
+                        }
+                    }];
+                    
+                    approachArray[i] = {
+                        "approachID": stopFeat[i].get('approachID'),
+                        "descriptiveName": stopFeat[i].get('approachName'),
+                        "speedLimit": stopFeat[i].get('speedLimit'),
+                        "drivingLanes": drivingLaneArray,
+                        "approachTypes": approaches
+                    };
+                } else {
+                    // Neither approaches nor approachType exist
+                    approachArray[i] = {
+                        "approachID": stopFeat[i].get('approachID'),
+                        "descriptiveName": stopFeat[i].get('approachName'),
+                        "speedLimit": stopFeat[i].get('speedLimit'),
+                        "drivingLanes": drivingLaneArray,
+                        "approachTypes": undefined
+                    };
+                    approachType = undefined;
+                }
+            }
+        } else {
+            // rgaEnabled = false
+            if (approaches !== undefined) {
+                // Case 1: rgaEnabled = false, approaches exists
+                let selectedApproach = approaches.find(approach => approach.selected === true);
+                approachType = selectedApproach ? selectedApproach.approachType : undefined;
+                
+                approachArray[i] = {
+                    "approachType": approachType,
+                    "approachID": stopFeat[i].get('approachID'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray
+                };
+            } else {
+                // Case 2: rgaEnabled = false, approaches undefined - use original logic
+                approachType = stopFeat[i].get('approachType');
+                
+                approachArray[i] = {
+                    "approachType": approachType,
+                    "approachID": stopFeat[i].get('approachID'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray
+                };
+            }
+        }
+
+        // Validation logic - check approachType for rgaEnabled=false or approaches for rgaEnabled=true
+        let hasValidApproach;
+        if (rgaEnabled) {
+            // For rgaEnabled = true, check if approaches array exists and has valid approachType
+            hasValidApproach = approachArray[i].approachTypes !== undefined && 
+                            approachArray[i].approachTypes.length > 0 &&
+                            approachArray[i].approachTypes.some(approach => approach.approachType !== undefined);
+        } else {
+            // For rgaEnabled = false, check if approachType is defined in approachArray[i]
+            hasValidApproach = approachArray[i].approachType !== undefined;
+        }
+
+        if (!hasValidApproach) {
+            incompleteApproaches.push(drivingLaneArray.length > 0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
+            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." + '</span></div>');
         }
 
         drivingLaneArray = [];

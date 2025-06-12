@@ -515,9 +515,13 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       approaches.push({
         rowId: 0,
         approachType: selectedBox.get("approachType"),
-        daySelection: null,
-        timePeriod: null,
         selected: true,
+        timeRestrictions: {
+          daysOfTheWeek: [],
+          timePeriodType: "",
+          timePeriodValue: "",
+          timePeriodRange: {}
+        }
       });
     }
 
