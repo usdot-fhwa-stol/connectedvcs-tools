@@ -590,7 +590,7 @@ function saveApproaches(selectedMarker) {
   for(let i = 0; i <= approachNumRows; i++) {
     let approachType = $('#row' + i + ' .approach_type .dropdown-toggle').text().trim();
     if (approachType === 'Select') {
-      approachType = null;
+      approachType = 'Select';
     }
     
     let isSelected = $('#row' + i + ' input[name="rowSelection"]').is(':checked');
@@ -605,7 +605,7 @@ function saveApproaches(selectedMarker) {
     let timePeriodRange = {};
 
     let selectedType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
-    timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "none";
+    timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};

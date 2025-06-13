@@ -432,22 +432,45 @@ function createMessageJSON()
             }
         }
 
-        // Validation logic - check approachType for rgaEnabled=false or approaches for rgaEnabled=true
         let hasValidApproach;
+        let missingRowIds = []; // Array to store rowIds of missing approach types
+
         if (rgaEnabled) {
             // For rgaEnabled = true, check if approaches array exists and has valid approachType
-            hasValidApproach = approachArray[i].approachTypes !== undefined && 
+            hasValidApproach = approachArray[i].approachTypes !== undefined &&
                             approachArray[i].approachTypes.length > 0 &&
-                            approachArray[i].approachTypes.some(approach => approach.approachType !== undefined);
+                            approachArray[i].approachTypes.every(approach => approach.approachType !== undefined && approach.approachType !== "Select" &&
+                                approach.approachType !== "undefined");
+            
+            // Find missing rowIds for approaches with undefined approachType
+            if (approachArray[i].approachTypes !== undefined && Array.isArray(approachArray[i].approachTypes)) {
+                approachArray[i].approachTypes.forEach(approach => {
+                    if (approach.approachType === undefined || approach.approachType === null || approach.approachType === "" || approach.approachType === "Select" || approach.approachType === "undefined") {
+                        missingRowIds.push(approach.rowId);
+                    }
+                });
+            }
         } else {
             // For rgaEnabled = false, check if approachType is defined in approachArray[i]
-            hasValidApproach = approachArray[i].approachType !== undefined;
+            hasValidApproach = approachArray[i].approachType !== undefined && 
+                                approachArray[i].approachType !== "Select" && 
+                                approachArray[i].approachType !== "undefined";
         }
 
         if (!hasValidApproach) {
             incompleteApproaches.push(drivingLaneArray.length > 0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." + '</span></div>');
+            
+            if (rgaEnabled) {
+                // Include rowIds in the alert message when rgaEnabled is true
+                let alertMessage = "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + ".";
+                if (missingRowIds.length > 0) {
+                    alertMessage += " Missing Approach Type rowID(s): " + missingRowIds.join(", ") + ".";
+                }
+                $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + alertMessage + '</span></div>');
+            } else {
+                $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." + '</span></div>');
+            }
         }
 
         drivingLaneArray = [];
