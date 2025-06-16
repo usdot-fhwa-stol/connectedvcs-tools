@@ -320,9 +320,24 @@ public class IntersectionInputData {
 		public String laneDirection;
 		public DrivingLane[] drivingLanes;
 		public CrosswalkLane[] crosswalkLanes;
+		public ApproachTypeRow[] approachTypes;
 		
 		public Approach() {
 			super();
+		}
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class ApproachTypeRow {
+		public int rowId;
+		public String approachType;
+		public String selected;
+		public TimeRestrictions timeRestrictions;
+		
+		@Override
+		public String toString() {
+			return "ApproachTypeRow [rowId=" + rowId + ", approachType=" + approachType + ", selected=" + selected
+					+ ", timeRestrictions=" + timeRestrictions + "]";
 		}
 	}
 	
@@ -362,19 +377,19 @@ public class IntersectionInputData {
 	public static class TimeRestrictions {
 		public int[] daysOfTheWeek;
 		public String timePeriodType;
-		public String laneInfoTimePeriodValue;
-		public LaneInfoTimePeriodRange laneInfoTimePeriodRange;
+		public String timePeriodValue;
+		public TimePeriodRange timePeriodRange;
 		
 		@Override
 		public String toString() {
 			return "TimeRestrictions [daysOfTheWeek=" + Arrays.toString(daysOfTheWeek) + ", timePeriodType="
-					+ timePeriodType + ", laneInfoTimePeriodValue=" + laneInfoTimePeriodValue
-					+ ", laneInfoTimePeriodRange=" + laneInfoTimePeriodRange + "]";
+					+ timePeriodType + ", timePeriodValue=" + timePeriodValue
+					+ ", timePeriodRange=" + timePeriodRange + "]";
 		}
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class LaneInfoTimePeriodRange {
+	public static class TimePeriodRange {
 		public String startDatetime;
 		public int startOffset;
 		public String endDatetime;
