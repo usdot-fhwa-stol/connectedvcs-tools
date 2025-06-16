@@ -636,47 +636,49 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 						jmethodID getDirectionsOfTravelSetMethod = (*env)->GetMethodID(env, individualWayDirectionsOfTravelClass, "getDirectionsOfTravelSet", "()Ljava/util/List;");
 						jobject directionsOfTravelSetList = (*env)->CallObjectMethod(env, individualWayDirectionsOfTravelObj, getDirectionsOfTravelSetMethod); // this is a list
 
-						jclass directionsOfTravelSetClass = (*env)->GetObjectClass(env, directionsOfTravelSetList);
-						jmethodID directionsOfTravelSetSizeMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "size", "()I");
-						jmethodID directionsOfTravelSetGetMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "get", "(I)Ljava/lang/Object;");
-
-						jint directionsOfTravelSetSize = (*env)->CallIntMethod(env, directionsOfTravelSetList, directionsOfTravelSetSizeMethod);
-
-						for (jint dIndex = 0; dIndex < directionsOfTravelSetSize; dIndex++)
-						{
-							jobject wayDirectionOfTravelInfoObj = (*env)->CallObjectMethod(env, directionsOfTravelSetList, directionsOfTravelSetGetMethod, dIndex);
-							jclass wayDirectionOfTravelInfoClass = (*env)->GetObjectClass(env, wayDirectionOfTravelInfoObj);
-
-							jmethodID getWayNodeDirectionOfTravelMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getWayNodeDirectionOfTravel", "()S");
-							jshort wayNodeDirectionOfTravelShort = (*env)->CallShortMethod(env, wayDirectionOfTravelInfoObj, getWayNodeDirectionOfTravelMethod);
-
-							WayDirectionOfTravelInfo_t *wayDirectionOfTravelInfo = calloc(1, sizeof(WayDirectionOfTravelInfo_t));
-
-							WayNodeDirOfTravel_t wayNodeDirOfTravel;
-							wayNodeDirOfTravel.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
-							*wayNodeDirOfTravel.buf = (uint8_t)wayNodeDirectionOfTravelShort;
-							wayNodeDirOfTravel.size = 1;
-							wayNodeDirOfTravel.bits_unused = 6;
-
-							wayDirectionOfTravelInfo->wayNodeDirectionOfTravel = wayNodeDirOfTravel;
-
-							// Check to see if timeRestrictions in WayDirectionOfTravelInfo exists
-							jmethodID getWayDirectionOfTravelInfoTimeRestrictionsMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
-							jobject wayDirectionOfTravelInfoTimeRestrictionsObj = (*env)->CallObjectMethod(env, wayDirectionOfTravelInfoObj, getWayDirectionOfTravelInfoTimeRestrictionsMethod);
-
-							if (wayDirectionOfTravelInfoTimeRestrictionsObj != NULL)
+						if (directionsOfTravelSetList != NULL) {
+							jclass directionsOfTravelSetClass = (*env)->GetObjectClass(env, directionsOfTravelSetList);
+							jmethodID directionsOfTravelSetSizeMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "size", "()I");
+							jmethodID directionsOfTravelSetGetMethod = (*env)->GetMethodID(env, directionsOfTravelSetClass, "get", "(I)Ljava/lang/Object;");
+	
+							jint directionsOfTravelSetSize = (*env)->CallIntMethod(env, directionsOfTravelSetList, directionsOfTravelSetSizeMethod);
+	
+							for (jint dIndex = 0; dIndex < directionsOfTravelSetSize; dIndex++)
 							{
-								RGATimeRestrictions_t *wayDirectionOfTravelInfoTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
-								populateTimeRestrictions(env, wayDirectionOfTravelInfoTimeRestrictionsObj, wayDirectionOfTravelInfoTimeRestrictions);
-								wayDirectionOfTravelInfo->timeRestrictions = wayDirectionOfTravelInfoTimeRestrictions;
-							}
-							else
-							{
-								wayDirectionOfTravelInfo->timeRestrictions = NULL;
-							}
-							ASN_SEQUENCE_ADD(&indWayDirOfTravel->directionsOfTravelSet.list, wayDirectionOfTravelInfo);
-						} // dIndex for loop ends
-						ASN_SEQUENCE_ADD(&mtrVehLaneDirectionOfTravelLayer->laneDirOfTravelLaneSet.list, indWayDirOfTravel);
+								jobject wayDirectionOfTravelInfoObj = (*env)->CallObjectMethod(env, directionsOfTravelSetList, directionsOfTravelSetGetMethod, dIndex);
+								jclass wayDirectionOfTravelInfoClass = (*env)->GetObjectClass(env, wayDirectionOfTravelInfoObj);
+	
+								jmethodID getWayNodeDirectionOfTravelMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getWayNodeDirectionOfTravel", "()S");
+								jshort wayNodeDirectionOfTravelShort = (*env)->CallShortMethod(env, wayDirectionOfTravelInfoObj, getWayNodeDirectionOfTravelMethod);
+	
+								WayDirectionOfTravelInfo_t *wayDirectionOfTravelInfo = calloc(1, sizeof(WayDirectionOfTravelInfo_t));
+	
+								WayNodeDirOfTravel_t wayNodeDirOfTravel;
+								wayNodeDirOfTravel.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
+								*wayNodeDirOfTravel.buf = (uint8_t)wayNodeDirectionOfTravelShort;
+								wayNodeDirOfTravel.size = 1;
+								wayNodeDirOfTravel.bits_unused = 6;
+	
+								wayDirectionOfTravelInfo->wayNodeDirectionOfTravel = wayNodeDirOfTravel;
+	
+								// Check to see if timeRestrictions in WayDirectionOfTravelInfo exists
+								jmethodID getWayDirectionOfTravelInfoTimeRestrictionsMethod = (*env)->GetMethodID(env, wayDirectionOfTravelInfoClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
+								jobject wayDirectionOfTravelInfoTimeRestrictionsObj = (*env)->CallObjectMethod(env, wayDirectionOfTravelInfoObj, getWayDirectionOfTravelInfoTimeRestrictionsMethod);
+	
+								if (wayDirectionOfTravelInfoTimeRestrictionsObj != NULL)
+								{
+									RGATimeRestrictions_t *wayDirectionOfTravelInfoTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
+									populateTimeRestrictions(env, wayDirectionOfTravelInfoTimeRestrictionsObj, wayDirectionOfTravelInfoTimeRestrictions);
+									wayDirectionOfTravelInfo->timeRestrictions = wayDirectionOfTravelInfoTimeRestrictions;
+								}
+								else
+								{
+									wayDirectionOfTravelInfo->timeRestrictions = NULL;
+								}
+								ASN_SEQUENCE_ADD(&indWayDirOfTravel->directionsOfTravelSet.list, wayDirectionOfTravelInfo);
+							} // dIndex for loop ends
+							ASN_SEQUENCE_ADD(&mtrVehLaneDirectionOfTravelLayer->laneDirOfTravelLaneSet.list, indWayDirOfTravel);
+						}
 					} // lIndex for loops ends
 					movementsLayer->movementsContainer_Value.choice.MtrVehLaneDirectionOfTravelLayer = *mtrVehLaneDirectionOfTravelLayer;
 					break;
