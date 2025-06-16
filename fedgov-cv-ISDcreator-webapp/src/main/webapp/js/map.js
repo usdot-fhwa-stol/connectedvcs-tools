@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -51,6 +51,7 @@ let selectedInteractions = [];
 let temporaryLaneMarkers;
 let temporaryBoxMarkers;
 let timeRestrictions;
+let approachTimeRestrictions;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -1075,9 +1076,9 @@ function initMISC() {
   });
 
   $.get("js/time-restrictions.html", function (data) {
-    timeRestrictions = data;
-    addApproachTimeRestrictions(timeRestrictions);
-    updateTimeRestrictionsHTML();
+    approachTimeRestrictions = data;
+    addApproachTimeRestrictions(approachTimeRestrictions);
+    updateApproachTimeRestrictionsHTML();
   })
 }
 
