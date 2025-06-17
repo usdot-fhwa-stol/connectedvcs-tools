@@ -255,11 +255,13 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".descriptive_name").hide();
   $(".lane_type").hide();
   $(".approach_type").hide();
+  $(".maneuver_control_type").hide();
   $("#approach-table").hide();
   $(".verified_lat").hide();
   $(".verified_long").hide();
   $(".verified_elev").hide();
   $(".approach_name").hide();
+  $(".maneuver_control_type").hide();
   $(".shared_with").hide();
 //    $("#clone").hide()
   $(".btnClone").hide();
@@ -300,6 +302,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
     $(".master_lane_width").hide();
     $(".intersection_name").hide();
     $(".approach_name").hide();
+    $(".maneuver_control_type").hide();
     $("#approach-table").hide();
     $('.intersection-info-tab').hide();
     hideRGAFields(true);

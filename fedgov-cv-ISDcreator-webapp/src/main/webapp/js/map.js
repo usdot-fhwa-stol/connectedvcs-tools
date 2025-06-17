@@ -39,7 +39,7 @@ let typeAttributeNameSaved = "";
 let sharedWith = [];
 let typeAttribute = [];
 let nodeLaneWidth = [];
-let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID;
+let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID, maneuverControlType;
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
 let rowHtml;
@@ -901,6 +901,15 @@ function initMISC() {
   $("#approach_name .dropdown-menu li a").click(function () {
     let selText = $(this).text();
     approachID = selText;
+    $(this)
+      .parents(".btn-group")
+      .find(".dropdown-toggle")
+      .html(selText + ' <span class="caret"></span>');
+  });
+
+  $("#maneuver_control_type .dropdown-menu li a").click(function () {
+    let selText = $(this).text();
+    maneuverControlType = selText;
     $(this)
       .parents(".btn-group")
       .find(".dropdown-toggle")

@@ -135,6 +135,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $('.road_authority_id').hide();
     $('.road_authority_id_type').hide();
     $(".approach_name").hide();
+    $(".maneuver_control_type").hide();
     $(".shared_with").hide();
     $(".btnClone").hide();
     //-------------------------------------
@@ -501,6 +502,8 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $("#approach-table").show();
       $(".approach_name").show();
       $('#approach_name li').show();
+      $(".maneuver_control_type").show();
+      $('#maneuver_control_type li').show();
       for (let boxFeature of boxLayer.getSource().getFeatures()) {
         let usedNum = boxFeature.get("approachID");
         $('.approach_name li:contains(' + usedNum + ')').hide();

@@ -158,6 +158,14 @@ var help_notes = [
     	description: "Used to relate the index of an approach, either ingress or egress within the subject lane. <br>" +
     			"--Zero to be used when valid value is unknown."
     },
+	{
+		value: "maneuver_control_type",
+		title: "Maneuver Control Type",
+		max: "N/A",
+		min: "N/A",
+		units: "N/A",
+		description: "Indicates what type of control applies to a connection maneuver."
+	},
     {
     	value: "intersection_name",
     	title: "Intersection Name",
