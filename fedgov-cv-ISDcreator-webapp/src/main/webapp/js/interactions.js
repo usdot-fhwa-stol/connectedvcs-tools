@@ -514,10 +514,14 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
     if (approaches.length === 0) { // Check if empty instead of undefined
       approaches.push({
         rowId: 0,
-        approachType: selectedBox.get("approachType"),
-        daySelection: null,
-        timePeriod: null,
+        approachType: selectedBox.get("approachType") || "Select",
         selected: true,
+        timeRestrictions: {
+          daysOfTheWeek: [],
+          timePeriodType: "",
+          timePeriodValue: "",
+          timePeriodRange: {}
+        }
       });
     }
 

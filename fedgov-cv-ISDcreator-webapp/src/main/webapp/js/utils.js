@@ -585,47 +585,53 @@ function populateAttributeWindow(lat, lon) {
 
 //Add saveApproach
 function saveApproaches(selectedMarker) {
-  let approachObject = [];
+  let approaches = [];
   
   for(let i = 0; i <= approachNumRows; i++) {
     let approachType = $('#row' + i + ' .approach_type .dropdown-toggle').text().trim();
-    if (approachType === 'Select an Approach Type') {
-      approachType = null;
+    if (approachType === 'Select') {
+      approachType = 'Select';
     }
     
     let isSelected = $('#row' + i + ' input[name="rowSelection"]').is(':checked');
     
-    let daySelection = [];
+    let daysOfTheWeek = [];
     $('#row' + i + ' .day_selection_dropdown option:selected').each(function() {
-      daySelection.push($(this).val());
+      daysOfTheWeek.push($(this).val());
     });
     
-    let timePeriodType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
-    
-    let timePeriodData = {
-      type: timePeriodType || null
-    };
-    
-    if (timePeriodType === 'range') {
-      timePeriodData.startDateTime = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
-      timePeriodData.startOffset = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
-      timePeriodData.endDateTime = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
-      timePeriodData.endOffset = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
-    } else if (timePeriodType === 'general') {
-      timePeriodData.generalType = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val();
+    let timePeriodType = "";
+    let timePeriodValue = "";
+    let timePeriodRange = {};
+
+    let selectedType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
+
+    if (timePeriodType === "range") {
+      timePeriodRange = {};
+      timePeriodRange["startDatetime"] = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
+      timePeriodRange["startOffset"] = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
+      timePeriodRange["endDatetime"] = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
+      timePeriodRange["endOffset"] = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+    } else if (timePeriodType === "general") {
+      timePeriodValue = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val() || "";
     }
     
-    approachObject.push({
+    approaches.push({
       rowId: i,
       approachType: approachType,
       selected: isSelected,
-      daySelection: daySelection,
-      timePeriod: timePeriodData,
+      timeRestrictions: {
+        daysOfTheWeek: daysOfTheWeek,
+        timePeriodType: timePeriodType,
+        timePeriodValue: timePeriodValue,
+        timePeriodRange: timePeriodRange
+      }
     });
   }
   
-  return approachObject;
- }
+  return approaches
+}
 
 //Add rebuildApproaches
 async function rebuildApproaches(approaches) {
@@ -692,29 +698,33 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
               if (valueSets[set] === true) {
                 $('tr#row' + newVal + ' input[name="rowSelection"]').prop('checked', true);
               }
-            } else if (set === 'daySelection') {
-              if (Array.isArray(valueSets[set])) {
+            } else if (set === 'timeRestrictions') {
+              let timeRestrictions = valueSets[set];
+              
+              // Handle daysOfTheWeek
+              if (timeRestrictions.daysOfTheWeek && Array.isArray(timeRestrictions.daysOfTheWeek)) {
                 setTimeout(() => {
                   $('#row' + newVal + ' .day_selection_dropdown').multiselect('deselectAll', false);
-                  valueSets[set].forEach(function(day) {
+                  timeRestrictions.daysOfTheWeek.forEach(function(day) {
                     $('#row' + newVal + ' .day_selection_dropdown').multiselect('select', day);
                   });
                   $('#row' + newVal + ' .day_selection_dropdown').multiselect('refresh');
                 }, 100);
               }
-            } else if (set === 'timePeriod') {
-              let timePeriod = valueSets[set];
-              if (timePeriod && timePeriod.type) {
+              
+              // Handle time period
+              if (timeRestrictions.timePeriodType) {
                 setTimeout(() => {
-                  $('input[name="approach_time_period' + newVal + '"][value="' + timePeriod.type + '"]').prop('checked', true).trigger('change');
+                  $('input[name="approach_time_period' + newVal + '"][value="' + timeRestrictions.timePeriodType + '"]').prop('checked', true).trigger('change');
                   
-                  if (timePeriod.type === 'range') {
-                    if (timePeriod.startDateTime) $('#approach_time_period_start_datetime' + newVal).val(timePeriod.startDateTime);
-                    if (timePeriod.startOffset) $('#approach_time_period_start_offset' + newVal).val(timePeriod.startOffset);
-                    if (timePeriod.endDateTime) $('#approach_time_period_end_datetime' + newVal).val(timePeriod.endDateTime);
-                    if (timePeriod.endOffset) $('#approach_time_period_end_offset' + newVal).val(timePeriod.endOffset);
-                  } else if (timePeriod.type === 'general' && timePeriod.generalType) {
-                    $('input[name="approach_time_period_general' + newVal + '"][value="' + timePeriod.generalType + '"]').prop('checked', true);
+                  if (timeRestrictions.timePeriodType === 'range' && timeRestrictions.timePeriodRange) {
+                    let range = timeRestrictions.timePeriodRange;
+                    if (range.startDatetime) $('#approach_time_period_start_datetime' + newVal).val(range.startDatetime);
+                    if (range.startOffset) $('#approach_time_period_start_offset' + newVal).val(range.startOffset);
+                    if (range.endDatetime) $('#approach_time_period_end_datetime' + newVal).val(range.endDatetime);
+                    if (range.endOffset) $('#approach_time_period_end_offset' + newVal).val(range.endOffset);
+                  } else if (timeRestrictions.timePeriodType === 'general' && timeRestrictions.timePeriodValue) {
+                    $('input[name="approach_time_period_general' + newVal + '"][value="' + timeRestrictions.timePeriodValue + '"]').prop('checked', true);
                   }
                 }, 100);
               }
@@ -1483,7 +1493,7 @@ function addApproachTimeRestrictions(rowNum, time_restrictions) {
   $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
 }
 
-function updateApproachTimeRestrictionsHTML(){
+function updateApproachTimeRestrictionsHTML() {
   let startDateTimePicker = $('.start_datetime_picker');
   let endDateTimePicker = $('.end_datetime_picker');
   let dateConfig = {
@@ -1496,12 +1506,14 @@ function updateApproachTimeRestrictionsHTML(){
       time_24hr: true
   };
   
-  
   startDateTimePicker.flatpickr(dateConfig);
   endDateTimePicker.flatpickr(dateConfig);
 
   $(document).off('change', '.form-check-input.time_period').on('change', '.form-check-input.time_period', function () {
       let currentRow = $(this).closest('tr');
+      let rowId = currentRow.attr('id');
+      let rowNum = rowId ? rowId.replace('row', '') : '';
+      
       currentRow.find('.time_period_range_fields').hide();
       currentRow.find('.time_period_general_fields').hide();
       
@@ -1513,80 +1525,82 @@ function updateApproachTimeRestrictionsHTML(){
   });
 
   $('.day_selection_dropdown').each(function() {
-    if (!$(this).hasClass('multiselect')) {
-      $(this).multiselect({
-          maxHeight: 200,        
-          onChange: function(option, checked, select) {
-              let currentDropdown = $(select);
-              let currentRow = currentDropdown.closest('tr');
-              
-              if ($(option).val() === '0' && checked) {
-                  currentRow.find('.day_selection input').each(function() {
-                      if ($(this).val() !== '0') {
-                          $(this).prop('disabled', true);
-                          $(this).prop('checked', false).trigger('change');
-                          $(this).parents('a').first().css({ 'color': 'grey' });
-                          $(this).parents('li').first().removeClass('active');
-                      }
-                  });
-              } else {
-                  let isAllSelected = false;
-                  currentRow.find('.day_selection input').each(function () {
-                      if ($(this).val() === '0' && $(this).prop('checked')) {
-                          isAllSelected = true;
-                      }
-                  });
-                  currentRow.find('.day_selection input').each(function () {
-                      if (isAllSelected) {
+      if (!$(this).hasClass('multiselect')) {
+          $(this).multiselect({
+              maxHeight: 200,        
+              onChange: function(option, checked, select) {
+                  let currentDropdown = $(select);
+                  let currentRow = currentDropdown.closest('tr');
+                  
+                  if ($(option).val() === '0' && checked) {
+                      currentRow.find('.day_selection input').each(function() {
                           if ($(this).val() !== '0') {
                               $(this).prop('disabled', true);
+                              $(this).prop('checked', false).trigger('change');
                               $(this).parents('a').first().css({ 'color': 'grey' });
                               $(this).parents('li').first().removeClass('active');
                           }
-                      } else {
-                          $(this).prop('disabled', false);
-                          $(this).parents('a').first().css({ 'color': 'black' });
-                      }
-                  });
-              }
-          },
-          buttonText: function (options, select) {
-              if (options.length === 0) {
-                  let currentRow = $(select).closest('tr');
-                  currentRow.find('.day_selection input').each(function () {
-                      $(this).prop('disabled', false);
-                      $(this).parents('a').first().css({ 'color': 'black' });
-                  });
-                  return 'Select Day Of The Week';
-              } else if (options.length > 1) {                
-                  return options.length + ' selected';
-              } else {
-                  let labels = [];
-                  options.each(function () {                    
-                      if ($(this).attr('label') !== undefined) {
-                          labels.push($(this).attr('label'));
-                      } else {
-                          labels.push($(this).html());
-                      }
-                      let value = $(this).val();
-                      if (value === "0") {
-                          let currentRow = $(select).closest('tr');
-                          currentRow.find('.day_selection input').each(function () {
-                              if ($(this).val() !== "0") {
+                      });
+                  } else {
+                      let isAllSelected = false;
+                      currentRow.find('.day_selection input').each(function () {
+                          if ($(this).val() === '0' && $(this).prop('checked')) {
+                              isAllSelected = true;
+                          }
+                      });
+                      
+                      currentRow.find('.day_selection input').each(function () {
+                          if (isAllSelected) {
+                              if ($(this).val() !== '0') {
                                   $(this).prop('disabled', true);
                                   $(this).parents('a').first().css({ 'color': 'grey' });
+                                  $(this).parents('li').first().removeClass('active');
                               }
-                          });
-                      }                    
-                  });
-                  return labels.join(', ') + '';
+                          } else {
+                              $(this).prop('disabled', false);
+                              $(this).parents('a').first().css({ 'color': 'black' });
+                          }
+                      });
+                  }
+              },
+              buttonText: function (options, select) {
+                  if (options.length === 0) {
+                      let currentDropdown = $(select);
+                      let currentRow = currentDropdown.closest('tr');
+                      currentRow.find('.day_selection input').each(function () {
+                          $(this).prop('disabled', false);
+                          $(this).parents('a').first().css({ 'color': 'black' });
+                      });
+                      return 'Select';
+                  } else if (options.length > 1) {                
+                      return options.length + ' selected';
+                  } else {
+                      let labels = [];
+                      options.each(function () {                    
+                          if ($(this).attr('label') !== undefined) {
+                              labels.push($(this).attr('label'));
+                          } else {
+                              labels.push($(this).html());
+                          }
+                          let value = $(this).val();
+                          if (value === "0") {
+                              let currentDropdown = $(select);
+                              let currentRow = currentDropdown.closest('tr');
+                              currentRow.find('.day_selection input').each(function () {
+                                  if ($(this).val() !== "0") {
+                                      $(this).prop('disabled', true);
+                                      $(this).parents('a').first().css({ 'color': 'grey' });
+                                  }
+                              });
+                          }                    
+                      });
+                      return labels.join(', ') + '';
+                  }
               }
-          }
-      });
-    }
+          });
+      }
   });
   
-  // Help modal functionality
   $('.fa-question-circle').off('click').on('click', function(){
       let tag = $(this).attr('tag');
       let obj = $.grep(help_notes, function(e){ return e.value === tag; });
@@ -1815,5 +1829,6 @@ export {
   disableRGAFieldsAssociatedToSpeedLimits,
   isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
   isSpeedLimitTypePassengerVehicleMinSpeedSelected,
-  hideRGAFieldsAssociatedToSpeedLimits
+  hideRGAFieldsAssociatedToSpeedLimits,
+  updateApproachTimeRestrictionsHTML
 }
