@@ -1316,6 +1316,10 @@ function registerModalButtonEvents() {
           selectedMarker.set("approachID", approachID);
           approachID = null;
         }
+        if (maneuverControlType != null) {
+          selectedMarker.set("maneuverControlType", maneuverControlType);
+          maneuverControlType = null;
+        }
       }
 
       if (selectedLayer.get("title") == "Vector Layer") {

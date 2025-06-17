@@ -542,6 +542,12 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
     } else {
       $('#approach_name .dropdown-toggle').html(selectedBox.get("approachID") + " <span class='caret'></span>");
     }
+
+    if (!selectedBox.get("maneuverControlType")) {
+      $('#maneuver_control_type .dropdown-toggle').html("Select a Maneuver Control Type <span class='caret'></span>");
+    } else {
+      $('#maneuver_control_type .dropdown-toggle').html(selectedBox.get("maneuverControlType") + " <span class='caret'></span>");
+    }
     return selectedBox;
   } else if (evt.deselected?.length > 0) {
     evt.deselected[0].setStyle(null);
