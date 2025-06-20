@@ -35,7 +35,13 @@ extern "C" {
 // Constants for Movements Layer IDs
 #define MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID 1
 #define MTR_VEH_LANE_CONNECTIONS_LAYER_ID 2
+#define MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID 3
 #define BIKE_LANE_CONNECTIONS__LAYER_ID 4
+
+// Constants for WayCnxnManeuverControlType
+#define SIGNALIZED_CONTROL 1
+#define UNSIGNALIZED_CONTROL 2
+#define UNCONTROLLED 3
 
 // Constants for NodeSetNode Choice
 #define FIRST_NODE 0
