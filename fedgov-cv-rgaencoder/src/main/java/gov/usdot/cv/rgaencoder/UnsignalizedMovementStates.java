@@ -33,11 +33,11 @@ public class UnsignalizedMovementStates {
     }
 
     // Getters and Setters
-    public long getUnsignalizedMovementStates() {
+    public long getUnsignalizedMovementStatesValue() {
         return unsignalizedMovementStateValue;
     }
 
-    public void setUnsignalizedMovementStates(long unsignalizedMovementStateValue) {
+    public void setUnsignalizedMovementStatesValue(long unsignalizedMovementStateValue) {
         this.unsignalizedMovementStateValue = unsignalizedMovementStateValue;
     }
 

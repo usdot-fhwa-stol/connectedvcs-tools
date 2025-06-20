@@ -250,6 +250,18 @@ public class RGAEncodeTest {
     TimeWindowItemControlInfo mockFixedTimeWindowCtrl8;
     RGATimeRestrictions mockTimeRestrictions8;
 
+    MovementsContainer mockMovementsContainer5;
+    MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneCnxnMnvrLayer1;
+    List<IndividualWayCnxnsManeuvers> mockIndividualLaneCnxnsManeuversLaneSet1;
+    List<WayCnxnManeuverInfo> mockCnxnManeuversSet1;
+    WayCnxnManeuverInfo mockWayCnxnManeuverInfo1;
+    List<CnxnManeuverInfo> mockManeuversSet1;
+    CnxnManeuverInfo mockCnxnManeuverInfo1;
+    WayCnxnManeuvers mockAllowedManeuvers1;
+    WayCnxnManeuverControlType mockManeuverControlType1;
+    IndividualWayCnxnsManeuvers mockIndidvidualWayCnxnsManeuvers1;
+    MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneConnectionsManeuversLayer1;
+
     @Before
     public void setup() {
         mockRGA = mock(RGAData.class);
@@ -429,6 +441,15 @@ public class RGAEncodeTest {
         mockFixedTimeWindowCtrl8 = mock(TimeWindowItemControlInfo.class);
         mockGeneralPeriod8 = mock(GeneralPeriod.class);
         mockTimeWindowInformation8 = mock(TimeWindowInformation.class);
+
+        mockMovementsContainer5 = mock(MovementsContainer.class);
+        mockMtrVehLaneCnxnMnvrLayer1 = mock(MtrVehLaneConnectionsManeuversLayer.class);
+        mockAllowedManeuvers1 = mock(WayCnxnManeuvers.class);
+        mockManeuverControlType1 = mock(WayCnxnManeuverControlType.class);
+        mockCnxnManeuverInfo1 = mock(CnxnManeuverInfo.class);
+        mockWayCnxnManeuverInfo1 = mock(WayCnxnManeuverInfo.class);
+        mockIndidvidualWayCnxnsManeuvers1 = mock(IndividualWayCnxnsManeuvers.class);
+        mockMtrVehLaneConnectionsManeuversLayer1 = mock(MtrVehLaneConnectionsManeuversLayer.class);
 
         encoder = new Encoder();
 
@@ -871,6 +892,32 @@ public class RGAEncodeTest {
         when(mockBicycleLaneConnectionsLayer1.getBicycleLaneCnxnsLaneSet()).thenReturn(mockIndividualWayConnectionsList2);
         when(mockMovementsContainer4.getMovementsContainerId()).thenReturn(MovementsContainer.BIKE_LANE_CONNECTIONS_LAYER_ID);
         when(mockMovementsContainer4.getBikeLnCnxnsLayer()).thenReturn(mockBicycleLaneConnectionsLayer1);
+
+        // MovementsContainer mockMovementsContainer5;
+        // MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneCnxnMnvrLayer1;
+        // List<IndividualWayCnxnsManeuvers> mockIndividualLaneCnxnsManeuversLaneSet1;
+        // List<WayCnxnManeuverInfo> mockCnxnManeuversSet1;
+        // List<CnxnManeuverInfo> mockManeuversSet1;
+        // WayCnxnManeuvers mockAllowedManeuvers1;
+        // WayCnxnManeuverControlType mockManeuverControlType1;
+
+
+        when(mockManeuverControlType1.getChoice()).thenReturn(1);
+        when(mockAllowedManeuvers1.getWayCnxnManeuvers()).thenReturn((long)0);
+        when(mockCnxnManeuverInfo1.getAllowedManeuvers()).thenReturn(mockAllowedManeuvers1);
+        when(mockCnxnManeuverInfo1.getManeuverControlType()).thenReturn(mockManeuverControlType1);
+        mockManeuversSet1 = Arrays.asList(mockCnxnManeuverInfo1);
+        when(mockWayCnxnManeuverInfo1.getConnectionID()).thenReturn(1);
+        when(mockWayCnxnManeuverInfo1.getManeuversSet()).thenReturn(mockManeuversSet1);
+        mockCnxnManeuversSet1 = Arrays.asList(mockWayCnxnManeuverInfo1);
+        when(mockIndidvidualWayCnxnsManeuvers1.getWayID()).thenReturn(2);
+        when(mockIndidvidualWayCnxnsManeuvers1.getCnxnManeuversSet()).thenReturn(mockCnxnManeuversSet1);
+        mockIndividualLaneCnxnsManeuversLaneSet1 = Arrays.asList(mockIndidvidualWayCnxnsManeuvers1);
+        when(mockMtrVehLaneConnectionsManeuversLayer1.getMtrVehLaneConnectionsManeuversLayer()).thenReturn(mockIndividualLaneCnxnsManeuversLaneSet1);
+        when(mockMovementsContainer5.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer1);
+
+
+
 
         when(mockRGA.getBaseLayer()).thenReturn(mockBaseLayer);
         mockGeometryContainerList = Arrays.asList(mockGeometryContainer1, mockGeometryContainer2,
