@@ -1306,13 +1306,49 @@ function setRGAStatus() {
   if($('#rga_switch').is(":checked")){
       rgaEnabled = true;
       $('.day_selection_dropdown').multiselect('enable');
+      enableManeuverControlType(true);
   }else{
       rgaEnabled = false;
       $('.day_selection_dropdown').multiselect('disable');
+      enableManeuverControlType(false);
   }
   $('.day_selection_dropdown').multiselect('refresh');
   enableRGAFields(rgaEnabled);
   return rgaEnabled;
+}
+
+function enableManeuverControlType(enable) {
+  if (enable) {
+      // Enable the dropdown
+      $('#maneuver_control_type .btn-select').prop('disabled', false);
+      $('#maneuver_control_type .btn-select').css({
+          'backgroundColor': '',
+          'color': '',
+          'borderColor': '',
+          'pointerEvents': ''
+      });
+      $('#maneuver_control_type .btn-select').removeClass('disabled-dropdown');
+      $('#maneuver_control_type .btn-select').attr('data-toggle', 'dropdown');
+      
+      // Enable dropdown menu items
+      $('#maneuver_control_type .dropdown-menu a').css('pointerEvents', '');
+      $('#maneuver_control_type .dropdown-menu a').removeClass('disabled');
+  } else {
+      // Disable the dropdown
+      $('#maneuver_control_type .btn-select').prop('disabled', true);
+      $('#maneuver_control_type .btn-select').css({
+          'backgroundColor': "#eee",
+          'color': '#999',
+          'borderColor': '#ccc',
+          'pointerEvents': 'none'
+      });
+      $('#maneuver_control_type .btn-select').addClass('disabled-dropdown');
+      $('#maneuver_control_type .btn-select').removeAttr('data-toggle');
+      
+      // Disable dropdown menu items
+      $('#maneuver_control_type .dropdown-menu a').css('pointerEvents', 'none');
+      $('#maneuver_control_type .dropdown-menu a').addClass('disabled');
+  }
 }
 
 function resetRGAStatus(){

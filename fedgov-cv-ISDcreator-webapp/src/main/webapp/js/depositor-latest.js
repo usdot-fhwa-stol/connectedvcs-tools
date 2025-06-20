@@ -363,6 +363,7 @@ function createMessageJSON()
                 // Case 1: rgaEnabled = true, approaches exists
                 approachArray[i] = {
                     "approachID": stopFeat[i].get('approachID'),
+                    "maneuverControlType": stopFeat[i].get('maneuverControlType'),
                     "descriptiveName": stopFeat[i].get('approachName'),
                     "speedLimit": stopFeat[i].get('speedLimit'),
                     "drivingLanes": drivingLaneArray,
@@ -387,6 +388,7 @@ function createMessageJSON()
                     
                     approachArray[i] = {
                         "approachID": stopFeat[i].get('approachID'),
+                        "maneuverControlType": stopFeat[i].get('maneuverControlType'),
                         "descriptiveName": stopFeat[i].get('approachName'),
                         "speedLimit": stopFeat[i].get('speedLimit'),
                         "drivingLanes": drivingLaneArray,
@@ -396,6 +398,7 @@ function createMessageJSON()
                     // Neither approaches nor approachType exist
                     approachArray[i] = {
                         "approachID": stopFeat[i].get('approachID'),
+                        "maneuverControlType": stopFeat[i].get('maneuverControlType'),
                         "descriptiveName": stopFeat[i].get('approachName'),
                         "speedLimit": stopFeat[i].get('speedLimit'),
                         "drivingLanes": drivingLaneArray,
