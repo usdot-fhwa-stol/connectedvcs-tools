@@ -1453,7 +1453,15 @@
                     "signal_id": "6",
                     "maneuvers": [
                       "2"
-                    ]
+                    ],
+                    "timeRestrictions": {
+                      "daysOfTheWeek": [
+                        "2"
+                      ],
+                      "timePeriodType": "general",
+                      "timePeriodValue": "night",
+                      "timePeriodRange": {}
+                    }
                   },
                   {
                     "connectionId": "2",
@@ -1594,7 +1602,22 @@
                     "signal_id": "1",
                     "maneuvers": [
                       "1"
-                    ]
+                    ],
+                    "timeRestrictions": {
+                      "daysOfTheWeek": [
+                        "3",
+                        "4",
+                        "5"
+                      ],
+                      "timePeriodType": "range",
+                      "timePeriodValue": "",
+                      "timePeriodRange": {
+                        "startDatetime": "2025-06-16 12:00:00",
+                        "startOffset": "1",
+                        "endDatetime": "2025-06-12 12:00:00",
+                        "endOffset": "1"
+                      }
+                    }
                   }
                 ],
                 "laneManeuvers": [

@@ -316,7 +316,6 @@ public class IntersectionInputData {
 	public static class Approach {
 		public String approachType;
 		public short approachID;
-
 		public String laneDirection;
 		public DrivingLane[] drivingLanes;
 		public CrosswalkLane[] crosswalkLanes;
@@ -432,6 +431,7 @@ public class IntersectionInputData {
 		public int[] maneuvers;
 		public int remoteID;
 		public int connectionId;
+		public TimeRestrictions timeRestrictions;
 
 		@Override
 		public String toString() {
@@ -440,6 +440,7 @@ public class IntersectionInputData {
 					+ ", signal_id=" + signal_id
 					+ ", remoteID=" + remoteID
 					+ ", laneManeuvers=" + Arrays.toString(maneuvers)
+					+ ", timeRestrictions=" + timeRestrictions
 					+ "]";
 		}
 	}
