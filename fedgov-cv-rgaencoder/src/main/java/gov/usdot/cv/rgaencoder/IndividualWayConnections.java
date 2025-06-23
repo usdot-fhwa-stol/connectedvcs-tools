@@ -16,6 +16,7 @@
 
 package gov.usdot.cv.rgaencoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class IndividualWayConnections {
@@ -24,7 +25,7 @@ public class IndividualWayConnections {
 
     public IndividualWayConnections() {
         this.wayID = 0;
-        this.connectionsSet = null;
+        this.connectionsSet = new ArrayList<>();
     }
 
     public IndividualWayConnections(int wayID, List<WayToWayConnectionInfo> connectionsSet) {

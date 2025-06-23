@@ -825,101 +825,119 @@ void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, Individual
 
 	jint connSetListSize = (*env)->CallIntMethod(env, connSetListObject, connSetListSizeMethod);
 
-	for (jint c = 0; c < connSetListSize; c++) {
-		jobject connectionInfoObj = (*env)->CallObjectMethod(env, connSetListObject, connSetListGetMethod, c);
-		jclass connectionInfoClass = (*env)->GetObjectClass(env, connectionInfoObj);
-
-		WayToWayConnectionInfo_t *connectionInfo = calloc(1, sizeof(WayToWayConnectionInfo_t));
-
-		jmethodID getLaneConnIDMethod = (*env)->GetMethodID(env, connectionInfoClass, "getLaneConnectionID", "()I");
-		jint laneConnectionID = (*env)->CallIntMethod(env, connectionInfoObj, getLaneConnIDMethod);
-		connectionInfo->connectionID = laneConnectionID;
-
-		// Populate connectionFromInfo
-		jmethodID getConnectionFromInfoMethod = (*env)->GetMethodID(env, connectionInfoClass, "getConnectionFromInfo", "()Lgov/usdot/cv/rgaencoder/LaneConnectionFromInfo;");
-		jobject fromInfoObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionFromInfoMethod);
-
-		if (fromInfoObj != NULL) {
-			jclass fromInfoClass = (*env)->GetObjectClass(env, fromInfoObj);
-			jmethodID getNodeFromPositionMethod = (*env)->GetMethodID(env, fromInfoClass, "getNodeFromPosition", "()I");
-			jint nodeFromPosition = (*env)->CallIntMethod(env, fromInfoObj, getNodeFromPositionMethod);
-			
-			NodeSetNode_t fromNodeSetNode;
-
-			if (nodeFromPosition == FIRST_NODE) {
-				fromNodeSetNode.present = NodeSetNode_PR_firstNode;
-				fromNodeSetNode.choice.firstNode = 1;
-			} else if (nodeFromPosition == LAST_NODE) {
-				fromNodeSetNode.present = NodeSetNode_PR_lastNode;
-				fromNodeSetNode.choice.lastNode = 1;
-			} else {
-				fromNodeSetNode.present = NodeSetNode_PR_NOTHING;
-			}
-			
-			connectionInfo->connectionFromInfo.nodePosition = fromNodeSetNode;
-		}
-
-		// Populate connectionToInfo
-		jmethodID getConnectionToInfoMethod = (*env)->GetMethodID(env, connectionInfoClass, "getConnectionToInfo", "()Lgov/usdot/cv/rgaencoder/LaneConnectionToInfo;");
-		jobject toInfoObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionToInfoMethod);
-		if (toInfoObj)
+	if (connSetListSize > 0)
+	{
+		for (jint c = 0; c < connSetListSize; c++)
 		{
-			jclass toInfoClass = (*env)->GetObjectClass(env, toInfoObj);
+			jobject connectionInfoObj = (*env)->CallObjectMethod(env, connSetListObject, connSetListGetMethod, c);
+			jclass connectionInfoClass = (*env)->GetObjectClass(env, connectionInfoObj);
 
-			// Populate WayType
-			jmethodID getToInfoWayTypeMethod = (*env)->GetMethodID(env, toInfoClass, "getWayType", "()Lgov/usdot/cv/rgaencoder/WayType;");
-			jobject toInfoWayTypeObj = (*env)->CallObjectMethod(env, toInfoObj, getToInfoWayTypeMethod);
+			WayToWayConnectionInfo_t *connectionInfo = calloc(1, sizeof(WayToWayConnectionInfo_t));
 
-			jclass toInfoWayTypeClass = (*env)->GetObjectClass(env, toInfoWayTypeObj);
-			jmethodID getToInfoWayTypeValueMethod = (*env)->GetMethodID(env, toInfoWayTypeClass, "getWayTypeValue", "()J");
-			jlong toInfoWayTypeValue = (*env)->CallLongMethod(env, toInfoWayTypeObj, getToInfoWayTypeValueMethod);
+			jmethodID getLaneConnIDMethod = (*env)->GetMethodID(env, connectionInfoClass, "getLaneConnectionID", "()I");
+			jint laneConnectionID = (*env)->CallIntMethod(env, connectionInfoObj, getLaneConnIDMethod);
+			connectionInfo->connectionID = laneConnectionID;
 
-			WayType_t *toInfoWayType = calloc(1, sizeof(WayType_t));
+			// Populate connectionFromInfo
+			jmethodID getConnectionFromInfoMethod = (*env)->GetMethodID(env, connectionInfoClass, "getConnectionFromInfo", "()Lgov/usdot/cv/rgaencoder/LaneConnectionFromInfo;");
+			jobject fromInfoObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionFromInfoMethod);
 
-			*toInfoWayType = (WayType_t)toInfoWayTypeValue;
-			connectionInfo->connectionToInfo.wayType = toInfoWayType;
+			if (fromInfoObj != NULL)
+			{
+				jclass fromInfoClass = (*env)->GetObjectClass(env, fromInfoObj);
+				jmethodID getNodeFromPositionMethod = (*env)->GetMethodID(env, fromInfoClass, "getNodeFromPosition", "()I");
+				jint nodeFromPosition = (*env)->CallIntMethod(env, fromInfoObj, getNodeFromPositionMethod);
 
-			// Populate wayID
-			jmethodID getToInfoWayIDMethod = (*env)->GetMethodID(env, toInfoClass, "getWayID", "()I");
-			jint toInfoWayID = (*env)->CallIntMethod(env, toInfoObj, getToInfoWayIDMethod);
+				NodeSetNode_t fromNodeSetNode;
 
-			connectionInfo->connectionToInfo.wayID = toInfoWayID;
+				if (nodeFromPosition == FIRST_NODE)
+				{
+					fromNodeSetNode.present = NodeSetNode_PR_firstNode;
+					fromNodeSetNode.choice.firstNode = 1;
+				}
+				else if (nodeFromPosition == LAST_NODE)
+				{
+					fromNodeSetNode.present = NodeSetNode_PR_lastNode;
+					fromNodeSetNode.choice.lastNode = 1;
+				}
+				else
+				{
+					fromNodeSetNode.present = NodeSetNode_PR_NOTHING;
+				}
 
-			// Populate nodeToPosition
-			jmethodID getNodeToPositionMethod = (*env)->GetMethodID(env, toInfoClass, "getNodeToPosition", "()I");
-			jint nodeToPosition = (*env)->CallIntMethod(env, toInfoObj, getNodeToPositionMethod);
-			
-			NodeSetNode_t toNodeSetNode;
-
-			if (nodeToPosition == FIRST_NODE) {
-				toNodeSetNode.present = NodeSetNode_PR_firstNode;
-				toNodeSetNode.choice.firstNode = 1;
-			} else if (nodeToPosition == LAST_NODE) {
-				toNodeSetNode.present = NodeSetNode_PR_lastNode;
-				toNodeSetNode.choice.lastNode = 1;
-			} else {
-				toNodeSetNode.present = NodeSetNode_PR_NOTHING;
+				connectionInfo->connectionFromInfo.nodePosition = fromNodeSetNode;
 			}
 
-			connectionInfo->connectionToInfo.nodePosition = toNodeSetNode;
-		}
+			// Populate connectionToInfo
+			jmethodID getConnectionToInfoMethod = (*env)->GetMethodID(env, connectionInfoClass, "getConnectionToInfo", "()Lgov/usdot/cv/rgaencoder/LaneConnectionToInfo;");
+			jobject toInfoObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionToInfoMethod);
+			if (toInfoObj)
+			{
+				jclass toInfoClass = (*env)->GetObjectClass(env, toInfoObj);
 
-		//Populate timeRestrictions if exists
-		jmethodID getConnectionInfoTimeRestrictionsMethod = (*env)->GetMethodID(env, connectionInfoClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
-		jobject connectionInfoTimeRestrictionsObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionInfoTimeRestrictionsMethod);
+				// Populate WayType
+				jmethodID getToInfoWayTypeMethod = (*env)->GetMethodID(env, toInfoClass, "getWayType", "()Lgov/usdot/cv/rgaencoder/WayType;");
+				jobject toInfoWayTypeObj = (*env)->CallObjectMethod(env, toInfoObj, getToInfoWayTypeMethod);
 
-		if (connectionInfoTimeRestrictionsObj != NULL)
-		{
-			RGATimeRestrictions_t *connectionInfoTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
-			populateTimeRestrictions(env, connectionInfoTimeRestrictionsObj, connectionInfoTimeRestrictions);
-			connectionInfo->timeRestrictions = connectionInfoTimeRestrictions;
-		}
-		else
-		{
-			connectionInfo->timeRestrictions = NULL;
-		}
+				if (toInfoWayTypeObj)
+				{
+					jclass toInfoWayTypeClass = (*env)->GetObjectClass(env, toInfoWayTypeObj);
+					jmethodID getToInfoWayTypeValueMethod = (*env)->GetMethodID(env, toInfoWayTypeClass, "getWayTypeValue", "()J");
+					jlong toInfoWayTypeValue = (*env)->CallLongMethod(env, toInfoWayTypeObj, getToInfoWayTypeValueMethod);
 
-		ASN_SEQUENCE_ADD(&indWayCnxn->connectionsSet, connectionInfo);
+					WayType_t *toInfoWayType = calloc(1, sizeof(WayType_t));
+
+					*toInfoWayType = (WayType_t)toInfoWayTypeValue;
+					connectionInfo->connectionToInfo.wayType = toInfoWayType;
+				}
+
+				// Populate wayID
+				jmethodID getToInfoWayIDMethod = (*env)->GetMethodID(env, toInfoClass, "getWayID", "()I");
+				jint toInfoWayID = (*env)->CallIntMethod(env, toInfoObj, getToInfoWayIDMethod);
+
+				connectionInfo->connectionToInfo.wayID = toInfoWayID;
+
+				// Populate nodeToPosition
+				jmethodID getNodeToPositionMethod = (*env)->GetMethodID(env, toInfoClass, "getNodeToPosition", "()I");
+				jint nodeToPosition = (*env)->CallIntMethod(env, toInfoObj, getNodeToPositionMethod);
+
+				NodeSetNode_t toNodeSetNode;
+
+				if (nodeToPosition == FIRST_NODE)
+				{
+					toNodeSetNode.present = NodeSetNode_PR_firstNode;
+					toNodeSetNode.choice.firstNode = 1;
+				}
+				else if (nodeToPosition == LAST_NODE)
+				{
+					toNodeSetNode.present = NodeSetNode_PR_lastNode;
+					toNodeSetNode.choice.lastNode = 1;
+				}
+				else
+				{
+					toNodeSetNode.present = NodeSetNode_PR_NOTHING;
+				}
+
+				connectionInfo->connectionToInfo.nodePosition = toNodeSetNode;
+			}
+		
+			// Populate timeRestrictions if exists
+			jmethodID getConnectionInfoTimeRestrictionsMethod = (*env)->GetMethodID(env, connectionInfoClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
+			jobject connectionInfoTimeRestrictionsObj = (*env)->CallObjectMethod(env, connectionInfoObj, getConnectionInfoTimeRestrictionsMethod);
+
+			if (connectionInfoTimeRestrictionsObj != NULL)
+			{
+				RGATimeRestrictions_t *connectionInfoTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
+				populateTimeRestrictions(env, connectionInfoTimeRestrictionsObj, connectionInfoTimeRestrictions);
+				connectionInfo->timeRestrictions = connectionInfoTimeRestrictions;
+			}
+			else
+			{
+				connectionInfo->timeRestrictions = NULL;
+			}
+
+			ASN_SEQUENCE_ADD(&indWayCnxn->connectionsSet, connectionInfo);
+		}
 	}
 }
 

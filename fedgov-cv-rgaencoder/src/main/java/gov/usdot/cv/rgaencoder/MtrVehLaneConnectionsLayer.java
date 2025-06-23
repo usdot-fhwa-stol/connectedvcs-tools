@@ -16,13 +16,14 @@
 
 package gov.usdot.cv.rgaencoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MtrVehLaneConnectionsLayer {
     private List<IndividualWayConnections> mtrVehLaneCnxnsLaneSet;
 
     public MtrVehLaneConnectionsLayer() {
-        this.mtrVehLaneCnxnsLaneSet = null;
+        this.mtrVehLaneCnxnsLaneSet = new ArrayList<>();
     }
 
     public MtrVehLaneConnectionsLayer(List<IndividualWayConnections> mtrVehLaneCnxnsLaneSet) {

@@ -19,97 +19,22 @@ package gov.usdot.cv.msg.builder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import gov.usdot.cv.msg.builder.exception.MessageBuildException;
-import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.Approach;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ApproachTypeRow;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ContentDateTime;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneConnection;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.CrosswalkLane;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.GenerateType;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePoint;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.SpatData;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.State;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
-import gov.usdot.cv.msg.builder.message.IntersectionMessage;
-import gov.usdot.cv.msg.builder.util.BitStringHelper;
-import gov.usdot.cv.msg.builder.util.GeoPoint;
-import gov.usdot.cv.msg.builder.util.J2735Helper;
-import gov.usdot.cv.msg.builder.util.J2945Helper;
-import gov.usdot.cv.msg.builder.util.JSONMapper;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
-import gov.usdot.cv.rgaencoder.ApproachGeometryLayer;
-import gov.usdot.cv.rgaencoder.ApproachWayTypeIDSet;
-import gov.usdot.cv.rgaencoder.BaseLayer;
-import gov.usdot.cv.rgaencoder.BicycleLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
-import gov.usdot.cv.rgaencoder.CrosswalkLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.DDate;
-import gov.usdot.cv.rgaencoder.DDateTime;
-import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
-import gov.usdot.cv.rgaencoder.GeneralPeriod;
-import gov.usdot.cv.rgaencoder.GeometryContainer;
-import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndividualWayDirectionsOfTravel;
-import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvBikeLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvCrosswalkLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvMtrVehLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.LaneConstructorType;
-import gov.usdot.cv.rgaencoder.MotorVehicleLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.MovementsContainer;
-import gov.usdot.cv.rgaencoder.MtrVehLaneDirectionOfTravelLayer;
-import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
-import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
-import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
-import gov.usdot.cv.rgaencoder.RGAData;
-import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
-import gov.usdot.cv.rgaencoder.TimeWindowInformation;
-import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
-import gov.usdot.cv.rgaencoder.WayDirectionOfTravelInfo;
-import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
-import gov.usdot.cv.rgaencoder.WayType;
-import gov.usdot.cv.rgaencoder.WayWidth;
 import gov.usdot.cv.mapencoder.AllowedManeuvers;
 import gov.usdot.cv.mapencoder.ComputedLane;
 import gov.usdot.cv.mapencoder.ConnectingLane;
 import gov.usdot.cv.mapencoder.Connection;
-import gov.usdot.cv.mapencoder.Encoder;
 import gov.usdot.cv.mapencoder.GenericLane;
-import gov.usdot.cv.mapencoder.MapData;
-import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
-import gov.usdot.cv.mapencoder.NodeListXY;
-import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
-import gov.usdot.cv.mapencoder.NodeSetXY;
-import gov.usdot.cv.mapencoder.NodeXY;
-import gov.usdot.cv.mapencoder.NodeXY20b;
-import gov.usdot.cv.mapencoder.NodeXY22b;
-import gov.usdot.cv.mapencoder.OffsetXaxis;
-import gov.usdot.cv.mapencoder.OffsetYaxis;
 import gov.usdot.cv.mapencoder.IntersectionGeometry;
 import gov.usdot.cv.mapencoder.IntersectionReferenceID;
 import gov.usdot.cv.mapencoder.LaneAttributes;
@@ -127,10 +52,80 @@ import gov.usdot.cv.mapencoder.LaneDirection;
 import gov.usdot.cv.mapencoder.LaneList;
 import gov.usdot.cv.mapencoder.LaneSharing;
 import gov.usdot.cv.mapencoder.LaneTypeAttributes;
+import gov.usdot.cv.mapencoder.MapData;
+import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
+import gov.usdot.cv.mapencoder.NodeListXY;
+import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
+import gov.usdot.cv.mapencoder.NodeSetXY;
+import gov.usdot.cv.mapencoder.NodeXY;
+import gov.usdot.cv.mapencoder.OffsetXaxis;
+import gov.usdot.cv.mapencoder.OffsetYaxis;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.mapencoder.RegulatorySpeedLimit;
 import gov.usdot.cv.mapencoder.SpeedLimitList;
 import gov.usdot.cv.mapencoder.SpeedLimitType;
+import gov.usdot.cv.msg.builder.exception.MessageBuildException;
+import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.Approach;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ApproachTypeRow;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ContentDateTime;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.CrosswalkLane;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.GenerateType;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneConnection;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePoint;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
+import gov.usdot.cv.msg.builder.message.IntersectionMessage;
+import gov.usdot.cv.msg.builder.util.BitStringHelper;
+import gov.usdot.cv.msg.builder.util.GeoPoint;
+import gov.usdot.cv.msg.builder.util.J2735Helper;
+import gov.usdot.cv.msg.builder.util.J2945Helper;
+import gov.usdot.cv.msg.builder.util.JSONMapper;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
+import gov.usdot.cv.rgaencoder.ApproachGeometryLayer;
+import gov.usdot.cv.rgaencoder.ApproachWayTypeIDSet;
+import gov.usdot.cv.rgaencoder.BaseLayer;
+import gov.usdot.cv.rgaencoder.BicycleLaneConnectionsLayer;
+import gov.usdot.cv.rgaencoder.BicycleLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
+import gov.usdot.cv.rgaencoder.CrosswalkLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.DDate;
+import gov.usdot.cv.rgaencoder.DDateTime;
+import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
+import gov.usdot.cv.rgaencoder.GeneralPeriod;
+import gov.usdot.cv.rgaencoder.GeometryContainer;
+import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndividualWayConnections;
+import gov.usdot.cv.rgaencoder.IndividualWayDirectionsOfTravel;
+import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvBikeLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvCrosswalkLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvMtrVehLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.LaneConnectionFromInfo;
+import gov.usdot.cv.rgaencoder.LaneConnectionToInfo;
+import gov.usdot.cv.rgaencoder.LaneConstructorType;
+import gov.usdot.cv.rgaencoder.MotorVehicleLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.MovementsContainer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneConnectionsLayer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneDirectionOfTravelLayer;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
+import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
+import gov.usdot.cv.rgaencoder.RGAData;
+import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
+import gov.usdot.cv.rgaencoder.TimeWindowInformation;
+import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
+import gov.usdot.cv.rgaencoder.WayDirectionOfTravelInfo;
+import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
+import gov.usdot.cv.rgaencoder.WayToWayConnectionInfo;
+import gov.usdot.cv.rgaencoder.WayType;
+import gov.usdot.cv.rgaencoder.WayWidth;
 
 @Path("/messages/intersection")
 public class IntersectionSituationDataBuilder {
@@ -354,19 +349,25 @@ public class IntersectionSituationDataBuilder {
 	/**
 	 * This function builds and returns list of movements containers for RGA Data
 	 * @param isdInputData
-	 * @return movementsContainer
+	 * @return movementsContainers
 	 */
 	public List<MovementsContainer> buildMovementsContainers(IntersectionInputData isdInputData) {
-		List<MovementsContainer> movementsContainer = new ArrayList<>();
+		List<MovementsContainer> movementsContainers = new ArrayList<>();
 		// Checking if approaches are null
 		if (isdInputData.mapData.intersectionGeometry.laneList == null
 				|| isdInputData.mapData.intersectionGeometry.laneList.approach == null) {
-			return movementsContainer;
+			return movementsContainers;
 		}
 
 		Approach[] approaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
 		MovementsContainer mtrVehDirectionOfTravel = new MovementsContainer();
 		MtrVehLaneDirectionOfTravelLayer mtrVehLaneDirectionOfTravelLayer = new MtrVehLaneDirectionOfTravelLayer();
+
+		MovementsContainer mtrVehLaneConnections = new MovementsContainer();
+		MtrVehLaneConnectionsLayer mtrVehLnCnxnsLayer = new MtrVehLaneConnectionsLayer();
+
+		MovementsContainer bicycleLaneConnections = new MovementsContainer();
+		BicycleLaneConnectionsLayer bikeLnCnxnsLayer = new BicycleLaneConnectionsLayer();
 
 		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
 			Approach approach = approaches[approachIndex];
@@ -414,16 +415,117 @@ public class IntersectionSituationDataBuilder {
 
 						// Currently Movements Container supports only MtrVehLaneDirectionOfTravelLayer
 						mtrVehLaneDirectionOfTravelLayer.addIndividualWayDirectionsOfTravel(individualWayDirectionsOfTravel);
+
+						if (drivingLane.connections != null && drivingLane.connections.length > 0) {
+							IndividualWayConnections individualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
+							List<WayToWayConnectionInfo> currentWayToWayConnectionInfoList = individualWayConnections.getConnectionsSet();
+							if (currentWayToWayConnectionInfoList != null && !currentWayToWayConnectionInfoList.isEmpty()) {
+								mtrVehLnCnxnsLayer.addIndividualWayConnections(buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData));
+							}
+						}
+					}
+
+					if ((drivingLane.laneType.toLowerCase()).equals("bike")) {
+						if (drivingLane.connections != null && drivingLane.connections.length > 0) {
+
+							IndividualWayConnections bikeIndividualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
+							List<WayToWayConnectionInfo> currentBikeWayToWayConnectionInfoList = bikeIndividualWayConnections.getConnectionsSet();
+							if (currentBikeWayToWayConnectionInfoList != null && !currentBikeWayToWayConnectionInfoList.isEmpty()) {
+								bikeLnCnxnsLayer.addIndividualWayConnections(bikeIndividualWayConnections);
+							}	
+						}
 					}
 				}
 			}
 		}
 
-		mtrVehDirectionOfTravel.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID);
-		mtrVehDirectionOfTravel.setMtrVehLaneDirectionOfTravelLayer(mtrVehLaneDirectionOfTravelLayer);
-		movementsContainer.add(mtrVehDirectionOfTravel);
+		if (!mtrVehLaneDirectionOfTravelLayer.getLaneDirOfTravelLaneSet().isEmpty()) {
+			mtrVehDirectionOfTravel.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID);
+			mtrVehDirectionOfTravel.setMtrVehLaneDirectionOfTravelLayer(mtrVehLaneDirectionOfTravelLayer);
+			movementsContainers.add(mtrVehDirectionOfTravel);
+		}
+	
+		if (!mtrVehLnCnxnsLayer.getMtrVehLaneCnxnsLaneSet().isEmpty()) {
+			mtrVehLaneConnections.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_LAYER_ID);
+			mtrVehLaneConnections.setMtrVehLnCnxnsLayer(mtrVehLnCnxnsLayer);
+			movementsContainers.add(mtrVehLaneConnections);
+		}
 
-		return movementsContainer;
+		if (!bikeLnCnxnsLayer.getBicycleLaneCnxnsLaneSet().isEmpty()) {
+			bicycleLaneConnections.setMovementsContainerId(MovementsContainer.BIKE_LANE_CONNECTIONS_LAYER_ID);
+			bicycleLaneConnections.setBikeLnCnxnsLayer(bikeLnCnxnsLayer);
+			movementsContainers.add(bicycleLaneConnections);
+		}
+
+		return movementsContainers;
+	}
+
+	public IndividualWayConnections buildIndividualWayConnections(String laneId, LaneConnection[] laneConnections,
+			IntersectionInputData isdInputData) {
+		IndividualWayConnections individualWayConnections = new IndividualWayConnections();
+		individualWayConnections.setWayID(Integer.valueOf(laneId));
+
+		for (int conIndex = 0; conIndex < laneConnections.length; conIndex++) {
+			WayToWayConnectionInfo wayToWayConnectionInfo = new WayToWayConnectionInfo();
+			LaneConnectionFromInfo connectionFromInfo = new LaneConnectionFromInfo();
+			LaneConnectionToInfo connectionToInfo = new LaneConnectionToInfo();
+
+			LaneConnection currentLaneConnection = laneConnections[conIndex];
+
+			if (currentLaneConnection.toLane <= 0)
+				continue;
+
+			if (currentLaneConnection.connectionId > 0) {
+				wayToWayConnectionInfo.setLaneConnectionID(currentLaneConnection.connectionId);
+
+				// Setting connectionFromInfo
+				connectionFromInfo.setNodeFromPosition(LaneConnectionFromInfo.FIRST_NODE);
+				wayToWayConnectionInfo.setConnectionFromInfo(connectionFromInfo);
+
+				if (currentLaneConnection.toLane > 0) {
+					// Setting connectionToInfo
+					connectionToInfo.setWayID(currentLaneConnection.toLane);
+					connectionToInfo.setNodeToPosition(LaneConnectionToInfo.FIRST_NODE);
+					WayType remoteWayType = new WayType();
+
+					// This logic is used to find the remote lane id's vehicle type
+					Approach[] allApproaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
+					for (Approach approach : allApproaches) {
+						if (approach.drivingLanes != null) {
+							for (DrivingLane lane : approach.drivingLanes) {
+								if (lane.laneID != null && Integer.parseInt(lane.laneID) == currentLaneConnection.toLane
+										&& lane.laneType != null && !lane.laneType.trim().isEmpty()) {
+									String remoteVehicleType = lane.laneType;
+									if ((remoteVehicleType.toLowerCase()).equals("vehicle")) {
+										remoteWayType.setWayTypeValue(WayType.MOTOR_VEHICLE_LANE);
+										connectionToInfo.setWayType(remoteWayType);
+									} else if ((remoteVehicleType.toLowerCase()).equals("bike")) {
+										remoteWayType.setWayTypeValue(WayType.BICYCLE_LANE);
+										connectionToInfo.setWayType(remoteWayType);
+									}
+									break;
+								}
+							}
+						}
+					}
+
+					wayToWayConnectionInfo.setConnectionToInfo(connectionToInfo);
+
+					if (currentLaneConnection.timeRestrictions != null) {
+						wayToWayConnectionInfo
+								.setTimeRestrictions(buildLaneTimeRestriction(currentLaneConnection.timeRestrictions));
+					}
+				}
+			}
+
+			if (wayToWayConnectionInfo.getLaneConnectionID() > 0 &&
+					wayToWayConnectionInfo.getConnectionFromInfo() != null &&
+					wayToWayConnectionInfo.getConnectionToInfo() != null) {
+				individualWayConnections.addWayToWayConnectionInfo(wayToWayConnectionInfo);
+			}
+		}
+
+		return individualWayConnections;
 	}
 
 	/**
