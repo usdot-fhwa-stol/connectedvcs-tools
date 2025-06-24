@@ -893,7 +893,7 @@ public class RGAEncodeTest {
         when(mockMovementsContainer4.getMovementsContainerId()).thenReturn(MovementsContainer.BIKE_LANE_CONNECTIONS_LAYER_ID);
         when(mockMovementsContainer4.getBikeLnCnxnsLayer()).thenReturn(mockBicycleLaneConnectionsLayer1);
 
-        when(mockManeuverControlType1.getChoice()).thenReturn(1);
+        when(mockManeuverControlType1.getChoice()).thenReturn(3);
         when(mockallowedManeuver1.getWayCnxnManeuvers()).thenReturn((long)0);
         when(mockCnxnManeuverInfo1.getAllowedManeuver()).thenReturn(mockallowedManeuver1);
         when(mockCnxnManeuverInfo1.getManeuverControlType()).thenReturn(mockManeuverControlType1);
