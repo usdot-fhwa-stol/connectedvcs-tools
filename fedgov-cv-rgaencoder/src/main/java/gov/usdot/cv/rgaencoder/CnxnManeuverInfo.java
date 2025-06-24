@@ -17,29 +17,29 @@
 package gov.usdot.cv.rgaencoder;
 
 public class CnxnManeuverInfo {
-    private WayCnxnManeuvers allowedManeuvers;
+    private WayCnxnManeuvers allowedManeuver;
     private WayCnxnManeuverControlType maneuverControlType;
     private RGATimeRestrictions timeRestrictions; //Optional
 
     public CnxnManeuverInfo() {
-        this.allowedManeuvers = null;
+        this.allowedManeuver = null;
         this.maneuverControlType = null;
         this.timeRestrictions = null;
     }
 
-    public CnxnManeuverInfo(WayCnxnManeuvers allowedManeuvers, WayCnxnManeuverControlType maneuverControlType,
+    public CnxnManeuverInfo(WayCnxnManeuvers allowedManeuver, WayCnxnManeuverControlType maneuverControlType,
             RGATimeRestrictions timeRestrictions) {
-        this.allowedManeuvers = allowedManeuvers;
+        this.allowedManeuver = allowedManeuver;
         this.maneuverControlType = maneuverControlType;
         this.timeRestrictions = timeRestrictions;
     }
 
-    public WayCnxnManeuvers getAllowedManeuvers() {
-        return allowedManeuvers;
+    public WayCnxnManeuvers getAllowedManeuver() {
+        return allowedManeuver;
     }
 
-    public void setAllowedManeuvers(WayCnxnManeuvers allowedManeuvers) {
-        this.allowedManeuvers = allowedManeuvers;
+    public void setAllowedManeuver(WayCnxnManeuvers allowedManeuver) {
+        this.allowedManeuver = allowedManeuver;
     }
 
     public WayCnxnManeuverControlType getManeuverControlType() {
@@ -60,7 +60,7 @@ public class CnxnManeuverInfo {
 
     @Override
     public String toString() {
-        return "CnxnManeuverInfo [allowedManeuvers=" + allowedManeuvers + ", maneuverControlType=" + maneuverControlType
+        return "CnxnManeuverInfo [allowedManeuvers=" + allowedManeuver + ", maneuverControlType=" + maneuverControlType
                 + ", timeRestrictions=" + timeRestrictions + "]";
     }
 }
