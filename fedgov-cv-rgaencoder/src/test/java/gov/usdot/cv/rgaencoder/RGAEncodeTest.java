@@ -256,9 +256,13 @@ public class RGAEncodeTest {
     List<WayCnxnManeuverInfo> mockCnxnManeuversSet1;
     WayCnxnManeuverInfo mockWayCnxnManeuverInfo1;
     List<CnxnManeuverInfo> mockManeuversSet1;
+    List<CnxnManeuverInfo> mockManeuverSet3;
     CnxnManeuverInfo mockCnxnManeuverInfo1;
+    CnxnManeuverInfo mockCnxnManeuverInfo3;
     WayCnxnManeuvers mockallowedManeuver1;
+    WayCnxnManeuvers mockallowedManeuver3;
     WayCnxnManeuverControlType mockManeuverControlType1;
+    WayCnxnManeuverControlType mockManeuverControlType3;
     IndividualWayCnxnsManeuvers mockIndidvidualWayCnxnsManeuvers1;
     MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneConnectionsManeuversLayer1;
 
@@ -458,8 +462,11 @@ public class RGAEncodeTest {
         mockMovementsContainer5 = mock(MovementsContainer.class);
         mockMtrVehLaneCnxnMnvrLayer1 = mock(MtrVehLaneConnectionsManeuversLayer.class);
         mockallowedManeuver1 = mock(WayCnxnManeuvers.class);
+        mockallowedManeuver3 = mock(WayCnxnManeuvers.class);
         mockManeuverControlType1 = mock(WayCnxnManeuverControlType.class);
+        mockManeuverControlType3 = mock(WayCnxnManeuverControlType.class);
         mockCnxnManeuverInfo1 = mock(CnxnManeuverInfo.class);
+        mockCnxnManeuverInfo3 = mock(CnxnManeuverInfo.class);
         mockWayCnxnManeuverInfo1 = mock(WayCnxnManeuverInfo.class);
         mockIndidvidualWayCnxnsManeuvers1 = mock(IndividualWayCnxnsManeuvers.class);
         mockMtrVehLaneConnectionsManeuversLayer1 = mock(MtrVehLaneConnectionsManeuversLayer.class);
@@ -917,10 +924,14 @@ public class RGAEncodeTest {
         when(mockMovementsContainer4.getBikeLnCnxnsLayer()).thenReturn(mockBicycleLaneConnectionsLayer1);
 
         when(mockManeuverControlType1.getChoice()).thenReturn(3);
+        when(mockManeuverControlType3.getChoice()).thenReturn(1);
         when(mockallowedManeuver1.getWayCnxnManeuvers()).thenReturn((long)0);
+        when(mockallowedManeuver3.getWayCnxnManeuvers()).thenReturn((long)2);
         when(mockCnxnManeuverInfo1.getAllowedManeuver()).thenReturn(mockallowedManeuver1);
+        when(mockCnxnManeuverInfo3.getAllowedManeuver()).thenReturn(mockallowedManeuver3);
         when(mockCnxnManeuverInfo1.getManeuverControlType()).thenReturn(mockManeuverControlType1);
-        mockManeuversSet1 = Arrays.asList(mockCnxnManeuverInfo1);
+        when(mockCnxnManeuverInfo3.getManeuverControlType()).thenReturn(mockManeuverControlType3);
+        mockManeuversSet1 = Arrays.asList(mockCnxnManeuverInfo1, mockCnxnManeuverInfo3);
         when(mockWayCnxnManeuverInfo1.getConnectionID()).thenReturn(1);
         when(mockWayCnxnManeuverInfo1.getManeuversSet()).thenReturn(mockManeuversSet1);
         mockCnxnManeuversSet1 = Arrays.asList(mockWayCnxnManeuverInfo1);
@@ -931,8 +942,9 @@ public class RGAEncodeTest {
         when(mockMovementsContainer5.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
         when(mockMovementsContainer5.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer1);
 
-        when(mockUnsignalizedMovementStates1.getUnsignalizedMovementStatesValue()).thenReturn((long)0);
+        when(mockUnsignalizedMovementStates1.getUnsignalizedMovementStatesValue()).thenReturn((long)1);
         when(mockManeuverControlType2.getChoice()).thenReturn(2);
+        when(mockManeuverControlType2.getUnsignalizedMovementStates()).thenReturn(mockUnsignalizedMovementStates1);
         when(mockallowedManeuver2.getWayCnxnManeuvers()).thenReturn((long)0);
         when(mockCnxnManeuverInfo2.getAllowedManeuver()).thenReturn(mockallowedManeuver2);
         when(mockCnxnManeuverInfo2.getManeuverControlType()).thenReturn(mockManeuverControlType2);
@@ -966,7 +978,7 @@ public class RGAEncodeTest {
     public void rgaEncodeTester() {
         ByteArrayObject res = encoder.encode(mockRGA);
         System.out.println(res.getMessage());
-        byte[] expected = { 0, 43, -127, 31, 3, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
+        byte[] expected = { 0, 43, -127, 47, 3, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
                         16, 32, 19, 9, -20, 20, 2, 6, 12, 2, 8, 3, 4, 110, 42, 40, 27, -3, -6, 34, -83, -52, 0, 81, -92,
                         40, 2, 65, 72, 68, 0, 50, 0, 21, 56, 0, 0, 12, 5, 32, 0, 65, 0, 0, -76, 23, 4, -128, 1, 12, 33,
                         -127, 32, 34, -64, 51, 64, 34, 0, 9, 0, 60, 15, -3, -6, 34, -83, -52, 0, 81, -2, 127, 126, -120,
@@ -976,10 +988,12 @@ public class RGAEncodeTest {
                         -83, -3, -6, 79, -52, -56, 0, 1, -92, 0, 8, 52, 0, 32, 0, 8, -16, 10, 68, 1, -22, -128, 20, 88,
                         4, -63, 0, 4, 80, -84, 12, 40, 0, 72, -117, 4, -128, -117, 0, -51, 0, -128, -57, -64, 68, -64,
                         0, 30, 12, -88, -126, 93, 80, 25, 32, 7, -127, 127, -65, 62, 89, 79, 0, 0, 58, 47, -17, -46,
-                        -74, 80, 0, 0, 13, 33, 3, 0, -72, 0, 56, 20, 0, 120, 3, -5, -12, 94, 80, -96, 0, 123, -64, -2,
+                        -74, 80, 0, 0, 13, 33, 5, 0, -72, 0, 56, 20, 0, 120, 3, -5, -12, 94, 80, -96, 0, 123, -64, -2,
                         -3, 67, -76, 40, 0, 30, -46, 0, 1, -128, 1, -32, -112, 0, 80, 2, 18, 0, 19, 5, -108, -112, 40,
-                        0, 2, 0, 48, -112, 1, 80, 89, -127, 34, -56, 0, 40, 0 };
+                        0, 2, 0, 48, -112, 1, 80, 89, -127, 34, -56, 0, 40, 1, 3, -128, 0, -128, 2, 64, 65, 0, 8, 24, 0,
+                        4, 0, 16, 1, 32,
+        };
 
-        //Assert.assertArrayEquals(expected, res.getMessage()); 
+        Assert.assertArrayEquals(expected, res.getMessage()); 
     }
 }
