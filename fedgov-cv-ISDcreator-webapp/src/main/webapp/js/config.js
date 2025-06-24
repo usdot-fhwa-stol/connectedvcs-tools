@@ -43,9 +43,9 @@ var lane_attributes = [
 	},
 	{
 	  id: 3,
-	  name: "U-Turn",
-	  description: "Maneuver U-Turn Allowed",
-	  img_src: "./img/intersection-builder/lane/u-turn.png"
+	  name: "Left U-Turn",
+	  description: "Left Maneuver U-Turn Allowed",
+	  img_src: "./img/intersection-builder/lane/leftu-turn.jpg"
 	},
 	{
 	  id: 4,
@@ -88,6 +88,12 @@ var lane_attributes = [
 	  name: "Caution",
 	  description: "Caution",
 	  img_src: "./img/intersection-builder/lane/caution.png"
+	},
+	{
+	  id: 11,
+	  name: "Right U-Turn",
+	  description: "Right Maneuver U-Turn Allowed",
+	  img_src: "./img/intersection-builder/lane/rightu-turn.jpg"
 	}
 ];
 
