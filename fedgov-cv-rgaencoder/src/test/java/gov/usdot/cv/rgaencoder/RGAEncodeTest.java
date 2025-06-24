@@ -262,6 +262,19 @@ public class RGAEncodeTest {
     IndividualWayCnxnsManeuvers mockIndidvidualWayCnxnsManeuvers1;
     MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneConnectionsManeuversLayer1;
 
+    MovementsContainer mockMovementsContainer6;
+    MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneCnxnMnvrLayer2;
+    List<IndividualWayCnxnsManeuvers> mockIndividualLaneCnxnsManeuversLaneSet2;
+    List<WayCnxnManeuverInfo> mockCnxnManeuversSet2;
+    WayCnxnManeuverInfo mockWayCnxnManeuverInfo2;
+    List<CnxnManeuverInfo> mockManeuversSet2;
+    CnxnManeuverInfo mockCnxnManeuverInfo2;
+    WayCnxnManeuvers mockallowedManeuver2;
+    WayCnxnManeuverControlType mockManeuverControlType2;
+    UnsignalizedMovementStates mockUnsignalizedMovementStates1;
+    IndividualWayCnxnsManeuvers mockIndidvidualWayCnxnsManeuvers2;
+    MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneConnectionsManeuversLayer2;
+
     @Before
     public void setup() {
         mockRGA = mock(RGAData.class);
@@ -450,6 +463,16 @@ public class RGAEncodeTest {
         mockWayCnxnManeuverInfo1 = mock(WayCnxnManeuverInfo.class);
         mockIndidvidualWayCnxnsManeuvers1 = mock(IndividualWayCnxnsManeuvers.class);
         mockMtrVehLaneConnectionsManeuversLayer1 = mock(MtrVehLaneConnectionsManeuversLayer.class);
+
+        mockMovementsContainer6 = mock(MovementsContainer.class);
+        mockMtrVehLaneCnxnMnvrLayer2 = mock(MtrVehLaneConnectionsManeuversLayer.class);
+        mockallowedManeuver2 = mock(WayCnxnManeuvers.class);
+        mockManeuverControlType2 = mock(WayCnxnManeuverControlType.class);
+        mockCnxnManeuverInfo2 = mock(CnxnManeuverInfo.class);
+        mockWayCnxnManeuverInfo2 = mock(WayCnxnManeuverInfo.class);
+        mockUnsignalizedMovementStates1 = mock(UnsignalizedMovementStates.class);
+        mockIndidvidualWayCnxnsManeuvers2 = mock(IndividualWayCnxnsManeuvers.class);
+        mockMtrVehLaneConnectionsManeuversLayer2 = mock(MtrVehLaneConnectionsManeuversLayer.class);
 
         encoder = new Encoder();
 
@@ -908,6 +931,24 @@ public class RGAEncodeTest {
         when(mockMovementsContainer5.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
         when(mockMovementsContainer5.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer1);
 
+        when(mockUnsignalizedMovementStates1.getUnsignalizedMovementStatesValue()).thenReturn((long)0);
+        when(mockManeuverControlType2.getChoice()).thenReturn(2);
+        when(mockallowedManeuver2.getWayCnxnManeuvers()).thenReturn((long)0);
+        when(mockCnxnManeuverInfo2.getAllowedManeuver()).thenReturn(mockallowedManeuver2);
+        when(mockCnxnManeuverInfo2.getManeuverControlType()).thenReturn(mockManeuverControlType2);
+        mockManeuversSet2 = Arrays.asList(mockCnxnManeuverInfo2);
+        when(mockWayCnxnManeuverInfo2.getConnectionID()).thenReturn(1);
+        when(mockWayCnxnManeuverInfo2.getManeuversSet()).thenReturn(mockManeuversSet2);
+        mockCnxnManeuversSet2 = Arrays.asList(mockWayCnxnManeuverInfo2);
+        when(mockIndidvidualWayCnxnsManeuvers2.getWayID()).thenReturn(2);
+        when(mockIndidvidualWayCnxnsManeuvers2.getCnxnManeuversSet()).thenReturn(mockCnxnManeuversSet2);
+        mockIndividualLaneCnxnsManeuversLaneSet2 = Arrays.asList(mockIndidvidualWayCnxnsManeuvers2);
+        when(mockMtrVehLaneConnectionsManeuversLayer2.getMtrVehLaneConnectionsManeuversLayer()).thenReturn(mockIndividualLaneCnxnsManeuversLaneSet2);
+        when(mockMovementsContainer6.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
+        when(mockMovementsContainer6.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer2);
+
+        
+
 
 
 
@@ -916,7 +957,7 @@ public class RGAEncodeTest {
                 mockGeometryContainer3, mockGeometryContainer4, mockGeometryContainer5, mockGeometryContainer6,
                 mockGeometryContainer7, mockGeometryContainer8, mockGeometryContainer9, mockGeometryContainer10,
                 mockGeometryContainer11);
-        mockMovementsContainerList = Arrays.asList(mockMovementsContainer1, mockMovementsContainer2, mockMovementsContainer3, mockMovementsContainer4, mockMovementsContainer5);
+        mockMovementsContainerList = Arrays.asList(mockMovementsContainer1, mockMovementsContainer2, mockMovementsContainer3, mockMovementsContainer4, mockMovementsContainer5, mockMovementsContainer6);
         when(mockRGA.getGeometryContainers()).thenReturn(mockGeometryContainerList);
         when(mockRGA.getMovementsContainers()).thenReturn(mockMovementsContainerList);
     }

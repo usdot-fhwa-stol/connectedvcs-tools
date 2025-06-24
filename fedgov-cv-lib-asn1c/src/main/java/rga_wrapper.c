@@ -747,7 +747,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 						populateIndividualWayCnxnsManeuvers(env, wayConnObj, indWayCnxnManeuvers);
 						printf("MY DEBUG 7 \n");
 
-						ASN_SEQUENCE_ADD(&mtrVehLaneCnxnsManeuversLayer->laneCnxnsManeuversLaneSet.list, indivLaneCnxnsManeuversSetObject);
+						ASN_SEQUENCE_ADD(&mtrVehLaneCnxnsManeuversLayer->laneCnxnsManeuversLaneSet.list, indWayCnxnManeuvers);
 						printf("MY DEBUG 8 \n");
 					}
 					movementsLayer->movementsContainer_Value.choice.MtrVehLaneConnectionsManeuversLayer = *mtrVehLaneCnxnsManeuversLayer;
@@ -1060,29 +1060,28 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 				case SIGNALIZED_CONTROL:
 					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_signalizedControl;
 					printf("DEBUG 13 \n");
-					//jmethodID getSignalizedControlMethod = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getSignalizedControl", "()I");
-					//jint signalizedControl = (*env)->CallIntMethod(env, wayCnxnManeuverControlTypeObj, getSignalizedControlMethod);
 					wayCnxnManeuverControlType.choice.signalizedControl = 1;
 					printf("DEBUG 14 \n");
 					break;
-				// case UNSIGNALIZED_CONTROL:
-				// 	wayCnxnManeuverControlType.present = UNSIGNALIZED_CONTROL;
+				case UNSIGNALIZED_CONTROL:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_unsignalizedControl;
+					printf("INSIDE UNSIGNALIZED \n");
+					jmethodID getUnsignalizedMovementStates = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getUnsignalizedMovementStates", "()Lgov/usdot/cv/rgaencoder/UnsignalizedMovementStates;");
+					printf("DEBUG 13.1 \n");
+					jobject unsignalizedMovementStatesObj = (*env)->CallObjectMethod(env, wayCnxnManeuverControlTypeObj, getUnsignalizedMovementStates);
+					printf("DEBUG 13.2 \n");
 
-				// 	//UnsignalizedMovementStates_t *unsignalizedMovementStates = calloc(1, sizeof(UnsignalizedMovementStates_t));
-				// 	jmethodID getUnsignalizedMovementStates = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getUnsignalizedMovementStates", "()Lgov/usdot/cv/rgaencoder/WayCnxnManeuverControlType;");
-				// 	jobject unsignalizedMovementStatesObj = (*env)->CallObjectMethod(env, wayCnxnManeuverControlTypeObj, getUnsignalizedMovementStates);
 
-				// 	jclass unsignalizedMovementStatesClass = (*env)->GetObjectClass(env, unsignalizedMovementStatesObj);
-				// 	jmethodID getUnsignalizedMovementStatesOption = (*env)->GetMethodID(env, unsignalizedMovementStatesClass, "getUnsignalizedMovementStatesValue", "()L" );
-				// 	jlong unsignalizedMovementStatesValue = (*env)->CallLongMethod(env, unsignalizedMovementStatesObj, getUnsignalizedMovementStatesOption);
-					
-				// 	//unsignalizedMovementStates->unsignalizedMovementStateValue = (int)(unsignalizedMovementStatesValue);
-				// 	wayCnxnManeuverControlType->choice.unsignalizedControl = (UnsignalizedMovementStates_t)unsignalizedMovementStatesValue;
-				// 	break;
+					jclass unsignalizedMovementStatesClass = (*env)->GetObjectClass(env, unsignalizedMovementStatesObj);
+					printf("DEBUG 13 \n");
+					jmethodID getUnsignalizedMovementStatesOption = (*env)->GetMethodID(env, unsignalizedMovementStatesClass, "getUnsignalizedMovementStatesValue", "()L" );
+					pritnf("DEBUG 14.1 \n");
+					jlong unsignalizedMovementStatesValue = (*env)->CallLongMethod(env, unsignalizedMovementStatesObj, getUnsignalizedMovementStatesOption);
+					printf("DEBUG 14 \n");
+					wayCnxnManeuverControlType.choice.unsignalizedControl = (UnsignalizedMovementStates_t)unsignalizedMovementStatesValue;
+					break;
 				case UNCONTROLLED:
 					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_uncontrolled;
-					// jmethodID getUncontrolledMethod = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getUncontrolled", "()I");
-					// jint uncontrolled = (*env)->CallIntMethod(env, wayCnxnManeuverControlTypeObj, getUncontrolledMethod);
 					wayCnxnManeuverControlType.choice.uncontrolled = 1;
 					break;
 			}
