@@ -20,26 +20,30 @@ public class MovementsContainer {
     private int movementsContainerId;
     private MtrVehLaneDirectionOfTravelLayer mtrVehLaneDirectionOfTravelLayer;
     private MtrVehLaneConnectionsLayer mtrVehLnCnxnsLayer;
+    private MtrVehLaneConnectionsManeuversLayer mtrVehLnCnxnxMnvrLayer;
     private BicycleLaneConnectionsLayer bikeLnCnxnsLayer;
 
     // Constants to represent the choices
     public static final int MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID = 1;
     public static final int MTR_VEH_LANE_CONNECTIONS_LAYER_ID = 2;
+    public static final int MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID = 3;
     public static final int BIKE_LANE_CONNECTIONS_LAYER_ID = 4;
 
     public MovementsContainer() {
         this.movementsContainerId = 0;
         this.mtrVehLaneDirectionOfTravelLayer = null;
         this.mtrVehLnCnxnsLayer = null;
+        this.mtrVehLnCnxnxMnvrLayer = null;
         this.bikeLnCnxnsLayer = null;
     }
 
     public MovementsContainer(int movementsContainerId,
             MtrVehLaneDirectionOfTravelLayer mtrVehLaneDirectionOfTravelLayer,
-            MtrVehLaneConnectionsLayer mtrVehLnCnxnsLayer, BicycleLaneConnectionsLayer bikeLnCnxnsLayer) {
+            MtrVehLaneConnectionsLayer mtrVehLnCnxnsLayer, MtrVehLaneConnectionsManeuversLayer mtrVehLnCnxnxMnvrLayer, BicycleLaneConnectionsLayer bikeLnCnxnsLayer) {
         this.movementsContainerId = movementsContainerId;
         this.mtrVehLaneDirectionOfTravelLayer = mtrVehLaneDirectionOfTravelLayer;
         this.mtrVehLnCnxnsLayer = mtrVehLnCnxnsLayer;
+        this.mtrVehLnCnxnxMnvrLayer = mtrVehLnCnxnxMnvrLayer;
         this.bikeLnCnxnsLayer = bikeLnCnxnsLayer;
     }
 
@@ -67,6 +71,14 @@ public class MovementsContainer {
         this.mtrVehLnCnxnsLayer = mtrVehLnCnxnsLayer;
     }
 
+    public MtrVehLaneConnectionsManeuversLayer getMtrVehLnCnxnxMnvrLayer() {
+        return mtrVehLnCnxnxMnvrLayer;
+    }
+
+    public void setMtrVehLnCnxnxMnvrLayer(MtrVehLaneConnectionsManeuversLayer mtrVehLnCnxnxMnvrLayer) {
+        this.mtrVehLnCnxnxMnvrLayer = mtrVehLnCnxnxMnvrLayer;
+    }
+
     public BicycleLaneConnectionsLayer getBikeLnCnxnsLayer() {
         return bikeLnCnxnsLayer;
     }
@@ -81,6 +93,7 @@ public class MovementsContainer {
                 + ", mtrVehLaneDirectionOfTravelLayer="
                 + (mtrVehLaneDirectionOfTravelLayer != null ? mtrVehLaneDirectionOfTravelLayer.toString() : "null")
                 + (mtrVehLnCnxnsLayer != null ? mtrVehLnCnxnsLayer.toString() : "null")
+                + (mtrVehLnCnxnxMnvrLayer != null ? mtrVehLnCnxnxMnvrLayer.toString() : "null")
                 + (bikeLnCnxnsLayer != null ? bikeLnCnxnsLayer.toString() : "null")
                 + "]";
     }

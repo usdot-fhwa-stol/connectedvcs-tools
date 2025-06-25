@@ -713,6 +713,38 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 					}
 					movementsLayer->movementsContainer_Value.choice.MtrVehLaneConnectionsLayer = *mtrVehLaneCnxnsLayer;
 					break;
+				case MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID: // MtrVehLaneConnectionsManeuversLayer
+					movementsLayer->movementsContainer_Value.present = RGAMovementsLayers__movementsContainer_Value_PR_MtrVehLaneConnectionsManeuversLayer;
+
+					// Retrieving the MtrVehLaneConnectionsManeuversLayer object
+					jmethodID getMtrVehLaneConnectionsManeuversLayerMethod = (*env)->GetMethodID(env, movementsContainerClass, "getMtrVehLnCnxnxMnvrLayer", "()Lgov/usdot/cv/rgaencoder/MtrVehLaneConnectionsManeuversLayer;");
+					jobject mtrVehLaneConnectionsManeuversLayerObject = (*env)->CallObjectMethod(env, movementsContainerObject, getMtrVehLaneConnectionsManeuversLayerMethod);
+
+					// Populating MtrVehLaneConnectionsManeuversLayer_t
+					MtrVehLaneConnectionsManeuversLayer_t *mtrVehLaneCnxnsManeuversLayer = calloc(1, sizeof(MtrVehLaneConnectionsManeuversLayer_t));
+
+					jclass mtrVehLaneConnectionsManeuversLayerClass = (*env)->GetObjectClass(env, mtrVehLaneConnectionsManeuversLayerObject);
+					jmethodID getLaneCnxnsManeuversLaneSetLayer = (*env)->GetMethodID(env, mtrVehLaneConnectionsManeuversLayerClass, "getMtrVehLaneConnectionsManeuversLayer", "()Ljava/util/List;");
+					jobject indivLaneCnxnsManeuversSetObject = (*env)->CallObjectMethod(env, mtrVehLaneConnectionsManeuversLayerObject, getLaneCnxnsManeuversLaneSetLayer);
+				
+					jclass indivLaneCnxnsManeuversSetClass = (*env)->GetObjectClass(env, indivLaneCnxnsManeuversSetObject);
+					jmethodID indivLaneCnxnsManeuversSetSizeMethod = (*env)->GetMethodID(env, indivLaneCnxnsManeuversSetClass, "size", "()I");
+					jmethodID indivLaneCnxnsManeuversSetGetMethod = (*env)->GetMethodID(env, indivLaneCnxnsManeuversSetClass, "get", "(I)Ljava/lang/Object;");
+
+					jint indivLaneCnxnsManeuversSetSize = (*env)->CallIntMethod(env, indivLaneCnxnsManeuversSetObject, indivLaneCnxnsManeuversSetSizeMethod);
+					
+					for (jint i = 0; i < indivLaneCnxnsManeuversSetSize; i++) {
+						jobject wayConnObj = (*env)->CallObjectMethod(env, indivLaneCnxnsManeuversSetObject, indivLaneCnxnsManeuversSetGetMethod, i);
+
+						IndividualWayCnxnsManeuvers_t *indWayCnxnManeuvers = calloc(1, sizeof(IndividualWayCnxnsManeuvers_t));
+
+						populateIndividualWayCnxnsManeuvers(env, wayConnObj, indWayCnxnManeuvers);
+
+						ASN_SEQUENCE_ADD(&mtrVehLaneCnxnsManeuversLayer->laneCnxnsManeuversLaneSet.list, indWayCnxnManeuvers);
+					}
+					movementsLayer->movementsContainer_Value.choice.MtrVehLaneConnectionsManeuversLayer = *mtrVehLaneCnxnsManeuversLayer;
+					break;
+
 				case BIKE_LANE_CONNECTIONS__LAYER_ID: // BicycleLaneConnectionsLayer
 					movementsLayer->movementsContainer_Value.present = RGAMovementsLayers__movementsContainer_Value_PR_BicycleLaneConnectionsLayer;
 
@@ -939,6 +971,115 @@ void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, Individual
 			ASN_SEQUENCE_ADD(&indWayCnxn->connectionsSet, connectionInfo);
 		}
 	}
+}
+
+void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversObj, IndividualWayCnxnsManeuvers_t *indWayCnxnManeuvers)
+{
+	jclass wayCnxnsManeuversClass = (*env)->GetObjectClass(env, wayCnxnsManeuversObj);
+	jmethodID getWayIDMethod = (*env)->GetMethodID(env, wayCnxnsManeuversClass, "getWayID", "()I");
+	jint wayID = (*env)->CallIntMethod(env, wayCnxnsManeuversObj, getWayIDMethod);
+	indWayCnxnManeuvers->wayID = wayID;
+
+	jmethodID getCnxnsManeuversSetMethod = (*env)->GetMethodID(env, wayCnxnsManeuversClass, "getCnxnManeuversSet", "()Ljava/util/List;");
+	jobject wayCnxnsManeuversSetList = (*env)->CallObjectMethod(env, wayCnxnsManeuversObj, getCnxnsManeuversSetMethod);
+	jclass wayCnxnManeuverInfoClass = (*env)->GetObjectClass(env, wayCnxnsManeuversSetList);
+
+	jmethodID wayCnxnManeuverInfoSetSizeMethod = (*env)->GetMethodID(env, wayCnxnManeuverInfoClass, "size", "()I");
+	jmethodID wayCnxnManeuverInfoSetGetMethod = (*env)->GetMethodID(env, wayCnxnManeuverInfoClass, "get", "(I)Ljava/lang/Object;");
+
+	jint wayCnxnManeuverInfoSetSize = (*env)->CallIntMethod(env, wayCnxnsManeuversSetList, wayCnxnManeuverInfoSetSizeMethod);
+
+	for (jint j = 0; j < wayCnxnManeuverInfoSetSize; j++)
+	{
+		jobject wayCnxnManeuverInfoObj = (*env)->CallObjectMethod(env, wayCnxnsManeuversSetList, wayCnxnManeuverInfoSetGetMethod, j);
+		jclass wayCnxnmaneuverInfoIndClass = (*env)->GetObjectClass(env, wayCnxnManeuverInfoObj);
+
+		WayCnxnManeuverInfo_t *wayCnxnManeuverInfo = calloc(1, sizeof(WayCnxnManeuverInfo_t));
+
+		jmethodID getConnectionIDMethod = (*env)->GetMethodID(env, wayCnxnmaneuverInfoIndClass, "getConnectionID", "()I");
+		jint connectionID = (*env)->CallIntMethod(env, wayCnxnManeuverInfoObj, getConnectionIDMethod);
+		wayCnxnManeuverInfo->connectionID = connectionID;    
+
+		//Populate the WayCnxnManueverInfo Set 
+		jmethodID getManeuversSetMethod = (*env)->GetMethodID(env, wayCnxnmaneuverInfoIndClass, "getManeuversSet", "()Ljava/util/List;");
+		jobject cnxnManeuversSetObject = (*env)->CallObjectMethod(env, wayCnxnManeuverInfoObj, getManeuversSetMethod);
+
+		jclass cnxnsManeuversSetClass = (*env)->GetObjectClass(env, cnxnManeuversSetObject);
+		jmethodID cnxnsManeuversSetSizeMethod = (*env)->GetMethodID(env, cnxnsManeuversSetClass, "size", "()I");
+		jmethodID cnxnsManeuversSetGetMethod = (*env)->GetMethodID(env, cnxnsManeuversSetClass, "get", "(I)Ljava/lang/Object;");
+		jint cnxnsManeuversSetSize = (*env)->CallIntMethod(env, cnxnManeuversSetObject, cnxnsManeuversSetSizeMethod);
+
+		for (jint i = 0; i < cnxnsManeuversSetSize; i++)
+		{
+			CnxnManeuverInfo_t *cnxnManeuverInfo = calloc(1, sizeof(CnxnManeuverInfo_t));
+
+			jobject cnxnsManeuversObj = (*env)->CallObjectMethod(env, cnxnManeuversSetObject, cnxnsManeuversSetGetMethod, i);
+			jclass cnxnsManeuversClass = (*env)->GetObjectClass(env, cnxnsManeuversObj);
+
+			// Populate WayCnxnManeuvers
+			jmethodID getWayCnxnManeuvers = (*env)->GetMethodID(env, cnxnsManeuversClass, "getAllowedManeuver", "()Lgov/usdot/cv/rgaencoder/WayCnxnManeuvers;");
+			jobject wayCnxnManeuvers = (*env)->CallObjectMethod(env, cnxnsManeuversObj, getWayCnxnManeuvers);
+			jclass wayCnxnManeuversClass = (*env)->GetObjectClass(env, wayCnxnManeuvers);
+
+			jmethodID getWayCnxnManeuversValue = (*env)->GetMethodID(env, wayCnxnManeuversClass, "getWayCnxnManeuvers", "()J");
+			jlong wayCnxnManeuversValue = (*env)->CallLongMethod(env, wayCnxnManeuvers, getWayCnxnManeuversValue);
+
+			cnxnManeuverInfo->allowedManeuver = (WayCnxnManeuvers_t)wayCnxnManeuversValue;
+
+			//Populate WayCnxnManeuverControlType
+			jmethodID getWayCnxnManeuverControlType = (*env)->GetMethodID(env, cnxnsManeuversClass, "getManeuverControlType", "()Lgov/usdot/cv/rgaencoder/WayCnxnManeuverControlType;");
+			jobject wayCnxnManeuverControlTypeObj = (*env)->CallObjectMethod(env, cnxnsManeuversObj, getWayCnxnManeuverControlType);
+
+			WayCnxnManeuverControlType_t wayCnxnManeuverControlType;
+			jclass wayCnxnManeuverControlTypeClass = (*env)->GetObjectClass(env, wayCnxnManeuverControlTypeObj);
+			jmethodID getChoice = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getChoice", "()I");
+			jint choice = (*env)->CallIntMethod(env, wayCnxnManeuverControlTypeObj, getChoice);
+			
+			switch (choice)
+			{
+				case SIGNALIZED_CONTROL:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_signalizedControl;
+					wayCnxnManeuverControlType.choice.signalizedControl = 1;
+					break;
+				case UNSIGNALIZED_CONTROL:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_unsignalizedControl;
+					jmethodID getUnsignalizedMovementStates = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getUnsignalizedMovementStates", "()Lgov/usdot/cv/rgaencoder/UnsignalizedMovementStates;");
+					jobject unsignalizedMovementStatesObj = (*env)->CallObjectMethod(env, wayCnxnManeuverControlTypeObj, getUnsignalizedMovementStates);
+
+					jclass unsignalizedMovementStatesClass = (*env)->GetObjectClass(env, unsignalizedMovementStatesObj);
+					jmethodID getUnsignalizedMovementStatesOption = (*env)->GetMethodID(env, unsignalizedMovementStatesClass, "getUnsignalizedMovementStatesValue", "()J" );
+					jlong unsignalizedMovementStatesValue = (*env)->CallLongMethod(env, unsignalizedMovementStatesObj, getUnsignalizedMovementStatesOption);
+					wayCnxnManeuverControlType.choice.unsignalizedControl = (UnsignalizedMovementStates_t)unsignalizedMovementStatesValue;
+					break;
+				case UNCONTROLLED:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_uncontrolled;
+					wayCnxnManeuverControlType.choice.uncontrolled = 1;
+					break;
+				default:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_NOTHING;
+			}
+			cnxnManeuverInfo->maneuverControlType = wayCnxnManeuverControlType;
+
+			// Populate TimeRestrictions
+
+			jmethodID getTimeRestrictions = (*env)->GetMethodID(env, cnxnsManeuversClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
+			jobject timeRestrictionsObject = (*env)->CallObjectMethod(env, cnxnsManeuversObj, getTimeRestrictions);
+
+			if (timeRestrictionsObject != NULL)
+			{
+				RGATimeRestrictions_t *timeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
+				populateTimeRestrictions(env, timeRestrictionsObject, timeRestrictions);
+				cnxnManeuverInfo->timeRestrictions = timeRestrictions;
+			}
+			else
+			{
+				cnxnManeuverInfo->timeRestrictions = NULL;
+			}
+			ASN_SEQUENCE_ADD(&wayCnxnManeuverInfo->maneuversSet, cnxnManeuverInfo);
+		}
+		ASN_SEQUENCE_ADD(&indWayCnxnManeuvers->cnxnManeuversSet, wayCnxnManeuverInfo);
+	}
+
 }
 
 void populateLaneConstructorType(JNIEnv *env, jobject laneConstructorTypeObj, LaneConstructorType_t *laneConstructorType)
