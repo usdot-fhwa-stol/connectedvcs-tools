@@ -98,7 +98,13 @@ void populateNodeXYZOffsetValue(JNIEnv *env, jobject offsetValueObj, NodeXYZOffs
  */
 void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, IndividualWayConnections_t *indWayCnxn); 
 
-//void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversObj, IndividualWayCnxnsManeuvers_t *indWayCnxnManeuvers);
+/**
+ * Method to populate a IndividualWayCnxnManeuvers_t structure from corresponding Java object
+ * @param env JNI environment pointer.
+ * @param wayCnxnsManeuversObj Java object containing IndividualWayCnxnManeuvers value data.
+ * @param indWayCnxnManeuvers Pointer to the C structure
+ */
+void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversObj, IndividualWayCnxnsManeuvers_t *indWayCnxnManeuvers);
 
 
 #ifdef __cplusplus

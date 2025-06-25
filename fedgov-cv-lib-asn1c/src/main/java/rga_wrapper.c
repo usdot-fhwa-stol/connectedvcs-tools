@@ -713,7 +713,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 					break;
 				case MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID: // MtrVehLaneConnectionsManeuversLayer
 					movementsLayer->movementsContainer_Value.present = RGAMovementsLayers__movementsContainer_Value_PR_MtrVehLaneConnectionsManeuversLayer;
-					
+
 					// Retrieving the MtrVehLaneConnectionsManeuversLayer object
 					jmethodID getMtrVehLaneConnectionsManeuversLayerMethod = (*env)->GetMethodID(env, movementsContainerClass, "getMtrVehLnCnxnxMnvrLayer", "()Lgov/usdot/cv/rgaencoder/MtrVehLaneConnectionsManeuversLayer;");
 					jobject mtrVehLaneConnectionsManeuversLayerObject = (*env)->CallObjectMethod(env, movementsContainerObject, getMtrVehLaneConnectionsManeuversLayerMethod);
@@ -997,7 +997,6 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 			jclass cnxnsManeuversClass = (*env)->GetObjectClass(env, cnxnsManeuversObj);
 
 			// Populate WayCnxnManeuvers
-
 			jmethodID getWayCnxnManeuvers = (*env)->GetMethodID(env, cnxnsManeuversClass, "getAllowedManeuver", "()Lgov/usdot/cv/rgaencoder/WayCnxnManeuvers;");
 			jobject wayCnxnManeuvers = (*env)->CallObjectMethod(env, cnxnsManeuversObj, getWayCnxnManeuvers);
 			jclass wayCnxnManeuversClass = (*env)->GetObjectClass(env, wayCnxnManeuvers);
@@ -1008,7 +1007,6 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 			cnxnManeuverInfo->allowedManeuver = (WayCnxnManeuvers_t)wayCnxnManeuversValue;
 
 			//Populate WayCnxnManeuverControlType
-
 			jmethodID getWayCnxnManeuverControlType = (*env)->GetMethodID(env, cnxnsManeuversClass, "getManeuverControlType", "()Lgov/usdot/cv/rgaencoder/WayCnxnManeuverControlType;");
 			jobject wayCnxnManeuverControlTypeObj = (*env)->CallObjectMethod(env, cnxnsManeuversObj, getWayCnxnManeuverControlType);
 
@@ -1028,7 +1026,6 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 					jmethodID getUnsignalizedMovementStates = (*env)->GetMethodID(env, wayCnxnManeuverControlTypeClass, "getUnsignalizedMovementStates", "()Lgov/usdot/cv/rgaencoder/UnsignalizedMovementStates;");
 					jobject unsignalizedMovementStatesObj = (*env)->CallObjectMethod(env, wayCnxnManeuverControlTypeObj, getUnsignalizedMovementStates);
 
-
 					jclass unsignalizedMovementStatesClass = (*env)->GetObjectClass(env, unsignalizedMovementStatesObj);
 					jmethodID getUnsignalizedMovementStatesOption = (*env)->GetMethodID(env, unsignalizedMovementStatesClass, "getUnsignalizedMovementStatesValue", "()J" );
 					jlong unsignalizedMovementStatesValue = (*env)->CallLongMethod(env, unsignalizedMovementStatesObj, getUnsignalizedMovementStatesOption);
@@ -1038,6 +1035,8 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_uncontrolled;
 					wayCnxnManeuverControlType.choice.uncontrolled = 1;
 					break;
+				default:
+					wayCnxnManeuverControlType.present = WayCnxnManeuverControlType_PR_NOTHING;
 			}
 			cnxnManeuverInfo->maneuverControlType = wayCnxnManeuverControlType;
 

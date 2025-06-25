@@ -958,12 +958,7 @@ public class RGAEncodeTest {
         when(mockMtrVehLaneConnectionsManeuversLayer2.getMtrVehLaneConnectionsManeuversLayer()).thenReturn(mockIndividualLaneCnxnsManeuversLaneSet2);
         when(mockMovementsContainer6.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
         when(mockMovementsContainer6.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer2);
-
         
-
-
-
-
         when(mockRGA.getBaseLayer()).thenReturn(mockBaseLayer);
         mockGeometryContainerList = Arrays.asList(mockGeometryContainer1, mockGeometryContainer2,
                 mockGeometryContainer3, mockGeometryContainer4, mockGeometryContainer5, mockGeometryContainer6,
