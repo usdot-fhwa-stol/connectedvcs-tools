@@ -255,11 +255,13 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".descriptive_name").hide();
   $(".lane_type").hide();
   $(".approach_type").hide();
+  $(".maneuver_control_type").hide();
   $("#approach-table").hide();
   $(".verified_lat").hide();
   $(".verified_long").hide();
   $(".verified_elev").hide();
   $(".approach_name").hide();
+  $(".maneuver_control_type").hide();
   $(".shared_with").hide();
 //    $("#clone").hide()
   $(".btnClone").hide();
@@ -300,6 +302,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
     $(".master_lane_width").hide();
     $(".intersection_name").hide();
     $(".approach_name").hide();
+    $(".maneuver_control_type").hide();
     $("#approach-table").hide();
     $('.intersection-info-tab').hide();
     hideRGAFields(true);
@@ -862,7 +865,7 @@ function addLaneManeuversToContainer(container, attribute) {
 // adds the attribute (image) to the displayed container
 function addLaneAttributeToContainer(container, attribute ) {
   let attr_id = parseInt(attribute.id.match(/(\d+)$/)[0], 10);
-  let lane_attr = lane_attributes[attr_id];
+  let lane_attr = lane_attributes.find(attr => attr.id === attr_id);
 
   // if attribute already exists in the lane attributes, skip, do not add
   // if (selectedMarker.get('lane_attributes') &&
@@ -1303,13 +1306,49 @@ function setRGAStatus() {
   if($('#rga_switch').is(":checked")){
       rgaEnabled = true;
       $('.day_selection_dropdown').multiselect('enable');
+      enableManeuverControlType(true);
   }else{
       rgaEnabled = false;
       $('.day_selection_dropdown').multiselect('disable');
+      enableManeuverControlType(false);
   }
   $('.day_selection_dropdown').multiselect('refresh');
   enableRGAFields(rgaEnabled);
   return rgaEnabled;
+}
+
+function enableManeuverControlType(enable) {
+  if (enable) {
+      // Enable the dropdown
+      $('#maneuver_control_type .btn-select').prop('disabled', false);
+      $('#maneuver_control_type .btn-select').css({
+          'backgroundColor': '',
+          'color': '',
+          'borderColor': '',
+          'pointerEvents': ''
+      });
+      $('#maneuver_control_type .btn-select').removeClass('disabled-dropdown');
+      $('#maneuver_control_type .btn-select').attr('data-toggle', 'dropdown');
+      
+      // Enable dropdown menu items
+      $('#maneuver_control_type .dropdown-menu a').css('pointerEvents', '');
+      $('#maneuver_control_type .dropdown-menu a').removeClass('disabled');
+  } else {
+      // Disable the dropdown
+      $('#maneuver_control_type .btn-select').prop('disabled', true);
+      $('#maneuver_control_type .btn-select').css({
+          'backgroundColor': "#eee",
+          'color': '#999',
+          'borderColor': '#ccc',
+          'pointerEvents': 'none'
+      });
+      $('#maneuver_control_type .btn-select').addClass('disabled-dropdown');
+      $('#maneuver_control_type .btn-select').removeAttr('data-toggle');
+      
+      // Disable dropdown menu items
+      $('#maneuver_control_type .dropdown-menu a').css('pointerEvents', 'none');
+      $('#maneuver_control_type .dropdown-menu a').addClass('disabled');
+  }
 }
 
 function resetRGAStatus(){

@@ -227,6 +227,18 @@
 					<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_id"></i></div>
 					</div>
 
+					<div class="row maneuver_control_type">
+						<div class="col-sm-4"><label for="maneuver_control_type">Maneuver Control Type:</label></div>
+						<div class="col-sm-7"><div id="maneuver_control_type" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select Control Type <span class="caret"></span></a>
+						<ul class="dropdown-menu scrollable-menu" role="menu">
+							<li><a href="#">Signalized</a></li>
+							<li><a href="#">Unsignalized</a></li>
+							<li><a href="#">Uncontrolled</a></li>
+						</ul>
+					</div></div>
+					<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="maneuver_control_type"></i></div>
+					</div>
+
 					<div id="approach-table" class="panel-body approach-table">
 						<div class="row clearfix">
 							<div class="col-md-12 column">
@@ -769,6 +781,9 @@
 
             <div class="tab-pane" id="connection-tab">
             	<div class="panel-body">
+					<div class="row connection-text"> 
+						<div class="col-sm-12">Unsignalized connections default to protected unless otherwise indicated with yield or stop.</div>
+					</div>
             		<div class="row clearfix">
 				        <div class="col-md-12 column">
 				            <form id="nodes">

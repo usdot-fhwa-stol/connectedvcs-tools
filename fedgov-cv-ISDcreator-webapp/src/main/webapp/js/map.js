@@ -39,7 +39,7 @@ let typeAttributeNameSaved = "";
 let sharedWith = [];
 let typeAttribute = [];
 let nodeLaneWidth = [];
-let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID;
+let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID, maneuverControlType;
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
 let rowHtml;
@@ -752,6 +752,45 @@ function initSideBar() {
     laneContents.append(html);
   }
 
+  $(document).ready(function() {
+    // Initialize Right U-Turn as disabled since rgaEnabled starts as false
+    let rightUTurnImg = $('#lane_img_12');
+    if (rightUTurnImg.length > 0) {
+        rightUTurnImg.removeClass('drag-lane-img')
+          .addClass('disabled-lane-img') // Add a class to indicate it's disabled
+          .css({
+              'opacity': '0.5',
+              'filter': 'grayscale(100%)',
+              'pointer-events': 'none'
+          });
+    }
+  });
+
+  $('#rga_switch').on('change', function() {
+    let rgaEnabled = $('#rga_switch').is(":checked");
+    let rightUTurnImg = $('#lane_img_12');
+    
+    if (rgaEnabled) {
+        // Enable Right U-Turn image
+        rightUTurnImg.addClass('drag-lane-img')  // Add the droppable class back
+            .removeClass('disabled-lane-img') // Add a class to indicate it's disabled
+                    .css({
+                        'opacity': '1',
+                        'filter': 'none',
+                        'pointer-events': 'auto'
+                    });
+    } else {
+        // Disable Right U-Turn image
+        rightUTurnImg.removeClass('drag-lane-img')
+        .addClass('disabled-lane-img') // Add a class to indicate it's disabled
+                    .css({
+                        'opacity': '0.5',
+                        'filter': 'grayscale(100%)',
+                        'pointer-events': 'none'
+                    });
+    }
+});
+
   $imgs = intersectionSidebar.find(".drag-intersection-img,.drag-lane-img");
   $imgs.draggable({
     appendTo: "body",
@@ -901,6 +940,15 @@ function initMISC() {
   $("#approach_name .dropdown-menu li a").click(function () {
     let selText = $(this).text();
     approachID = selText;
+    $(this)
+      .parents(".btn-group")
+      .find(".dropdown-toggle")
+      .html(selText + ' <span class="caret"></span>');
+  });
+
+  $("#maneuver_control_type .dropdown-menu li a").click(function () {
+    let selText = $(this).text();
+    maneuverControlType = selText;
     $(this)
       .parents(".btn-group")
       .find(".dropdown-toggle")
@@ -1306,6 +1354,10 @@ function registerModalButtonEvents() {
         if (approachID != null) {
           selectedMarker.set("approachID", approachID);
           approachID = null;
+        }
+        if (maneuverControlType != null) {
+          selectedMarker.set("maneuverControlType", maneuverControlType);
+          maneuverControlType = null;
         }
       }
 
