@@ -865,7 +865,7 @@ function addLaneManeuversToContainer(container, attribute) {
 // adds the attribute (image) to the displayed container
 function addLaneAttributeToContainer(container, attribute ) {
   let attr_id = parseInt(attribute.id.match(/(\d+)$/)[0], 10);
-  let lane_attr = lane_attributes[attr_id];
+  let lane_attr = lane_attributes.find(attr => attr.id === attr_id);
 
   // if attribute already exists in the lane attributes, skip, do not add
   // if (selectedMarker.get('lane_attributes') &&

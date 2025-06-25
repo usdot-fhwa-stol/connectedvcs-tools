@@ -90,7 +90,7 @@ var lane_attributes = [
 	  img_src: "./img/intersection-builder/lane/caution.png"
 	},
 	{
-	  id: 11,
+	  id: 12,
 	  name: "Right U-Turn",
 	  description: "Right Maneuver U-Turn Allowed",
 	  img_src: "./img/intersection-builder/lane/rightu-turn.jpg"

@@ -271,7 +271,18 @@ function createMessageJSON()
 
                 attributeArray = [];
                 for(let k in laneFeat[j].get('lane_attributes')) {
-                    attributeArray.push(laneFeat[j].get('lane_attributes')[k].id);
+                    let attributeId = laneFeat[j].get('lane_attributes')[k].id;
+                    if (!(attributeId === 12 && !rgaEnabled)) {
+                        attributeArray.push(attributeId);
+                    }
+                }
+
+                let connectionsArray = laneFeat[j].get('connections');
+                if (!rgaEnabled && connectionsArray?.length) {
+                    connectionsArray = connectionsArray.map(connection => ({
+                        ...connection,
+                        maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
+                    }));
                 }
                 drivingLaneArray[tempJ] = {
                     "laneID": laneFeat[j].get('laneNumber'),
@@ -279,7 +290,7 @@ function createMessageJSON()
                     "laneType": laneFeat[j].get('laneType'),
                     "typeAttributes": laneFeat[j].get('typeAttribute'),
                     "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "connections": connectionsArray,
                     "laneManeuvers": attributeArray,
                     "isComputed": laneFeat[j].get('computed'),
                     ...dfRGALaneTimeRestrictions
@@ -325,10 +336,19 @@ function createMessageJSON()
                 }
 
                 attributeArray = [];
+                for(let k in laneFeat[j].get('lane_attributes')) {
+                    let attributeId = laneFeat[j].get('lane_attributes')[k].id;
+                    if (!(attributeId === 12 && !rgaEnabled)) {
+                        attributeArray.push(attributeId);
+                    }
+                }
 
-                let laneAttributes = laneFeat[j].get('lane_attributes');
-                for (let attr in laneAttributes) {
-                    attributeArray.push(laneAttributes[attr].id);
+                let connectionsArray = laneFeat[j].get('connections');
+                if (!rgaEnabled && connectionsArray?.length) {
+                    connectionsArray = connectionsArray.map(connection => ({
+                        ...connection,
+                        maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
+                    }));
                 }
                 crosswalkLaneArray[tempJC] = {
                     "laneID": laneFeat[j].get('laneNumber'),
@@ -336,7 +356,7 @@ function createMessageJSON()
                     "laneType": laneFeat[j].get('laneType'),
                     "typeAttributes": laneFeat[j].get('typeAttribute'),
                     "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "connections": connectionsArray,
                     "laneManeuvers": attributeArray,
                     "isComputed": laneFeat[j].get('computed'),
                     ...dfRGALaneTimeRestrictions

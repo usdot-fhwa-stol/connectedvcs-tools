@@ -754,7 +754,7 @@ function initSideBar() {
 
   $(document).ready(function() {
     // Initialize Right U-Turn as disabled since rgaEnabled starts as false
-    let rightUTurnImg = $('#lane_img_11');
+    let rightUTurnImg = $('#lane_img_12');
     if (rightUTurnImg.length > 0) {
         rightUTurnImg.removeClass('drag-lane-img')
           .addClass('disabled-lane-img') // Add a class to indicate it's disabled
@@ -768,7 +768,7 @@ function initSideBar() {
 
   $('#rga_switch').on('change', function() {
     let rgaEnabled = $('#rga_switch').is(":checked");
-    let rightUTurnImg = $('#lane_img_11');
+    let rightUTurnImg = $('#lane_img_12');
     
     if (rgaEnabled) {
         // Enable Right U-Turn image
