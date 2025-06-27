@@ -599,7 +599,7 @@ function saveApproaches(selectedMarker) {
     let isSelected = $('#row' + i + ' input[name="rowSelection"]').is(':checked');
     
     let daysOfTheWeek = [];
-    $('#row' + i + ' .day_selection_dropdown option:selected').each(function() {
+    $('#row' + i + ' .approach_day_selection_dropdown option:selected').each(function() {
       daysOfTheWeek.push($(this).val());
     });
     
@@ -707,11 +707,11 @@ function changeApproachRow(oldVal, newVal, readOnly, valueSets) {
               // Handle daysOfTheWeek
               if (timeRestrictions.daysOfTheWeek && Array.isArray(timeRestrictions.daysOfTheWeek)) {
                 setTimeout(() => {
-                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('deselectAll', false);
+                  $('#row' + newVal + ' .approach_day_selection_dropdown').multiselect('deselectAll', false);
                   timeRestrictions.daysOfTheWeek.forEach(function(day) {
-                    $('#row' + newVal + ' .day_selection_dropdown').multiselect('select', day);
+                    $('#row' + newVal + ' .approach_day_selection_dropdown').multiselect('select', day);
                   });
-                  $('#row' + newVal + ' .day_selection_dropdown').multiselect('refresh');
+                  $('#row' + newVal + ' .approach_day_selection_dropdown').multiselect('refresh');
                 }, 100);
               }
               
@@ -1306,13 +1306,16 @@ function setRGAStatus() {
   if($('#rga_switch').is(":checked")){
       rgaEnabled = true;
       $('.day_selection_dropdown').multiselect('enable');
+      $('.approach_day_selection_dropdown').multiselect('enable');
       enableManeuverControlType(true);
   }else{
       rgaEnabled = false;
       $('.day_selection_dropdown').multiselect('disable');
+      $('.approach_day_selection_dropdown').multiselect('disable');
       enableManeuverControlType(false);
   }
   $('.day_selection_dropdown').multiselect('refresh');
+  $('.approach_day_selection_dropdown').multiselect('refresh');
   enableRGAFields(rgaEnabled);
   return rgaEnabled;
 }
@@ -1527,6 +1530,18 @@ function addApproachTimeRestrictions(rowNum, time_restrictions) {
       if (this.name) {
           $(this).attr('name', "approach_" + this.name + rowNum);
       }
+      
+      // Replace form-check-input class with approach-form-check-input
+      if ($(this).hasClass("form-check-input")) {
+          $(this).removeClass("form-check-input");
+          $(this).addClass("approach-form-check-input");
+      }
+      
+      // Replace day_selection_dropdown class with approach_day_selection_dropdown
+      if ($(this).hasClass("day_selection_dropdown")) {
+          $(this).removeClass("day_selection_dropdown");
+          $(this).addClass("approach_day_selection_dropdown");
+      }
   });
   
   $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
@@ -1548,7 +1563,7 @@ function updateApproachTimeRestrictionsHTML() {
   startDateTimePicker.flatpickr(dateConfig);
   endDateTimePicker.flatpickr(dateConfig);
 
-  $(document).off('change', '.form-check-input.time_period').on('change', '.form-check-input.time_period', function () {
+  $(document).on('change', '.approach-form-check-input.time_period', function () {
       let currentRow = $(this).closest('tr');
       let rowId = currentRow.attr('id');
       let rowNum = rowId ? rowId.replace('row', '') : '';
@@ -1563,7 +1578,7 @@ function updateApproachTimeRestrictionsHTML() {
       }
   });
 
-  $('.day_selection_dropdown').each(function() {
+  $('.approach_day_selection_dropdown').each(function() {
       if (!$(this).hasClass('multiselect')) {
           $(this).multiselect({
               maxHeight: 200,        
