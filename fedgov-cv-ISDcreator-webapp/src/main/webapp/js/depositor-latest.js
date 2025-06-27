@@ -190,6 +190,7 @@ function createMessageJSON()
     let reference = {};
     let referenceChild = {};
     let rgaBaseLayerFields = {};
+    let messageType = $('#message_type').val();
 
     for(let b=0; b< laneFeat.length; b++){
         laneFeat[b].set('inBox', false);
@@ -272,18 +273,60 @@ function createMessageJSON()
                 attributeArray = [];
                 for(let k in laneFeat[j].get('lane_attributes')) {
                     let attributeId = laneFeat[j].get('lane_attributes')[k].id;
-                    if (!(attributeId === 12 && !rgaEnabled)) {
+                    if (!(attributeId === 12)) {
                         attributeArray.push(attributeId);
+                    } else {
+                        let laneAttributeAlertMessage = "";
+                        let existingLaneAttrAlert = $('#alert_placeholder').find('#lane-attribute-alert-' + laneFeat[j].get('laneNumber'));
+                        if (existingLaneAttrAlert.length === 0) {
+                            if (messageType === "Frame+RGA" || messageType === "RGA") {
+                                laneAttributeAlertMessage = "Right U-Turn lane attribute for lane " + laneFeat[j].get('laneNumber') + " is not supported for RGA and will not be encoded";
+                            } else if (messageType === "Frame+Map" || messageType === "Map") {
+                                laneAttributeAlertMessage = "Right U-Turn lane attribute for lane " + laneFeat[j].get('laneNumber') + " is not supported for MAP and will not be encoded";
+                            }
+
+                            $('#alert_placeholder').append('<div id="lane-attribute-alert-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ laneAttributeAlertMessage +'</span></div>');
+                        }                       
                     }
                 }
 
                 let connectionsArray = laneFeat[j].get('connections');
-                if (!rgaEnabled && connectionsArray?.length) {
-                    connectionsArray = connectionsArray.map(connection => ({
-                        ...connection,
-                        maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
-                    }));
+                if (connectionsArray?.length) {
+                    let updatedConnections = [];
+                
+                    for (let i = 0; i < connectionsArray.length; i++) {
+                        let connection = { ...connectionsArray[i] };
+                
+                        // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
+                        if (rgaEnabled && connection.maneuvers && (messageType === "Frame+RGA" || messageType === "RGA")) {
+                            if (connection.maneuvers.includes("6")) {
+                                let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
+                                if (existingManeuverAlert6.length === 0) {
+                                    let connectionManeuverAlert = "Lane Change maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                    $('#alert_placeholder').append('<div id="maneuver-alert-6-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                }
+                            }
+
+                            if (connection.maneuvers.includes("7")) {
+                                let existingManeuverAlert7 = $('#alert_placeholder').find('#maneuver-alert-7-' + laneFeat[j].get('laneNumber'));
+                                if(existingManeuverAlert7.length === 0) {
+                                    let connectionManeuverAlert = "No Stopping maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                    $('#alert_placeholder').append('<div id="maneuver-alert-7-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                }
+                            }
+                        }
+                
+                        // Remove maneuver "12" if RGA is disabled
+                        if (!rgaEnabled && connection.maneuvers && (messageType === "Frame+Map" || messageType === "Map")) {
+                            connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
+                        }
+                
+                        updatedConnections.push(connection);
+                    }
+                
+                    connectionsArray = updatedConnections;
                 }
+
                 drivingLaneArray[tempJ] = {
                     "laneID": laneFeat[j].get('laneNumber'),
                     "descriptiveName": laneFeat[j].get('descriptiveName'),
@@ -507,7 +550,6 @@ function createMessageJSON()
 
 
     for (let a = 0; a < laneFeat.length; a++) {
-
         if (laneFeat[a].get('inBox') == true && laneFeat[a].get('signalGroupID') != null && laneFeat[a].get('stateConfidence') != null) {
 
             let obj = {
@@ -542,7 +584,6 @@ function createMessageJSON()
         }
 
         if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
-            let messageType = $('#message_type').val();
             if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
