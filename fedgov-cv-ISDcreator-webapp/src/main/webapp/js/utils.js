@@ -761,7 +761,12 @@ function saveConnections(selectedMarker) {
 
     let daysOfTheWeek = [];
     $('#row' + i + ' .connections_day_selection_dropdown').each(function() {
-      daysOfTheWeek.push($(this).val());
+      let selectedValues = $(this).val();
+      if (Array.isArray(selectedValues)) {
+        daysOfTheWeek.push(...selectedValues);
+      } else if (selectedValues) {
+        daysOfTheWeek.push(selectedValues);
+      }
     });
     
     let timePeriodType = "";

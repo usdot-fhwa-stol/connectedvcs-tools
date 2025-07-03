@@ -52,6 +52,7 @@ let temporaryLaneMarkers;
 let temporaryBoxMarkers;
 let timeRestrictions;
 let approachTimeRestrictions;
+let connectionsTimeRestrictions;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -1132,7 +1133,7 @@ function initMISC() {
   $.get("js/time-restrictions.html", function (data) {
     connectionsTimeRestrictions = data;
     addConnectionsTimeRestrictions(connectionsTimeRestrictions);
-    updateconnectionsTimeRestrictionsHTML();
+    updateConnectionsTimeRestrictionsHTML();
   })
 }
 

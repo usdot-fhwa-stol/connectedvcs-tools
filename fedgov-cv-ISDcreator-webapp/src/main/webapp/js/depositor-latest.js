@@ -320,6 +320,11 @@ function createMessageJSON()
                         if (!rgaEnabled && connection.maneuvers && (messageType === "Frame+Map" || messageType === "Map")) {
                             connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
                         }
+
+                        if (!rgaEnabled && connection.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                            // Remove timeRestrictions if RGA is disabled
+                            delete connection.timeRestrictions;
+                        }
                 
                         updatedConnections.push(connection);
                     }
