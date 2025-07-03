@@ -1619,6 +1619,22 @@ function addApproachTimeRestrictions(rowNum, time_restrictions) {
       }
   });
   
+  approach_time_restrictions.find('.row.day_selection .col-sm-4').first().each(function() {
+      $(this).removeClass('col-sm-4').addClass('col-sm-3');
+  });
+  
+  approach_time_restrictions.find('.row.time_period .col-sm-4').first().each(function() {
+      $(this).removeClass('col-sm-4').addClass('col-sm-3');
+  });
+  
+  approach_time_restrictions.find('.row.time_period_additional_fields .col-sm-4').first().each(function() {
+      $(this).removeClass('col-sm-4').addClass('col-sm-1');
+  });
+  
+  approach_time_restrictions.find('.row.time_period_additional_fields .col-sm-7').first().each(function() {
+      $(this).removeClass('col-sm-7').addClass('col-sm-10');
+  });
+  
   $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
 }
 
@@ -1646,8 +1662,24 @@ function addConnectionsTimeRestrictions(rowNum, time_restrictions) {
       }
   });
   
-  $("[id='row" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
-}
+    connections_time_restrictions.find('.row.day_selection .col-sm-1').first().each(function() {
+        $(this).removeClass('col-sm-1').addClass('col-sm-0');
+    });
+    
+    connections_time_restrictions.find('.row.time_period .col-sm-1').first().each(function() {
+        $(this).removeClass('col-sm-1').addClass('col-sm-0');
+    });
+  
+    connections_time_restrictions.find('.row.time_period_additional_fields .col-sm-4').first().each(function() {
+        $(this).removeClass('col-sm-4').addClass('col-sm-0');
+    });
+    
+    connections_time_restrictions.find('.row.time_period_additional_fields .col-sm-7').first().each(function() {
+        $(this).removeClass('col-sm-7').addClass('col-sm-12');
+    });
+    
+    $("[id='row" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
+  }
 
 function updateConnectionsTimeRestrictionsHTML() {
   let startDateTimePicker = $('.start_datetime_picker');
