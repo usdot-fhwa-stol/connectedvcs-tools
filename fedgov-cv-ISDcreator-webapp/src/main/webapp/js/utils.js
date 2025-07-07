@@ -806,7 +806,6 @@ function saveConnections(selectedMarker) {
 
 
 async function rebuildConnections(connections) {
-  //TODO clear if empty rows
   $('#tab_intersects > tbody').empty();
   numRows = -1;
   if (connections === null || connections === undefined || connections.length < 1) {
@@ -1638,6 +1637,9 @@ function addApproachTimeRestrictions(rowNum, time_restrictions) {
   $("[id='row" + rowNum + "'] .approach_time_restrictions").html(approach_time_restrictions);
 }
 
+/*****************************************
+ * Function to add connections specific html tags to time-restrictions.html
+ *****************************************/
 function addConnectionsTimeRestrictions(rowNum, time_restrictions) {  
   let connections_time_restrictions = $(time_restrictions).clone();
   connections_time_restrictions.find('*').each(function() {
@@ -1662,18 +1664,16 @@ function addConnectionsTimeRestrictions(rowNum, time_restrictions) {
       }
   });
   
+    // Changes column size for specific html elements to fit the connections table
     connections_time_restrictions.find('.row.day_selection .col-sm-1').first().each(function() {
         $(this).removeClass('col-sm-1').addClass('col-sm-0');
     });
-    
     connections_time_restrictions.find('.row.time_period .col-sm-1').first().each(function() {
         $(this).removeClass('col-sm-1').addClass('col-sm-0');
     });
-  
     connections_time_restrictions.find('.row.time_period_additional_fields .col-sm-4').first().each(function() {
         $(this).removeClass('col-sm-4').addClass('col-sm-0');
     });
-    
     connections_time_restrictions.find('.row.time_period_additional_fields .col-sm-7').first().each(function() {
         $(this).removeClass('col-sm-7').addClass('col-sm-12');
     });
@@ -1681,6 +1681,9 @@ function addConnectionsTimeRestrictions(rowNum, time_restrictions) {
     $("[id='row" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
   }
 
+ /*****************************************
+ * Function to update the HTML for time restrictions in connections table.
+ *****************************************/
 function updateConnectionsTimeRestrictionsHTML() {
   let startDateTimePicker = $('.start_datetime_picker');
   let endDateTimePicker = $('.end_datetime_picker');
@@ -1697,6 +1700,7 @@ function updateConnectionsTimeRestrictionsHTML() {
   startDateTimePicker.flatpickr(dateConfig);
   endDateTimePicker.flatpickr(dateConfig);
 
+  // Event listener for time period selection in connections table
   $(document).on('change', '.connections-form-check-input.time_period', function () {
       let currentRow = $(this).closest('tr');
       let rowId = currentRow.attr('id');
@@ -1712,6 +1716,7 @@ function updateConnectionsTimeRestrictionsHTML() {
       }
   });
 
+  // Event listener for day selection in connections table
   $('.connections_day_selection_dropdown').each(function() {
       if (!$(this).hasClass('multiselect')) {
           $(this).multiselect({
