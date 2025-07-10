@@ -101,6 +101,7 @@ import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
 import gov.usdot.cv.rgaencoder.GeneralPeriod;
 import gov.usdot.cv.rgaencoder.GeometryContainer;
 import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndividualWayCnxnsManeuvers;
 import gov.usdot.cv.rgaencoder.IndividualWayConnections;
 import gov.usdot.cv.rgaencoder.IndividualWayDirectionsOfTravel;
 import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
@@ -121,6 +122,7 @@ import gov.usdot.cv.rgaencoder.RGAData;
 import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
 import gov.usdot.cv.rgaencoder.TimeWindowInformation;
 import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
+import gov.usdot.cv.rgaencoder.WayCnxnManeuverInfo;
 import gov.usdot.cv.rgaencoder.WayDirectionOfTravelInfo;
 import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
 import gov.usdot.cv.rgaencoder.WayToWayConnectionInfo;
@@ -420,14 +422,16 @@ public class IntersectionSituationDataBuilder {
 							IndividualWayConnections individualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
 							List<WayToWayConnectionInfo> currentWayToWayConnectionInfoList = individualWayConnections.getConnectionsSet();
 							if (currentWayToWayConnectionInfoList != null && !currentWayToWayConnectionInfoList.isEmpty()) {
-								mtrVehLnCnxnsLayer.addIndividualWayConnections(buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData));
+								mtrVehLnCnxnsLayer.addIndividualWayConnections(individualWayConnections);
 							}
+
+							IndividualWayCnxnsManeuvers individualWayCnxnsManeuvers = buildIndividualWayCnxnsManeuvers(drivingLane.laneID, drivingLane.connections, isdInputData);
+
 						}
 					}
 
 					if ((drivingLane.laneType.toLowerCase()).equals("bike")) {
 						if (drivingLane.connections != null && drivingLane.connections.length > 0) {
-
 							IndividualWayConnections bikeIndividualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
 							List<WayToWayConnectionInfo> currentBikeWayToWayConnectionInfoList = bikeIndividualWayConnections.getConnectionsSet();
 							if (currentBikeWayToWayConnectionInfoList != null && !currentBikeWayToWayConnectionInfoList.isEmpty()) {
@@ -458,6 +462,27 @@ public class IntersectionSituationDataBuilder {
 		}
 
 		return movementsContainers;
+	}
+
+	public IndividualWayCnxnsManeuvers buildIndividualWayCnxnsManeuvers(String laneId, LaneConnection[] laneConnections,
+			IntersectionInputData isdInputData) {
+		IndividualWayCnxnsManeuvers individualWayCnxnsManeuvers = new IndividualWayCnxnsManeuvers();
+		individualWayCnxnsManeuvers.setWayID(Integer.valueOf(laneId));
+		for (int conIndex = 0; conIndex < laneConnections.length; conIndex++) {
+			WayCnxnManeuverInfo wayCnxnManeuverInfo = new WayCnxnManeuverInfo();
+			LaneConnection currentLaneConnection = laneConnections[conIndex];
+
+			if (currentLaneConnection.connectionId > 0) {
+				wayCnxnManeuverInfo.setConnectionID(currentLaneConnection.connectionId);
+
+				if (currentLaneConnection.maneuvers.length > 0) {
+					System.out.println("Maneuvers available");
+				}
+			}
+
+			individualWayCnxnsManeuvers.addWayCnxnManeuverInfo(wayCnxnManeuverInfo);
+		}
+		return individualWayCnxnsManeuvers;
 	}
 
 	public IndividualWayConnections buildIndividualWayConnections(String laneId, LaneConnection[] laneConnections,

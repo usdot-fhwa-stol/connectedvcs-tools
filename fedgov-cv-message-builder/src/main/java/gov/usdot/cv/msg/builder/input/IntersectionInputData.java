@@ -320,6 +320,7 @@ public class IntersectionInputData {
 		public DrivingLane[] drivingLanes;
 		public CrosswalkLane[] crosswalkLanes;
 		public ApproachTypeRow[] approachTypes;
+		public String maneuverControlType;
 		
 		public Approach() {
 			super();
