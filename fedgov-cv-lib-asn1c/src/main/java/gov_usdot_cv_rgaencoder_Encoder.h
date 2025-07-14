@@ -18,6 +18,7 @@
 #include "LaneConstructorType.h" 
 #include "NodeXYZOffsetValue.h" 
 #include "IndividualWayConnections.h" 
+#include "IndividualWayCnxnsManeuvers.h"
 /* Header for class gov_usdot_cv_lib_asn1c_RGAMessage*/
 
 #ifndef _Included_gov_usdot_cv_lib_asn1c_RGAMessage

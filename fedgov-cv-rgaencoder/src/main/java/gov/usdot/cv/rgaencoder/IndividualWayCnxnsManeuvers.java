@@ -16,6 +16,7 @@
 
 package gov.usdot.cv.rgaencoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class IndividualWayCnxnsManeuvers {
@@ -24,7 +25,7 @@ public class IndividualWayCnxnsManeuvers {
 
     public IndividualWayCnxnsManeuvers() {
         this.wayID = 0;
-        this.cnxnManeuversSet = null;
+        this.cnxnManeuversSet = new ArrayList<>();
     }
 
     public IndividualWayCnxnsManeuvers(int wayID, List<WayCnxnManeuverInfo> cnxnManeuversSet) {

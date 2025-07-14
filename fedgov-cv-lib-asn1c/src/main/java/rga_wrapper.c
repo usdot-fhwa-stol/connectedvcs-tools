@@ -979,7 +979,6 @@ void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversO
 	jmethodID getWayIDMethod = (*env)->GetMethodID(env, wayCnxnsManeuversClass, "getWayID", "()I");
 	jint wayID = (*env)->CallIntMethod(env, wayCnxnsManeuversObj, getWayIDMethod);
 	indWayCnxnManeuvers->wayID = wayID;
-
 	jmethodID getCnxnsManeuversSetMethod = (*env)->GetMethodID(env, wayCnxnsManeuversClass, "getCnxnManeuversSet", "()Ljava/util/List;");
 	jobject wayCnxnsManeuversSetList = (*env)->CallObjectMethod(env, wayCnxnsManeuversObj, getCnxnsManeuversSetMethod);
 	jclass wayCnxnManeuverInfoClass = (*env)->GetObjectClass(env, wayCnxnsManeuversSetList);
