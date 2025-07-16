@@ -791,7 +791,7 @@ function saveConnections(selectedMarker) {
         remoteID: $('input[name="remoteID' + i + '"]').val(),
         fromLane: selectedMarker.get("laneNumber"),
         toLane: $('input[name="toLane' + i + '"]').val(),
-        signal_id: $('input[name="signal_id' + i + '"]').val(),
+        signal_id: $('input[name="signal_id' + i + '"]').val(), 
         timeRestrictions: {
           daysOfTheWeek: daysOfTheWeek,
           timePeriodType: timePeriodType,
@@ -1295,39 +1295,141 @@ function removeSpeedForm(speedForm) {
 
 function addSpeedForm(speedForm) {
     speedForm.addForm();
+    updateSpeedTimeRestrictionsHTML();
     //If RGA is disabled, Gray out and disable RGA fields associated to Speed Limits    
     if(!$('#rga_switch').is(":checked")){
       disableRGAFieldsAssociatedToSpeedLimits();
     }
+    setRGAStatus();
 }
 
 function rebuildSpeedForm(speedForm, speedLimitArray) {
-    removeSpeedForm(speedForm);
-    let results = speedLimitArray.length
-    for (let i = 0; i < results; i++) {
-        speedForm.addForm();
-        let forms = speedForm.getForms(i);
-        forms[i].inject(
-            {'velocity': speedLimitArray[i].velocity}
-        );
-        $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType)
-        $(`input[name="speedForm_${i}_speedLimitChoice"][value="${speedLimitArray[i].speedLimitChoice}"]`).prop('checked', true);
-    }
-    resetSpeedDropdowns(speedForm);
+  removeSpeedForm(speedForm);
+  let results = speedLimitArray.length;
+
+  for (let i = 0; i < results; i++) {
+      speedForm.addForm();
+      let forms = speedForm.getForms(i);
+      forms[i].inject(
+          {'velocity': speedLimitArray[i].velocity}
+      );
+      
+      // Set basic speed form data
+      $("#speedForm_"+ i + "_speedLimitType").val(speedLimitArray[i].speedLimitType);
+      $(`input[name="speedForm_${i}_speedLimitChoice"][value="${speedLimitArray[i].speedLimitChoice}"]`).prop('checked', true);
+      
+      // Set time restrictions data if it exists
+      if (speedLimitArray[i].timeRestrictions) {
+          let timeRestrictions = speedLimitArray[i].timeRestrictions;
+          
+          // Set selected days of the week in multiselect
+          if (timeRestrictions.daysOfTheWeek && timeRestrictions.daysOfTheWeek.length > 0) {
+              // Destroy existing multiselect if it exists
+              if ($(`#speedForm_${i}_day_selection`).hasClass('multiselect')) {
+                  $(`#speedForm_${i}_day_selection`).multiselect('destroy');
+              }
+              
+              // Set the values directly on the select element
+              $(`#speedForm_${i}_day_selection`).val(timeRestrictions.daysOfTheWeek);
+              
+              // Re-initialize multiselect for this specific dropdown
+              updateSpeedTimeRestrictionsHTML();
+          }
+          
+          // Use setTimeout to ensure DOM is ready
+          setTimeout(function() {
+              // Set time period type
+              if (timeRestrictions.timePeriodType) {
+                  $(`input[name="speedForm_${i}_time_period"][value="${timeRestrictions.timePeriodType}"]`).prop('checked', true);
+                  
+                  // Debug: Check if elements exist
+                  console.log('Range fields element exists:', $(`#speedForm_${i}_range_fields`).length);
+                  console.log('General fields element exists:', $(`#speedForm_${i}_general_fields`).length);
+                  
+                  // Hide all additional fields first
+                  $(`#speedForm_${i}_range_fields`).hide();
+                  $(`#speedForm_${i}_general_fields`).hide();
+                  
+                  // Handle specific time period types
+                  if (timeRestrictions.timePeriodType === 'general' && timeRestrictions.timePeriodValue) {
+                      // Set day/night selection
+                      $(`input[name="speedForm_${i}_time_period_general"][value="${timeRestrictions.timePeriodValue}"]`).prop('checked', true);
+                      // Show general fields
+                      console.log('Showing general fields for form', i);
+                      $(`#speedForm_${i}_general_fields`).show();
+                      
+                  } else if (timeRestrictions.timePeriodType === 'range' && timeRestrictions.timePeriodRange) {
+                      // Set range datetime and offset values
+                      if (timeRestrictions.timePeriodRange.startDateTime) {
+                          $(`#speedForm_${i}_time_period_start_datetime`).val(timeRestrictions.timePeriodRange.startDateTime);
+                      }
+                      if (timeRestrictions.timePeriodRange.startOffset) {
+                          $(`#speedForm_${i}_time_period_start_offset`).val(timeRestrictions.timePeriodRange.startOffset);
+                      }
+                      if (timeRestrictions.timePeriodRange.endDateTime) {
+                          $(`#speedForm_${i}_time_period_end_datetime`).val(timeRestrictions.timePeriodRange.endDateTime);
+                      }
+                      if (timeRestrictions.timePeriodRange.endOffset) {
+                          $(`#speedForm_${i}_time_period_end_offset`).val(timeRestrictions.timePeriodRange.endOffset);
+                      }
+                      // Show range fields
+                      console.log('Showing range fields for form', i);
+                      $(`#speedForm_${i}_range_fields`).show();
+                  }
+              }
+          }, 100); // Small delay to ensure DOM is ready
+      }
+  }
+  resetSpeedDropdowns(speedForm);
+  setRGAStatus();
+  updateSpeedTimeRestrictionsHTML();
 }
 
 function saveSpeedForm(speedForm) {
-    let tmpSpeedLimits = [];
-    let forms = (speedForm.getForms()).length;
-    for (let i = 0; i < forms; i++) {
+  let tmpSpeedLimits = [];
+  let forms = (speedForm.getForms()).length;
+  
+  for (let i = 0; i < forms; i++) {
+      // Get selected days of the week
+      let daysOfTheWeek = [];
+      $(`#speedForm_${i}_day_selection option:selected`).each(function() {
+          daysOfTheWeek.push($(this).val());
+      });
+      
+      // Get time period type (none, range, general)
+      let timePeriodType = $(`input[name="speedForm_${i}_time_period"]:checked`).val() || "";
+      
+      // Initialize time period value and range
+      let timePeriodValue = "";
+      let timePeriodRange = {};
+      
+      // Get specific time period data based on type
+      if (timePeriodType === 'general') {
+          timePeriodValue = $(`input[name="speedForm_${i}_time_period_general"]:checked`).val();
+      } else if (timePeriodType === 'range') {
+          timePeriodRange = {
+              startDateTime: $(`#speedForm_${i}_time_period_start_datetime`).val(),
+              startOffset: $(`#speedForm_${i}_time_period_start_offset`).val(),
+              endDateTime: $(`#speedForm_${i}_time_period_end_datetime`).val(),
+              endOffset: $(`#speedForm_${i}_time_period_end_offset`).val()
+          };
+      }
+      
       tmpSpeedLimits.push({
-            speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-            velocity: $("#speedForm_" + i + "_velocity").val(),
-            speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val()
-        });
-    }
-    removeSpeedForm(speedForm);
-    return tmpSpeedLimits;
+          speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
+          velocity: $("#speedForm_" + i + "_velocity").val(),
+          speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val(),
+          timeRestrictions: {
+              daysOfTheWeek: daysOfTheWeek,
+              timePeriodType: timePeriodType,
+              timePeriodValue: timePeriodValue,
+              timePeriodRange: timePeriodRange
+          }
+      });
+  }
+  
+  removeSpeedForm(speedForm);
+  return tmpSpeedLimits;
 }
 
 function resetSpeedDropdowns(speedForm){
@@ -1340,6 +1442,8 @@ function resetSpeedDropdowns(speedForm){
     if(!$('#rga_switch').is(":checked")){
       disableRGAFieldsAssociatedToSpeedLimits();
     }
+
+    setRGAStatus();
 
     let forms = (speedForm.getForms()).length;
     for (let i = 0; i < forms; i++) {
@@ -1379,17 +1483,22 @@ function setRGAStatus() {
       $('.day_selection_dropdown').multiselect('enable');
       $('.approach_day_selection_dropdown').multiselect('enable');
       $('.connections_day_selection_dropdown').multiselect('enable');
+      $('.speed_day_selection_dropdown').multiselect('enable');
+      $('.speed-form-check-input').prop('disabled', false);
       enableManeuverControlType(true);
   }else{
       rgaEnabled = false;
       $('.day_selection_dropdown').multiselect('disable');
       $('.approach_day_selection_dropdown').multiselect('disable');
       $('.connections_day_selection_dropdown').multiselect('disable');
+      $('.speed_day_selection_dropdown').multiselect('disable');
+      $('.speed-form-check-input').prop('disabled', true);
       enableManeuverControlType(false);
   }
   $('.day_selection_dropdown').multiselect('refresh');
   $('.approach_day_selection_dropdown').multiselect('refresh');
   $('.connections_day_selection_dropdown').multiselect('refresh');
+  $('.speed_day_selection_dropdown').multiselect('refresh');
   enableRGAFields(rgaEnabled);
   return rgaEnabled;
 }
@@ -1915,6 +2024,126 @@ function updateApproachTimeRestrictionsHTML() {
   });
 }
 
+ /*****************************************
+ * Function to update the HTML for time restrictions in Speed Limit form.
+ *****************************************/
+function updateSpeedTimeRestrictionsHTML() {
+  let dateConfig = {
+    dateFormat: "Y-m-d H:i:S",
+    allowInput: true,        
+    enableTime: true,
+    enableSeconds: true,
+    minuteIncrement: 1,
+    secondIncrement: 1,
+    time_24hr: true
+  };
+
+  $('.start_datetime_picker:not(.flatpickr-input)').flatpickr(dateConfig);
+  $('.end_datetime_picker:not(.flatpickr-input)').flatpickr(dateConfig);
+  
+  $(document).off('change', '.speed-form-check-input.time_period');
+
+  // Event listener for time period selection in speed limits form
+  $(document).on('change', '.speed-form-check-input.time_period', function () {
+      let currentFormContainer = $(this).closest('.speed_limit_time_restrictions');
+      let selectedValue = $(this).val();
+      
+      currentFormContainer.find('.time_period_range_fields').hide();
+      currentFormContainer.find('.time_period_general_fields').hide();
+      
+      if (selectedValue === 'range') {
+          currentFormContainer.find('.time_period_range_fields').show();
+      } else if (selectedValue === 'general') {
+          currentFormContainer.find('.time_period_general_fields').show();
+      }
+  });
+  
+  // Event listener for day selection in speed limits form
+  $('.speed_day_selection_dropdown:not(.ms-parent)').each(function() {
+    let $currentDropdown = $(this);
+    let selectId = $currentDropdown.attr('id');
+    
+    $currentDropdown.multiselect({
+        maxHeight: 200,        
+        onChange: function(option, checked, select) {
+            let $thisMultiselect = $('#' + selectId).next('.btn-group');
+            
+            if ($(option).val() === '0' && checked) {
+                $thisMultiselect.find('input').each(function() {
+                    if ($(this).val() !== '0') {
+                        $(this).prop('disabled', true);
+                        $(this).prop('checked', false).trigger('change');
+                        $(this).parents('a').first().css({ 'color': 'grey' });
+                        $(this).parents('li').first().removeClass('active');
+                    }
+                });
+            } else {
+                let isAllSelected = false;
+                $thisMultiselect.find('input').each(function () {
+                    if ($(this).val() === '0' && $(this).prop('checked')) {
+                        isAllSelected = true;
+                    }
+                });
+                $thisMultiselect.find('input').each(function () {
+                    if (isAllSelected) {
+                        if ($(this).val() !== '0') {
+                            $(this).prop('disabled', true);
+                            $(this).parents('a').first().css({ 'color': 'grey' });
+                            $(this).parents('li').first().removeClass('active');
+                        }
+                    } else {
+                        $(this).prop('disabled', false);
+                        $(this).parents('a').first().css({ 'color': 'black' });
+                    }
+                });
+            }
+        },
+        buttonText: function (options, select) {
+            let $thisMultiselect = $('#' + selectId).next('.btn-group');
+            
+            if (options.length === 0) {
+                $thisMultiselect.find('input').each(function () {
+                    $(this).prop('disabled', false);
+                    $(this).parents('a').first().css({ 'color': 'black' });
+                });
+                return 'Select Day Of The Week';
+            } else if (options.length > 1) {                
+                return options.length + ' selected';
+            } else {
+                let labels = [];
+                options.each(function () {                    
+                    if ($(this).attr('label') !== undefined) {
+                        labels.push($(this).attr('label'));
+                    } else {
+                        labels.push($(this).html());
+                    }
+                    let value = $(this).val();
+                    if (value === "0") {
+                        $thisMultiselect.find('input').each(function () {
+                            if ($(this).val() !== "0") {
+                                $(this).prop('disabled', true);
+                                $(this).parents('a').first().css({ 'color': 'grey' });
+                            }
+                        });
+                    }                    
+                });
+                return labels.join(', ');
+            }
+        }
+    });
+  });
+  $(document).off('click', '.fa-question-circle');
+  $(document).on('click', '.fa-question-circle', function(){
+      let tag = $(this).attr('tag');
+      let obj = $.grep(help_notes, function(e){ return e.value === tag; });
+      $('#help_modal').modal('show');
+      $('#min').html(obj[0].min);
+      $('#max').html(obj[0].max);
+      $('#units').html(obj[0].units);
+      $('#description').html(obj[0].description);
+      $('#help_modal h4').html(obj[0].title);
+  });
+}
 /**
 * @brief function to update the time restriction HTML.
 */
@@ -2126,6 +2355,7 @@ export {
   updateLaneInfoTimePeriod,
   updateTimeRestrictionsHTML,
   updateConnectionsTimeRestrictionsHTML,
+  updateSpeedTimeRestrictionsHTML,
   addLaneInfoTimeRestrictions,
   addApproachTimeRestrictions,
   addConnectionsTimeRestrictions,
