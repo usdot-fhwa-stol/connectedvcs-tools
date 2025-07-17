@@ -2270,6 +2270,7 @@ function hideRGAFieldsAssociatedToSpeedLimits(){
     $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").hide();
     $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").hide();
     $(".speed_limit_choice").hide();
+    $(".speed_limit_time_restrictions").hide();
     $("input[name^='speedForm_'][name$='_speedLimitChoice'][value='regulatory']").prop('checked', false);
 }
 
