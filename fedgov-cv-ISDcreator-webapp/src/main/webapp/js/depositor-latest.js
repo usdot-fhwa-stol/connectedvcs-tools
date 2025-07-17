@@ -224,8 +224,12 @@ function createMessageJSON()
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
 
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type"  && mapSpeedLimit.speedLimitType != "") {
-                                    currentSpeedLimits.push(mapSpeedLimit)
+                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
+                                    let speedLimit = { ...mapSpeedLimit };
+                                    if (!rgaEnabled && speedLimit.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                                        delete speedLimit.timeRestrictions;
+                                    }
+                                    currentSpeedLimits.push(speedLimit);
                                 }
                             }
                         }

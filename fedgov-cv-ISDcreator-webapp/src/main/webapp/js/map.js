@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -1088,12 +1088,14 @@ function initMISC() {
       $("[id*=speedLimitType]").change(() => {
         console.log("speedForm limit type change");
         resetSpeedDropdowns(speedForm);
+        updateSpeedTimeRestrictionsHTML();
       });
     },
   });
 
   $("#speedForm_add").click(function () {
     resetSpeedDropdowns(speedForm);
+    updateSpeedTimeRestrictionsHTML();
     if(selectedMarker?.get("marker")?.name == "Reference Point Marker"){
       hideRGAFieldsAssociatedToSpeedLimits();
     }
@@ -1122,6 +1124,10 @@ function initMISC() {
     addLaneInfoTimeRestrictions(timeRestrictions);
     //Update time restrictions HTML after add HTML to the main page
     updateTimeRestrictionsHTML();        
+  });
+
+  $.get("js/time-restrictions.html", function (data) {
+    updateSpeedTimeRestrictionsHTML();
   });
 
   $.get("js/time-restrictions.html", function (data) {
