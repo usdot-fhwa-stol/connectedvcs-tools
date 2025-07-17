@@ -16,6 +16,7 @@
 
 package gov.usdot.cv.rgaencoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WayCnxnManeuverInfo {
@@ -24,7 +25,7 @@ public class WayCnxnManeuverInfo {
 
     public WayCnxnManeuverInfo() {
         this.connectionID = 0;
-        this.maneuversSet = null;
+        this.maneuversSet = new ArrayList<>();
     }
 
     public WayCnxnManeuverInfo(int connectionID, List<CnxnManeuverInfo> maneuversSet) {
