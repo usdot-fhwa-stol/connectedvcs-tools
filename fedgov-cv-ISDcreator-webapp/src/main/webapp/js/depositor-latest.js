@@ -203,7 +203,8 @@ function createMessageJSON()
 
             let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
             let dfRGALaneTimeRestrictions = {}
-            if (rgaEnabled) {
+            //Lane Time Restrictions
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
                 dfRGALaneTimeRestrictions["timeRestrictions"] = {
                     "daysOfTheWeek": laneFeat[j].get('laneInfoDaySelection'),
                     "timePeriodType": laneFeat[j].get('laneInfoTimePeriodType'),
@@ -226,7 +227,7 @@ function createMessageJSON()
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     let speedLimit = { ...mapSpeedLimit };
-                                    if (!rgaEnabled && speedLimit.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                                    if ((messageType === "Frame+Map" || messageType === "Map")) {
                                         delete speedLimit.timeRestrictions;
                                     }
                                     currentSpeedLimits.push(speedLimit);
@@ -258,7 +259,8 @@ function createMessageJSON()
                     }
                 } else {
                     let dfRGAOffsetZ = {}
-                    if (rgaEnabled){
+                    //RGA - OffsetZ
+                    if (messageType === "Frame+RGA" || messageType === "RGA"){
                         dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
                     }
                     computedLane = {
@@ -302,7 +304,7 @@ function createMessageJSON()
                         let connection = { ...connectionsArray[i] };
                 
                         // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
-                        if (rgaEnabled && connection.maneuvers && (messageType === "Frame+RGA" || messageType === "RGA")) {
+                        if ((messageType === "Frame+RGA" || messageType === "RGA")) {
                             if (connection.maneuvers.includes("6")) {
                                 let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
                                 if (existingManeuverAlert6.length === 0) {
@@ -321,11 +323,11 @@ function createMessageJSON()
                         }
                 
                         // Remove maneuver "12" if RGA is disabled
-                        if (!rgaEnabled && connection.maneuvers && (messageType === "Frame+Map" || messageType === "Map")) {
+                        if ((messageType === "Frame+Map" || messageType === "Map")) {
                             connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
                         }
 
-                        if (!rgaEnabled && connection.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                        if ((messageType === "Frame+Map" || messageType === "Map")) {
                             // Remove timeRestrictions if RGA is disabled
                             delete connection.timeRestrictions;
                         }
@@ -373,7 +375,7 @@ function createMessageJSON()
                     }
                 } else {
                     let dfRGAOffsetZ = {}
-                    if (rgaEnabled){
+                    if (messageType === "Frame+RGA" || messageType === "RGA"){
                         dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
                     }
                     computedLane = {
@@ -390,13 +392,13 @@ function createMessageJSON()
                 attributeArray = [];
                 for(let k in laneFeat[j].get('lane_attributes')) {
                     let attributeId = laneFeat[j].get('lane_attributes')[k].id;
-                    if (!(attributeId === 12 && !rgaEnabled)) {
+                    if (!(attributeId === 12 && (!(messageType === "Frame+RGA" || messageType === "RGA")))) {
                         attributeArray.push(attributeId);
                     }
                 }
 
                 let connectionsArray = laneFeat[j].get('connections');
-                if (!rgaEnabled && connectionsArray?.length) {
+                if (!(messageType === "Frame+RGA" || messageType === "RGA") && connectionsArray?.length) {
                     connectionsArray = connectionsArray.map(connection => ({
                         ...connection,
                         maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
@@ -430,7 +432,7 @@ function createMessageJSON()
         let approaches = stopFeat[i].get('approaches');
         let approachType = stopFeat[i].get('approachType');
 
-        if (rgaEnabled) {
+        if (messageType === "Frame+RGA" || messageType === "RGA") {
             if (approaches !== undefined) {
                 // Case 1: rgaEnabled = true, approaches exists
                 approachArray[i] = {
@@ -510,7 +512,7 @@ function createMessageJSON()
         let hasValidApproach;
         let missingRowIds = []; // Array to store rowIds of missing approach types
 
-        if (rgaEnabled) {
+        if (messageType === "Frame+RGA" || messageType === "RGA") {
             // For rgaEnabled = true, check if approaches array exists and has valid approachType
             hasValidApproach = approachArray[i].approachTypes !== undefined &&
                             approachArray[i].approachTypes.length > 0 &&
@@ -536,7 +538,7 @@ function createMessageJSON()
             incompleteApproaches.push(drivingLaneArray.length > 0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
             
-            if (rgaEnabled) {
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
                 // Include rowIds in the alert message when rgaEnabled is true
                 let alertMessage = "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + ".";
                 if (missingRowIds.length > 0) {
@@ -643,7 +645,7 @@ function createMessageJSON()
 
             rgaBaseLayerFields = {}; // Ensure to clear the data for each call
             // Only populate JSON with RGA fields when the RGA toggle is enabled
-            if (rgaEnabled) { // Global variable rgaEnabled is defined in mapping.js
+            if (messageType === "Frame+RGA" || messageType === "RGA") { // Global variable rgaEnabled is defined in mapping.js
                 rgaBaseLayerFields["contentVersion"] = parseInt(feature.get('contentVersion'));
                 let datetime = parseDatetimeStr(feature.get('contentDateTime'));
                 rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
