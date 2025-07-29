@@ -323,7 +323,12 @@ function createMessageJSON()
                         }
                 
                         // Remove maneuver "12" if RGA is disabled
-                        if ((messageType === "Frame+Map" || messageType === "Map")) {
+                        if ((messageType === "Frame+Map" || messageType === "Map") && connection.maneuvers.includes("12")) {
+                                let existingManeuverAlert12 = $('#alert_placeholder').find('#maneuver-alert-12-' + laneFeat[j].get('laneNumber'));
+                                if (existingManeuverAlert12.length === 0) {
+                                    let connectionManeuverAlert = "Right U-Turn maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP ";
+                                    $('#alert_placeholder').append('<div id="maneuver-alert-12-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                }
                             connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
                         }
 
