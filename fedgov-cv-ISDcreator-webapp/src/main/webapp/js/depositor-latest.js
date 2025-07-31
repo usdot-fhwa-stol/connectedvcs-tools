@@ -304,7 +304,7 @@ function createMessageJSON()
                         let connection = { ...connectionsArray[i] };
                 
                         // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
-                        if ((messageType === "Frame+RGA" || messageType === "RGA")) {
+                        if (connection.maneuvers && (messageType === "Frame+RGA" || messageType === "RGA")) {
                             if (connection.maneuvers.includes("6")) {
                                 let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
                                 if (existingManeuverAlert6.length === 0) {
