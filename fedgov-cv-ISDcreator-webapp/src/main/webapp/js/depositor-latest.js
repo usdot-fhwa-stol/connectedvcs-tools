@@ -227,7 +227,7 @@ function createMessageJSON()
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     let speedLimit = { ...mapSpeedLimit };
-                                    if ((messageType === "Frame+Map" || messageType === "Map")) {
+                                    if (speedLimit.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
                                         delete speedLimit.timeRestrictions;
                                     }
                                     currentSpeedLimits.push(speedLimit);
@@ -333,7 +333,7 @@ function createMessageJSON()
                                 connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
                             }
                         }
-                        if ((messageType === "Frame+Map" || messageType === "Map")) {
+                        if (connection.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
                             // Remove timeRestrictions if RGA is disabled
                             delete connection.timeRestrictions;
                         }
