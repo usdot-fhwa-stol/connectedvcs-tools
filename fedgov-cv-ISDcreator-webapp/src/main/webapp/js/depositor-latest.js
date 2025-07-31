@@ -304,34 +304,35 @@ function createMessageJSON()
                         let connection = { ...connectionsArray[i] };
                 
                         // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
-                        if (connection.maneuvers && (messageType === "Frame+RGA" || messageType === "RGA")) {
-                            if (connection.maneuvers.includes("6")) {
-                                let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
-                                if (existingManeuverAlert6.length === 0) {
-                                    let connectionManeuverAlert = "Lane Change maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
-                                    $('#alert_placeholder').append('<div id="maneuver-alert-6-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                        if (connection.maneuvers) {
+                            if ((messageType === "Frame+RGA" || messageType === "RGA")) {
+                                if (connection.maneuvers.includes("6")) {
+                                    let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
+                                    if (existingManeuverAlert6.length === 0) {
+                                        let connectionManeuverAlert = "Lane Change maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-6-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                    }
+                                }
+
+                                if (connection.maneuvers.includes("7")) {
+                                    let existingManeuverAlert7 = $('#alert_placeholder').find('#maneuver-alert-7-' + laneFeat[j].get('laneNumber'));
+                                    if(existingManeuverAlert7.length === 0) {
+                                        let connectionManeuverAlert = "No Stopping maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-7-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                    }
                                 }
                             }
-
-                            if (connection.maneuvers.includes("7")) {
-                                let existingManeuverAlert7 = $('#alert_placeholder').find('#maneuver-alert-7-' + laneFeat[j].get('laneNumber'));
-                                if(existingManeuverAlert7.length === 0) {
-                                    let connectionManeuverAlert = "No Stopping maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
-                                    $('#alert_placeholder').append('<div id="maneuver-alert-7-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
-                                }
+                        
+                            // Remove maneuver "12" if RGA is disabled
+                            if ((messageType === "Frame+Map" || messageType === "Map") && connection.maneuvers.includes("12")) {
+                                    let existingManeuverAlert12 = $('#alert_placeholder').find('#maneuver-alert-12-' + laneFeat[j].get('laneNumber'));
+                                    if (existingManeuverAlert12.length === 0) {
+                                        let connectionManeuverAlert = "Right U-Turn maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-12-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                    }
+                                connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
                             }
                         }
-                
-                        // Remove maneuver "12" if RGA is disabled
-                        if ((messageType === "Frame+Map" || messageType === "Map") && connection.maneuvers.includes("12")) {
-                                let existingManeuverAlert12 = $('#alert_placeholder').find('#maneuver-alert-12-' + laneFeat[j].get('laneNumber'));
-                                if (existingManeuverAlert12.length === 0) {
-                                    let connectionManeuverAlert = "Right U-Turn maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP ";
-                                    $('#alert_placeholder').append('<div id="maneuver-alert-12-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
-                                }
-                            connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
-                        }
-
                         if ((messageType === "Frame+Map" || messageType === "Map")) {
                             // Remove timeRestrictions if RGA is disabled
                             delete connection.timeRestrictions;
