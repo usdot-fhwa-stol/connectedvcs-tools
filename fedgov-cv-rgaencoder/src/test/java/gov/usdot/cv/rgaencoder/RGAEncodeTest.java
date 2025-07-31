@@ -41,6 +41,7 @@ public class RGAEncodeTest {
 
     List<GeometryContainer> mockGeometryContainerList;
     List<MovementsContainer> mockMovementsContainerList;
+    List<WayUseContainer> mockWayUseContainerList;
 
     GeometryContainer mockGeometryContainer1;
     ApproachGeometryLayer mockApproachGeometryLayer1;
@@ -279,6 +280,54 @@ public class RGAEncodeTest {
     IndividualWayCnxnsManeuvers mockIndidvidualWayCnxnsManeuvers2;
     MtrVehLaneConnectionsManeuversLayer mockMtrVehLaneConnectionsManeuversLayer2;
 
+    WayUseContainer mockWayUseContainer1;
+    MtrVehLaneSpeedLimitsLayer mockMtrVehLaneSpeedLimitsLayer1;
+    IndividualWaySpeedLimits mockIndividualWaySpeedLimits1;
+    List<IndividualWaySpeedLimits> mockIndividualWaySpeedLimitsList1;
+    LocationSpeedLimits mockLocationSpeedLimits1;
+    List<LocationSpeedLimits> mockLocationSpeedLimitsList1;
+    NodeIndexOffset mockNodeIndexOffset1;
+    NodeXYZOffsetInfo mockNodeXYZOffsetInfo7;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue19;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue20;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue21;
+    SpeedLimitInfo mockSpeedLimitInfo1;
+    IndividualSpeedLimitSettings mockMaxIndividualSpeedLimitSettings1;
+    IndividualSpeedLimitSettings mockMinIndividualSpeedLimitSettings1;
+    List<IndividualSpeedLimitSettings> mockMaxIndividualSpeedLimitSettingsList1;
+    List<IndividualSpeedLimitSettings> mockMinIndividualSpeedLimitSettingsList1;
+    SpeedLimitTypeRGA mockSpeedLimitTypeRGA1;
+    SpeedLimitVehicleType mockSpeedLimitVehicleType1;
+    GeneralPeriod mockGeneralPeriod9;
+    TimeWindowInformation mockTimeWindowInformation9;
+    List<TimeWindowInformation> mockTimeWindowSet9;
+    TimeWindowItemControlInfo mockFixedTimeWindowCtrl9;
+    RGATimeRestrictions mockTimeRestrictions9;
+
+    WayUseContainer mockWayUseContainer2;
+    MtrVehLaneSpeedLimitsLayer mockMtrVehLaneSpeedLimitsLayer2;
+    IndividualWaySpeedLimits mockIndividualWaySpeedLimits2;
+    List<IndividualWaySpeedLimits> mockIndividualWaySpeedLimitsList2;
+    LocationSpeedLimits mockLocationSpeedLimits2;
+    List<LocationSpeedLimits> mockLocationSpeedLimitsList2;
+    NodeIndexOffset mockNodeIndexOffset2;
+    NodeXYZOffsetInfo mockNodeXYZOffsetInfo8;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue22;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue23;
+    NodeXYZOffsetValue mockNodeXYZOffsetValue24;
+    SpeedLimitInfo mockSpeedLimitInfo2;
+    IndividualSpeedLimitSettings mockMaxIndividualSpeedLimitSettings2;
+    IndividualSpeedLimitSettings mockMinIndividualSpeedLimitSettings2;
+    List<IndividualSpeedLimitSettings> mockMaxIndividualSpeedLimitSettingsList2;
+    List<IndividualSpeedLimitSettings> mockMinIndividualSpeedLimitSettingsList2;
+    SpeedLimitTypeRGA mockSpeedLimitTypeRGA2;
+    SpeedLimitVehicleType mockSpeedLimitVehicleType2;
+    GeneralPeriod mockGeneralPeriod10;
+    TimeWindowInformation mockTimeWindowInformation10;
+    List<TimeWindowInformation> mockTimeWindowSet10;
+    TimeWindowItemControlInfo mockFixedTimeWindowCtrl10;
+    RGATimeRestrictions mockTimeRestrictions10;
+
     @Before
     public void setup() {
         mockRGA = mock(RGAData.class);
@@ -480,6 +529,44 @@ public class RGAEncodeTest {
         mockUnsignalizedMovementStates1 = mock(UnsignalizedMovementStates.class);
         mockIndidvidualWayCnxnsManeuvers2 = mock(IndividualWayCnxnsManeuvers.class);
         mockMtrVehLaneConnectionsManeuversLayer2 = mock(MtrVehLaneConnectionsManeuversLayer.class);
+
+        mockWayUseContainer1 = mock(WayUseContainer.class);
+        mockMtrVehLaneSpeedLimitsLayer1 = mock(MtrVehLaneSpeedLimitsLayer.class);
+        mockIndividualWaySpeedLimits1 = mock(IndividualWaySpeedLimits.class);
+        mockLocationSpeedLimits1 = mock(LocationSpeedLimits.class);
+        mockNodeIndexOffset1 = mock(NodeIndexOffset.class);
+        mockNodeXYZOffsetInfo7 = mock(NodeXYZOffsetInfo.class);
+        mockNodeXYZOffsetValue19 = mock(NodeXYZOffsetValue.class);
+        mockNodeXYZOffsetValue20 = mock(NodeXYZOffsetValue.class);
+        mockNodeXYZOffsetValue21 = mock(NodeXYZOffsetValue.class);
+        mockSpeedLimitInfo1 = mock(SpeedLimitInfo.class);
+        mockMaxIndividualSpeedLimitSettings1 = mock(IndividualSpeedLimitSettings.class);
+        mockMinIndividualSpeedLimitSettings1 = mock(IndividualSpeedLimitSettings.class);
+        mockSpeedLimitTypeRGA1 = mock(SpeedLimitTypeRGA.class);
+        mockSpeedLimitVehicleType1 = mock(SpeedLimitVehicleType.class);
+        mockGeneralPeriod9 = mock(GeneralPeriod.class);
+        mockTimeWindowInformation9 = mock(TimeWindowInformation.class);
+        mockFixedTimeWindowCtrl9 = mock(TimeWindowItemControlInfo.class);
+        mockTimeRestrictions9 = mock(RGATimeRestrictions.class);        
+
+        mockWayUseContainer2 = mock(WayUseContainer.class);
+        mockMtrVehLaneSpeedLimitsLayer2 = mock(MtrVehLaneSpeedLimitsLayer.class);
+        mockIndividualWaySpeedLimits2 = mock(IndividualWaySpeedLimits.class);
+        mockLocationSpeedLimits2 = mock(LocationSpeedLimits.class);
+        mockNodeIndexOffset2 = mock(NodeIndexOffset.class);
+        mockNodeXYZOffsetInfo8 = mock(NodeXYZOffsetInfo.class);
+        mockNodeXYZOffsetValue22 = mock(NodeXYZOffsetValue.class);
+        mockNodeXYZOffsetValue23 = mock(NodeXYZOffsetValue.class);
+        mockNodeXYZOffsetValue24 = mock(NodeXYZOffsetValue.class);
+        mockSpeedLimitInfo2 = mock(SpeedLimitInfo.class);
+        mockMaxIndividualSpeedLimitSettings2 = mock(IndividualSpeedLimitSettings.class);
+        mockMinIndividualSpeedLimitSettings2 = mock(IndividualSpeedLimitSettings.class);
+        mockSpeedLimitTypeRGA2 = mock(SpeedLimitTypeRGA.class);
+        mockSpeedLimitVehicleType2 = mock(SpeedLimitVehicleType.class);
+        mockGeneralPeriod10 = mock(GeneralPeriod.class);
+        mockTimeWindowInformation10 = mock(TimeWindowInformation.class);
+        mockFixedTimeWindowCtrl10 = mock(TimeWindowItemControlInfo.class);
+        mockTimeRestrictions10 = mock(RGATimeRestrictions.class);
 
         encoder = new Encoder();
 
@@ -958,22 +1045,128 @@ public class RGAEncodeTest {
         when(mockMtrVehLaneConnectionsManeuversLayer2.getMtrVehLaneConnectionsManeuversLayer()).thenReturn(mockIndividualLaneCnxnsManeuversLaneSet2);
         when(mockMovementsContainer6.getMovementsContainerId()).thenReturn(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
         when(mockMovementsContainer6.getMtrVehLnCnxnxMnvrLayer()).thenReturn(mockMtrVehLaneConnectionsManeuversLayer2);
+
+        // WayUse Container 1
+        when(mockGeneralPeriod9.getGeneralPeriodValue()).thenReturn(GeneralPeriod.DAY);
+        when(mockTimeWindowInformation9.getGeneralPeriod()).thenReturn(mockGeneralPeriod9);
+        mockTimeWindowSet9 = Arrays.asList(mockTimeWindowInformation9);
+        when(mockFixedTimeWindowCtrl9.getTimeWindowSet()).thenReturn(mockTimeWindowSet9);
+        when(mockTimeRestrictions9.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
+        when(mockTimeRestrictions9.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl9);
         
-        when(mockRGA.getBaseLayer()).thenReturn(mockBaseLayer);
+        when(mockSpeedLimitTypeRGA1.getSpeedLimitTypeValue()).thenReturn(SpeedLimitTypeRGA.REGULATORY);
+        when(mockSpeedLimitVehicleType1.getSpeedLimitVehicleTypeValue()).thenReturn((short) SpeedLimitVehicleType.ALL_VEHICLES);
+        when(mockMaxIndividualSpeedLimitSettings1.getSpeedLimit()).thenReturn(55L);
+        when(mockMaxIndividualSpeedLimitSettings1.getSpeedLimitType()).thenReturn(mockSpeedLimitTypeRGA1);
+        when(mockMaxIndividualSpeedLimitSettings1.getVehicleTypes()).thenReturn(mockSpeedLimitVehicleType1);
+        when(mockMaxIndividualSpeedLimitSettings1.getTimeRestrictions()).thenReturn(mockTimeRestrictions9);
+        mockMaxIndividualSpeedLimitSettingsList1 = Arrays.asList(mockMaxIndividualSpeedLimitSettings1);
+
+        when(mockMinIndividualSpeedLimitSettings1.getSpeedLimit()).thenReturn(25L);
+        when(mockMinIndividualSpeedLimitSettings1.getSpeedLimitType()).thenReturn(mockSpeedLimitTypeRGA1);
+        when(mockMinIndividualSpeedLimitSettings1.getVehicleTypes()).thenReturn(mockSpeedLimitVehicleType1);
+        when(mockMinIndividualSpeedLimitSettings1.getTimeRestrictions()).thenReturn(mockTimeRestrictions9);
+        mockMinIndividualSpeedLimitSettingsList1 = Arrays.asList(mockMinIndividualSpeedLimitSettings1);
+
+        when(mockSpeedLimitInfo1.getMaxSpeedLimitSettingsSet()).thenReturn(mockMaxIndividualSpeedLimitSettingsList1);
+        when(mockSpeedLimitInfo1.getMinSpeedLimitSettingsSet()).thenReturn(mockMinIndividualSpeedLimitSettingsList1);
+
+        when(mockNodeXYZOffsetValue19.getOffsetB10()).thenReturn(100L);
+        when(mockNodeXYZOffsetValue19.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B10);
+        when(mockNodeXYZOffsetValue20.getOffsetB11()).thenReturn(200L);
+        when(mockNodeXYZOffsetValue20.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B11);
+        when(mockNodeXYZOffsetValue21.getOffsetB12()).thenReturn(300L);
+        when(mockNodeXYZOffsetValue21.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B12);
+
+        when(mockNodeXYZOffsetInfo7.getNodeXOffsetValue()).thenReturn(mockNodeXYZOffsetValue19);
+        when(mockNodeXYZOffsetInfo7.getNodeYOffsetValue()).thenReturn(mockNodeXYZOffsetValue20);
+        when(mockNodeXYZOffsetInfo7.getNodeZOffsetValue()).thenReturn(mockNodeXYZOffsetValue21);
+
+        when(mockNodeIndexOffset1.getNodeIndex()).thenReturn(1L);
+        when(mockNodeIndexOffset1.getNodeIndexXYZOffset()).thenReturn(mockNodeXYZOffsetInfo7);
+
+        when(mockLocationSpeedLimits1.getLocation()).thenReturn(mockNodeIndexOffset1);
+        when(mockLocationSpeedLimits1.getSpeedLimitInfo()).thenReturn(mockSpeedLimitInfo1);
+        mockLocationSpeedLimitsList1 = Arrays.asList(mockLocationSpeedLimits1);
+
+        when(mockIndividualWaySpeedLimits1.getWayID()).thenReturn(99);
+        when(mockIndividualWaySpeedLimits1.getLocationSpeedLimitSet()).thenReturn(mockLocationSpeedLimitsList1);
+        mockIndividualWaySpeedLimitsList1 = Arrays.asList(mockIndividualWaySpeedLimits1);
+
+        when(mockMtrVehLaneSpeedLimitsLayer1.getLaneSpeedLimitLaneSet()).thenReturn(mockIndividualWaySpeedLimitsList1);
+        when(mockWayUseContainer1.getWaUseContainerId()).thenReturn(WayUseContainer.MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID);
+        when(mockWayUseContainer1.getMtrVehLaneSpeedLimitsLayer()).thenReturn(mockMtrVehLaneSpeedLimitsLayer1);
+        
+        // WayUse Container 2
+        when(mockGeneralPeriod10.getGeneralPeriodValue()).thenReturn(GeneralPeriod.NIGHT);
+        when(mockTimeWindowInformation10.getGeneralPeriod()).thenReturn(mockGeneralPeriod10);
+        mockTimeWindowSet10 = Arrays.asList(mockTimeWindowInformation10);
+        when(mockFixedTimeWindowCtrl10.getTimeWindowSet()).thenReturn(mockTimeWindowSet10);
+        when(mockTimeRestrictions10.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
+        when(mockTimeRestrictions10.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl10);
+
+        when(mockSpeedLimitTypeRGA2.getSpeedLimitTypeValue()).thenReturn(SpeedLimitTypeRGA.ADVISORY);
+        when(mockSpeedLimitVehicleType2.getSpeedLimitVehicleTypeValue())
+                        .thenReturn((short) SpeedLimitVehicleType.PASSENGER_VEHICLES);
+        when(mockMaxIndividualSpeedLimitSettings2.getSpeedLimit()).thenReturn(45L);
+        when(mockMaxIndividualSpeedLimitSettings2.getSpeedLimitType()).thenReturn(mockSpeedLimitTypeRGA2);
+        when(mockMaxIndividualSpeedLimitSettings2.getVehicleTypes()).thenReturn(mockSpeedLimitVehicleType2);
+        when(mockMaxIndividualSpeedLimitSettings2.getTimeRestrictions()).thenReturn(mockTimeRestrictions10);
+        mockMaxIndividualSpeedLimitSettingsList2 = Arrays.asList(mockMaxIndividualSpeedLimitSettings2);
+
+        when(mockMinIndividualSpeedLimitSettings2.getSpeedLimit()).thenReturn(15L);
+        when(mockMinIndividualSpeedLimitSettings2.getSpeedLimitType()).thenReturn(mockSpeedLimitTypeRGA2);
+        when(mockMinIndividualSpeedLimitSettings2.getVehicleTypes()).thenReturn(mockSpeedLimitVehicleType2);
+        when(mockMinIndividualSpeedLimitSettings2.getTimeRestrictions()).thenReturn(mockTimeRestrictions10);
+        mockMinIndividualSpeedLimitSettingsList2 = Arrays.asList(mockMinIndividualSpeedLimitSettings2);
+
+        when(mockSpeedLimitInfo2.getMaxSpeedLimitSettingsSet()).thenReturn(mockMaxIndividualSpeedLimitSettingsList2);
+        when(mockSpeedLimitInfo2.getMinSpeedLimitSettingsSet()).thenReturn(mockMinIndividualSpeedLimitSettingsList2);
+
+        when(mockNodeXYZOffsetValue22.getOffsetB13()).thenReturn(110L);
+        when(mockNodeXYZOffsetValue22.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B13);
+        when(mockNodeXYZOffsetValue23.getOffsetB14()).thenReturn(210L);
+        when(mockNodeXYZOffsetValue23.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B14);
+        when(mockNodeXYZOffsetValue24.getOffsetB16()).thenReturn(310L);
+        when(mockNodeXYZOffsetValue24.getChoice()).thenReturn(NodeXYZOffsetValue.OFFSET_B16);
+
+        when(mockNodeXYZOffsetInfo8.getNodeXOffsetValue()).thenReturn(mockNodeXYZOffsetValue22);
+        when(mockNodeXYZOffsetInfo8.getNodeYOffsetValue()).thenReturn(mockNodeXYZOffsetValue23);
+        when(mockNodeXYZOffsetInfo8.getNodeZOffsetValue()).thenReturn(mockNodeXYZOffsetValue24);
+
+        when(mockNodeIndexOffset2.getNodeIndex()).thenReturn(2L);
+        when(mockNodeIndexOffset2.getNodeIndexXYZOffset()).thenReturn(mockNodeXYZOffsetInfo8);
+
+        when(mockLocationSpeedLimits2.getLocation()).thenReturn(mockNodeIndexOffset2);
+        when(mockLocationSpeedLimits2.getSpeedLimitInfo()).thenReturn(mockSpeedLimitInfo2);
+        mockLocationSpeedLimitsList2 = Arrays.asList(mockLocationSpeedLimits2);
+
+        when(mockIndividualWaySpeedLimits2.getWayID()).thenReturn(100);
+        when(mockIndividualWaySpeedLimits2.getLocationSpeedLimitSet()).thenReturn(mockLocationSpeedLimitsList2);
+        mockIndividualWaySpeedLimitsList2 = Arrays.asList(mockIndividualWaySpeedLimits2);
+
+        when(mockMtrVehLaneSpeedLimitsLayer2.getLaneSpeedLimitLaneSet()).thenReturn(mockIndividualWaySpeedLimitsList2);
+        when(mockWayUseContainer2.getWaUseContainerId()).thenReturn(WayUseContainer.MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID);
+        when(mockWayUseContainer2.getMtrVehLaneSpeedLimitsLayer()).thenReturn(mockMtrVehLaneSpeedLimitsLayer2);
+
         mockGeometryContainerList = Arrays.asList(mockGeometryContainer1, mockGeometryContainer2,
                 mockGeometryContainer3, mockGeometryContainer4, mockGeometryContainer5, mockGeometryContainer6,
                 mockGeometryContainer7, mockGeometryContainer8, mockGeometryContainer9, mockGeometryContainer10,
                 mockGeometryContainer11);
         mockMovementsContainerList = Arrays.asList(mockMovementsContainer1, mockMovementsContainer2, mockMovementsContainer3, mockMovementsContainer4, mockMovementsContainer5, mockMovementsContainer6);
+        mockWayUseContainerList =  Arrays.asList(mockWayUseContainer1, mockWayUseContainer2);
+
+        when(mockRGA.getBaseLayer()).thenReturn(mockBaseLayer);
         when(mockRGA.getGeometryContainers()).thenReturn(mockGeometryContainerList);
         when(mockRGA.getMovementsContainers()).thenReturn(mockMovementsContainerList);
+        when(mockRGA.getWayUseContainers()).thenReturn(mockWayUseContainerList);
     }
 
     @Test
     public void rgaEncodeTester() {
         ByteArrayObject res = encoder.encode(mockRGA);
         System.out.println(res.getMessage());
-        byte[] expected = { 0, 43, -127, 47, 3, 0, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
+        byte[] expected = { 0, 43, -127, 98, 3, -128, 64, 73, -83, 39, 72, 59, 90, 78, -112, 80, -128, 107, -12, 69, 84,
                         16, 32, 19, 9, -20, 20, 2, 6, 12, 2, 8, 3, 4, 110, 42, 40, 27, -3, -6, 34, -83, -52, 0, 81, -92,
                         40, 2, 65, 72, 68, 0, 50, 0, 21, 56, 0, 0, 12, 5, 32, 0, 65, 0, 0, -76, 23, 4, -128, 1, 12, 33,
                         -127, 32, 34, -64, 51, 64, 34, 0, 9, 0, 60, 15, -3, -6, 34, -83, -52, 0, 81, -2, 127, 126, -120,
@@ -986,8 +1179,9 @@ public class RGAEncodeTest {
                         -74, 80, 0, 0, 13, 33, 5, 0, -72, 0, 56, 20, 0, 120, 3, -5, -12, 94, 80, -96, 0, 123, -64, -2,
                         -3, 67, -76, 40, 0, 30, -46, 0, 1, -128, 1, -32, -112, 0, 80, 2, 18, 0, 19, 5, -108, -112, 40,
                         0, 2, 0, 48, -112, 1, 80, 89, -127, 34, -56, 0, 40, 1, 3, -128, 0, -128, 2, 64, 65, 0, 8, 24, 0,
-                        4, 0, 16, 1, 32,
-        };
+                        4, 0, 16, 1, 32, 16, 10, -128, 24, -64, 64, -119, 50, 22, 100, 26, 75, 16, 32, 55, 0, 0, 16, 8,
+                        6, 64, 0, 4, 0, 104, 0, -56, 2, 8, 120, 55, 34, 13, 37, 64, -101, 32, 64, 90, -62, 0, 64, 1, 64,
+                        -128, 61, -124, 0, -128, 2, -128 };
 
         Assert.assertArrayEquals(expected, res.getMessage()); 
     }

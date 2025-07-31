@@ -20,7 +20,7 @@
 #include "MessageFrame.h"
 #include <stdint.h>
 
-JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIEnv *env, jobject cls, jobject baseLayer, jobject geometryContainers, jobject movementsContainers)
+JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIEnv *env, jobject cls, jobject baseLayer, jobject geometryContainers, jobject movementsContainers, jobject wayUseContainers)
 {
 	printf("\n ***Inside the rga_wrapper.c file **** \n");
 	uint8_t buffer[2302];
@@ -786,8 +786,200 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 		}
 	}
 
+	if(wayUseContainers != NULL) {
+		// Extracting and Setting WayUse Containers
+		jclass wayUseContainersList = (*env)->GetObjectClass(env, wayUseContainers);
+		jmethodID wayUseContainersListSizeMethod = (*env)->GetMethodID(env, wayUseContainersList, "size", "()I");
+		jmethodID wayUseContainersListGetMethod = (*env)->GetMethodID(env, wayUseContainersList, "get", "(I)Ljava/lang/Object;");
+
+		jint wayUseContainersListSize = (*env)->CallIntMethod(env, wayUseContainers, wayUseContainersListSizeMethod);
+
+		if (wayUseContainersListSize > 0)
+		{
+			rgaDataSet.wayUseContainer = calloc(1, sizeof(*rgaDataSet.wayUseContainer));
+
+			for (int wIndex = 0; wIndex < wayUseContainersListSize; wIndex++)
+			{
+				RGAWayUseLayers_t *wayUseLayer = calloc(1, sizeof(RGAWayUseLayers_t));
+				jobject wayUseContainerObject = (*env)->CallObjectMethod(env, wayUseContainers, wayUseContainersListGetMethod, wIndex);
+				jclass wayUseContainerClass = (*env)->GetObjectClass(env, wayUseContainerObject);
+
+				// Retrieve wayUseContainer-ID
+				jmethodID getWayUseContainerID = (*env)->GetMethodID(env, wayUseContainerClass, "getWaUseContainerId", "()I");
+				jint wayUseContainerID = (*env)->CallIntMethod(env, wayUseContainerObject, getWayUseContainerID);
+
+				wayUseLayer->wayUseContainer_ID = wayUseContainerID;
+
+				// Populate the wayUseContainer_Value based on the containerID
+				switch (wayUseContainerID)
+				{
+				case MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID: // MtrVehLaneSpeedLimitsLayer
+					wayUseLayer->wayUseContainer_Value.present = RGAWayUseLayers__wayUseContainer_Value_PR_MtrVehLaneSpeedLimitsLayer;
+
+					// Get MtrVehLaneSpeedLimitsLayer object from Java
+					jmethodID getMtrVehLaneSpeedLimitsLayer = (*env)->GetMethodID(env, wayUseContainerClass, "getMtrVehLaneSpeedLimitsLayer", "()Lgov/usdot/cv/rgaencoder/MtrVehLaneSpeedLimitsLayer;");
+					jobject mtrVehSpeedLimitsLayerObj = (*env)->CallObjectMethod(env, wayUseContainerObject, getMtrVehLaneSpeedLimitsLayer);
+
+					if (mtrVehSpeedLimitsLayerObj != NULL) {
+						jclass mtrVehSpeedLimitsLayerClass = (*env)->GetObjectClass(env, mtrVehSpeedLimitsLayerObj);
+
+						MtrVehLaneSpeedLimitsLayer_t *mtrVehLaneSpeedLimitsLayer = calloc(1, sizeof(MtrVehLaneSpeedLimitsLayer_t));
+
+						jmethodID getLaneSpeedLimitLaneSet = (*env)->GetMethodID(env, mtrVehSpeedLimitsLayerClass, "getLaneSpeedLimitLaneSet", "()Ljava/util/List;");
+						jobject laneSpeedLimitLaneSetList = (*env)->CallObjectMethod(env, mtrVehSpeedLimitsLayerObj, getLaneSpeedLimitLaneSet);
+
+						jclass laneSpeedLimitLaneSetListClass = (*env)->GetObjectClass(env, laneSpeedLimitLaneSetList);
+						jmethodID laneSpeedLimitLaneSetListSizeMethod = (*env)->GetMethodID(env, laneSpeedLimitLaneSetListClass, "size", "()I");
+						jmethodID laneSpeedLimitLaneSetListGetMethod = (*env)->GetMethodID(env, laneSpeedLimitLaneSetListClass, "get", "(I)Ljava/lang/Object;");
+
+						jint laneSpeedLimitLaneSetSize = (*env)->CallIntMethod(env, laneSpeedLimitLaneSetList, laneSpeedLimitLaneSetListSizeMethod);
+
+						for (int lIndex = 0; lIndex < laneSpeedLimitLaneSetSize; lIndex++) {
+							jobject indivSpeedLimitObj = (*env)->CallObjectMethod(env, laneSpeedLimitLaneSetList, laneSpeedLimitLaneSetListGetMethod, lIndex);
+							jclass indivSpeedLimitClass = (*env)->GetObjectClass(env, indivSpeedLimitObj);
+
+							IndividualWaySpeedLimits_t *individualWaySpeedLimits = calloc(1, sizeof(IndividualWaySpeedLimits_t));
+
+							// Get wayID
+							jmethodID getIndivSpeedLimitWayID = (*env)->GetMethodID(env, indivSpeedLimitClass, "getWayID", "()I");
+							jint indivSpeedLimitWayID = (*env)->CallIntMethod(env, indivSpeedLimitObj, getIndivSpeedLimitWayID);
+
+							individualWaySpeedLimits->wayID = indivSpeedLimitWayID;
+
+							// Get locationSpeedLimits
+							jmethodID getLocationSpeedLimits = (*env)->GetMethodID(env, indivSpeedLimitClass, "getLocationSpeedLimitSet", "()Ljava/util/List;");
+							jobject locationSpeedLimitsList = (*env)->CallObjectMethod(env, indivSpeedLimitObj, getLocationSpeedLimits);
+
+							jclass locationSpeedLimitsListClass = (*env)->GetObjectClass(env, locationSpeedLimitsList);
+							jmethodID locationSpeedLimitsListSizeMethod = (*env)->GetMethodID(env, locationSpeedLimitsListClass, "size", "()I");
+							jmethodID locationSpeedLimitsListGetMethod = (*env)->GetMethodID(env, locationSpeedLimitsListClass, "get", "(I)Ljava/lang/Object;");
+
+							jint locationSpeedLimitsListSize = (*env)->CallIntMethod(env, locationSpeedLimitsList, locationSpeedLimitsListSizeMethod);
+
+							for (int j = 0; j < locationSpeedLimitsListSize; j++) {
+								jobject locSpeedLimitObj = (*env)->CallObjectMethod(env, locationSpeedLimitsList, locationSpeedLimitsListGetMethod, j);
+								jclass locSpeedLimitClass = (*env)->GetObjectClass(env, locSpeedLimitObj);
+
+								LocationSpeedLimits_t *locationSpeedLimits = calloc(1, sizeof(LocationSpeedLimits_t));
+
+								// === 1. NodeIndexOffset ===
+								jmethodID getNodeIndexOffset = (*env)->GetMethodID(env, locSpeedLimitClass, "getLocation", "()Lgov/usdot/cv/rgaencoder/NodeIndexOffset;");
+								jobject nodeIndexOffsetObj = (*env)->CallObjectMethod(env, locSpeedLimitObj, getNodeIndexOffset);
+
+								if (nodeIndexOffsetObj != NULL) {
+									jclass nodeIndexOffsetClass = (*env)->GetObjectClass(env, nodeIndexOffsetObj);
+
+									// nodeIndex
+									jmethodID getNodeIndex = (*env)->GetMethodID(env, nodeIndexOffsetClass, "getNodeIndex", "()J");
+									jlong nodeIndex = (*env)->CallLongMethod(env, nodeIndexOffsetObj, getNodeIndex);
+									locationSpeedLimits->location.nodeIndex = (NodeIndex_t)nodeIndex;
+
+									// nodeIndexXYZOffset (optional)
+									jmethodID getNodeIndexXYZOffset = (*env)->GetMethodID(env, nodeIndexOffsetClass, "getNodeIndexXYZOffset", "()Lgov/usdot/cv/rgaencoder/NodeXYZOffsetInfo;");
+									jobject nodeIndexXYZOffsetObj = (*env)->CallObjectMethod(env, nodeIndexOffsetObj, getNodeIndexXYZOffset);
+
+									if (nodeIndexXYZOffsetObj != NULL) {
+										// Retrieve NodeXYZOffsetInfo class
+										jclass nodeIndexXYZOffsetClass = (*env)->GetObjectClass(env, nodeIndexXYZOffsetObj);
+
+										// Allocate and populate NodeXYZOffsetInfo
+										NodeXYZOffsetInfo_t *nodeXYZOffset = calloc(1, sizeof(NodeXYZOffsetInfo_t));
+
+										// Populate nodeXOffsetValue
+										jmethodID getLocationNodeXOffsetMethod = (*env)->GetMethodID(env, nodeIndexXYZOffsetClass, "getNodeXOffsetValue", "()Lgov/usdot/cv/rgaencoder/NodeXYZOffsetValue;");
+										jobject locationNodeXOffsetValueObj = (*env)->CallObjectMethod(env, nodeIndexXYZOffsetObj, getLocationNodeXOffsetMethod);
+										populateNodeXYZOffsetValue(env, locationNodeXOffsetValueObj, &nodeXYZOffset->nodeXOffsetValue);
+
+										// Populate nodeYOffsetValue
+										jmethodID getLocationNodeYOffsetMethod = (*env)->GetMethodID(env, nodeIndexXYZOffsetClass, "getNodeYOffsetValue", "()Lgov/usdot/cv/rgaencoder/NodeXYZOffsetValue;");
+										jobject locationNodeYOffsetValueObj = (*env)->CallObjectMethod(env, nodeIndexXYZOffsetObj, getLocationNodeYOffsetMethod);
+										populateNodeXYZOffsetValue(env, locationNodeYOffsetValueObj, &nodeXYZOffset->nodeYOffsetValue);
+
+										// Populate nodeZOffsetValue
+										jmethodID getLocationNodeZOffsetMethod = (*env)->GetMethodID(env, nodeIndexXYZOffsetClass, "getNodeZOffsetValue", "()Lgov/usdot/cv/rgaencoder/NodeXYZOffsetValue;");
+										jobject locationNodeZOffsetValueObj = (*env)->CallObjectMethod(env, nodeIndexXYZOffsetObj, getLocationNodeZOffsetMethod);
+										populateNodeXYZOffsetValue(env, locationNodeZOffsetValueObj, &nodeXYZOffset->nodeZOffsetValue);
+
+										// Assign to the location struct
+										locationSpeedLimits->location.nodeIndexXYZOffset = nodeXYZOffset;
+									} else {
+										locationSpeedLimits->location.nodeIndexXYZOffset = NULL;
+									}
+								}
+
+								// === 2. SpeedLimitInfo ===
+								jmethodID getSpeedLimitInfo = (*env)->GetMethodID(env, locSpeedLimitClass, "getSpeedLimitInfo", "()Lgov/usdot/cv/rgaencoder/SpeedLimitInfo;");
+								jobject speedLimitInfoObj = (*env)->CallObjectMethod(env, locSpeedLimitObj, getSpeedLimitInfo);
+
+								if (speedLimitInfoObj != NULL)
+								{
+									jclass speedLimitInfoClass = (*env)->GetObjectClass(env, speedLimitInfoObj);
+
+									SpeedLimitInfo_t *speedLimitInfo = calloc(1, sizeof(SpeedLimitInfo_t));
+
+									// --- maxSpeedLimitSettingsSet ---
+									jmethodID getMaxSpeedLimitList = (*env)->GetMethodID(env, speedLimitInfoClass, "getMaxSpeedLimitSettingsSet", "()Ljava/util/List;");
+									jobject maxSpeedLimitListObj = (*env)->CallObjectMethod(env, speedLimitInfoObj, getMaxSpeedLimitList);
+
+									jclass speedLimitListClass = (*env)->FindClass(env, "java/util/List");
+									jmethodID speedLimitListSizeMethod = (*env)->GetMethodID(env, speedLimitListClass, "size", "()I");
+									jmethodID speedLimitListGetMethod = (*env)->GetMethodID(env, speedLimitListClass, "get", "(I)Ljava/lang/Object;");
+
+									jint maxSpeedLimitListSize = (*env)->CallIntMethod(env, maxSpeedLimitListObj, speedLimitListSizeMethod);
+
+									for (int maxIndex = 0; maxIndex < maxSpeedLimitListSize; maxIndex++)
+									{
+										jobject indvMaxSpeedLimitSettingObj = (*env)->CallObjectMethod(env, maxSpeedLimitListObj, speedLimitListGetMethod, maxIndex);
+										IndividualSpeedLimitSettings_t *maxIndividualSpeedLimitSettings = calloc(1, sizeof(IndividualSpeedLimitSettings_t));
+										populateIndividualSpeedLimitSettings(env, indvMaxSpeedLimitSettingObj, maxIndividualSpeedLimitSettings);
+
+										ASN_SEQUENCE_ADD(&speedLimitInfo->maxSpeedLimitSettingsSet.list, maxIndividualSpeedLimitSettings);
+									}
+
+									// --- minSpeedLimitSettingsSet (optional) ---
+									jmethodID getMinSpeedLimitList = (*env)->GetMethodID(env, speedLimitInfoClass, "getMinSpeedLimitSettingsSet", "()Ljava/util/List;");
+									jobject minSpeedLimitListObj = (*env)->CallObjectMethod(env, speedLimitInfoObj, getMinSpeedLimitList);
+
+									if (minSpeedLimitListObj != NULL)
+									{
+										jint minSpeedLimitListSize = (*env)->CallIntMethod(env, minSpeedLimitListObj, speedLimitListSizeMethod);
+
+										if (minSpeedLimitListSize > 0) {
+											speedLimitInfo->minSpeedLimitSettingsSet = calloc(1, sizeof(struct SpeedLimitInfo__minSpeedLimitSettingsSet));
+										}
+
+										for (int minIndex = 0; minIndex < minSpeedLimitListSize; minIndex++)
+										{
+											jobject indvMinSpeedLimitSettingObj = (*env)->CallObjectMethod(env, minSpeedLimitListObj, speedLimitListGetMethod, minIndex);
+											IndividualSpeedLimitSettings_t *minIndividualSpeedLimitSettings = calloc(1, sizeof(IndividualSpeedLimitSettings_t));
+											populateIndividualSpeedLimitSettings(env, indvMinSpeedLimitSettingObj, minIndividualSpeedLimitSettings);
+
+											ASN_SEQUENCE_ADD(&speedLimitInfo->minSpeedLimitSettingsSet->list, minIndividualSpeedLimitSettings);
+										}
+									}
+
+									locationSpeedLimits->speedLimitInfo = *speedLimitInfo;
+								}
+								ASN_SEQUENCE_ADD(&individualWaySpeedLimits->locationSpeedLimitSet.list, locationSpeedLimits);
+							}
+							ASN_SEQUENCE_ADD(&mtrVehLaneSpeedLimitsLayer->laneSpeedLimitLaneSet.list, individualWaySpeedLimits);
+						}
+						wayUseLayer->wayUseContainer_Value.choice.MtrVehLaneSpeedLimitsLayer = *mtrVehLaneSpeedLimitsLayer;
+					}
+					break;
+				default:
+					// Handle unknown ID
+					wayUseLayer->wayUseContainer_Value.present = RGAWayUseLayers__wayUseContainer_Value_PR_NOTHING;
+					break;
+				} // switch ends
+				ASN_SEQUENCE_ADD(&rgaDataSet.wayUseContainer->list, wayUseLayer);
+
+			}
+		}
+	}
+
 	// rgaDataSet.movementsContainer = NULL;
-	rgaDataSet.wayUseContainer = NULL;
+	// rgaDataSet.wayUseContainer = NULL;
 	rgaDataSet.signalControlSupportContainer = NULL;
 
 	RGADataSet_t *rgaDataSetList = calloc(1, sizeof(RGADataSet_t));
@@ -840,6 +1032,51 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA(JNIE
 	return outJNIArray;
 }
 
+void populateIndividualSpeedLimitSettings(JNIEnv *env, jobject indvSpeedLimitSettingObj, IndividualSpeedLimitSettings_t *individualSpeedLimitSettings)
+{
+	jclass indvSpeedLimitSettingClass = (*env)->GetObjectClass(env, indvSpeedLimitSettingObj);
+
+	// speedLimit
+	jmethodID getSpeedLimit = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getSpeedLimit", "()J");
+	jlong speedLimitValue = (*env)->CallLongMethod(env, indvSpeedLimitSettingObj, getSpeedLimit);
+	individualSpeedLimitSettings->speedLimit = (Speed_t)speedLimitValue;
+
+	// speedLimitType
+	jmethodID getSpeedLimitType = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getSpeedLimitType", "()Lgov/usdot/cv/rgaencoder/SpeedLimitTypeRGA;");
+	jobject speedLimitTypeObj = (*env)->CallObjectMethod(env, indvSpeedLimitSettingObj, getSpeedLimitType);
+	jclass speedLimitTypeClass = (*env)->GetObjectClass(env, speedLimitTypeObj);
+	jmethodID getSpeedLimitTypeVal = (*env)->GetMethodID(env, speedLimitTypeClass, "getSpeedLimitTypeValue", "()J");
+	jlong speedLimitTypeVal = (*env)->CallLongMethod(env, speedLimitTypeObj, getSpeedLimitTypeVal);
+
+	individualSpeedLimitSettings->speedLimitType = (SpeedLimitType_t)speedLimitTypeVal;
+
+	// vehicleTypes
+	jmethodID getVehicleTypes = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getVehicleTypes", "()Lgov/usdot/cv/rgaencoder/SpeedLimitVehicleType;");
+	jobject vehTypesObj = (*env)->CallObjectMethod(env, indvSpeedLimitSettingObj, getVehicleTypes);
+	jclass vehTypesClass = (*env)->GetObjectClass(env, vehTypesObj);
+	jmethodID getVehTypesVal = (*env)->GetMethodID(env, vehTypesClass, "getSpeedLimitVehicleTypeValue", "()S");
+	jshort vehTypeVal = (*env)->CallShortMethod(env, vehTypesObj, getVehTypesVal);
+
+	individualSpeedLimitSettings->vehicleTypes.buf = (uint8_t *)calloc(1, sizeof(uint8_t));
+	*(individualSpeedLimitSettings->vehicleTypes.buf) = (uint8_t)vehTypeVal;
+	individualSpeedLimitSettings->vehicleTypes.size = 1;
+	individualSpeedLimitSettings->vehicleTypes.bits_unused = 5;
+
+	// Populate timeRestrictions if exists
+	jmethodID getSpeedLimitTimeRestrictionsMethod = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getTimeRestrictions", "()Lgov/usdot/cv/rgaencoder/RGATimeRestrictions;");
+	jobject speedLimitTimeRestrictionsObj = (*env)->CallObjectMethod(env, indvSpeedLimitSettingObj, getSpeedLimitTimeRestrictionsMethod);
+
+	if (speedLimitTimeRestrictionsObj != NULL)
+	{
+		RGATimeRestrictions_t *speedLimitTimeRestrictions = calloc(1, sizeof(RGATimeRestrictions_t));
+		populateTimeRestrictions(env, speedLimitTimeRestrictionsObj, speedLimitTimeRestrictions);
+		individualSpeedLimitSettings->timeRestrictions = speedLimitTimeRestrictions;
+	}
+	else
+	{
+		individualSpeedLimitSettings->timeRestrictions = NULL;
+	}
+}
 
 void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, IndividualWayConnections_t *indWayCnxn) {
 	jclass wayConnClass = (*env)->GetObjectClass(env, wayConnObj);

@@ -17,7 +17,6 @@
 package gov.usdot.cv.rgaencoder;
 
 public class WayCnxnManeuvers {
-
     private long wayCnxnManeuversValue;
 
     // Constants for choice field
@@ -50,6 +49,4 @@ public class WayCnxnManeuvers {
                 "wayCnxnManeuversValue=" + wayCnxnManeuversValue +
                 '}';
     }
-
-
 }
