@@ -19,6 +19,7 @@
 #include "NodeXYZOffsetValue.h" 
 #include "IndividualWayConnections.h" 
 #include "IndividualWayCnxnsManeuvers.h"
+#include "IndividualSpeedLimitSettings.h"
 /* Header for class gov_usdot_cv_lib_asn1c_RGAMessage*/
 
 #ifndef _Included_gov_usdot_cv_lib_asn1c_RGAMessage
@@ -38,6 +39,9 @@ extern "C" {
 #define MTR_VEH_LANE_CONNECTIONS_LAYER_ID 2
 #define MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID 3
 #define BIKE_LANE_CONNECTIONS__LAYER_ID 4
+
+// Constants for WayUse Layer IDs
+#define MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID 1
 
 // Constants for WayCnxnManeuverControlType
 #define SIGNALIZED_CONTROL 1
@@ -70,10 +74,12 @@ extern "C" {
  * @param jobject - Reference to the calling Java object
  * @param jobject - Java object representing the base layer
  * @param jobject - Java object representing the geometry containers
+ * @param jobject - Java object representing the movements containers
+ * @param jobject - Java object representing the wayUse containers
  * @return jbyteArray - Encoded ASN.1 message as a Java byte array, or NULL if encoding fails
  */
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_rgaencoder_Encoder_encodeRGA
-  (JNIEnv *, jobject, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject, jobject, jobject);
 
 /*
  * Method to populate a LaneConstructorType_t structure from corresponding Java object
@@ -107,6 +113,13 @@ void populateIndividualWayConnection(JNIEnv *env, jobject wayConnObj, Individual
  */
 void populateIndividualWayCnxnsManeuvers(JNIEnv *env, jobject wayCnxnsManeuversObj, IndividualWayCnxnsManeuvers_t *indWayCnxnManeuvers);
 
+/**
+ * Method to populate a IndividualWayCnxnManeuvers_t structure from corresponding Java object
+ * @param env JNI environment pointer.
+ * @param indvSpeedLimitSettingObj Java object containing IndividualSpeedLimitSettings value data.
+ * @param individualSpeedLimitSettings Pointer to the C structure
+ */
+void populateIndividualSpeedLimitSettings(JNIEnv *env, jobject indvSpeedLimitSettingObj, IndividualSpeedLimitSettings_t *individualSpeedLimitSettings);
 
 #ifdef __cplusplus
 }
