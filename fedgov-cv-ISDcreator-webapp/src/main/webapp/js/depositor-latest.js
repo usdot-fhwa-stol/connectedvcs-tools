@@ -223,14 +223,74 @@ function createMessageJSON()
                         let currentSpeedLimits = [];
                         if(laneFeat[j].get('speedLimitType')) {
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
-
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     let speedLimit = { ...mapSpeedLimit };
+                                    let shouldSkipSpeedLimit = false;
+                                    
                                     if (speedLimit.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
                                         delete speedLimit.timeRestrictions;
                                     }
-                                    currentSpeedLimits.push(speedLimit);
+                                    
+                                    //Presents alerts for incompatible RGA Speed Limits in MAP
+                                    if (m === 0 && (messageType === "Frame+Map" || messageType === "Map")) {
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Min Speed" && $('#maneuver-alert-min-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Passenger Vehicle Min Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-min-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Max Speed" && $('#maneuver-alert-max-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Passenger Vehicle Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-max-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                        if (speedLimit.speedLimitChoice == "advisory" && $()) {
+                                            let speedChoiceAlert = "Advisory speed limit added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="choice-alert-advisory-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dimiss="alert" aria-hidden="true">&times;</button><span>' + speedChoiceAlert + '</span></div>');
+                                        }
+                                    }
+                                    //Presents alerts for incompatible MAP Speed Limits in RGA
+                                    if (m === 0 && (messageType === "RGA" || messageType === "Frame+RGA")) {
+                                        if (speedLimit.speedLimitType == "Unknown" && $('#maneuver-alert-unknown-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Unknown speed limit type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-unknown-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Min Speed" && $('#maneuver-alert-trailer-min-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicles w/ Trailers Min Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-min-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Max Speed" && $('#maneuver-alert-trailer-max-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicle With Trailers Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-max-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Night Max Speed" && $('#maneuver-alert-trailer-night-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicles w/ Trailers Night Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-night-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                        }
+                                    }
+
+                                    //Omits incompatible speed limits from MAP JSON
+                                    if ((messageType === "Frame+Map" || messageType === "Map")) {
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Min Speed" || 
+                                            speedLimit.speedLimitType == "Passenger Vehicles Max Speed") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                        if (speedLimit.speedLimitChoice == "advisory") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                    }
+                                    
+                                    //Omits incompatible speed limits from RGA JSON
+                                    if ((messageType === "RGA" || messageType === "Frame+RGA")) {
+                                        if (speedLimit.speedLimitType == "Unknown" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Min Speed" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Max Speed" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Night Max Speed") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                    }
+                                    
+                                    if (!shouldSkipSpeedLimit) {
+                                        currentSpeedLimits.push(speedLimit);
+                                    }
                                 }
                             }
                         }
