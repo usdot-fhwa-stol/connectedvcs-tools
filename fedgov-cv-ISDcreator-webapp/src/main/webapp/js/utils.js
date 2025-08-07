@@ -1490,6 +1490,8 @@ function setRGAStatus() {
       $('.connections_day_selection_dropdown').multiselect('enable');
       $('.speed_day_selection_dropdown').multiselect('enable');
       $('.speed-form-check-input').prop('disabled', false);
+      $('.speed_range').prop('disabled', false);
+      $('.speed_general').prop('disabled', false)
       enableManeuverControlType(true);
   }else{
       rgaEnabled = false;
@@ -1498,6 +1500,8 @@ function setRGAStatus() {
       $('.connections_day_selection_dropdown').multiselect('disable');
       $('.speed_day_selection_dropdown').multiselect('disable');
       $('.speed-form-check-input').prop('disabled', true);
+      $('.speed_range').prop('disabled', true);
+      $('.speed_general').prop('disabled', true);
       enableManeuverControlType(false);
   }
   $('.day_selection_dropdown').multiselect('refresh');
