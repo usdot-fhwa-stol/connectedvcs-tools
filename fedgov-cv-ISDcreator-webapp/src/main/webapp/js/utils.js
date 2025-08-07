@@ -1,8 +1,10 @@
 
 let numRows = -1;
 let tmpLaneAttributes = {}
+let selectedMarker;
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
+import { selectedMarker as selectedMarkerMAP } from "./map.js";
 
 function getCookie(cname) {
   let name = cname + "=";
@@ -656,6 +658,9 @@ function changeRow(oldVal, newVal, readOnly, valueSets) {
                           if (lane_attributes[j].id.toString() === valueSets[set][k]){
                               addLaneManeuversToContainer($('#attr_droppable' + newVal),
                                   '<img id="lane_img_'+ newVal +'_' + lane_attributes[j].id + '" class="dragged-img" src="'+ lane_attributes[j].img_src +'">');
+                              $('#attr_droppable' + newVal).find('img').each(function() {
+                                  makeDraggable( $(this) )
+                              });
                           }
                       }
                   }
@@ -687,15 +692,15 @@ function addLaneManeuversToContainer(container, attribute) {
 
 
 // adds the attribute (image) to the displayed container
-function addLaneAttributeToContainer(container, attribute ) {
+function addLaneAttributeToContainer(container, attribute, selectedMarker ) {
   let attr_id = parseInt(attribute.id.match(/(\d+)$/)[0], 10);
   let lane_attr = lane_attributes[attr_id];
 
   // if attribute already exists in the lane attributes, skip, do not add
-  // if (selectedMarker.get('lane_attributes') &&
-  //     selectedMarker.get('lane_attributes')[attr_id]) {
-  //     return;
-  // }
+  if (selectedMarker.get('lane_attributes') &&
+      selectedMarker.get('lane_attributes')[attr_id]) {
+      return;
+  }
 
   // skip adding the attribute if it's already in the temp attributes, otherwise add it
   if(!tmpLaneAttributes[attr_id] ) {
@@ -755,7 +760,7 @@ function makeDroppable (id){
           makeDraggable( attr );
 
           if (containerName === "attr_droppable"){
-              addLaneAttributeToContainer( container, attr[0] );
+              addLaneAttributeToContainer( container, attr[0], selectedMarkerMAP );
           } else {
               addLaneManeuversToContainer( container, attr[0]);
           }
@@ -773,7 +778,7 @@ function makeDroppable (id){
       drop: function( event, ui ) {
           let attr = $(ui.helper)[0];
           attr.remove();
-          removeLaneAttributes(attr);
+          removeLaneAttributes(selectedMarkerMAP, attr);
       }
   });
 }
