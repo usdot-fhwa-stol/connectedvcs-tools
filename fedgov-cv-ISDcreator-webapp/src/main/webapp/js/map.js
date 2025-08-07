@@ -1443,5 +1443,6 @@ export {
   laneWidths,
   box,
   errors, 
-  rgaEnabled
+  rgaEnabled,
+  selectedMarker
 };
