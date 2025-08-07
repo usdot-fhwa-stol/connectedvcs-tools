@@ -288,14 +288,16 @@ public class IntersectionInputData {
 	
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class ReferencePointChild {
-		public RegulatorySpeedLimit[] speedLimitType;	
+		public ISDRegulatorySpeedLimit[] speedLimitType;	
 	}
 	
 	// @JsonTypeName("speedLimitType") 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class RegulatorySpeedLimit {
+	public static class ISDRegulatorySpeedLimit {
 		public String speedLimitType;
 		public double velocity;
+		public String speedLimitChoice;
+		public TimeRestrictions timeRestrictions;
 		
 		public short getVelocity() {
 			// editor value is 0 - 366 mph, target value is 0 � 8191 0.02 m/s, with 8191 means unknown
@@ -306,7 +308,7 @@ public class IntersectionInputData {
 
 		@Override
 		public String toString() {
-			return String.format("RegulatorySpeedLimit [%s=%s,%s=%d,", 
+			return String.format("ISDRegulatorySpeedLimit [%s=%s,%s=%d,", 
 					"speedLimitType", speedLimitType,					
 					"velocity", getVelocity());
 		}
@@ -453,7 +455,7 @@ public class IntersectionInputData {
 		public double nodeLong;
 		public double nodeElev;
 		public short laneWidthDelta;
-		public RegulatorySpeedLimit[] speedLimitType;
+		public ISDRegulatorySpeedLimit[] speedLimitType;
 		
 		@Override
 		public String toString() {

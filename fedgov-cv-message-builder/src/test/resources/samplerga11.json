@@ -93,7 +93,14 @@
                     "speedLimitType": [
                       {
                         "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [],
+                          "timePeriodType": "",
+                          "timePeriodValue": "",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   },
@@ -106,7 +113,14 @@
                     "speedLimitType": [
                       {
                         "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [],
+                          "timePeriodType": "",
+                          "timePeriodValue": "",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   }
