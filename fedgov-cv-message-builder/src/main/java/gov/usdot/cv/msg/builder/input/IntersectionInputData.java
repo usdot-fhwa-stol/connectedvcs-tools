@@ -288,14 +288,16 @@ public class IntersectionInputData {
 	
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class ReferencePointChild {
-		public RegulatorySpeedLimit[] speedLimitType;	
+		public ISDRegulatorySpeedLimit[] speedLimitType;	
 	}
 	
 	// @JsonTypeName("speedLimitType") 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class RegulatorySpeedLimit {
+	public static class ISDRegulatorySpeedLimit {
 		public String speedLimitType;
 		public double velocity;
+		public String speedLimitChoice;
+		public TimeRestrictions timeRestrictions;
 		
 		public short getVelocity() {
 			// editor value is 0 - 366 mph, target value is 0 � 8191 0.02 m/s, with 8191 means unknown
@@ -306,7 +308,7 @@ public class IntersectionInputData {
 
 		@Override
 		public String toString() {
-			return String.format("RegulatorySpeedLimit [%s=%s,%s=%d,", 
+			return String.format("ISDRegulatorySpeedLimit [%s=%s,%s=%d,", 
 					"speedLimitType", speedLimitType,					
 					"velocity", getVelocity());
 		}
@@ -316,13 +318,28 @@ public class IntersectionInputData {
 	public static class Approach {
 		public String approachType;
 		public short approachID;
-
 		public String laneDirection;
 		public DrivingLane[] drivingLanes;
 		public CrosswalkLane[] crosswalkLanes;
+		public ApproachTypeRow[] approachTypes;
+		public String maneuverControlType;
 		
 		public Approach() {
 			super();
+		}
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class ApproachTypeRow {
+		public int rowId;
+		public String approachType;
+		public String selected;
+		public TimeRestrictions timeRestrictions;
+		
+		@Override
+		public String toString() {
+			return "ApproachTypeRow [rowId=" + rowId + ", approachType=" + approachType + ", selected=" + selected
+					+ ", timeRestrictions=" + timeRestrictions + "]";
 		}
 	}
 	
@@ -362,19 +379,19 @@ public class IntersectionInputData {
 	public static class TimeRestrictions {
 		public int[] daysOfTheWeek;
 		public String timePeriodType;
-		public String laneInfoTimePeriodValue;
-		public LaneInfoTimePeriodRange laneInfoTimePeriodRange;
+		public String timePeriodValue;
+		public TimePeriodRange timePeriodRange;
 		
 		@Override
 		public String toString() {
 			return "TimeRestrictions [daysOfTheWeek=" + Arrays.toString(daysOfTheWeek) + ", timePeriodType="
-					+ timePeriodType + ", laneInfoTimePeriodValue=" + laneInfoTimePeriodValue
-					+ ", laneInfoTimePeriodRange=" + laneInfoTimePeriodRange + "]";
+					+ timePeriodType + ", timePeriodValue=" + timePeriodValue
+					+ ", timePeriodRange=" + timePeriodRange + "]";
 		}
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class LaneInfoTimePeriodRange {
+	public static class TimePeriodRange {
 		public String startDatetime;
 		public int startOffset;
 		public String endDatetime;
@@ -417,6 +434,7 @@ public class IntersectionInputData {
 		public int[] maneuvers;
 		public int remoteID;
 		public int connectionId;
+		public TimeRestrictions timeRestrictions;
 
 		@Override
 		public String toString() {
@@ -425,6 +443,7 @@ public class IntersectionInputData {
 					+ ", signal_id=" + signal_id
 					+ ", remoteID=" + remoteID
 					+ ", laneManeuvers=" + Arrays.toString(maneuvers)
+					+ ", timeRestrictions=" + timeRestrictions
 					+ "]";
 		}
 	}
@@ -436,7 +455,7 @@ public class IntersectionInputData {
 		public double nodeLong;
 		public double nodeElev;
 		public short laneWidthDelta;
-		public RegulatorySpeedLimit[] speedLimitType;
+		public ISDRegulatorySpeedLimit[] speedLimitType;
 		
 		@Override
 		public String toString() {

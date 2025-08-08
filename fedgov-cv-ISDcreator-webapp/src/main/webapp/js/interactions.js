@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -124,6 +124,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $(".verified_long").hide();
     $(".verified_elev").hide();
     $(".approach_type").hide();
+    $("#approach-table").hide();
     $(".intersection").hide();
     $(".region").hide();
     $(".revision").hide();
@@ -134,6 +135,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $('.road_authority_id').hide();
     $('.road_authority_id_type').hide();
     $(".approach_name").hide();
+    $(".maneuver_control_type").hide();
     $(".shared_with").hide();
     $(".btnClone").hide();
     //-------------------------------------
@@ -497,8 +499,11 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".btnClone").hide();
       //----------------------------------------
       $(".approach_type").show();
+      $("#approach-table").show();
       $(".approach_name").show();
       $('#approach_name li').show();
+      $(".maneuver_control_type").show();
+      $('#maneuver_control_type li').show();
       for (let boxFeature of boxLayer.getSource().getFeatures()) {
         let usedNum = boxFeature.get("approachID");
         $('.approach_name li:contains(' + usedNum + ')').hide();
@@ -507,17 +512,41 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $("#approach_title").val(selectedBox.get("approach"));
       $("#attributes").show();
     }
-    
-    if (!selectedBox.get("approachType")) {
-      $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
-    } else {
-      $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
+    let approaches = selectedBox.get("approaches") || []; // Use default empty array if undefined
+
+    if (approaches.length === 0) { // Check if empty instead of undefined
+      approaches.push({
+        rowId: 0,
+        approachType: selectedBox.get("approachType") || "Select",
+        selected: true,
+        timeRestrictions: {
+          daysOfTheWeek: [],
+          timePeriodType: "",
+          timePeriodValue: "",
+          timePeriodRange: {}
+        }
+      });
     }
+
+    rebuildApproaches(approaches);
+    
+
+    // if (!selectedBox.get("approachType")) {
+    //   $('#approach_type .dropdown-toggle').html("Select an Approach Type <span class='caret'></span>");
+    // } else {
+    //   $('#approach_type .dropdown-toggle').html(selectedBox.get("approachType") + " <span class='caret'></span>");
+    // }
         
     if (!selectedBox.get("approachID")) {
       $('#approach_name .dropdown-toggle').html("Select an Approach ID <span class='caret'></span>");
     } else {
       $('#approach_name .dropdown-toggle').html(selectedBox.get("approachID") + " <span class='caret'></span>");
+    }
+
+    if (!selectedBox.get("maneuverControlType")) {
+      $('#maneuver_control_type .dropdown-toggle').html("Select a Maneuver Control Type <span class='caret'></span>");
+    } else {
+      $('#maneuver_control_type .dropdown-toggle').html(selectedBox.get("maneuverControlType") + " <span class='caret'></span>");
     }
     return selectedBox;
   } else if (evt.deselected?.length > 0) {

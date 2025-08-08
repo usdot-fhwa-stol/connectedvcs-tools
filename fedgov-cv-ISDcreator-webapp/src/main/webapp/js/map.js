@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addRow, deleteRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateTypeAttributes } from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -9,6 +9,7 @@ import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 let nodeObject = [];
+let approachObject = [];
 const aerialTilesetId = "microsoft.imagery";
 const roadTilesetId = "microsoft.base.road";
 const hybridTilesetId = "microsoft.base.hybrid.road";
@@ -38,10 +39,11 @@ let typeAttributeNameSaved = "";
 let sharedWith = [];
 let typeAttribute = [];
 let nodeLaneWidth = [];
-let signalPhase, stateConfidence, laneNum, laneType, approachType, intersectionID, approachID;
+let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID, maneuverControlType;
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
 let rowHtml;
+let approachRowHtml;
 let speedForm;
 let rgaEnabled = false;
 let laneSelectInteraction, laneMarkersInteraction, vectorInteraction, boxSelectInteraction;
@@ -49,6 +51,8 @@ let selectedInteractions = [];
 let temporaryLaneMarkers;
 let temporaryBoxMarkers;
 let timeRestrictions;
+let approachTimeRestrictions;
+let connectionsTimeRestrictions;
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
@@ -396,7 +400,7 @@ function registerSelectInteraction() {
       
       if(event.selected?.length === 0){
         approachID = null;
-        approachType = null;
+        approaches = null;
       }
   });
   map.addInteraction(boxSelectInteraction);
@@ -749,6 +753,45 @@ function initSideBar() {
     laneContents.append(html);
   }
 
+  $(document).ready(function() {
+    // Initialize Right U-Turn as disabled since rgaEnabled starts as false
+    let rightUTurnImg = $('#lane_img_12');
+    if (rightUTurnImg.length > 0) {
+        rightUTurnImg.removeClass('drag-lane-img')
+          .addClass('disabled-lane-img') // Add a class to indicate it's disabled
+          .css({
+              'opacity': '0.5',
+              'filter': 'grayscale(100%)',
+              'pointer-events': 'none'
+          });
+    }
+  });
+
+  $('#rga_switch').on('change', function() {
+    let rgaEnabled = $('#rga_switch').is(":checked");
+    let rightUTurnImg = $('#lane_img_12');
+    
+    if (rgaEnabled) {
+        // Enable Right U-Turn image
+        rightUTurnImg.addClass('drag-lane-img')  // Add the droppable class back
+            .removeClass('disabled-lane-img') // Add a class to indicate it's disabled
+                    .css({
+                        'opacity': '1',
+                        'filter': 'none',
+                        'pointer-events': 'auto'
+                    });
+    } else {
+        // Disable Right U-Turn image
+        rightUTurnImg.removeClass('drag-lane-img')
+        .addClass('disabled-lane-img') // Add a class to indicate it's disabled
+                    .css({
+                        'opacity': '0.5',
+                        'filter': 'grayscale(100%)',
+                        'pointer-events': 'none'
+                    });
+    }
+});
+
   $imgs = intersectionSidebar.find(".drag-intersection-img,.drag-lane-img");
   $imgs.draggable({
     appendTo: "body",
@@ -856,14 +899,14 @@ function initMISC() {
    * Note: the ul/li select boxes should one da become select boxes with options, but the styling was hard to replicate
    * at first.
    */
-  $("#approach_type .dropdown-menu li a").click(function () {
-    let selText = $(this).text();
-    approachType = selText;
-    $(this)
-      .parents(".btn-group")
-      .find(".dropdown-toggle")
-      .html(selText + ' <span class="caret"></span>');
-  });
+  // $("#approach_type .dropdown-menu li a").click(function () {
+  //   let selText = $(this).text();
+  //   approachType = selText;
+  //   $(this)
+  //     .parents(".btn-group")
+  //     .find(".dropdown-toggle")
+  //     .html(selText + ' <span class="caret"></span>');
+  // });
 
   $("#phase .dropdown-menu li a").click(function () {
     let selText = $(this).text();
@@ -898,6 +941,15 @@ function initMISC() {
   $("#approach_name .dropdown-menu li a").click(function () {
     let selText = $(this).text();
     approachID = selText;
+    $(this)
+      .parents(".btn-group")
+      .find(".dropdown-toggle")
+      .html(selText + ' <span class="caret"></span>');
+  });
+
+  $("#maneuver_control_type .dropdown-menu li a").click(function () {
+    let selText = $(this).text();
+    maneuverControlType = selText;
     $(this)
       .parents(".btn-group")
       .find(".dropdown-toggle")
@@ -951,8 +1003,36 @@ function initMISC() {
     rebuildConnections(nodeObject);
   });
 
+  $.get("js/approachRow.html", function (data) {
+    approachRowHtml = data;
+    rebuildApproaches(approachObject);
+  });
+
   $("#add_row").click(() => {
     addRow(null, null);
+  });
+
+  $("#add_approach_row").click(() => {
+    addApproachRow(null, null);
+  });
+
+  // Add this to your document ready or initialization function
+  $(document).on('click', '#tab_approaches .dropdown-menu a', function(e) {
+    e.preventDefault();
+    var selectedText = $(this).text();
+    var selectedValue = $(this).data('value') || selectedText.toLowerCase();
+    
+    // Update the button text
+    $(this).closest('.btn-group').find('.btn-select').html(selectedText + ' <span class="caret"></span>');
+    
+    console.log('Selected:', selectedText); // For debugging
+  });
+
+  $(document).on("click", "[id^=rowDeleteApproach]", function () {
+    let id = $(this)
+      .attr("id")
+      .replace(/^rowDeleteApproach/, "");
+    deleteApproachRow(id);
   });
 
   $(document).on("click", "[id^=rowDelete]", function () {
@@ -962,9 +1042,23 @@ function initMISC() {
     deleteRow(id);
   });
 
+  $(document).on('click change', 'input[name="rowSelection"]', function() {
+    updateDeleteButtonStates();
+  });
+
   resetRGAStatus();
   $("#rga_switch").on("click", () => {
     rgaEnabled = setRGAStatus();
+
+    //Disabled ""Passenger Vehicles Max Speed" oiption when it is selected even though RGA is enabled
+    if(rgaEnabled && isSpeedLimitTypePassengerVehicleMaxSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Max Speed']").prop('disabled', true);      
+    }
+
+    //Disabled ""Passenger Vehicles Min Speed" option when it is selected even though RGA is enabled
+    if(rgaEnabled && isSpeedLimitTypePassengerVehicleMinSpeedSelected()){
+      $("[id*=speedLimitType] option[value='Passenger Vehicles Min Speed']").prop('disabled', true);
+    }
   });
 
   $("#road_authority_id").on("keyup", () => {
@@ -994,12 +1088,17 @@ function initMISC() {
       $("[id*=speedLimitType]").change(() => {
         console.log("speedForm limit type change");
         resetSpeedDropdowns(speedForm);
+        updateSpeedTimeRestrictionsHTML();
       });
     },
   });
 
   $("#speedForm_add").click(function () {
     resetSpeedDropdowns(speedForm);
+    updateSpeedTimeRestrictionsHTML();
+    if(selectedMarker?.get("marker")?.name == "Reference Point Marker"){
+      hideRGAFieldsAssociatedToSpeedLimits();
+    }
   });
 
   $(".close.builder").click(() => {
@@ -1026,6 +1125,22 @@ function initMISC() {
     //Update time restrictions HTML after add HTML to the main page
     updateTimeRestrictionsHTML();        
   });
+
+  $.get("js/time-restrictions.html", function (data) {
+    updateSpeedTimeRestrictionsHTML();
+  });
+
+  $.get("js/time-restrictions.html", function (data) {
+    approachTimeRestrictions = data;
+    addApproachTimeRestrictions(approachTimeRestrictions);
+    updateApproachTimeRestrictionsHTML();
+  })
+
+  $.get("js/time-restrictions.html", function (data) {
+    connectionsTimeRestrictions = data;
+    addConnectionsTimeRestrictions(connectionsTimeRestrictions);
+    updateConnectionsTimeRestrictionsHTML();
+  })
 }
 
 function registerModalButtonEvents() {
@@ -1129,7 +1244,8 @@ function registerModalButtonEvents() {
       sharedWith_object = updateSharedWith();
       typeAttribute_object = updateTypeAttributes(typeAttributeName);
       nodeObject = saveConnections(selectedMarker);
-
+      approachObject = saveApproaches(selectedMarker);
+      
       sharedWith = [];
       for (let i = 0; i < sharedWith_object.length; i++) {
         sharedWith[i] = sharedWith_object[i];
@@ -1245,14 +1361,16 @@ function registerModalButtonEvents() {
       }
 
       if (selectedLayer.get("title") == "Stop Bar Layer") {
-        if (approachType != null) {
-          selectedMarker.set("approachType", approachType);
-          approachType = null;
+        if (approachObject != null) {
+          selectedMarker.set("approaches", approachObject);
         }
-
         if (approachID != null) {
           selectedMarker.set("approachID", approachID);
           approachID = null;
+        }
+        if (maneuverControlType != null) {
+          selectedMarker.set("maneuverControlType", maneuverControlType);
+          maneuverControlType = null;
         }
       }
 
@@ -1350,8 +1468,7 @@ function registerModalButtonEvents() {
       computingLane = false;
       computedLaneSource = null;
     }
-    approachID = null;
-    approachType = null;
+    rebuildApproaches([]);
   });
 
   $(".btnClone").click(() => {

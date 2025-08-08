@@ -34,6 +34,7 @@
 	<link href="external/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" rel="stylesheet">
 	<link rel="stylesheet" href="external/ol_v10.4.0/ol.css">
 	<link rel="stylesheet" href="external/ol-layerswitcher.css">
+	<link rel="stylesheet" href="css/verticalscroll.css">
 
 </head>
 
@@ -202,8 +203,67 @@
                         </ul>
                     </div>
                     <div class="panel-body">
+
+					<div class="row approach_name">
+					<div class="col-sm-4"><label for="approach_name">Approach ID:</label></div>
+					<div class="col-sm-7"><div id="approach_name" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach ID <span class="caret"></span></a>
+						<ul class="dropdown-menu scrollable-menu" role="menu">
+							<li><a href="#">01</a></li>
+							<li><a href="#">02</a></li>
+							<li><a href="#">03</a></li>
+							<li><a href="#">04</a></li>
+							<li><a href="#">05</a></li>
+							<li><a href="#">06</a></li>
+							<li><a href="#">07</a></li>
+							<li><a href="#">08</a></li>
+							<li><a href="#">09</a></li>
+							<li><a href="#">10</a></li>
+							<li><a href="#">11</a></li>
+							<li><a href="#">12</a></li>
+							<li><a href="#">13</a></li>
+							<li><a href="#">14</a></li>
+							<li><a href="#">15</a></li>
+						</ul>
+					</div></div>
+					<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_id"></i></div>
+					</div>
+
+					<div class="row maneuver_control_type">
+						<div class="col-sm-4"><label for="maneuver_control_type">Maneuver Control Type:</label></div>
+						<div class="col-sm-7"><div id="maneuver_control_type" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select Control Type <span class="caret"></span></a>
+						<ul class="dropdown-menu scrollable-menu" role="menu">
+							<li><a href="#">Signalized</a></li>
+							<li><a href="#">Unsignalized</a></li>
+							<li><a href="#">Uncontrolled</a></li>
+						</ul>
+					</div></div>
+					<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="maneuver_control_type"></i></div>
+					</div>
+
+					<div id="approach-table" class="panel-body approach-table">
+						<div class="row clearfix">
+							<div class="col-md-12 column">
+								<form id="approach_nodes">
+									<table class="table table-bordered table-hover" id="tab_approaches">
+										<thead>
+											<tr>
+												<th class="text-center">MAP Default</th>
+												<th class="text-center">Approach Type</th>
+												<th class="text-center">Time Restrictions</th>
+												<th class="text-center">
+													<a id="add_approach_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</form>
+							</div>
+						</div>
+					</div> 	
                     
-                     <div class="row approach_type">
+                     <!-- <div class="row approach_type">
                    		<div class="col-sm-4"><label for="approach_type">Approach Type:</label></div>
                         <div class="col-sm-7"><div id="approach_type" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach Type <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -214,7 +274,7 @@
                             </ul>
                         </div></div>
                         <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_type"></i></div>
-                     </div>
+                     </div> -->
                      
 					<div class="row descriptive_name" data-toggle="tooltip" title="Short Descriptive Name">
 					  <div class="col-sm-4"><label for="descriptive_name">Descriptive Name:</label></div>
@@ -356,29 +416,6 @@
                             <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_number"></i></div>
                          </div>
                             
-                            <div class="row approach_name">
-							  <div class="col-sm-4"><label for="approach_name">Approach ID:</label></div>
-							  <div class="col-sm-7"><div id="approach_name" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select an Approach ID <span class="caret"></span></a>
-                                <ul class="dropdown-menu scrollable-menu" role="menu">
-                                    <li><a href="#">01</a></li>
-                                    <li><a href="#">02</a></li>
-                                    <li><a href="#">03</a></li>
-                                    <li><a href="#">04</a></li>
-                                    <li><a href="#">05</a></li>
-                                    <li><a href="#">06</a></li>
-                                    <li><a href="#">07</a></li>
-                                    <li><a href="#">08</a></li>
-                                    <li><a href="#">09</a></li>
-                                    <li><a href="#">10</a></li>
-                                    <li><a href="#">11</a></li>
-                                    <li><a href="#">12</a></li>
-                                    <li><a href="#">13</a></li>
-                                    <li><a href="#">14</a></li>
-                                    <li><a href="#">15</a></li>
-                                </ul>
-                              </div></div>
-							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="approach_id"></i></div>
-							</div>
 							<div class="row intersection_name">
 							  <div class="col-sm-4"><label for="intersection_name">Intersection Name:</label></div>
 							  <div class="col-sm-7"><input type="text" class="form-control" id="intersection_name"></div>
@@ -686,6 +723,8 @@
 										<option value="Vehicles w/ Trailers Min Speed">Vehicles w/ Trailers Min Speed</option>
 										<option value="Vehicles w/ Trailers Max Speed">Vehicles w/ Trailers Max Speed</option>
 										<option value="Vehicles w/ Trailers Night Max Speed">Vehicles w/ Trailers Night Max Speed</option>
+										<option class="extra_rga_field_input" value="Passenger Vehicles Min Speed">Passenger Vehicles Min Speed</option>
+										<option class="extra_rga_field_input" value="Passenger Vehicles Max Speed">Passenger Vehicles Max Speed</option>
 									</select>
 								</div>
 								<div class="col-sm-1">
@@ -703,6 +742,133 @@
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="velocity"></i></div>
 							</div>
 
+							<div class="row speed_limit_choice">
+								<div class="col-sm-4"><label for="speedForm_#index#_speedLimitChoice">Speed Limit Choice:</label></div>
+								<div class="col-sm-7">
+									<div style="display: flex; gap: 20px;">
+										<div class="radio" style="margin: 0;">
+											<label style="margin: 0;">
+												<input type="radio" name="speedForm_#index#_speedLimitChoice" value="regulatory" checked>
+												Regulatory
+											</label>
+										</div>
+										<div class="radio" style="margin: 0;">
+											<label style="margin: 0;">
+												<input type="radio" name="speedForm_#index#_speedLimitChoice" class="extra_rga_field_input" value="advisory">
+												Advisory
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="speed_limit_choice"></i></div>
+							</div>
+										
+							<div class="row speed_limit_time_restrictions">
+								<div class="col-sm-12">
+									<div class="time_restrictions">
+										<div class="row day_selection" data-toggle="tooltip">
+											<div class="col-sm-4">
+												<label for="speedForm_#index#_day_selection">Day Selection:</label>
+											</div>
+											<div class="col-sm-7">
+												<select id="speedForm_#index#_day_selection" name="speedForm_#index#_day_selection" class="speed_day_selection_dropdown form-control" multiple="multiple">
+													<option value="0">All (0)</option>
+													<option value="1">Mon (1)</option>
+													<option value="2">Tue (2)</option>
+													<option value="3">Wed (3)</option>
+													<option value="4">Thu (4)</option>
+													<option value="5">Fri (5)</option>
+													<option value="6">Sat (6)</option>
+													<option value="7">Sun (7)</option>
+												</select>
+											</div>
+											<div class="col-sm-1">
+												<i class="fa fa-question-circle" aria-hidden="true" tag="day_selection"></i>
+											</div>
+										</div>
+										
+										<div class="row time_period" data-toggle="tooltip">
+											<div class="col-sm-4">
+												<label for="speedForm_#index#_time_period">Time Period:</label>
+											</div>
+											<div class="col-sm-7">
+												<div class="form-check form-check-inline">
+													<input class="speed-form-check-input time_period" type="radio" name="speedForm_#index#_time_period" id="speedForm_#index#_time_period_none" value="none">
+													<label for="speedForm_#index#_time_period_none">None</label>
+												</div>
+												<div class="form-check form-check-inline">
+													<input class="speed-form-check-input time_period" type="radio" name="speedForm_#index#_time_period" id="speedForm_#index#_time_period_range" value="range">
+													<label for="speedForm_#index#_time_period_range">Range</label>
+												</div>
+												<div class="form-check form-check-inline">
+													<input class="speed-form-check-input time_period" type="radio" name="speedForm_#index#_time_period" id="speedForm_#index#_time_period_general" value="general">
+													<label for="speedForm_#index#_time_period_general">General</label>
+												</div>  
+											</div>
+											<div class="col-sm-1"> 
+												<i class="fa fa-question-circle" aria-hidden="true" tag="time_period"></i>
+											</div>
+										</div>
+										
+										<div class="row time_period_additional_fields" data-toggle="tooltip">
+											<div class="col-sm-4"></div> 
+											<div class="col-sm-7"> 
+												<!-- Range Period Additional Fields -->
+												<div id="speedForm_#index#_range_fields" class="time_period_range_fields" style="display: none;">
+													<div class="row">
+														<div class="col-sm-12">      
+															<div class="row">
+																<div class="col-sm-12">
+																	<label for="speedForm_#index#_time_period_start_datetime">Start (UTC):</label>
+																</div>
+															</div>
+															<div class="row">
+																<div class="col-sm-8">
+																	<input type="text" id="speedForm_#index#_time_period_start_datetime" name="speedForm_#index#_time_period_start_datetime" class="form-control start_datetime_picker  speed_range" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
+																</div>
+																<div class="col-sm-4">
+																	<input type="number" id="speedForm_#index#_time_period_start_offset" name="speedForm_#index#_time_period_start_offset" class="form-control start_offset  speed_range" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-sm-12">      
+															<div class="row">
+																<div class="col-sm-12">
+																	<label for="speedForm_#index#_time_period_end_datetime">End (UTC):</label>
+																</div>
+															</div>
+															<div class="row">
+																<div class="col-sm-8">
+																	<input type="text" class="form-control end_datetime_picker speed_range" id="speedForm_#index#_time_period_end_datetime" name="speedForm_#index#_time_period_end_datetime" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
+																</div>
+																<div class="col-sm-4">
+																	<input type="number" class="form-control end_offset speed_range" id="speedForm_#index#_time_period_end_offset" name="speedForm_#index#_time_period_end_offset" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+							
+												<!-- General Period Additional Fields -->
+												<div id="speedForm_#index#_general_fields" class="time_period_general_fields" style="display: none;">
+													<div class="row">
+														<div class="col-sm-12">
+															<div class="form-check">
+																<input class="form-check-input speed_general" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_day" value="day" data-parsley-required="true" required>
+																<label for="speedForm_#index#_time_period_day">Day</label>
+																<input class="form-check-input speed_general" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_night" value="night">
+																<label for="speedForm_#index#_time_period_night">Night</label>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 
 						<div id="speedForm_noforms_template">No Speed Limit Restrictions</div>
@@ -719,8 +885,12 @@
 
                </div>
             </div>
+
             <div class="tab-pane" id="connection-tab">
             	<div class="panel-body">
+					<div class="row connection-text"> 
+						<div class="col-sm-12">Unsignalized connections default to protected unless otherwise indicated with yield or stop.</div>
+					</div>
             		<div class="row clearfix">
 				        <div class="col-md-12 column">
 				            <form id="nodes">
@@ -736,6 +906,7 @@
 				                            <th class="text-center">
 				                                "To" Lane Number
 				                            </th>
+											<th class="text-center">Time Restrictions</th>
 				                            <th class="text-center">
 				                                Signal Group ID
 				                            </th>
@@ -824,7 +995,7 @@
 					<div class="container-fluid">
 						<form class="form-horizontal">
 							<div class="form-group">
-								<label for="message_json" class="col-sm-2 control-label">Map Data</label>
+								<label for="message_json" class="col-sm-2 control-label">JSON Data</label>
 								<div class="col-sm-10">
 									<textarea class="form-control" rows="5" id="message_json" placeholder="Message to send" readonly></textarea>
 								</div>

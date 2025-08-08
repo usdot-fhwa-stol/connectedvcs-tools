@@ -19,92 +19,22 @@ package gov.usdot.cv.msg.builder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import gov.usdot.cv.msg.builder.exception.MessageBuildException;
-import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.Approach;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ContentDateTime;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneConnection;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.CrosswalkLane;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.GenerateType;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePoint;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.SpatData;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.State;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
-import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
-import gov.usdot.cv.msg.builder.message.IntersectionMessage;
-import gov.usdot.cv.msg.builder.util.BitStringHelper;
-import gov.usdot.cv.msg.builder.util.GeoPoint;
-import gov.usdot.cv.msg.builder.util.J2735Helper;
-import gov.usdot.cv.msg.builder.util.J2945Helper;
-import gov.usdot.cv.msg.builder.util.JSONMapper;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
-import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
-import gov.usdot.cv.rgaencoder.ApproachGeometryLayer;
-import gov.usdot.cv.rgaencoder.ApproachWayTypeIDSet;
-import gov.usdot.cv.rgaencoder.BaseLayer;
-import gov.usdot.cv.rgaencoder.BicycleLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
-import gov.usdot.cv.rgaencoder.CrosswalkLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.DDate;
-import gov.usdot.cv.rgaencoder.DDateTime;
-import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
-import gov.usdot.cv.rgaencoder.GeneralPeriod;
-import gov.usdot.cv.rgaencoder.GeometryContainer;
-import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvBikeLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvCrosswalkLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.IndvMtrVehLaneGeometryInfo;
-import gov.usdot.cv.rgaencoder.LaneConstructorType;
-import gov.usdot.cv.rgaencoder.MotorVehicleLaneGeometryLayer;
-import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
-import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
-import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
-import gov.usdot.cv.rgaencoder.RGAData;
-import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
-import gov.usdot.cv.rgaencoder.TimeWindowInformation;
-import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
-import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
-import gov.usdot.cv.rgaencoder.WayType;
-import gov.usdot.cv.rgaencoder.WayWidth;
 import gov.usdot.cv.mapencoder.AllowedManeuvers;
 import gov.usdot.cv.mapencoder.ComputedLane;
 import gov.usdot.cv.mapencoder.ConnectingLane;
 import gov.usdot.cv.mapencoder.Connection;
-import gov.usdot.cv.mapencoder.Encoder;
 import gov.usdot.cv.mapencoder.GenericLane;
-import gov.usdot.cv.mapencoder.MapData;
-import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
-import gov.usdot.cv.mapencoder.NodeListXY;
-import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
-import gov.usdot.cv.mapencoder.NodeSetXY;
-import gov.usdot.cv.mapencoder.NodeXY;
-import gov.usdot.cv.mapencoder.NodeXY20b;
-import gov.usdot.cv.mapencoder.NodeXY22b;
-import gov.usdot.cv.mapencoder.OffsetXaxis;
-import gov.usdot.cv.mapencoder.OffsetYaxis;
 import gov.usdot.cv.mapencoder.IntersectionGeometry;
 import gov.usdot.cv.mapencoder.IntersectionReferenceID;
 import gov.usdot.cv.mapencoder.LaneAttributes;
@@ -122,10 +52,99 @@ import gov.usdot.cv.mapencoder.LaneDirection;
 import gov.usdot.cv.mapencoder.LaneList;
 import gov.usdot.cv.mapencoder.LaneSharing;
 import gov.usdot.cv.mapencoder.LaneTypeAttributes;
+import gov.usdot.cv.mapencoder.MapData;
+import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
+import gov.usdot.cv.mapencoder.NodeListXY;
+import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
+import gov.usdot.cv.mapencoder.NodeSetXY;
+import gov.usdot.cv.mapencoder.NodeXY;
+import gov.usdot.cv.mapencoder.OffsetXaxis;
+import gov.usdot.cv.mapencoder.OffsetYaxis;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.mapencoder.RegulatorySpeedLimit;
 import gov.usdot.cv.mapencoder.SpeedLimitList;
 import gov.usdot.cv.mapencoder.SpeedLimitType;
+import gov.usdot.cv.msg.builder.exception.MessageBuildException;
+import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.Approach;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ApproachTypeRow;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ContentDateTime;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.CrosswalkLane;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.GenerateType;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ISDRegulatorySpeedLimit;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneConnection;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePoint;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimePeriodRange;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
+import gov.usdot.cv.msg.builder.message.IntersectionMessage;
+import gov.usdot.cv.msg.builder.util.BitStringHelper;
+import gov.usdot.cv.msg.builder.util.GeoPoint;
+import gov.usdot.cv.msg.builder.util.J2735Helper;
+import gov.usdot.cv.msg.builder.util.J2945Helper;
+import gov.usdot.cv.msg.builder.util.JSONMapper;
+import gov.usdot.cv.msg.builder.util.ObjectPrinter;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
+import gov.usdot.cv.rgaencoder.ApproachGeometryLayer;
+import gov.usdot.cv.rgaencoder.ApproachWayTypeIDSet;
+import gov.usdot.cv.rgaencoder.BaseLayer;
+import gov.usdot.cv.rgaencoder.BicycleLaneConnectionsLayer;
+import gov.usdot.cv.rgaencoder.BicycleLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.CnxnManeuverInfo;
+import gov.usdot.cv.rgaencoder.ComputedXYZNodeInfo;
+import gov.usdot.cv.rgaencoder.CrosswalkLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.DDate;
+import gov.usdot.cv.rgaencoder.DDateTime;
+import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
+import gov.usdot.cv.rgaencoder.GeneralPeriod;
+import gov.usdot.cv.rgaencoder.GeometryContainer;
+import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndividualSpeedLimitSettings;
+import gov.usdot.cv.rgaencoder.IndividualWayCnxnsManeuvers;
+import gov.usdot.cv.rgaencoder.IndividualWayConnections;
+import gov.usdot.cv.rgaencoder.IndividualWayDirectionsOfTravel;
+import gov.usdot.cv.rgaencoder.IndividualWaySpeedLimits;
+import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvBikeLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvCrosswalkLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndvMtrVehLaneGeometryInfo;
+import gov.usdot.cv.rgaencoder.LaneConnectionFromInfo;
+import gov.usdot.cv.rgaencoder.LaneConnectionToInfo;
+import gov.usdot.cv.rgaencoder.LaneConstructorType;
+import gov.usdot.cv.rgaencoder.LocationSpeedLimits;
+import gov.usdot.cv.rgaencoder.MotorVehicleLaneGeometryLayer;
+import gov.usdot.cv.rgaencoder.MovementsContainer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneConnectionsLayer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneConnectionsManeuversLayer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneDirectionOfTravelLayer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneSpeedLimitsLayer;
+import gov.usdot.cv.rgaencoder.NodeIndexOffset;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
+import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
+import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
+import gov.usdot.cv.rgaencoder.RGAData;
+import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
+import gov.usdot.cv.rgaencoder.SpeedLimitInfo;
+import gov.usdot.cv.rgaencoder.SpeedLimitTypeRGA;
+import gov.usdot.cv.rgaencoder.SpeedLimitVehicleType;
+import gov.usdot.cv.rgaencoder.TimeWindowInformation;
+import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
+import gov.usdot.cv.rgaencoder.UnsignalizedMovementStates;
+import gov.usdot.cv.rgaencoder.WayCnxnManeuverControlType;
+import gov.usdot.cv.rgaencoder.WayCnxnManeuverInfo;
+import gov.usdot.cv.rgaencoder.WayCnxnManeuvers;
+import gov.usdot.cv.rgaencoder.WayDirectionOfTravelInfo;
+import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
+import gov.usdot.cv.rgaencoder.WayToWayConnectionInfo;
+import gov.usdot.cv.rgaencoder.WayType;
+import gov.usdot.cv.rgaencoder.WayUseContainer;
+import gov.usdot.cv.rgaencoder.WayWidth;
 
 @Path("/messages/intersection")
 public class IntersectionSituationDataBuilder {
@@ -269,10 +288,25 @@ public class IntersectionSituationDataBuilder {
 	private RGAData buildRGAData(IntersectionInputData isdInputData) {
 		RGAData rgaData = new RGAData();
 		rgaData.setBaseLayer(buildBaseLayer(isdInputData));
+		
+		// Build and set Geometry Containers
 		List<GeometryContainer> geometryContainers = buildGeometryContainers(isdInputData);
 		if (geometryContainers.size() > 0) {
 			rgaData.setGeometryContainers(geometryContainers);
 		}
+
+		// Build and set Movements Containers
+		List<MovementsContainer> movementsContainers = buildMovementsContainers(isdInputData);
+		if (movementsContainers.size() > 0) {
+			rgaData.setMovementsContainers(movementsContainers);
+		}
+
+		// Build and set WayUse Containers
+		List<WayUseContainer> wayUseContainers = buildWayUseContainers(isdInputData);
+		if (wayUseContainers.size() > 0) {
+			rgaData.setWayUseContainers(wayUseContainers);
+		}
+
 		return rgaData;
 	}
 
@@ -335,6 +369,471 @@ public class IntersectionSituationDataBuilder {
 		baseLayer.setContentDateTime(dDateTime);
 
 		return baseLayer;
+	}
+
+	/**
+	 * This function builds and returns list of wayUse containers for RGA Data
+	 * @param isdInputData
+	 * @return wayUseContainers
+	 */
+	public List<WayUseContainer> buildWayUseContainers(IntersectionInputData isdInputData) {
+		List<WayUseContainer> wayUseContainers = new ArrayList<>();
+		// Checking if approaches are null
+		if (isdInputData.mapData.intersectionGeometry.laneList == null
+				|| isdInputData.mapData.intersectionGeometry.laneList.approach == null) {
+			return wayUseContainers;
+		}
+
+		Approach[] approaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
+		WayUseContainer mtrVehLaneSpeedLimits = new WayUseContainer();
+		MtrVehLaneSpeedLimitsLayer mtrVehLaneSpeedLimitsLayer = new MtrVehLaneSpeedLimitsLayer();
+
+		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
+			Approach approach = approaches[approachIndex];
+			// Excluding crosswalk lanes as currently crosswalks do not have an approach id and it is default to -1
+			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID) {
+				// Loop through the driving lanes
+				for (int drivingLaneIndex = 0; drivingLaneIndex < approach.drivingLanes.length; drivingLaneIndex++) {
+					DrivingLane drivingLane = approach.drivingLanes[drivingLaneIndex];
+					IndividualWaySpeedLimits individualWaySpeedLimits = new IndividualWaySpeedLimits();
+					individualWaySpeedLimits.setWayID(Integer.valueOf(drivingLane.laneID));
+					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
+						LaneNode[] laneNodes = drivingLane.laneNodes;
+						if (laneNodes != null && laneNodes.length > 0) {
+							for (int nodeIndex = 0; nodeIndex < 1; nodeIndex++) {
+								LaneNode laneNode = laneNodes[nodeIndex];
+								LocationSpeedLimits locationSpeedLimits = new LocationSpeedLimits();
+								NodeIndexOffset location = new NodeIndexOffset();
+								SpeedLimitInfo speedLimitInfo = new SpeedLimitInfo();
+
+								int speedLimitListLength = laneNode.speedLimitType.length;
+								for (int speedIndex = 0; speedIndex < speedLimitListLength; speedIndex++) {
+									ISDRegulatorySpeedLimit currentRegulatorySpeedLimit = laneNode.speedLimitType[speedIndex];
+									String currentSpeedLimitString = laneNode.speedLimitType[speedIndex].speedLimitType;
+
+									if (currentSpeedLimitString != null) {
+										if (currentRegulatorySpeedLimit == null
+												|| currentRegulatorySpeedLimit.speedLimitType == null) {
+											continue; // skip nulls
+										}
+	
+										switch (currentSpeedLimitString) {
+											case "Max Speed in School Zone":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Max Speed in School Zone w/ Children":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Max Speed in Construction Zone":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Night Max Speed":
+												currentRegulatorySpeedLimit.timeRestrictions = setNightTimeRestrictions(currentRegulatorySpeedLimit.timeRestrictions);
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Truck Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Truck Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Truck Night Max Speed":
+												currentRegulatorySpeedLimit.timeRestrictions = setNightTimeRestrictions(currentRegulatorySpeedLimit.timeRestrictions);
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Passenger Vehicles Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.PASSENGER_VEHICLES));
+												break;
+											case "Passenger Vehicles Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.PASSENGER_VEHICLES));
+												break;
+											default:
+												logger.warn("Unexpected speed limit type: " + currentSpeedLimitString);
+												break;
+										}
+									}
+								}
+								
+								if (speedLimitInfo.getMaxSpeedLimitSettingsSet().size() > 0
+										|| speedLimitInfo.getMinSpeedLimitSettingsSet().size() > 0) {
+									// Note: The value of 1 is the index for the first node in the set of nodes that
+									// are being indexed. The value of 0 is for unknown/unavailable or when a node
+									// index may not apply if allowed by the application requirements.
+									location.setNodeIndex(nodeIndex + 1);
+									locationSpeedLimits.setLocation(location);
+									locationSpeedLimits.setSpeedLimitInfo(speedLimitInfo);
+									individualWaySpeedLimits.addLocationSpeedLimits(locationSpeedLimits);
+								}
+							}
+
+							if (!individualWaySpeedLimits.getLocationSpeedLimitSet().isEmpty()) {
+								mtrVehLaneSpeedLimitsLayer.addIndividualWaySpeedLimits(individualWaySpeedLimits);
+	
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!mtrVehLaneSpeedLimitsLayer.getLaneSpeedLimitLaneSet().isEmpty()) {
+			mtrVehLaneSpeedLimits.setWaUseContainerId(WayUseContainer.MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID);
+			mtrVehLaneSpeedLimits.setMtrVehLaneSpeedLimitsLayer(mtrVehLaneSpeedLimitsLayer);
+			wayUseContainers.add(mtrVehLaneSpeedLimits);
+		}
+
+		return wayUseContainers;
+	}
+
+	public TimeRestrictions setNightTimeRestrictions(TimeRestrictions timeRestrictions) {
+		if (timeRestrictions == null) {
+			timeRestrictions = new TimeRestrictions();
+		}
+
+		boolean isDaysEmpty = (timeRestrictions.daysOfTheWeek == null || timeRestrictions.daysOfTheWeek.length == 0);
+		boolean isTimePeriodTypeEmpty = (timeRestrictions.timePeriodType == null
+				|| timeRestrictions.timePeriodType.isEmpty());
+		boolean isTimePeriodValueEmpty = (timeRestrictions.timePeriodValue == null
+				|| timeRestrictions.timePeriodValue.isEmpty());
+		boolean isRangeEmpty = (timeRestrictions.timePeriodRange == null
+				|| (timeRestrictions.timePeriodRange.startDatetime == null
+						&& timeRestrictions.timePeriodRange.endDatetime == null
+						&& timeRestrictions.timePeriodRange.startOffset == 0
+						&& timeRestrictions.timePeriodRange.endOffset == 0));
+
+		if (isDaysEmpty && isTimePeriodTypeEmpty && isTimePeriodValueEmpty && isRangeEmpty) {
+			timeRestrictions.daysOfTheWeek = new int[] { DaysOfTheWeek.ALLDAYS }; // All Days
+			timeRestrictions.timePeriodType = "general";
+			timeRestrictions.timePeriodValue = "night";
+			timeRestrictions.timePeriodRange = new TimePeriodRange();
+		}
+		
+		return timeRestrictions;
+	}
+
+	public IndividualSpeedLimitSettings buildIndividualSpeedLimitSettings(ISDRegulatorySpeedLimit currentISDRegulatorySpeedLimit, int vehicleType) {
+		short currentVelocity = currentISDRegulatorySpeedLimit.getVelocity();
+		String currentSpeedLimitChoice = currentISDRegulatorySpeedLimit.speedLimitChoice;
+
+		IndividualSpeedLimitSettings indSpeedLimitSettingsSet = new IndividualSpeedLimitSettings();
+
+		indSpeedLimitSettingsSet.setSpeedLimit(currentVelocity);
+		indSpeedLimitSettingsSet.setSpeedLimitType(buiSpeedLimitTypeRGA(currentSpeedLimitChoice));
+		indSpeedLimitSettingsSet.setVehicleTypes(buildSpeedLimitVehicleType(vehicleType));
+		indSpeedLimitSettingsSet.setTimeRestrictions(buildLaneTimeRestriction(currentISDRegulatorySpeedLimit.timeRestrictions));
+		return indSpeedLimitSettingsSet;
+	}
+
+	public SpeedLimitTypeRGA buiSpeedLimitTypeRGA(String currentSpeedLimitChoice) {
+		SpeedLimitTypeRGA speedLimitTypeRGA = new SpeedLimitTypeRGA();
+		if (currentSpeedLimitChoice != null) {
+			if ((currentSpeedLimitChoice.toLowerCase()).equals("regulatory")) {
+				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.REGULATORY);
+			} else if ((currentSpeedLimitChoice.toLowerCase()).equals("advisory")) {
+				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.ADVISORY);
+			}
+		}
+		return speedLimitTypeRGA;
+	}
+
+	public SpeedLimitVehicleType buildSpeedLimitVehicleType(int vehicleType) {
+		SpeedLimitVehicleType vehicleTypes = new SpeedLimitVehicleType();
+		int[] speedVehicleTypes = { vehicleType };
+		int allVehiclesBitString = BitStringHelper.getBitString(SMALL_BIT_STRING,
+				SMALL_BIT_STRING_LENGTH, speedVehicleTypes);
+		vehicleTypes.setSpeedLimitVehicleTypeValue((short) allVehiclesBitString);
+		return vehicleTypes;
+	}
+
+	/**
+	 * This function builds and returns list of movements containers for RGA Data
+	 * @param isdInputData
+	 * @return movementsContainers
+	 */
+	public List<MovementsContainer> buildMovementsContainers(IntersectionInputData isdInputData) {
+		List<MovementsContainer> movementsContainers = new ArrayList<>();
+		// Checking if approaches are null
+		if (isdInputData.mapData.intersectionGeometry.laneList == null
+				|| isdInputData.mapData.intersectionGeometry.laneList.approach == null) {
+			return movementsContainers;
+		}
+
+		Approach[] approaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
+		MovementsContainer mtrVehDirectionOfTravel = new MovementsContainer();
+		MtrVehLaneDirectionOfTravelLayer mtrVehLaneDirectionOfTravelLayer = new MtrVehLaneDirectionOfTravelLayer();
+
+		MovementsContainer mtrVehLaneConnections = new MovementsContainer();
+		MtrVehLaneConnectionsLayer mtrVehLnCnxnsLayer = new MtrVehLaneConnectionsLayer();
+
+		MovementsContainer bicycleLaneConnections = new MovementsContainer();
+		BicycleLaneConnectionsLayer bikeLnCnxnsLayer = new BicycleLaneConnectionsLayer();
+
+		MovementsContainer mtrVehLaneCnxnManeuvers = new MovementsContainer();
+		MtrVehLaneConnectionsManeuversLayer mtrVehLaneConnectionsManeuversLayer = new MtrVehLaneConnectionsManeuversLayer();
+
+		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
+			Approach approach = approaches[approachIndex];
+			List<WayDirectionOfTravelInfo> wayDirectionOfTravelInfoList = new ArrayList<>();
+
+			// Excluding crosswalk lanes as currently crosswalks do not have an approach id and it is default to -1
+			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID) {
+				for(int approachTypeIndex = 0; approachTypeIndex < approach.approachTypes.length; approachTypeIndex++) {
+					WayDirectionOfTravelInfo wayDirectionOfTravelInfo = new WayDirectionOfTravelInfo();
+					ApproachTypeRow currentApproachTypeRow =  approach.approachTypes[approachTypeIndex];
+
+					switch (currentApproachTypeRow.approachType.toLowerCase()) {
+						case "ingress":
+							int[] ingressDirection = { WayDirectionOfTravelInfo.LAST_TO_FIRST_NODE };
+							int ingressBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, ingressDirection);
+							wayDirectionOfTravelInfo.setWayNodeDirectionOfTravel((short) ingressBitString);
+							break;
+						case "egress":
+							int[] egressDirection = { WayDirectionOfTravelInfo.FIRST_TO_LAST_NODE };
+							int egressBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, egressDirection);
+							wayDirectionOfTravelInfo.setWayNodeDirectionOfTravel((short) egressBitString);
+							break;
+						case "both":
+							int[] bothDirection = { WayDirectionOfTravelInfo.FIRST_TO_LAST_NODE, WayDirectionOfTravelInfo.LAST_TO_FIRST_NODE };
+							int bothBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, bothDirection);
+							wayDirectionOfTravelInfo.setWayNodeDirectionOfTravel((short) bothBitString);
+							break;
+						default:
+							break;
+					}
+
+					wayDirectionOfTravelInfo.setTimeRestrictions(buildLaneTimeRestriction(currentApproachTypeRow.timeRestrictions));
+					// Add to wayDirectionOfTravelInfoList
+					wayDirectionOfTravelInfoList.add(wayDirectionOfTravelInfo);
+				}
+
+				// Loop through the driving lanes
+				for (int drivingLaneIndex = 0; drivingLaneIndex < approach.drivingLanes.length; drivingLaneIndex++) {
+					IndividualWayDirectionsOfTravel individualWayDirectionsOfTravel = new IndividualWayDirectionsOfTravel();
+					DrivingLane drivingLane = approach.drivingLanes[drivingLaneIndex];
+
+					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
+						individualWayDirectionsOfTravel.setWayID(Integer.valueOf(drivingLane.laneID));
+						individualWayDirectionsOfTravel.setDirectionsOfTravelSet(wayDirectionOfTravelInfoList);
+
+						// Currently Movements Container supports only MtrVehLaneDirectionOfTravelLayer
+						mtrVehLaneDirectionOfTravelLayer.addIndividualWayDirectionsOfTravel(individualWayDirectionsOfTravel);
+
+						if (drivingLane.connections != null && drivingLane.connections.length > 0) {
+							IndividualWayConnections individualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
+							List<WayToWayConnectionInfo> currentWayToWayConnectionInfoList = individualWayConnections.getConnectionsSet();
+							if (currentWayToWayConnectionInfoList != null && !currentWayToWayConnectionInfoList.isEmpty()) {
+								mtrVehLnCnxnsLayer.addIndividualWayConnections(individualWayConnections);
+							}
+
+							String currentManeuverControlType = "Signalized";
+							if(approach.maneuverControlType != null) {
+								currentManeuverControlType = approach.maneuverControlType;
+							}
+
+							IndividualWayCnxnsManeuvers individualWayCnxnsManeuvers = buildIndividualWayCnxnsManeuvers(drivingLane.laneID, drivingLane.connections, currentManeuverControlType);
+							List<WayCnxnManeuverInfo> cnxnManeuversSet = individualWayCnxnsManeuvers.getCnxnManeuversSet();
+							if (cnxnManeuversSet != null && !cnxnManeuversSet.isEmpty()) {
+								mtrVehLaneConnectionsManeuversLayer.addMtrVehLaneConnectionsManeuversLayer(individualWayCnxnsManeuvers);
+							}
+							
+						}
+					}
+
+					if ((drivingLane.laneType.toLowerCase()).equals("bike")) {
+						if (drivingLane.connections != null && drivingLane.connections.length > 0) {
+							IndividualWayConnections bikeIndividualWayConnections = buildIndividualWayConnections(drivingLane.laneID, drivingLane.connections, isdInputData);
+							List<WayToWayConnectionInfo> currentBikeWayToWayConnectionInfoList = bikeIndividualWayConnections.getConnectionsSet();
+							if (currentBikeWayToWayConnectionInfoList != null && !currentBikeWayToWayConnectionInfoList.isEmpty()) {
+								bikeLnCnxnsLayer.addIndividualWayConnections(bikeIndividualWayConnections);
+							}	
+						}
+					}
+				}
+			}
+		}
+
+		if (!mtrVehLaneDirectionOfTravelLayer.getLaneDirOfTravelLaneSet().isEmpty()) {
+			mtrVehDirectionOfTravel.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_DIRECTION_OF_TRAVEL_LAYER_ID);
+			mtrVehDirectionOfTravel.setMtrVehLaneDirectionOfTravelLayer(mtrVehLaneDirectionOfTravelLayer);
+			movementsContainers.add(mtrVehDirectionOfTravel);
+		}
+	
+		if (!mtrVehLnCnxnsLayer.getMtrVehLaneCnxnsLaneSet().isEmpty()) {
+			mtrVehLaneConnections.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_LAYER_ID);
+			mtrVehLaneConnections.setMtrVehLnCnxnsLayer(mtrVehLnCnxnsLayer);
+			movementsContainers.add(mtrVehLaneConnections);
+		}
+
+		if (!mtrVehLaneConnectionsManeuversLayer.getMtrVehLaneConnectionsManeuversLayer().isEmpty()) {
+			mtrVehLaneCnxnManeuvers.setMovementsContainerId(MovementsContainer.MTR_VEH_LANE_CONNECTIONS_MANEUVERS_LAYER_ID);
+			mtrVehLaneCnxnManeuvers.setMtrVehLnCnxnxMnvrLayer(mtrVehLaneConnectionsManeuversLayer);
+			movementsContainers.add(mtrVehLaneCnxnManeuvers);
+		}
+
+		if (!bikeLnCnxnsLayer.getBicycleLaneCnxnsLaneSet().isEmpty()) {
+			bicycleLaneConnections.setMovementsContainerId(MovementsContainer.BIKE_LANE_CONNECTIONS_LAYER_ID);
+			bicycleLaneConnections.setBikeLnCnxnsLayer(bikeLnCnxnsLayer);
+			movementsContainers.add(bicycleLaneConnections);
+		}
+
+		return movementsContainers;
+	}
+
+	public IndividualWayCnxnsManeuvers buildIndividualWayCnxnsManeuvers(String laneId, LaneConnection[] laneConnections,
+			String maneuverControlType) {
+		IndividualWayCnxnsManeuvers individualWayCnxnsManeuvers = new IndividualWayCnxnsManeuvers();
+		individualWayCnxnsManeuvers.setWayID(Integer.valueOf(laneId));
+		for (int conIndex = 0; conIndex < laneConnections.length; conIndex++) {
+			WayCnxnManeuverInfo wayCnxnManeuverInfo = new WayCnxnManeuverInfo();
+			LaneConnection currentLaneConnection = laneConnections[conIndex];
+
+			if (currentLaneConnection.connectionId > 0) {
+				wayCnxnManeuverInfo.setConnectionID(currentLaneConnection.connectionId);
+
+				if (currentLaneConnection.maneuvers.length > 0) {
+					for (int mIndex = 0; mIndex < currentLaneConnection.maneuvers.length; mIndex++) {
+						int currentManeuver = currentLaneConnection.maneuvers[mIndex];
+
+						if (currentManeuver != 6 && currentManeuver != 7 && currentManeuver != 8 && currentManeuver != 9 && currentManeuver != 10) {
+							CnxnManeuverInfo cnxnManeuverInfo = new CnxnManeuverInfo();
+							WayCnxnManeuvers wayCnxnManeuvers = buildWayCnxnManeuvers(currentManeuver, maneuverControlType);
+							cnxnManeuverInfo.setAllowedManeuver(wayCnxnManeuvers);
+							WayCnxnManeuverControlType wayCnxnManeuverControlType = new WayCnxnManeuverControlType();
+
+							switch (maneuverControlType) {
+								case "Signalized":
+									wayCnxnManeuverControlType.setChoice(WayCnxnManeuverControlType.SIGNALIZED_CONTROL);
+									break;
+								case "Unsignalized":
+									UnsignalizedMovementStates unsignalizedMovementStates = new UnsignalizedMovementStates();
+									wayCnxnManeuverControlType.setChoice(WayCnxnManeuverControlType.UNSIGNALIZED_CONTROL);
+									unsignalizedMovementStates.setUnsignalizedMovementStatesValue(UnsignalizedMovementStates.PROTECTED_MOVEMENT_ALLOWED);
+									for (int unsignalizedManeuver : currentLaneConnection.maneuvers) {
+										if ((unsignalizedManeuver == 8) || (unsignalizedManeuver == 10)) {
+											unsignalizedMovementStates.setUnsignalizedMovementStatesValue(UnsignalizedMovementStates.PERMISSIVE_MOVEMENT_ALLOWED);
+											break;
+										} else if (unsignalizedManeuver == 9) {
+											unsignalizedMovementStates.setUnsignalizedMovementStatesValue(UnsignalizedMovementStates.STOP_THEN_PROCEED);
+											break;
+										}
+									}
+									wayCnxnManeuverControlType.setUnsignalizedMovementStates(unsignalizedMovementStates);
+									break;
+								case "Uncontrolled":
+									wayCnxnManeuverControlType.setChoice(WayCnxnManeuverControlType.UNCONTROLLED);
+									break;
+								default:
+									break;
+							}
+							cnxnManeuverInfo.setManeuverControlType(wayCnxnManeuverControlType);
+							wayCnxnManeuverInfo.addManeuverInfo(cnxnManeuverInfo);
+
+						}
+					}
+				}
+				individualWayCnxnsManeuvers.addWayCnxnManeuverInfo(wayCnxnManeuverInfo);
+			}
+		}
+		return individualWayCnxnsManeuvers;
+	}
+
+	public WayCnxnManeuvers buildWayCnxnManeuvers(int currentManeuver, String maneuverControlType) {
+		WayCnxnManeuvers wayCnxnManeuvers = new WayCnxnManeuvers();
+
+		if (currentManeuver == 0) {
+			wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.STRAIGHT);
+		} else if (currentManeuver == 1) {
+			wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.LEFT_TURN);
+		} else if (currentManeuver == 2) {
+			wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.RIGHT_TURN);
+		} else if (currentManeuver == 3) {
+			wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.LEFT_U_TURN);
+		} else if (currentManeuver == 12) {
+			wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.RIGHT_U_TURN);
+		}
+
+		if (maneuverControlType.equals("Signalized")) {
+			if (currentManeuver == 4) {
+				wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.LEFT_TURN);
+			} else if (currentManeuver == 5) {
+				wayCnxnManeuvers.setWayCnxnManeuvers(WayCnxnManeuvers.RIGHT_TURN);
+			}
+		} 
+		return wayCnxnManeuvers;
+	}
+
+	public IndividualWayConnections buildIndividualWayConnections(String laneId, LaneConnection[] laneConnections,
+			IntersectionInputData isdInputData) {
+		IndividualWayConnections individualWayConnections = new IndividualWayConnections();
+		individualWayConnections.setWayID(Integer.valueOf(laneId));
+
+		for (int conIndex = 0; conIndex < laneConnections.length; conIndex++) {
+			WayToWayConnectionInfo wayToWayConnectionInfo = new WayToWayConnectionInfo();
+			LaneConnectionFromInfo connectionFromInfo = new LaneConnectionFromInfo();
+			LaneConnectionToInfo connectionToInfo = new LaneConnectionToInfo();
+
+			LaneConnection currentLaneConnection = laneConnections[conIndex];
+
+			if (currentLaneConnection.toLane <= 0)
+				continue;
+
+			if (currentLaneConnection.connectionId > 0) {
+				wayToWayConnectionInfo.setLaneConnectionID(currentLaneConnection.connectionId);
+
+				// Setting connectionFromInfo
+				connectionFromInfo.setNodeFromPosition(LaneConnectionFromInfo.FIRST_NODE);
+				wayToWayConnectionInfo.setConnectionFromInfo(connectionFromInfo);
+
+				if (currentLaneConnection.toLane > 0) {
+					// Setting connectionToInfo
+					connectionToInfo.setWayID(currentLaneConnection.toLane);
+					connectionToInfo.setNodeToPosition(LaneConnectionToInfo.FIRST_NODE);
+					WayType remoteWayType = new WayType();
+
+					// This logic is used to find the remote lane id's vehicle type
+					Approach[] allApproaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
+					for (Approach approach : allApproaches) {
+						if (approach.drivingLanes != null) {
+							for (DrivingLane lane : approach.drivingLanes) {
+								if (lane.laneID != null && Integer.parseInt(lane.laneID) == currentLaneConnection.toLane
+										&& lane.laneType != null && !lane.laneType.trim().isEmpty()) {
+									String remoteVehicleType = lane.laneType;
+									if ((remoteVehicleType.toLowerCase()).equals("vehicle")) {
+										remoteWayType.setWayTypeValue(WayType.MOTOR_VEHICLE_LANE);
+										connectionToInfo.setWayType(remoteWayType);
+									} else if ((remoteVehicleType.toLowerCase()).equals("bike")) {
+										remoteWayType.setWayTypeValue(WayType.BICYCLE_LANE);
+										connectionToInfo.setWayType(remoteWayType);
+									}
+									break;
+								}
+							}
+						}
+					}
+
+					wayToWayConnectionInfo.setConnectionToInfo(connectionToInfo);
+
+					if (currentLaneConnection.timeRestrictions != null) {
+						wayToWayConnectionInfo
+								.setTimeRestrictions(buildLaneTimeRestriction(currentLaneConnection.timeRestrictions));
+					}
+				}
+			}
+
+			if (wayToWayConnectionInfo.getLaneConnectionID() > 0 &&
+					wayToWayConnectionInfo.getConnectionFromInfo() != null &&
+					wayToWayConnectionInfo.getConnectionToInfo() != null) {
+				individualWayConnections.addWayToWayConnectionInfo(wayToWayConnectionInfo);
+			}
+		}
+
+		return individualWayConnections;
 	}
 
 	/**
@@ -498,29 +997,29 @@ public class IntersectionSituationDataBuilder {
 		} 
 
 		if(timeRestrictions.timePeriodType != null && !timeRestrictions.timePeriodType.equals("none")) {
-			if(timeRestrictions.timePeriodType.equals("general") && timeRestrictions.laneInfoTimePeriodValue != null) {
+			if(timeRestrictions.timePeriodType.equals("general") && timeRestrictions.timePeriodValue != null) {
 				GeneralPeriod generalPeriod = new GeneralPeriod();
-				if(timeRestrictions.laneInfoTimePeriodValue.equals("day")) {
+				if(timeRestrictions.timePeriodValue.equals("day")) {
 					generalPeriod.setGeneralPeriodValue(GeneralPeriod.DAY);
 				}
 
-				if(timeRestrictions.laneInfoTimePeriodValue.equals("night")) {
+				if(timeRestrictions.timePeriodValue.equals("night")) {
 					generalPeriod.setGeneralPeriodValue(GeneralPeriod.NIGHT);
 				}
 
 				timeWindowInformation.setGeneralPeriod(generalPeriod);
 			} 
 
-			if(timeRestrictions.timePeriodType.equals("range") && timeRestrictions.laneInfoTimePeriodRange != null ) {
-				if(timeRestrictions.laneInfoTimePeriodRange.startDatetime != null && !(timeRestrictions.laneInfoTimePeriodRange.startDatetime).isEmpty()) {
-					String startDDateTimeString = timeRestrictions.laneInfoTimePeriodRange.startDatetime;
-					DDateTime startDDateTime = buildDDateTime(startDDateTimeString, timeRestrictions.laneInfoTimePeriodRange.startOffset);
+			if(timeRestrictions.timePeriodType.equals("range") && timeRestrictions.timePeriodRange != null ) {
+				if(timeRestrictions.timePeriodRange.startDatetime != null && !(timeRestrictions.timePeriodRange.startDatetime).isEmpty()) {
+					String startDDateTimeString = timeRestrictions.timePeriodRange.startDatetime;
+					DDateTime startDDateTime = buildDDateTime(startDDateTimeString, timeRestrictions.timePeriodRange.startOffset);
 					timeWindowInformation.setStartPeriod(startDDateTime);
 				}
 
-				if(timeRestrictions.laneInfoTimePeriodRange.endDatetime != null && !(timeRestrictions.laneInfoTimePeriodRange.endDatetime).isEmpty()) {
-					String endDDateTimeString = timeRestrictions.laneInfoTimePeriodRange.endDatetime;
-					DDateTime endDDateTime = buildDDateTime(endDDateTimeString, timeRestrictions.laneInfoTimePeriodRange.endOffset);
+				if(timeRestrictions.timePeriodRange.endDatetime != null && !(timeRestrictions.timePeriodRange.endDatetime).isEmpty()) {
+					String endDDateTimeString = timeRestrictions.timePeriodRange.endDatetime;
+					DDateTime endDDateTime = buildDDateTime(endDDateTimeString, timeRestrictions.timePeriodRange.endOffset);
 					timeWindowInformation.setEndPeriod(endDDateTime);
 				}
 			}		
@@ -1294,7 +1793,7 @@ public class IntersectionSituationDataBuilder {
 			case Compact:
 				int longestApproachOffsetInCm = 0;
 				for (Approach approach : approaches) {
-					if (approach.approachType.equalsIgnoreCase(CrosswalkLane.CROSSWALK_APPROACH_TYPE)) {
+					if (approach.approachType != null && approach.approachType.equalsIgnoreCase(CrosswalkLane.CROSSWALK_APPROACH_TYPE)) {
 						for (CrosswalkLane crosswalkLane : approach.crosswalkLanes) {
 							int longestLaneOffsetInCm = Math
 									.abs(getLongestOffsetDistanceInCm(referencePoint, crosswalkLane.laneNodes));
