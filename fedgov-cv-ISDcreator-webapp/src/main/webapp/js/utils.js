@@ -875,10 +875,11 @@ function changeRow(oldVal, newVal, readOnly, valueSets) {
                           if (lane_attributes[j].id.toString() === valueSets[set][k]){
                               addLaneManeuversToContainer($('#attr_droppable' + newVal),
                                   '<img id="lane_img_'+ newVal +'_' + lane_attributes[j].id + '" class="dragged-img" src="'+ lane_attributes[j].img_src +'">');
-                                $('#attr_droppable' + newVal).find('img').each(function() {
-                                    makeDraggable( $(this) )
-                                });
-                                }
+                              $('#attr_droppable' + newVal).find('img').each(function() {
+                                  makeDraggable( $(this) )
+                              });
+                          }
+
                       }
                   }
               } else if (set === 'connectionId'){
