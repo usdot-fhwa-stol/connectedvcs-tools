@@ -34,6 +34,7 @@
 	<link href="external/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" rel="stylesheet">
 	<link rel="stylesheet" href="external/ol_v10.4.0/ol.css">
 	<link rel="stylesheet" href="external/ol-layerswitcher.css">
+	<link rel="stylesheet" href="css/verticalscroll.css">
 
 </head>
 
@@ -121,7 +122,7 @@
 							<li><a href="#instructions_modal" data-toggle="modal" data-target="#instructions_modal">MAP Instructions</a></li>
 							<li class="divider"></li>
 							<li><a href="#" onclick="alert('To request support or report problems please email\nthe CAV Support Services at: CAVSupportServices@dot.gov.');">Support</a></li>
-							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('MAP Builder Tool for J2735 9/2024 (UPER encoding) and RGA Builder Tool for J2945/A 10/2024 (UPER encoding)\n\n\t  Version 2.2.1, Released on 5/16/2025');">About</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('MAP Builder Tool for J2735 9/2024 (UPER encoding) and RGA Builder Tool for J2945/A 10/2024 (UPER encoding)\n\n\t  Version 2.2.2, Released on 8/08/2025');">About</a></li>
 						</ul>
 					</li>
                 </ul>
@@ -823,10 +824,10 @@
 															</div>
 															<div class="row">
 																<div class="col-sm-8">
-																	<input type="text" id="speedForm_#index#_time_period_start_datetime" name="speedForm_#index#_time_period_start_datetime" class="form-control start_datetime_picker" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
+																	<input type="text" id="speedForm_#index#_time_period_start_datetime" name="speedForm_#index#_time_period_start_datetime" class="form-control start_datetime_picker  speed_range" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
 																</div>
 																<div class="col-sm-4">
-																	<input type="number" id="speedForm_#index#_time_period_start_offset" name="speedForm_#index#_time_period_start_offset" class="form-control start_offset" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
+																	<input type="number" id="speedForm_#index#_time_period_start_offset" name="speedForm_#index#_time_period_start_offset" class="form-control start_offset  speed_range" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
 																</div>
 															</div>
 														</div>
@@ -840,10 +841,10 @@
 															</div>
 															<div class="row">
 																<div class="col-sm-8">
-																	<input type="text" class="form-control end_datetime_picker" id="speedForm_#index#_time_period_end_datetime" name="speedForm_#index#_time_period_end_datetime" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
+																	<input type="text" class="form-control end_datetime_picker speed_range" id="speedForm_#index#_time_period_end_datetime" name="speedForm_#index#_time_period_end_datetime" title="Year, month, day, hour, minute and second" placeholder="yyyy-mm-d hh:mm:ss" data-parsley-required="true">
 																</div>
 																<div class="col-sm-4">
-																	<input type="number" class="form-control end_offset" id="speedForm_#index#_time_period_end_offset" name="speedForm_#index#_time_period_end_offset" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
+																	<input type="number" class="form-control end_offset speed_range" id="speedForm_#index#_time_period_end_offset" name="speedForm_#index#_time_period_end_offset" min="-840" max="840" title="Offset in minute" placeholder="Offset" data-parsley-required="true">
 																</div>
 															</div>
 														</div>
@@ -855,9 +856,9 @@
 													<div class="row">
 														<div class="col-sm-12">
 															<div class="form-check">
-																<input class="form-check-input" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_day" value="day" data-parsley-required="true" required>
+																<input class="form-check-input speed_general" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_day" value="day" data-parsley-required="true" required>
 																<label for="speedForm_#index#_time_period_day">Day</label>
-																<input class="form-check-input" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_night" value="night">
+																<input class="form-check-input speed_general" type="radio" name="speedForm_#index#_time_period_general" id="speedForm_#index#_time_period_night" value="night">
 																<label for="speedForm_#index#_time_period_night">Night</label>
 															</div>
 														</div>
@@ -1766,3 +1767,4 @@
 
 </body>
 </html>
+

@@ -73,11 +73,13 @@ import gov.usdot.cv.msg.builder.input.IntersectionInputData.ContentDateTime;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.CrosswalkLane;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.GenerateType;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ISDRegulatorySpeedLimit;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneConnection;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePoint;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.ReferencePointChild;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeOfCalculation;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimePeriodRange;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
 import gov.usdot.cv.msg.builder.message.IntersectionMessage;
 import gov.usdot.cv.msg.builder.util.BitStringHelper;
@@ -103,9 +105,11 @@ import gov.usdot.cv.rgaencoder.DaysOfTheWeek;
 import gov.usdot.cv.rgaencoder.GeneralPeriod;
 import gov.usdot.cv.rgaencoder.GeometryContainer;
 import gov.usdot.cv.rgaencoder.IndividualApproachGeometryInfo;
+import gov.usdot.cv.rgaencoder.IndividualSpeedLimitSettings;
 import gov.usdot.cv.rgaencoder.IndividualWayCnxnsManeuvers;
 import gov.usdot.cv.rgaencoder.IndividualWayConnections;
 import gov.usdot.cv.rgaencoder.IndividualWayDirectionsOfTravel;
+import gov.usdot.cv.rgaencoder.IndividualWaySpeedLimits;
 import gov.usdot.cv.rgaencoder.IndividualXYZNodeGeometryInfo;
 import gov.usdot.cv.rgaencoder.IndvBikeLaneGeometryInfo;
 import gov.usdot.cv.rgaencoder.IndvCrosswalkLaneGeometryInfo;
@@ -113,16 +117,22 @@ import gov.usdot.cv.rgaencoder.IndvMtrVehLaneGeometryInfo;
 import gov.usdot.cv.rgaencoder.LaneConnectionFromInfo;
 import gov.usdot.cv.rgaencoder.LaneConnectionToInfo;
 import gov.usdot.cv.rgaencoder.LaneConstructorType;
+import gov.usdot.cv.rgaencoder.LocationSpeedLimits;
 import gov.usdot.cv.rgaencoder.MotorVehicleLaneGeometryLayer;
 import gov.usdot.cv.rgaencoder.MovementsContainer;
 import gov.usdot.cv.rgaencoder.MtrVehLaneConnectionsLayer;
 import gov.usdot.cv.rgaencoder.MtrVehLaneConnectionsManeuversLayer;
 import gov.usdot.cv.rgaencoder.MtrVehLaneDirectionOfTravelLayer;
+import gov.usdot.cv.rgaencoder.MtrVehLaneSpeedLimitsLayer;
+import gov.usdot.cv.rgaencoder.NodeIndexOffset;
 import gov.usdot.cv.rgaencoder.NodeXYZOffsetInfo;
 import gov.usdot.cv.rgaencoder.NodeXYZOffsetValue;
 import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
 import gov.usdot.cv.rgaencoder.RGAData;
 import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
+import gov.usdot.cv.rgaencoder.SpeedLimitInfo;
+import gov.usdot.cv.rgaencoder.SpeedLimitTypeRGA;
+import gov.usdot.cv.rgaencoder.SpeedLimitVehicleType;
 import gov.usdot.cv.rgaencoder.TimeWindowInformation;
 import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
 import gov.usdot.cv.rgaencoder.UnsignalizedMovementStates;
@@ -133,6 +143,7 @@ import gov.usdot.cv.rgaencoder.WayDirectionOfTravelInfo;
 import gov.usdot.cv.rgaencoder.WayPlanarGeometryInfo;
 import gov.usdot.cv.rgaencoder.WayToWayConnectionInfo;
 import gov.usdot.cv.rgaencoder.WayType;
+import gov.usdot.cv.rgaencoder.WayUseContainer;
 import gov.usdot.cv.rgaencoder.WayWidth;
 
 @Path("/messages/intersection")
@@ -290,6 +301,12 @@ public class IntersectionSituationDataBuilder {
 			rgaData.setMovementsContainers(movementsContainers);
 		}
 
+		// Build and set WayUse Containers
+		List<WayUseContainer> wayUseContainers = buildWayUseContainers(isdInputData);
+		if (wayUseContainers.size() > 0) {
+			rgaData.setWayUseContainers(wayUseContainers);
+		}
+
 		return rgaData;
 	}
 
@@ -352,6 +369,186 @@ public class IntersectionSituationDataBuilder {
 		baseLayer.setContentDateTime(dDateTime);
 
 		return baseLayer;
+	}
+
+	/**
+	 * This function builds and returns list of wayUse containers for RGA Data
+	 * @param isdInputData
+	 * @return wayUseContainers
+	 */
+	public List<WayUseContainer> buildWayUseContainers(IntersectionInputData isdInputData) {
+		List<WayUseContainer> wayUseContainers = new ArrayList<>();
+		// Checking if approaches are null
+		if (isdInputData.mapData.intersectionGeometry.laneList == null
+				|| isdInputData.mapData.intersectionGeometry.laneList.approach == null) {
+			return wayUseContainers;
+		}
+
+		Approach[] approaches = isdInputData.mapData.intersectionGeometry.laneList.approach;
+		WayUseContainer mtrVehLaneSpeedLimits = new WayUseContainer();
+		MtrVehLaneSpeedLimitsLayer mtrVehLaneSpeedLimitsLayer = new MtrVehLaneSpeedLimitsLayer();
+
+		for (int approachIndex = 0; approachIndex < approaches.length; approachIndex++) {
+			Approach approach = approaches[approachIndex];
+			// Excluding crosswalk lanes as currently crosswalks do not have an approach id and it is default to -1
+			if (approach.approachID != IntersectionInputData.CrosswalkLane.CROSSWALK_APPROACH_ID) {
+				// Loop through the driving lanes
+				for (int drivingLaneIndex = 0; drivingLaneIndex < approach.drivingLanes.length; drivingLaneIndex++) {
+					DrivingLane drivingLane = approach.drivingLanes[drivingLaneIndex];
+					IndividualWaySpeedLimits individualWaySpeedLimits = new IndividualWaySpeedLimits();
+					individualWaySpeedLimits.setWayID(Integer.valueOf(drivingLane.laneID));
+					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
+						LaneNode[] laneNodes = drivingLane.laneNodes;
+						if (laneNodes != null && laneNodes.length > 0) {
+							for (int nodeIndex = 0; nodeIndex < 1; nodeIndex++) {
+								LaneNode laneNode = laneNodes[nodeIndex];
+								LocationSpeedLimits locationSpeedLimits = new LocationSpeedLimits();
+								NodeIndexOffset location = new NodeIndexOffset();
+								SpeedLimitInfo speedLimitInfo = new SpeedLimitInfo();
+
+								int speedLimitListLength = laneNode.speedLimitType.length;
+								for (int speedIndex = 0; speedIndex < speedLimitListLength; speedIndex++) {
+									ISDRegulatorySpeedLimit currentRegulatorySpeedLimit = laneNode.speedLimitType[speedIndex];
+									String currentSpeedLimitString = laneNode.speedLimitType[speedIndex].speedLimitType;
+
+									if (currentSpeedLimitString != null) {
+										if (currentRegulatorySpeedLimit == null
+												|| currentRegulatorySpeedLimit.speedLimitType == null) {
+											continue; // skip nulls
+										}
+	
+										switch (currentSpeedLimitString) {
+											case "Max Speed in School Zone":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Max Speed in School Zone w/ Children":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Max Speed in Construction Zone":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Vehicle Night Max Speed":
+												currentRegulatorySpeedLimit.timeRestrictions = setNightTimeRestrictions(currentRegulatorySpeedLimit.timeRestrictions);
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.ALL_VEHICLES));
+												break;
+											case "Truck Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Truck Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Truck Night Max Speed":
+												currentRegulatorySpeedLimit.timeRestrictions = setNightTimeRestrictions(currentRegulatorySpeedLimit.timeRestrictions);
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.TRUCK));
+												break;
+											case "Passenger Vehicles Min Speed":
+												speedLimitInfo.addMinSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.PASSENGER_VEHICLES));
+												break;
+											case "Passenger Vehicles Max Speed":
+												speedLimitInfo.addMaxSpeedLimitSettingsSet(buildIndividualSpeedLimitSettings(currentRegulatorySpeedLimit, SpeedLimitVehicleType.PASSENGER_VEHICLES));
+												break;
+											default:
+												logger.warn("Unexpected speed limit type: " + currentSpeedLimitString);
+												break;
+										}
+									}
+								}
+								
+								if (speedLimitInfo.getMaxSpeedLimitSettingsSet().size() > 0
+										|| speedLimitInfo.getMinSpeedLimitSettingsSet().size() > 0) {
+									// Note: The value of 1 is the index for the first node in the set of nodes that
+									// are being indexed. The value of 0 is for unknown/unavailable or when a node
+									// index may not apply if allowed by the application requirements.
+									location.setNodeIndex(nodeIndex + 1);
+									locationSpeedLimits.setLocation(location);
+									locationSpeedLimits.setSpeedLimitInfo(speedLimitInfo);
+									individualWaySpeedLimits.addLocationSpeedLimits(locationSpeedLimits);
+								}
+							}
+
+							if (!individualWaySpeedLimits.getLocationSpeedLimitSet().isEmpty()) {
+								mtrVehLaneSpeedLimitsLayer.addIndividualWaySpeedLimits(individualWaySpeedLimits);
+	
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!mtrVehLaneSpeedLimitsLayer.getLaneSpeedLimitLaneSet().isEmpty()) {
+			mtrVehLaneSpeedLimits.setWaUseContainerId(WayUseContainer.MTR_VEH_LANE_SPEED_LIMITS_LAYER_ID);
+			mtrVehLaneSpeedLimits.setMtrVehLaneSpeedLimitsLayer(mtrVehLaneSpeedLimitsLayer);
+			wayUseContainers.add(mtrVehLaneSpeedLimits);
+		}
+
+		return wayUseContainers;
+	}
+
+	public TimeRestrictions setNightTimeRestrictions(TimeRestrictions timeRestrictions) {
+		if (timeRestrictions == null) {
+			timeRestrictions = new TimeRestrictions();
+		}
+
+		boolean isDaysEmpty = (timeRestrictions.daysOfTheWeek == null || timeRestrictions.daysOfTheWeek.length == 0);
+		boolean isTimePeriodTypeEmpty = (timeRestrictions.timePeriodType == null
+				|| timeRestrictions.timePeriodType.isEmpty());
+		boolean isTimePeriodValueEmpty = (timeRestrictions.timePeriodValue == null
+				|| timeRestrictions.timePeriodValue.isEmpty());
+		boolean isRangeEmpty = (timeRestrictions.timePeriodRange == null
+				|| (timeRestrictions.timePeriodRange.startDatetime == null
+						&& timeRestrictions.timePeriodRange.endDatetime == null
+						&& timeRestrictions.timePeriodRange.startOffset == 0
+						&& timeRestrictions.timePeriodRange.endOffset == 0));
+
+		if (isDaysEmpty && isTimePeriodTypeEmpty && isTimePeriodValueEmpty && isRangeEmpty) {
+			timeRestrictions.daysOfTheWeek = new int[] { DaysOfTheWeek.ALLDAYS }; // All Days
+			timeRestrictions.timePeriodType = "general";
+			timeRestrictions.timePeriodValue = "night";
+			timeRestrictions.timePeriodRange = new TimePeriodRange();
+		}
+		
+		return timeRestrictions;
+	}
+
+	public IndividualSpeedLimitSettings buildIndividualSpeedLimitSettings(ISDRegulatorySpeedLimit currentISDRegulatorySpeedLimit, int vehicleType) {
+		short currentVelocity = currentISDRegulatorySpeedLimit.getVelocity();
+		String currentSpeedLimitChoice = currentISDRegulatorySpeedLimit.speedLimitChoice;
+
+		IndividualSpeedLimitSettings indSpeedLimitSettingsSet = new IndividualSpeedLimitSettings();
+
+		indSpeedLimitSettingsSet.setSpeedLimit(currentVelocity);
+		indSpeedLimitSettingsSet.setSpeedLimitType(buiSpeedLimitTypeRGA(currentSpeedLimitChoice));
+		indSpeedLimitSettingsSet.setVehicleTypes(buildSpeedLimitVehicleType(vehicleType));
+		indSpeedLimitSettingsSet.setTimeRestrictions(buildLaneTimeRestriction(currentISDRegulatorySpeedLimit.timeRestrictions));
+		return indSpeedLimitSettingsSet;
+	}
+
+	public SpeedLimitTypeRGA buiSpeedLimitTypeRGA(String currentSpeedLimitChoice) {
+		SpeedLimitTypeRGA speedLimitTypeRGA = new SpeedLimitTypeRGA();
+		if (currentSpeedLimitChoice != null) {
+			if ((currentSpeedLimitChoice.toLowerCase()).equals("regulatory")) {
+				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.REGULATORY);
+			} else if ((currentSpeedLimitChoice.toLowerCase()).equals("advisory")) {
+				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.ADVISORY);
+			}
+		}
+		return speedLimitTypeRGA;
+	}
+
+	public SpeedLimitVehicleType buildSpeedLimitVehicleType(int vehicleType) {
+		SpeedLimitVehicleType vehicleTypes = new SpeedLimitVehicleType();
+		int[] speedVehicleTypes = { vehicleType };
+		int allVehiclesBitString = BitStringHelper.getBitString(SMALL_BIT_STRING,
+				SMALL_BIT_STRING_LENGTH, speedVehicleTypes);
+		vehicleTypes.setSpeedLimitVehicleTypeValue((short) allVehiclesBitString);
+		return vehicleTypes;
 	}
 
 	/**

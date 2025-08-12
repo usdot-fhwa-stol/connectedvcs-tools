@@ -1,5 +1,16 @@
 Map Tool Release Notes
 ----------------------------
+
+Version 2.2.2, released Aug 8th, 2025
+----------------------------------------
+
+### **Summary**  
+Maptool release version 2.2.2 is a hotfix release for 2.2.0.
+ 
+### **<ins>Fixes in Release:</ins>**
+ - Fixed a bug that caused MAP Tool to freeze and lose the unsaved changes when deleting maneuvers from the Lane Attributes or Lane Connections table.
+ - Addressed an issue where already saved maneuvers in the Lane Connections table could not be deleted.
+
 Version 2.2.1, released May 16th, 2025
 ----------------------------------------
 
@@ -215,3 +226,4 @@ This release of the Map Tool introduces several significant updates:
 Known Issues related to this release:
 
 - **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
+

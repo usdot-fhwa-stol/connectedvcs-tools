@@ -19,9 +19,9 @@ package gov.usdot.cv.rgaencoder;
 public class SpeedLimitVehicleType {
   private short speedLimitVehicleTypeValue;
   
-  public static final long ALL_VEHICLES = 0;
-  public static final long PASSENGER_VEHICLES = 1;
-  public static final long TRUCK = 2;
+  public static final int ALL_VEHICLES = 0;
+  public static final int PASSENGER_VEHICLES = 1;
+  public static final int TRUCK = 2;
 
   public SpeedLimitVehicleType() {
   }

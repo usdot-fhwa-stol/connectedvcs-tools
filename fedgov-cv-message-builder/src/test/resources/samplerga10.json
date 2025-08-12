@@ -101,8 +101,15 @@
                     "laneWidthDelta": "0",
                     "speedLimitType": [
                       {
-                        "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "speedLimitType": "Truck Night Max Speed",
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [],
+                          "timePeriodType": "",
+                          "timePeriodValue": "",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   },
@@ -114,8 +121,15 @@
                     "laneWidthDelta": 0,
                     "speedLimitType": [
                       {
-                        "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "speedLimitType": "Truck Night Max Speed",
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [],
+                          "timePeriodType": "",
+                          "timePeriodValue": "",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   }
