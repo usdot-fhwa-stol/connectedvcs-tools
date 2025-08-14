@@ -6563,4 +6563,8 @@ button.close {
     display: none !important;
   }
 }
+#message_alert.alert-section-hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
 /*# sourceMappingURL=bootstrap.css.map */
