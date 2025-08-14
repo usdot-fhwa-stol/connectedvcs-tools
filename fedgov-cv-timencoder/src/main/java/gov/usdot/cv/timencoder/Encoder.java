@@ -42,13 +42,13 @@ public class Encoder {
      * 
      * @return encoded TIM message as byte array, or null if encoding fails
      */
-    public native byte[] encodeTIM();
+    public native byte[] encodeTIM(TIMData message);
 
     public ByteArrayObject encode(TIMData message) {
         System.out.println("Calling Encoder Java API");
 		logger.debug("Starting TIM encoding process...");
 
-        byte[] encodeMsg = encodeTIM();
+        byte[] encodeMsg = encodeTIM(message);
 
         if (encodeMsg == null) {
             logger.error("Encoding failed. Returned byte array is null.");
