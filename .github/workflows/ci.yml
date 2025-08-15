@@ -27,6 +27,7 @@ jobs:
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
@@ -105,6 +106,7 @@ jobs:
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target/site/jacoco/jacoco.xml,\
                $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
+              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
 
@@ -114,6 +116,7 @@ jobs:
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target,\
+              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target,\
               /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target
             sonar.c.file.suffixes=-
