@@ -36,9 +36,10 @@ public class RefererFilter implements Filter {
     private String allowedReferer;
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {        
+    public void init(FilterConfig filterConfig) throws ServletException {
         logger.debug("Allowed referer: {}", allowedReferer);
     }
+    
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
