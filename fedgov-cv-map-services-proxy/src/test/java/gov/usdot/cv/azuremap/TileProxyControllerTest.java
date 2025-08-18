@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TileProxyController.class)
-@TestPropertySource(properties = "azure.map.api.key=fake-api-key,azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s,allowed.origins=*")
+@TestPropertySource(properties = "azure.map.api.key=fake-api-key,azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s")
 public class TileProxyControllerTest {
   @MockBean
   private TileProxyController tileProxyController;
