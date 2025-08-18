@@ -22,27 +22,48 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 
-
+@Component
 public class RefererFilter implements Filter {
     private static final Logger logger = LogManager.getLogger(RefererFilter.class);
+    
+    @Value("${allowed.referer:}")
+    private String allowedReferer;
 
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {        
+        logger.debug("Allowed referer: {}", allowedReferer);
+    }
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             String referer = httpRequest.getHeader("Referer");
-            
+
             if (referer == null || referer.isEmpty()) {
-                logger.warn("Blocked request without Referer header from IP: {}", httpRequest.getRemoteAddr());
+                logger.error("Blocked request without Referer header from IP: {}", httpRequest.getRemoteAddr());
                 ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN, "Referer header required");
+                return;
+            }
+
+            if (allowedReferer != null && !allowedReferer.isEmpty() && !referer.contains(allowedReferer)) {
+                logger.error("Blocked request with invalid Referer: {} from IP: {}", referer,
+                        httpRequest.getRemoteAddr());
+                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Referer header");
                 return;
             }
         }
         chain.doFilter(request, response);
+    }
+    
+    @Override
+    public void destroy() {
+        logger.debug("RefererFilter destroy");
     }
 }
