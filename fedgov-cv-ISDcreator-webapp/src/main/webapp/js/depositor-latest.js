@@ -440,8 +440,8 @@ function createMessageJSON()
 
                 //since some lanes are not in the driving lane
                 tempJ++;
-            } else if(laneFeat[j].get('laneType') == "Crosswalk"){
-                //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
+            } else if(laneFeat[j].get('laneType') == "Crosswalk" || laneFeat[j].get('laneType') == "Sidewalk"){
+                //even though not in a "box" it's still allowed to be outside as a crosswalk or sidewalk - still want to be able to catch vehicle lanes outside
                 laneFeat[j].set('inBox', true);
 
                 if(!laneFeat[j].get('computed')) {
