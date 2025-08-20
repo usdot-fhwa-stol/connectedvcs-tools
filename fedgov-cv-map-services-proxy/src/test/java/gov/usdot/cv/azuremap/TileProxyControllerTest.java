@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2025 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package gov.usdot.cv.azuremap;
 
 import gov.usdot.cv.azuremap.controllers.TileProxyController;
@@ -14,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TileProxyController.class)
-@TestPropertySource(properties = "azure.map.api.key=fake-api-key,azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s,allowed.origins=*")
+@TestPropertySource(properties = "azure.map.api.key=fake-api-key,azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s")
 public class TileProxyControllerTest {
   @MockBean
   private TileProxyController tileProxyController;

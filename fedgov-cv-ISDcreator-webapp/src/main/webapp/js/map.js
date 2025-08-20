@@ -8,6 +8,7 @@ import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSqu
 import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
+const tokenURL = "/msp/security/api/csrf-token/";
 let nodeObject = [];
 let approachObject = [];
 const aerialTilesetId = "microsoft.imagery";
@@ -53,12 +54,53 @@ let temporaryBoxMarkers;
 let timeRestrictions;
 let approachTimeRestrictions;
 let connectionsTimeRestrictions;
+let csrfToken = null;
+
+const getCSRFToken = () => {
+  // Fetch CSRF token from the server and return the token string, or null if unavailable
+  return fetch(tokenURL)
+    .then(response => {
+      if(response.status !== 200) {
+        console.error("Failed to fetch CSRF token");
+        return null;
+      }
+      return response.json();
+    })
+    .then(data => {
+      csrfToken = data.csrfToken;
+      return csrfToken;
+    });
+};
+
+/**
+ * Custom tile load function to fetch tiles with CSRF token.
+ * Used for the baseAerialLayer in initMap().
+ */
+const customTileLoadFunction = (imageTile, src) => {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', src);
+  xhr.responseType = 'blob';
+  if (csrfToken) {
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+  }
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const url = URL.createObjectURL(xhr.response);
+      imageTile.getImage().src = url;
+    }
+  };
+  xhr.onerror = function() {
+    imageTile.getImage().src = '';
+  };
+  xhr.send();
+};
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
     title: "Aerial",
     source: new ol.source.XYZ({
-      url: tilesetURL + aerialTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction
     }),
     type: "base",
     visible: true,
@@ -68,7 +110,8 @@ function initMap() {
     title: "Road",
     type: "base",
     source: new ol.source.XYZ({
-      url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction
     }),
     visible: false,
   });
@@ -77,7 +120,8 @@ function initMap() {
     title: "Hybrid",
     type: "base",
     source: new ol.source.XYZ({
-      url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction
     }),
     visible: false,
   });
@@ -1544,13 +1588,16 @@ function clearMap(){
 
 $(document).ready(() => {
   initMISC();
-  initMap();
-  registerMapEvents();
-  registerSelectInteraction();
-  registerDrawInteractions();
-  initTopNavBar();
-  initSideBar();
-  registerModalButtonEvents();
+  getCSRFToken().then(token => {
+    initMap();
+    registerMapEvents();
+    registerSelectInteraction();
+    registerDrawInteractions();
+    initTopNavBar();
+    initSideBar();
+    registerModalButtonEvents();
+  });
+ 
 });
 
 export {
