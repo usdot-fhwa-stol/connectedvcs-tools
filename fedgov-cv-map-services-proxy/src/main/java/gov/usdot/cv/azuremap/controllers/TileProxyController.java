@@ -17,6 +17,7 @@ package gov.usdot.cv.azuremap.controllers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,9 @@ public class TileProxyController {
   private static final Logger logger = LogManager.getLogger(TileProxyController.class);
 
   private final TileProxyService tileProxyService;
+
+  @Value("${tileset.response.cache.control}")
+  private String cacheControlValue;
 
   public TileProxyController(TileProxyService tileProxyService) {
     this.tileProxyService = tileProxyService;
@@ -49,6 +53,7 @@ public class TileProxyController {
       // Return the tile data back to the client
       return ResponseEntity.ok()
           .header("Content-Type", "image/png")
+          .header("Cache-Control", cacheControlValue)
           .body(tileBytes);
     } catch (Exception e) {
       logger.error("Error fetching tile from Azure Maps", e);
