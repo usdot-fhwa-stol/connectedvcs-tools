@@ -102,6 +102,7 @@ function initMap() {
       url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
       tileLoadFunction: customTileLoadFunction
     }),
+    cacheSize: 512,
     type: "base",
     visible: true,
   });
@@ -111,8 +112,9 @@ function initMap() {
     type: "base",
     source: new ol.source.XYZ({
       url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}",
-      tileLoadFunction: customTileLoadFunction
+      tileLoadFunction: customTileLoadFunction,
     }),
+    cacheSize: 512,
     visible: false,
   });
 
@@ -123,6 +125,7 @@ function initMap() {
       url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}",
       tileLoadFunction: customTileLoadFunction
     }),
+    cacheSize: 512,
     visible: false,
   });
 
@@ -130,6 +133,7 @@ function initMap() {
     title: "OpenStreetMap",
     type: "base",
     source: new ol.source.OSM(),
+    cacheSize: 512,
     visible: false,
   });
 

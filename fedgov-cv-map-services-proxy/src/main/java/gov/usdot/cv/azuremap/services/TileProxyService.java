@@ -21,7 +21,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -29,7 +29,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Service
 @Slf4j
 public class TileProxyService {
 
@@ -56,7 +56,7 @@ public class TileProxyService {
      * @param uri The URI to fetch the tile set from.
      * @return The byte array representing the tile set.
      */
-    @Cacheable("tileSets")
+    @Cacheable("mapTilesCache")
     public byte[] fetchTileSets(String tilesetId, int z, int x, int y) {
         //Fetch the tile set from AWS S3 bucket
         byte[] s3TileBytes = fetchFromS3(tilesetId, z, x, y);
@@ -67,8 +67,12 @@ public class TileProxyService {
         // Fetch the tile set from Azure Maps
         byte[] azureTileBytes = fetchFromAzureMap(tilesetId, z, x, y);        
         //Save to S3
-        saveToS3(tilesetId, z, x, y, azureTileBytes);
-        return azureTileBytes;
+        if (azureTileBytes != null && azureTileBytes.length > 0) {
+            log.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            saveToS3(tilesetId, z, x, y, azureTileBytes);
+            return azureTileBytes;
+        }
+        return null;
     }
     /**
      * Fetches the tile set from AWS S3.

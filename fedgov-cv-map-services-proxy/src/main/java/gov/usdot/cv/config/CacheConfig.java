@@ -15,6 +15,7 @@
  */
 package gov.usdot.cv.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -26,9 +27,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-     @Bean
+
+    @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("employeesCache");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("mapTilesCache");
         cacheManager.setCaffeine(Caffeine.newBuilder().recordStats());
         return cacheManager;
     }
