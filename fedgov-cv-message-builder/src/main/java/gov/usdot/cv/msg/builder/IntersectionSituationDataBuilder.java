@@ -356,6 +356,8 @@ public class IntersectionSituationDataBuilder {
 			}
 		}
 
+		ObjectPrinter.printObject(baseLayer);
+
 		// DataSetContentIdentification
 		baseLayer.setContentVer(isdInputData.mapData.contentVersion);
 
