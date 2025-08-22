@@ -2,7 +2,7 @@ import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnections
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
-import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
+import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback, WheelZoomStep} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
@@ -1597,6 +1597,14 @@ $(document).ready(() => {
     registerMapEvents();
     registerSelectInteraction();
     registerDrawInteractions();
+    map.getInteractions().forEach(interaction => {
+      if (interaction instanceof ol.interaction.MouseWheelZoom) {
+        map.removeInteraction(interaction);
+      }
+    });
+
+    // Add our custom N-step wheel zoom
+    map.addInteraction(new WheelZoomStep({ delta: 2, duration: 200 }));
     initTopNavBar();
     initSideBar();
     registerModalButtonEvents();

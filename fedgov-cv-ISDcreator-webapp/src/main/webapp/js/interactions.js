@@ -700,6 +700,33 @@ function hasSelectedFeatures(map) {
   return selectInteractions.some(select => select.getFeatures().getLength() > 0);
 };
 
+class WheelZoomStep extends ol.interaction.Interaction {
+  constructor(options = {}) {
+    super();
+    this.delta = options.delta || 2;      // zoom step per tick
+    this.duration = options.duration || 200; // animation duration
+  }
+
+  handleEvent(evt) {
+    if (evt.type === 'wheel') {
+      evt.preventDefault(); // stop default zoom
+      const map = evt.map;
+      const view = map.getView();
+
+      const currentZoom = view.getZoom();
+      const direction = evt.originalEvent.deltaY > 0 ? -1 : 1; // wheel down = zoom out
+      const newZoom = currentZoom + direction * this.delta;
+
+      view.animate({
+        zoom: newZoom,
+        duration: this.duration
+      });
+      return false; // event handled
+    }
+    return true;
+  }
+}
+
 
 export {
   laneSelectInteractionCallback,
@@ -709,5 +736,6 @@ export {
   boxSelectInteractionCallback,
   deleteMarker,
   measureCallback,
-  vectorDragCallback
+  vectorDragCallback,
+  WheelZoomStep
 }
