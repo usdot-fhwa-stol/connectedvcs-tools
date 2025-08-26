@@ -14,7 +14,28 @@
  * the License.
  */
 package gov.usdot.cv.timencoder;
+import gov.usdot.cv.mapencoder.Position3D;
 
 public class TIMData {
+    private int msgcount;
+    private MinuteOfTheYear timestamp;
+    //will add more  optional fields later
+
+    public MinuteOfTheYear getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(MinuteOfTheYear timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public int getMsgcount() {
+        return msgcount;
+    }
+
+    public void setMsgcount(int msgcount) {
+        this.msgcount = msgcount;
+    }
+
 
 }
