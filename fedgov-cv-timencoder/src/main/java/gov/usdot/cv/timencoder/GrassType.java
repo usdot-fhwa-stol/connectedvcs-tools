@@ -16,7 +16,7 @@
 package gov.usdot.cv.timencoder;
 
 public enum GrassType {
-    LESS_THAN_30_MPH(0);
+    GrassType_lessThan30Mph	(0);
 
     private final int value;
 
@@ -28,7 +28,7 @@ public enum GrassType {
     /** Map numeric value -> enum (throws if unknown). */
     public static GrassType fromInt(int v) {
         switch (v) {
-            case 0: return LESS_THAN_30_MPH;
+            case 0: return GrassType_lessThan30Mph;
             default:
                 throw new IllegalArgumentException("Unknown GrassType value: " + v);
         }

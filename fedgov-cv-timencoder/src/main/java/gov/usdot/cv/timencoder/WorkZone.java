@@ -18,16 +18,6 @@ package gov.usdot.cv.timencoder;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Java representation of:
- *
- * WorkZone ::= SEQUENCE (SIZE(1..16)) OF SEQUENCE {
- *    item CHOICE {
- *        itis ITIScodes,
- *        text ITIStextPhrase
- *    }
- * }
- */
 public class WorkZone {
 
     private List<WorkZoneItem> items = new ArrayList<>();

@@ -17,4 +17,13 @@ package gov.usdot.cv.timencoder;
 
 public class TravelerDataFrameNewPartIIIContent {
 
+    FrictionInformation frictionInformation;
+
+    public FrictionInformation getFrictionInformation() {
+        return frictionInformation;
+    }
+
+    public void setFrictionInformation(FrictionInformation frictionInformation) {
+        this.frictionInformation = frictionInformation;
+    }
 }

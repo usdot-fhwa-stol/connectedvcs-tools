@@ -15,11 +15,10 @@
  */
 package gov.usdot.cv.timencoder;
 public enum SnowType {
-    // TODO: replace with actual members from SnowType.h
-    // Example placeholders:
-    PACKED(0),
-    LOOSE(1),
-    SLUSH(2);
+
+    SnowType_packed(0),
+    SnowType_loose(1);
+  
 
     private final int value;
 
@@ -31,10 +30,9 @@ public enum SnowType {
     /** Map numeric value -> enum (throws if unknown). */
     public static SnowType fromInt(int v) {
         switch (v) {
-            // TODO: update cases to match real numeric values
-            case 0: return PACKED;
-            case 1: return LOOSE;
-            case 2: return SLUSH;
+            case 0: return SnowType_packed;
+            case 1: return SnowType_loose;
+
             default:
                 throw new IllegalArgumentException("Unknown SnowType value: " + v);
         }

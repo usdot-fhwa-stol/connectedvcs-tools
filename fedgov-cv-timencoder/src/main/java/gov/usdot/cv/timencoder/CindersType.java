@@ -15,7 +15,7 @@
  */
 package gov.usdot.cv.timencoder;
 public enum CindersType {
-    PACKED(0);
+    CindersType_packed	(0);
 
     private final int value;
 
@@ -27,7 +27,7 @@ public enum CindersType {
     /** Map numeric value -> enum (throws if unknown). */
     public static CindersType fromInt(int v) {
         switch (v) {
-            case 0: return PACKED;
+            case 0: return CindersType_packed;
             default:
                 throw new IllegalArgumentException("Unknown CindersType value: " + v);
         }

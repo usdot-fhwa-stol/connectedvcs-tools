@@ -15,7 +15,7 @@
  */
 package gov.usdot.cv.timencoder;
 public enum IceType {
-    SMOOTH(0);
+    IceType_smooth	(0);
 
     private final int value;
 
@@ -27,7 +27,7 @@ public enum IceType {
     /** Map numeric value -> enum (throws if unknown). */
     public static IceType fromInt(int v) {
         switch (v) {
-            case 0: return SMOOTH;
+            case 0: return IceType_smooth;
             default:
                 throw new IllegalArgumentException("Unknown IceType value: " + v);
         }

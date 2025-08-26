@@ -15,7 +15,7 @@
  */
 package gov.usdot.cv.timencoder;
 public enum RockType {
-    CRUSHED(0);
+    RockType_crushed(0);
 
     private final int value;
 
@@ -27,7 +27,7 @@ public enum RockType {
     /** Map numeric value -> enum (throws if unknown). */
     public static RockType fromInt(int v) {
         switch (v) {
-            case 0: return CRUSHED;
+            case 0: return RockType_crushed	;
             default:
                 throw new IllegalArgumentException("Unknown RockType value: " + v);
         }

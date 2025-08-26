@@ -15,9 +15,9 @@
  */
 package gov.usdot.cv.timencoder;
 public enum PortlandCementType {
-    NEW_SHARP(0),
-    TRAVELED(1),
-    TRAFFIC_POLISHED(2);
+    PortlandCementType_newSharp	(0),
+    PortlandCementType_traveled	(1),
+    PortlandCementType_trafficPolished(2);
 
     private final int value;
 
@@ -33,9 +33,9 @@ public enum PortlandCementType {
     /** Map numeric value -> enum (throws if unknown) */
     public static PortlandCementType fromInt(int v) {
         switch (v) {
-            case 0: return NEW_SHARP;
-            case 1: return TRAVELED;
-            case 2: return TRAFFIC_POLISHED;
+            case 0: return PortlandCementType_newSharp;
+            case 1: return PortlandCementType_traveled;
+            case 2: return PortlandCementType_trafficPolished;
             default:
                 throw new IllegalArgumentException("Unknown PortlandCementType value: " + v);
         }

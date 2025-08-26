@@ -16,8 +16,8 @@
 package gov.usdot.cv.timencoder;
 
 public enum GravelType {
-    PACKED_OILED(0),
-    LOOSE(1);
+    GravelType_packedOiled(0),
+    GravelType_loose(1);
 
     private final int value;
 
@@ -29,8 +29,8 @@ public enum GravelType {
     /** Map numeric value -> enum (throws if unknown) */
     public static GravelType fromInt(int v) {
         switch (v) {
-            case 0: return PACKED_OILED;
-            case 1: return LOOSE;
+            case 0: return GravelType_packedOiled;
+            case 1: return GravelType_loose;
             default:
                 throw new IllegalArgumentException("Unknown GravelType value: " + v);
         }

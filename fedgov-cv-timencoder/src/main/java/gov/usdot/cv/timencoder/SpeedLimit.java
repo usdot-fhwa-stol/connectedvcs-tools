@@ -16,17 +16,6 @@
 package gov.usdot.cv.timencoder;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * Java representation of:
- *
- * SpeedLimit ::= SEQUENCE (SIZE(1..16)) OF SEQUENCE {
- *    item CHOICE {
- *        itis ITIScodes,
- *        text ITIStextPhrase
- *    }
- * }
- */
 public class SpeedLimit {
 
     private List<SpeedLimitItem> items = new ArrayList<>();

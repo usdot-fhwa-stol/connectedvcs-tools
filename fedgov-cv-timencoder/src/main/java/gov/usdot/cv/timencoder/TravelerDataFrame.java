@@ -17,24 +17,6 @@ package gov.usdot.cv.timencoder;
 
 import java.util.Arrays;
 
-/**
- * TravelerDataFrame ::= SEQUENCE {
- *   doNotUse1    SSPindex,
- *   frameType    TravelerInfoType,
- *   msgId        MsgId,   -- CHOICE implemented separately
- *   startTime    MinuteOfTheYear,
- *   durationTime MinutesDuration,
- *   priority     SignPriority,
- *
- *   doNotUse2    SSPindex,
- *   regions      SEQUENCE (SIZE(1..16)) OF GeographicalPath,
- *
- *   doNotUse3    SSPindex,
- *   doNotUse4    SSPindex,
- *   content      Content, -- CHOICE defined below
- *   contentNew   TravelerDataFrameNewPartIIIContent
- * }
- */
 public class TravelerDataFrame {
 
     // ---- Part I: header ----

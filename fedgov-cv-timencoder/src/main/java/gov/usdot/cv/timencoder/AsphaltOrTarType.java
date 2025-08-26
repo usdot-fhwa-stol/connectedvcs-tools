@@ -15,10 +15,10 @@
  */
 package gov.usdot.cv.timencoder;
 public enum AsphaltOrTarType {
-    NEW_SHARP(0),
-    TRAVELED(1),
-    TRAFFIC_POLISHED(2),
-    EXCESS_TAR(3);
+    AsphaltOrTarType_newSharp(0),
+    AsphaltOrTarType_traveled(1),
+    AsphaltOrTarType_trafficPolished(2),
+    AsphaltOrTarType_excessTar	(3);
 
     private final int value;
 
@@ -34,10 +34,10 @@ public enum AsphaltOrTarType {
     /** Map numeric value -> enum (throws if unknown). */
     public static AsphaltOrTarType fromInt(int v) {
         switch (v) {
-            case 0: return NEW_SHARP;
-            case 1: return TRAVELED;
-            case 2: return TRAFFIC_POLISHED;
-            case 3: return EXCESS_TAR;
+            case 0: return AsphaltOrTarType_newSharp;
+            case 1: return AsphaltOrTarType_traveled;
+            case 2: return AsphaltOrTarType_trafficPolished;
+            case 3: return AsphaltOrTarType_excessTar;
             default:
                 throw new IllegalArgumentException("Unknown AsphaltOrTarType value: " + v);
         }
