@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 public class TIMEncodeTest {
     private static final Logger logger = LogManager.getLogger(TIMEncodeTest.class);
     Encoder encoder;
-    TIMData mockTimData;
+    TravelerInformation mockTimData;
     @Before
     public void setUp() {
          encoder = new Encoder(); 

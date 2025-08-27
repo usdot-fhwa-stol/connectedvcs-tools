@@ -42,9 +42,9 @@ public class Encoder {
      * 
      * @return encoded TIM message as byte array, or null if encoding fails
      */
-    public native byte[] encodeTIM(TIMData message);
+    public native byte[] encodeTIM(TravelerInformation message);
 
-    public ByteArrayObject encode(TIMData message) {
+    public ByteArrayObject encode(TravelerInformation message) {
         System.out.println("Calling Encoder Java API");
 		logger.debug("Starting TIM encoding process...");
 

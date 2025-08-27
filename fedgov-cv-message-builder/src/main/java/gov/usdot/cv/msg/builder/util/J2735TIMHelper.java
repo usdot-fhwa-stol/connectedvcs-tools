@@ -15,7 +15,7 @@
  */
 package gov.usdot.cv.msg.builder.util;
 import gov.usdot.cv.timencoder.Encoder;
-import gov.usdot.cv.timencoder.TIMData;
+import gov.usdot.cv.timencoder.TravelerInformation;
 import gov.usdot.cv.timencoder.ByteArrayObject;
 
 import org.apache.commons.codec.binary.Hex;
@@ -23,14 +23,14 @@ import org.apache.commons.codec.binary.Hex;
 
 public class J2735TIMHelper {
 
-	public static String getHexString(TIMData message) 
+	public static String getHexString(TravelerInformation message) 
 	{
 
 		byte[] bytes = getBytes(message);
 		return Hex.encodeHexString(bytes);
 	}
 
-	public static byte[] getBytes(TIMData message) {
+	public static byte[] getBytes(TravelerInformation message) {
 		Encoder encoder = new Encoder();
 		ByteArrayObject encodedMsg = encoder.encode(message);
 		return encodedMsg.getMessage();
