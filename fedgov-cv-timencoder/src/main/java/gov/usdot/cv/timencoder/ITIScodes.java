@@ -27,10 +27,6 @@ public final class ITIScodes {
         this.value = value;
     }
 
-    public static ITIScodes of(int value) {
-        return new ITIScodes(value);
-    }
-
     public int intValue() {
         return value;
     }

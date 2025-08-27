@@ -15,52 +15,36 @@
  */
 package gov.usdot.cv.timencoder;
 
-public  class ITIScodesAndText {
-    private Integer code;   // use when holding an ITIS code
-    private String  text;   // use when holding an ITIS text phrase
+public class ITIScodesAndText {
+    private ITIScodes code; 
+    private String text;    
 
-    public ITIScodesAndText() {
-        // empty by default
+    public ITIScodes getCode() {
+        return code;
     }
 
-    public static ITIScodesAndText ofCode(int code) {
-        ITIScodesAndText x = new ITIScodesAndText();
-        x.setCode(code);
-        return x;
-    }
-
-    public static ITIScodesAndText ofText(String text) {
-        ITIScodesAndText x = new ITIScodesAndText();
-        x.setText(text);
-        return x;
-    }
-
-    // Setters: setting one clears the other (simple CHOICE behavior)
-    public void setCode(int code) {
+    public void setCode(ITIScodes code) {
         this.code = code;
-        this.text = null;
+        this.text = null; 
+    }
+
+    public String getText() {
+        return text;
     }
 
     public void setText(String text) {
         this.text = text;
-        this.code = null;
+        this.code = null; 
     }
-
-    // Getters
-    public Integer getCode() { return code; }
-    public String getText() { return text; }
-
-    public boolean isCode() { return code != null; }
-    public boolean isText() { return text != null; }
 
     @Override
     public String toString() {
-        if (isCode()) {
-            return "ITISTextCode{code='" + code + "'}";
-        } else if (isText()) {
-            return "ITISTextCode{text='" + text + "'}";
+        if (code != null) {
+            return "ITIScodesAndText{code=" + code.intValue() + "}";
+        } else if (text != null) {
+            return "ITIScodesAndText{text='" + text + "'}";
         } else {
-            return "ITISTextCode{}";
+            return "ITIScodesAndText{}";
         }
     }
 }

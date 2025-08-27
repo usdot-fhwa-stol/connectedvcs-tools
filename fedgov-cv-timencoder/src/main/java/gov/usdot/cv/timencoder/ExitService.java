@@ -18,16 +18,6 @@ package gov.usdot.cv.timencoder;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Java representation of:
- *
- * ExitService ::= SEQUENCE (SIZE(1..16)) OF SEQUENCE {
- *    item CHOICE {
- *        itis ITIScodes,
- *        text ITIStextPhrase
- *    }
- * }
- */
 public class ExitService {
 
     private List<ExitServiceItem> items = new ArrayList<>();

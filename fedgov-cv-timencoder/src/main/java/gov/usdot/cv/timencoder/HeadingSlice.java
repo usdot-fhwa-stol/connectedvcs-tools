@@ -16,46 +16,66 @@
 
 package gov.usdot.cv.timencoder;
 
-public class HeadingSlice {
-    private short headingSliceValue;
+public final class HeadingSlice {
+  private int mask; // 16 bits
 
-    // Constants for choice field (matches ASN.1 e_HeadingSlice values 0..15)
-    public static final short FROM_000_0_TO_022_5_DEGREES = 0;
-    public static final short FROM_022_5_TO_045_0_DEGREES = 1;
-    public static final short FROM_045_0_TO_067_5_DEGREES = 2;
-    public static final short FROM_067_5_TO_090_0_DEGREES = 3;
-    public static final short FROM_090_0_TO_112_5_DEGREES = 4;
-    public static final short FROM_112_5_TO_135_0_DEGREES = 5;
-    public static final short FROM_135_0_TO_157_5_DEGREES = 6;
-    public static final short FROM_157_5_TO_180_0_DEGREES = 7;
-    public static final short FROM_180_0_TO_202_5_DEGREES = 8;
-    public static final short FROM_202_5_TO_225_0_DEGREES = 9;
-    public static final short FROM_225_0_TO_247_5_DEGREES = 10;
-    public static final short FROM_247_5_TO_270_0_DEGREES = 11;
-    public static final short FROM_270_0_TO_292_5_DEGREES = 12;
-    public static final short FROM_292_5_TO_315_0_DEGREES = 13;
-    public static final short FROM_315_0_TO_337_5_DEGREES = 14;
-    public static final short FROM_337_5_TO_360_0_DEGREES = 15;
+  public HeadingSlice() { this.mask = 0; }
+  public HeadingSlice(int mask) { this.mask = mask & 0xFFFF; }
 
-    public HeadingSlice() {
-    }
+  private boolean get(int i) { return ((mask >>> i) & 1) == 1; }
+  private void set(int i, boolean v) {
+    if (v) mask |= (1 << i); else mask &= ~(1 << i);
+    mask &= 0xFFFF;
+  }
 
-    public HeadingSlice(short headingSliceValue) {
-        this.headingSliceValue = headingSliceValue;
-    }
+  public int intValue() { return mask & 0xFFFF; }
+  public void setValue(int mask) { this.mask = mask & 0xFFFF; }
 
-    public short getHeadingSliceValue() {
-        return headingSliceValue;
-    }
+  public boolean isFrom000_0to022_5degrees() { return get(0); }
+  public void setFrom000_0to022_5degrees(boolean v) { set(0, v); }
 
-    public void setHeadingSliceValue(short headingSliceValue) {
-        this.headingSliceValue = headingSliceValue;
-    }
+  public boolean isFrom022_5to045_0degrees() { return get(1); }
+  public void setFrom022_5to045_0degrees(boolean v) { set(1, v); }
 
-    @Override
-    public String toString() {
-        return "HeadingSlice{" +
-                "headingSliceValue=" + headingSliceValue +
-                '}';
-    }
+  public boolean isFrom045_0to067_5degrees() { return get(2); }
+  public void setFrom045_0to067_5degrees(boolean v) { set(2, v); }
+
+  public boolean isFrom067_5to090_0degrees() { return get(3); }
+  public void setFrom067_5to090_0degrees(boolean v) { set(3, v); }
+
+  public boolean isFrom090_0to112_5degrees() { return get(4); }
+  public void setFrom090_0to112_5degrees(boolean v) { set(4, v); }
+
+  public boolean isFrom112_5to135_0degrees() { return get(5); }
+  public void setFrom112_5to135_0degrees(boolean v) { set(5, v); }
+
+  public boolean isFrom135_0to157_5degrees() { return get(6); }
+  public void setFrom135_0to157_5degrees(boolean v) { set(6, v); }
+
+  public boolean isFrom157_5to180_0degrees() { return get(7); }
+  public void setFrom157_5to180_0degrees(boolean v) { set(7, v); }
+
+  public boolean isFrom180_0to202_5degrees() { return get(8); }
+  public void setFrom180_0to202_5degrees(boolean v) { set(8, v); }
+
+  public boolean isFrom202_5to225_0degrees() { return get(9); }
+  public void setFrom202_5to225_0degrees(boolean v) { set(9, v); }
+
+  public boolean isFrom225_0to247_5degrees() { return get(10); }
+  public void setFrom225_0to247_5degrees(boolean v) { set(10, v); }
+
+  public boolean isFrom247_5to270_0degrees() { return get(11); }
+  public void setFrom247_5to270_0degrees(boolean v) { set(11, v); }
+
+  public boolean isFrom270_0to292_5degrees() { return get(12); }
+  public void setFrom270_0to292_5degrees(boolean v) { set(12, v); }
+
+  public boolean isFrom292_5to315_0degrees() { return get(13); }
+  public void setFrom292_5to315_0degrees(boolean v) { set(13, v); }
+
+  public boolean isFrom315_0to337_5degrees() { return get(14); }
+  public void setFrom315_0to337_5degrees(boolean v) { set(14, v); }
+
+  public boolean isFrom337_5to360_0degrees() { return get(15); }
+  public void setFrom337_5to360_0degrees(boolean v) { set(15, v); }
 }
