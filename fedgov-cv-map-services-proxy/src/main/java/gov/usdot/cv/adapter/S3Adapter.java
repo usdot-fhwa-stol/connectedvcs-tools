@@ -18,13 +18,23 @@ public class S3Adapter {
         this.s3Client = s3Client;
         this.s3Config = s3Config;
     }
+
+    /**
+     * Checks if S3 integration is enabled.
+     * @return true if S3 is enabled, false otherwise.
+     */
+    public boolean isS3Enabled() {
+        return s3Config.getBucket() != null && !s3Config.getBucket().isEmpty() && s3Config.getAccessKey() != null
+                && !s3Config.getAccessKey().isEmpty() && s3Config.getSecretKey() != null
+                && !s3Config.getSecretKey().isEmpty();
+    }
     
     /**
      * Fetches the tile set from AWS S3.
      * @param uri The URI to fetch the tile set from.
      * @return The byte array representing the tile set.
      */
-    public byte[] fetchFromS3(String tilesetId, int z, int x, int y) {
+    public byte[] fetchTileSetsFromS3(String tilesetId, int z, int x, int y) {
         String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
         try {
             log.info("Fetching tile set from S3 bucket: {} for key: {}", s3Config.getBucket(), key);
@@ -54,12 +64,16 @@ public class S3Adapter {
         String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
         try {
             log.info("Saving tile set to S3 bucket: {} for key: {}", s3Config.getBucket(), key);
-            s3Client.putObject(b -> b.bucket(s3Config.getBucket()).key(key).contentType("image/png"), RequestBody.fromBytes(tileData));
+            s3Client.putObject(
+                    b -> b.bucket(s3Config.getBucket())
+                            .key(key)
+                            .contentType("image/png"),
+                             RequestBody.fromBytes(tileData));
         } catch (S3Exception s3e) {
             if (s3e.statusCode() == 403 || s3e.statusCode() == 401) {
-            log.error("Authentication error saving tile set to S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
+                log.error("Authentication error saving tile set to S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
             } else {
-            log.error("S3 error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
+                log.error("S3 error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
             }
         } catch (Exception e) {
             log.error("Error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, e.getMessage());

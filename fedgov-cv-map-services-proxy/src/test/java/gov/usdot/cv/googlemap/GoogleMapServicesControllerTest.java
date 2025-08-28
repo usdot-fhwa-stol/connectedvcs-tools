@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import gov.usdot.cv.googlemap.models.GoogleMapProperties;
 import gov.usdot.cv.googlemap.services.GoogleElevationsService;
 import gov.usdot.cv.googlemap.services.GooglePlacesService;
 
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(GoogleMapServicesController.class)
 public class GoogleMapServicesControllerTest {
     @MockBean
@@ -46,7 +48,7 @@ public class GoogleMapServicesControllerTest {
             this.mockMvc.perform(get("/googlemap/api/elevation/38/-47"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().string("{\"elevation\":148.0,\"location\":{\"lat\":38.0,\"lng\":-47.0},\"resolution\":10.0}"));
+            .andExpect(content().json("{\"elevation\":148.0,\"location\":{\"lat\":38.0,\"lng\":-47.0},\"resolution\":10.0}"));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

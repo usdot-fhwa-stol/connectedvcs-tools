@@ -64,7 +64,7 @@ class RefererFilterTest {
 
     @Test
     void testDoFilter_BlocksInvalidReferer() throws Exception {
-        when(request.getHeader("Referer")).thenReturn("http://notallowed.com");
+        when(request.getHeader("Referer")).thenReturn("http://unknown.com");
         java.lang.reflect.Field field = RefererFilter.class.getDeclaredField("allowedReferer");
         field.setAccessible(true);
         field.set(filter, "allowed.com");
