@@ -15,12 +15,17 @@
  */
 package gov.usdot.cv.esrimap.models;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EsriSpatialReference {
     @JsonProperty("wkid")
     @JsonAlias("wkid")
     private double wkid;
+
+    @JsonProperty("vcsWkid")
+    @JsonAlias("vcsWkid")
     private double vcsWkid;
 
     public EsriSpatialReference() {}
