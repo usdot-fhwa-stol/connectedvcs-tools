@@ -16,15 +16,17 @@
 
 package gov.usdot.cv.azuremap.services;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
+
+import gov.usdot.cv.adapter.S3Adapter;
+import gov.usdot.cv.config.AzureConfig;
+import gov.usdot.cv.config.S3Config;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -33,22 +35,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TileProxyService {
 
-    private S3Client s3Client;
-    
+    private S3Adapter s3Adapter;
     private RestTemplate restTemplate;
-    
-    @Value("${aws.s3.bucket}")
-    private String bucket;
+    private AzureConfig azureConfig;
+    private S3Config s3Config;
 
-    @Value("${azure.map.api.key}")
-    private String apiKey;
-
-    @Value("${azure.map.tileset.url}")
-    private String tilesetUrl;
-
-    public TileProxyService(RestTemplateBuilder restTemplateBuilder, S3Client s3Client) {
+    public TileProxyService(RestTemplateBuilder restTemplateBuilder, S3Adapter s3Depositor, AzureConfig azureConfig, S3Config s3Config) {
         this.restTemplate = restTemplateBuilder.build();
-        this.s3Client = s3Client;
+        this.s3Adapter = s3Depositor;
+        this.azureConfig = azureConfig;
+        this.s3Config = s3Config;
     }
 
     /**
@@ -58,63 +54,40 @@ public class TileProxyService {
      */
     @Cacheable("mapTilesCache")
     public byte[] fetchTileSets(String tilesetId, int z, int x, int y) {
-        //Fetch the tile set from AWS S3 bucket
-        byte[] s3TileBytes = fetchFromS3(tilesetId, z, x, y);
-        if (s3TileBytes != null && s3TileBytes.length > 0) {
-            log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-            return s3TileBytes;
+        if (isS3Enabled()) {
+            //Fetch the tile set from AWS S3 bucket
+            log.info("S3 Bucket is configured. Attempting to fetch from S3.");
+            byte[] s3TileBytes = s3Adapter.fetchFromS3(tilesetId, z, x, y);
+            if (s3TileBytes != null && s3TileBytes.length > 0) {
+                log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+                return s3TileBytes;
+            }
+        } else {
+            log.warn("S3 Bucket is not configured. Skipping S3 fetch.");
         }
+        
         // Fetch the tile set from Azure Maps
-        byte[] azureTileBytes = fetchFromAzureMap(tilesetId, z, x, y);        
+        byte[] azureTileBytes = fetchFromAzureMap(tilesetId, z, x, y);
         //Save to S3
         if (azureTileBytes != null && azureTileBytes.length > 0) {
             log.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-            saveToS3(tilesetId, z, x, y, azureTileBytes);
+            s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
             return azureTileBytes;
         }
         return null;
     }
-    /**
-     * Fetches the tile set from AWS S3.
-     * @param uri The URI to fetch the tile set from.
-     * @return The byte array representing the tile set.
-     */
-    private byte[] fetchFromS3(String tilesetId, int z, int x, int y) {
-        String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
-        try {
-            log.info("Fetching tile set from S3 for key: {}", key);
-            return s3Client.getObjectAsBytes(b -> b.bucket(bucket).key(key)).asByteArray();
-        } catch (Exception e) {
-            log.error("Error fetching tile set from S3 for key: {}, {}", key, e.getMessage());
-            return null;
-        }
-    }
 
-    /**
-     * Saves the tile set to AWS S3.
-     * @param tilesetId The ID of the tileset.
-     * @param z The zoom level.
-     * @param x The x-coordinate.
-     * @param y The y-coordinate.
-     * @param tileData The tile data to save.
-     */
-    private void saveToS3(String tilesetId, int z, int x, int y, byte[] tileData) {
-        String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
-        try {
-            log.info("Saving tile set to S3 for key: {}", key);
-            s3Client.putObject(b -> b.bucket(bucket).key(key).contentType("image/png"), RequestBody.fromBytes(tileData));
-        } catch (Exception e) {
-            log.error("Error saving tile set to S3 for key: {}", key, e.getMessage());
-        }
+    private boolean isS3Enabled() {
+        return s3Config.getBucket() != null && !s3Config.getBucket().isEmpty() && s3Config.getAccessKey() != null && !s3Config.getAccessKey().isEmpty() && s3Config.getSecretKey() != null && !s3Config.getSecretKey().isEmpty();
     }
-
+    
     /**
      * Fetches the tile set from Azure Maps.
      * @param uri The URI to fetch the tile set from.
      * @return The byte array representing the tile set.
      */
     private byte[] fetchFromAzureMap(String tilesetId, int z, int x, int y) {
-        String uri = String.format(tilesetUrl, tilesetId, z, x, y, apiKey);
+        String uri = String.format(azureConfig.getTilesetUrl(), tilesetId, z, x, y, azureConfig.getApiKey());
         log.info("Fetching tile set from Azure Maps for URI: {}", uri);
         try {
             HttpHeaders headers = new HttpHeaders();
