@@ -15,6 +15,8 @@
  */
 package gov.usdot.cv.config;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,19 +25,20 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
 @Configuration
 public class S3Config {
-    @Value("${aws.s3.accessKey:}")
+    @Value("${aws.s3.accessKey:unknown}")
     private String accessKey;
     
-    @Value("${aws.s3.secretKey:}")
+    @Value("${aws.s3.secretKey:unknown}")
     private String secretKey;
 
     @Value("${aws.s3.region:us-east-1}")
     private String region;
 
-    @Value("${aws.s3.bucket:}")
+    @Value("${aws.s3.bucket:unknown}")
     public String bucket;
 
     @Bean
@@ -43,6 +46,11 @@ public class S3Config {
         return S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                .httpClientBuilder(
+                        ApacheHttpClient.builder()
+                                .maxConnections(100)
+                                .connectionTimeout(Duration.ofSeconds(10))
+                                .socketTimeout(Duration.ofSeconds(30)))
                 .build();
     }
 

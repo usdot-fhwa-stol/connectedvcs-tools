@@ -44,8 +44,11 @@ public class TileProxyController {
   public ResponseEntity<byte[]> getTile(@PathVariable String tilesetId, @PathVariable int z, @PathVariable int x, @PathVariable int y) {
     try {
       // Fetch the tile from Azure Maps
+      long start = System.currentTimeMillis();
       byte[] tileBytes = tileProxyService.fetchTileSets(tilesetId, z, x, y);
-      
+      long elapsedMs = System.currentTimeMillis() - start;
+      logger.info("fetchTileSets COMPLETED in {} ms", elapsedMs);
+
       if (tileBytes == null || tileBytes.length == 0) {
         logger.error("Tile not found for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
         return ResponseEntity.notFound().build();

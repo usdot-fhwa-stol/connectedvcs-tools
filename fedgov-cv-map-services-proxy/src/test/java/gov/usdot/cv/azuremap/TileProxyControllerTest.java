@@ -34,7 +34,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(TileProxyController.class)
-@TestPropertySource(properties = "azure.map.api.key=fake-api-key,azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s")
+@TestPropertySource(properties = {
+  "azure.map.api.key=fake-api-key",
+  "azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s",
+  "aws.s3.accessKey=unknown",
+  "aws.s3.secretKey=unknown",
+  "aws.s3.bucket=unknown"
+})
 public class TileProxyControllerTest {
   @MockBean
   private TileProxyService tileProxyService;
@@ -44,16 +50,16 @@ public class TileProxyControllerTest {
 
   @Test
   void getTileProxyShouldReturnMessageFromService() throws Exception {
-    try {
-        byte[] png = new byte[] { (byte) 0x89, 0x50, 0x4E, 0x47 };
-        when(tileProxyService.fetchTileSets("microsoft.imagery", 1, 1, 1)).thenReturn(png);
-        this.mockMvc.perform(get("/azuremap/api/proxy/tileset/microsoft.imagery/1/1/1"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.IMAGE_PNG));
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      e.printStackTrace();
-      throw e;
-    }
+  try {
+    byte[] png = new byte[] { (byte) 0x89, 0x50, 0x4E, 0x47 };
+    when(tileProxyService.fetchTileSets("microsoft.imagery", 1, 1, 1)).thenReturn(png);
+    this.mockMvc.perform(get("/azuremap/api/proxy/tileset/microsoft.imagery/1/1/1"))
+    .andExpect(status().isOk())
+    .andExpect(content().contentType(MediaType.IMAGE_PNG));
+  } catch (Exception e) {
+    System.out.println(e.getMessage());
+    e.printStackTrace();
+    throw e;
+  }
   }
 }

@@ -21,20 +21,27 @@ import static org.mockito.Mockito.*;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.TestPropertySource;
+
 import gov.usdot.cv.config.S3Config;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource(properties = {
+  "azure.map.api.key=fake-api-key",
+  "azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s",
+  "aws.s3.accessKey=unknown",
+  "aws.s3.secretKey=unknown",
+  "aws.s3.bucket=unknown"
+})
 public class S3AdapterTest {
 
     @Mock

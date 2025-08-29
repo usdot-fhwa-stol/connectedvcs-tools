@@ -1,5 +1,5 @@
 
-const minZoom = 1;
+const minZoom = 15;
 const maxZoom = 21;
 //Set cookie anytime map is moved
 function onMoveEnd(event, map) {
@@ -55,10 +55,27 @@ function onZoomCallback(event, map) {
     $('#zoomLevel .zoom').text(currentZoom);
 }
 
+function onWheelScrollCallback(map, evt) {
+    evt.preventDefault();
+    const view = map.getView();
+    let zoom = view.getZoom();
+    let newZoom = zoom;
+    if (evt.deltaY < 0) {
+        newZoom = Math.min(zoom + 1, maxZoom);
+    } else if (evt.deltaY > 0) {
+        newZoom = Math.max(zoom - 1, minZoom);
+    }
+    view.animate({
+        zoom: newZoom,
+        duration: 250
+  });
+}
+
 export {
     onMoveEnd,
     onPointerMove,
     onZoomIn,
     onZoomOut,
-    onZoomCallback
+    onZoomCallback,
+    onWheelScrollCallback
 }

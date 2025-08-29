@@ -25,7 +25,6 @@ import org.springframework.web.client.RestTemplate;
 
 import gov.usdot.cv.adapter.S3Adapter;
 import gov.usdot.cv.config.AzureConfig;
-import gov.usdot.cv.config.S3Config;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
@@ -54,7 +53,6 @@ public class TileProxyService {
     public byte[] fetchTileSets(String tilesetId, int z, int x, int y) {
         if (s3Adapter.isS3Enabled()) {
             //Fetch the tile set from AWS S3 bucket
-            log.info("S3 Bucket is configured. Attempting to fetch from S3.");
             byte[] s3TileBytes = s3Adapter.fetchTileSetsFromS3(tilesetId, z, x, y);
             if (s3TileBytes != null && s3TileBytes.length > 0) {
                 log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
@@ -71,6 +69,8 @@ public class TileProxyService {
             log.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
             s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
             return azureTileBytes;
+        } else {
+            log.error("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
         }
         return null;
     }
