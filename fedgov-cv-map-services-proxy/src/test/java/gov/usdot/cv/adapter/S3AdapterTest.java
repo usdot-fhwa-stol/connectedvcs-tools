@@ -18,6 +18,8 @@ package gov.usdot.cv.adapter;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,32 +39,25 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(properties = {
   "azure.map.api.key=fake-api-key",
-  "azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s",
-  "aws.s3.accessKey=unknown",
-  "aws.s3.secretKey=unknown",
-  "aws.s3.bucket=unknown"
+  "azure.map.tileset.url=https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.imagery&zoom=%d&x=%d&y=%d&subscription-key=%s"
 })
 public class S3AdapterTest {
 
     @Mock
-    private S3Client s3Client;
+    private  S3Client s3Client;
 
     @Mock
     private S3Config s3Config;
 
     @Test
     void isS3Enabled_returnsTrue_whenAllConfigPresent() {
-        when(s3Config.getBucket()).thenReturn("my-bucket");
-        when(s3Config.getAccessKey()).thenReturn("AKIA");
-        when(s3Config.getSecretKey()).thenReturn("SECRET");
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         assertTrue(s3Adapter.isS3Enabled());
     }
 
     @Test
-    void isS3Enabled_returnsFalse_whenBucketMissing() {
-        when(s3Config.getBucket()).thenReturn(null);
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+    void isS3Enabled_returnsFalse_whenAnyConfigMissing() {
+        S3Adapter s3Adapter = new S3Adapter(Optional.empty(), s3Config);
         assertFalse(s3Adapter.isS3Enabled());
     }
 
@@ -72,7 +67,7 @@ public class S3AdapterTest {
         ResponseBytes<GetObjectResponse> respBytes =
                 ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), expected);
         when(s3Client.getObjectAsBytes(any(Consumer.class))).thenReturn(respBytes);
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         byte[] result = s3Adapter.fetchTileSetsFromS3("tileset", 1, 2, 3);
         assertArrayEquals(expected, result);
     }
@@ -82,8 +77,7 @@ public class S3AdapterTest {
         AwsServiceException authEx = S3Exception.builder().statusCode(403).message("Forbidden").build();
         when(s3Client.getObjectAsBytes(any(Consumer.class)))
             .thenThrow(authEx);
-
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         byte[] result = s3Adapter.fetchTileSetsFromS3("tileset", 0, 0, 0);
         assertNull(result);
     }
@@ -93,8 +87,7 @@ public class S3AdapterTest {
         AwsServiceException other = S3Exception.builder().statusCode(500).message("ServerError").build();
         when(s3Client.getObjectAsBytes(any(Consumer.class)))
             .thenThrow(other);
-
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         assertNull(s3Adapter.fetchTileSetsFromS3("tileset", 0, 0, 0));
     }
 
@@ -102,8 +95,7 @@ public class S3AdapterTest {
     void fetchTileSetsFromS3_returnsNull_onRuntimeException() {
         when(s3Client.getObjectAsBytes(any(Consumer.class)))
             .thenThrow(new RuntimeException("boom"));
-
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         assertNull(s3Adapter.fetchTileSetsFromS3("tileset", 0, 0, 0));
     }
 
@@ -112,9 +104,8 @@ public class S3AdapterTest {
         PutObjectResponse putResp = PutObjectResponse.builder().eTag("etag").build();
         when(s3Client.putObject(any(Consumer.class), any(RequestBody.class)))
             .thenReturn(putResp);
-
         byte[] data = new byte[] {9,8,7};
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         s3Adapter.saveToS3("tileset", 4, 5, 6, data);
         verify(s3Client).putObject(any(Consumer.class), any(RequestBody.class));
     }
@@ -123,8 +114,7 @@ public class S3AdapterTest {
     void saveToS3_handlesAuthS3Exception_withoutThrowing() {
         when(s3Client.putObject(any(Consumer.class), any(RequestBody.class)))
             .thenThrow(S3Exception.builder().statusCode(403).message("Forbidden").build());
-
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         assertDoesNotThrow(() -> s3Adapter.saveToS3("tileset", 1, 1, 1, new byte[] {1}));
     }
 
@@ -132,8 +122,7 @@ public class S3AdapterTest {
     void saveToS3_handlesRuntimeException_withoutThrowing() {
         when(s3Client.putObject(any(Consumer.class), any(RequestBody.class)))
             .thenThrow(new RuntimeException("boom"));
-
-        S3Adapter s3Adapter = new S3Adapter(s3Client, s3Config);
+        S3Adapter s3Adapter = new S3Adapter(Optional.of(s3Client), s3Config);
         assertDoesNotThrow(() -> s3Adapter.saveToS3("tileset", 1, 1, 1, new byte[] {2}));
     }
 }

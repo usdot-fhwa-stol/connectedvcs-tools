@@ -51,15 +51,11 @@ public class TileProxyService {
      */
     @Cacheable("mapTilesCache")
     public byte[] fetchTileSets(String tilesetId, int z, int x, int y) {
-        if (s3Adapter.isS3Enabled()) {
-            //Fetch the tile set from AWS S3 bucket
-            byte[] s3TileBytes = s3Adapter.fetchTileSetsFromS3(tilesetId, z, x, y);
-            if (s3TileBytes != null && s3TileBytes.length > 0) {
-                log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-                return s3TileBytes;
-            }
-        } else {
-            log.warn("S3 Bucket is not configured. Skipping S3 fetch.");
+        //Fetch the tile set from AWS S3 bucket
+        byte[] s3TileBytes = s3Adapter.fetchTileSetsFromS3(tilesetId, z, x, y);
+        if (s3TileBytes != null && s3TileBytes.length > 0) {
+            log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            return s3TileBytes;
         }
         
         // Fetch the tile set from Azure Maps

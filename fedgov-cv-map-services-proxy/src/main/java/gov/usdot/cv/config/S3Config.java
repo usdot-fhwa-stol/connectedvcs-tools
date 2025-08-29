@@ -18,6 +18,7 @@ package gov.usdot.cv.config;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,20 +30,32 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
 @Configuration
 public class S3Config {
-    @Value("${aws.s3.accessKey:unknown}")
+    @Value("${aws.s3.accessKey:}")
     private String accessKey;
     
-    @Value("${aws.s3.secretKey:unknown}")
+    @Value("${aws.s3.secretKey:}")
     private String secretKey;
 
     @Value("${aws.s3.region:us-east-1}")
     private String region;
 
-    @Value("${aws.s3.bucket:unknown}")
+    @Value("${aws.s3.bucket:}")
     public String bucket;
 
     @Bean
+    @ConditionalOnProperty(name = {
+        "aws.s3.accessKey",
+        "aws.s3.secretKey",
+        "aws.s3.region",
+        "aws.s3.bucket"
+    }, matchIfMissing = false)
     public S3Client s3Client() {
+        if (accessKey == null || accessKey.isEmpty() ||
+            secretKey == null || secretKey.isEmpty() ||
+            region == null || region.isEmpty() ||
+            bucket == null || bucket.isEmpty()) {
+            return null;
+        }
         return S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
@@ -56,13 +69,5 @@ public class S3Config {
 
     public String getBucket() {
         return bucket;
-    }
-
-    public String getAccessKey() {
-        return accessKey;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
     }
 }
