@@ -1,5 +1,5 @@
 
-const minZoom = 15;
+const minZoom = 14;
 const maxZoom = 21;
 //Set cookie anytime map is moved
 function onMoveEnd(event, map) {

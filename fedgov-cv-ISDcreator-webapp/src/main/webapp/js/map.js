@@ -1608,11 +1608,8 @@ $(document).ready(() => {
   initMISC();
   getCSRFToken().then(token => {
     let start = Date.now();
-    console.log('getCSRFToken resolved at', start, 'ms');
     initMap();
     let end = Date.now();
-    console.log('initMap resolved at', end, 'ms');
-    console.log('Total time taken:', end - start, 'ms');
     removeWheelZoomInteraction();
     registerMapEvents();
     registerSelectInteraction();
