@@ -6,7 +6,9 @@ Version 2.2.3, released Sep 2nd, 2025
 
 ### **Summary**  
 Maptool release version 2.2.3 is a hotfix release for 2.2.0.
- 
+
+**MAP-349: Hotfix for ESRI Elevation API errors**  
+
 ### **<ins>Fixes in Release:</ins>**
  - Fixed a bug that caused MAP Tool to return -9999 for elevation due to the changes in ESRI API interface. 
 
@@ -28,9 +30,7 @@ Version 2.2.1, released May 16th, 2025
 
 ### **Summary**  
 Maptool release version 2.2.1 is a hotfix release for 2.2.0.
- 
-**MAP-349: Hotfix for ESRI Elevation API errors**  
-
+  
 ### **<ins>Fixes in Release:</ins>**
   - Fixed release version of the MAP tool UI when clicked on About button under the Help Menu.
     
