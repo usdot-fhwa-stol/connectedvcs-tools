@@ -46,10 +46,6 @@ public class TileProxyController {
       // Fetch the tile from Azure Maps
       byte[] tileBytes = tileProxyService.fetchTileSets(tilesetId, z, x, y);
 
-      if (tileBytes == null || tileBytes.length == 0) {
-        logger.error("Tile not found for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-        return ResponseEntity.notFound().build();
-      }
       // Return the tile data back to the client
       return ResponseEntity.ok()
           .header("Content-Type", "image/png")

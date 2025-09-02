@@ -66,7 +66,7 @@ public class TileProxyService {
             s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
             return azureTileBytes;
         } else {
-            log.error("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            log.warn("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
         }
         return null;
     }

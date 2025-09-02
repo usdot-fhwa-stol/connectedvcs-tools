@@ -9,7 +9,6 @@ import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomI
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 const tokenURL = "/msp/security/api/csrf-token/";
-const tokenURL = "/msp/security/api/csrf-token/";
 let nodeObject = [];
 let approachObject = [];
 const aerialTilesetId = "microsoft.imagery";
@@ -106,10 +105,7 @@ function initMap() {
     source: new ol.source.XYZ({
       url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
       tileLoadFunction: customTileLoadFunction
-      url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
-      tileLoadFunction: customTileLoadFunction
     }),
-    cacheSize: 512,
     type: "base",
     visible: true,
   });
@@ -121,7 +117,6 @@ function initMap() {
       url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}",
       tileLoadFunction: customTileLoadFunction,
     }),
-    cacheSize: 512,
     visible: false,
   });
 
@@ -131,10 +126,7 @@ function initMap() {
     source: new ol.source.XYZ({
       url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}",
       tileLoadFunction: customTileLoadFunction
-      url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}",
-      tileLoadFunction: customTileLoadFunction
     }),
-    cacheSize: 512,
     visible: false,
   });
 
@@ -142,7 +134,6 @@ function initMap() {
     title: "OpenStreetMap",
     type: "base",
     source: new ol.source.OSM(),
-    cacheSize: 512,
     visible: false,
   });
 
