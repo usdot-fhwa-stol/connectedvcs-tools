@@ -1612,9 +1612,7 @@ function removeWheelZoomInteraction() {
 $(document).ready(() => {
   initMISC();
   getCSRFToken().then(token => {
-    let start = Date.now();
     initMap();
-    let end = Date.now();
     removeWheelZoomInteraction();
     registerMapEvents();
     registerSelectInteraction();
