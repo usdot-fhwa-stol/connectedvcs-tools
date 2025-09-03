@@ -17,19 +17,20 @@ package gov.usdot.cv.adapter;
 
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import gov.usdot.cv.config.S3Config;
-import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
-@Slf4j
 public class S3Adapter {
     private final Optional<S3Client> s3Client;
     private final S3Config s3Config;
+    private final Logger logger = LogManager.getLogger(S3Adapter.class);
 
     public S3Adapter(Optional<S3Client> s3Client, S3Config s3Config) {
         this.s3Client = s3Client;
@@ -51,22 +52,22 @@ public class S3Adapter {
      */
     public byte[] fetchTileSetsFromS3(String tilesetId, int z, int x, int y) {
         if (!isS3Enabled()) {
-            log.info("S3 Client is not configured. Skipping S3 fetch.");
+            logger.info("S3 Client is not configured. Skipping S3 fetch.");
             return null;
         }
         String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
         try {
-            log.info("Fetching tile set from S3 bucket: {} for key: {}", s3Config.getBucket(), key);
+            logger.info("Fetching tile set from S3 bucket: {} for key: {}", s3Config.getBucket(), key);
             return s3Client.get().getObjectAsBytes(b -> b.bucket(s3Config.getBucket()).key(key)).asByteArray();
         } catch (S3Exception s3e) {
             if (s3e.statusCode() == 403 || s3e.statusCode() == 401) {
-                log.error("Authentication error fetching tile set from S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
+                logger.error("Authentication error fetching tile set from S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
             } else {
-                log.error("S3 error fetching tile set from S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
+                logger.error("S3 error fetching tile set from S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
             }
             return null;
         } catch (Exception e) {
-            log.error("Error fetching tile set from S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, e.getMessage());
+            logger.error("Error fetching tile set from S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, e.getMessage());
             return null;
         }
     }
@@ -81,12 +82,12 @@ public class S3Adapter {
      */
     public void saveToS3(String tilesetId, int z, int x, int y, byte[] tileData) {
         if (!isS3Enabled()) {
-            log.info("S3 Client is not configured. Skipping S3 save.");
+            logger.info("S3 Client is not configured. Skipping S3 save.");
             return;
         }
         String key = String.format("%s/%d/%d/%d", tilesetId, z, x, y);
         try {
-            log.info("Saving tile set to S3 bucket: {} for key: {}", s3Config.getBucket(), key);
+            logger.info("Saving tile set to S3 bucket: {} for key: {}", s3Config.getBucket(), key);
             s3Client.get().putObject(
                     b -> b.bucket(s3Config.getBucket())
                             .key(key)
@@ -94,12 +95,12 @@ public class S3Adapter {
                              RequestBody.fromBytes(tileData));
         } catch (S3Exception s3e) {
             if (s3e.statusCode() == 403 || s3e.statusCode() == 401) {
-                log.error("Authentication error saving tile set to S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
+                logger.error("Authentication error saving tile set to S3 bucket: {} for key: {}. Please check your AWS credentials. Error: {}", s3Config.getBucket(), key, s3e.getMessage());
             } else {
-                log.error("S3 error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
+                logger.error("S3 error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, s3e.getMessage());
             }
         } catch (Exception e) {
-            log.error("Error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, e.getMessage());
+            logger.error("Error saving tile set to S3 bucket: {} for key: {}, {}", s3Config.getBucket(), key, e.getMessage());
         }
     }
 }

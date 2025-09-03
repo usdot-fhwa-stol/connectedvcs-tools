@@ -16,6 +16,8 @@
 
 package gov.usdot.cv.azuremap.services;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpMethod;
@@ -29,14 +31,16 @@ import gov.usdot.cv.config.AzureConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
-@Slf4j
 public class TileProxyService {
 
     private S3Adapter s3Adapter;
     private RestTemplate restTemplate;
     private AzureConfig azureConfig;
+
+    private final Logger logger = LogManager.getLogger(TileProxyService.class);
 
     public TileProxyService(RestTemplateBuilder restTemplateBuilder, S3Adapter s3Depositor, AzureConfig azureConfig) {
         this.restTemplate = restTemplateBuilder.build();
@@ -54,7 +58,7 @@ public class TileProxyService {
         //Fetch the tile set from AWS S3 bucket
         byte[] s3TileBytes = s3Adapter.fetchTileSetsFromS3(tilesetId, z, x, y);
         if (s3TileBytes != null && s3TileBytes.length > 0) {
-            log.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            logger.info("Tile set found in S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
             return s3TileBytes;
         }
         
@@ -62,11 +66,18 @@ public class TileProxyService {
         byte[] azureTileBytes = fetchTileSetsFromAzureMap(tilesetId, z, x, y);
         //Save to S3
         if (azureTileBytes != null && azureTileBytes.length > 0) {
-            log.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-            s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
+            logger.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            new Thread(() -> {
+                try {
+                    s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
+                    logger.info("Successfully saved tile set to S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+                } catch (S3Exception e) {
+                    logger.error("Failed to save tile set to S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y, e);
+                }
+            }, "s3-save-thread").start();
             return azureTileBytes;
         } else {
-            log.warn("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
+            logger.warn("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
         }
         return null;
     }
@@ -78,7 +89,7 @@ public class TileProxyService {
      */
     private byte[] fetchTileSetsFromAzureMap(String tilesetId, int z, int x, int y) {
         String uri = String.format(azureConfig.getTilesetUrl(), tilesetId, z, x, y, azureConfig.getApiKey());
-        log.info("Fetching tile set from Azure Maps for URI: {}", uri);
+        logger.info("Fetching tile set from Azure Maps for URI: {}", uri);
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "image/png");
@@ -86,7 +97,7 @@ public class TileProxyService {
             ResponseEntity<byte[]> response = restTemplate.exchange(uri, HttpMethod.GET, entity, byte[].class);
             return response.getBody();
         } catch (Exception e) {
-            log.error("Error fetching tile set from Azure Maps for URI: {}, {}", uri, e.getMessage());
+            logger.error("Error fetching tile set from Azure Maps for URI: {}, {}", uri, e.getMessage());
             return null;
         }       
     }

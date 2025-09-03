@@ -32,6 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.apache.logging.log4j.Logger;
+
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(TileProxyController.class)
 @TestPropertySource(properties = {
@@ -48,6 +50,8 @@ public class TileProxyControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
+  private Logger logger = org.apache.logging.log4j.LogManager.getLogger(TileProxyControllerTest.class);
+
   @Test
   void getTileProxyShouldReturnMessageFromService() throws Exception {
   try {
@@ -57,7 +61,7 @@ public class TileProxyControllerTest {
     .andExpect(status().isOk())
     .andExpect(content().contentType(MediaType.IMAGE_PNG));
   } catch (Exception e) {
-    System.out.println(e.getMessage());
+    logger.error("Error occurred while fetching tile proxy: {}", e.getMessage());
     e.printStackTrace();
     throw e;
   }

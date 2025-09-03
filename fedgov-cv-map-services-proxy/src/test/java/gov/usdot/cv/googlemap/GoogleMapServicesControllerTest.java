@@ -4,6 +4,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import gov.usdot.cv.googlemap.services.GooglePlacesService;
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(GoogleMapServicesController.class)
 public class GoogleMapServicesControllerTest {
+    private Logger logger = org.apache.logging.log4j.LogManager.getLogger(GoogleMapServicesControllerTest.class);
     @MockBean
     private GoogleElevationsService elevationService;
 
@@ -50,7 +52,7 @@ public class GoogleMapServicesControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(content().json("{\"elevation\":148.0,\"location\":{\"lat\":38.0,\"lng\":-47.0},\"resolution\":10.0}"));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+           logger.error("Error occurred while fetching elevation: {}", e.getMessage());
         }
     }
 
@@ -61,7 +63,7 @@ public class GoogleMapServicesControllerTest {
             this.mockMvc.perform(get("/googlemap/api/elevation/30/-40"))
             .andExpect(status().is2xxSuccessful());
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+           logger.error("Error occurred while fetching elevation: {}", e.getMessage());
         }
     }
 }
