@@ -63,6 +63,7 @@ mv /tmp/web.xml.tmp fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
     - Please read the [Google Maps API Key Guidance](/docs/GoogleMaps_API_Key_Guidance.md).
     - Please read the [Esri Maps API Key Guidance](/docs/Azure_Maps_API_Key_Guidance.md)
     - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
+    - Please read the [S3 Bucket Configuration](/docs/S3_Bucket_Configuration.md).
 
 3. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
 4. Run:
