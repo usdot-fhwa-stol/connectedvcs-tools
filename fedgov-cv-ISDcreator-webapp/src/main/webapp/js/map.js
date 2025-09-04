@@ -5,15 +5,18 @@ import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneS
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
-import {onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
+import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
+const tokenURL = "/msp/security/api/csrf-token/";
 let nodeObject = [];
 let approachObject = [];
 const aerialTilesetId = "microsoft.imagery";
 const roadTilesetId = "microsoft.base.road";
 const hybridTilesetId = "microsoft.base.hybrid.road";
 const aerialMaxZoom = 19;
+const transparentTile =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/w8AAn8B9p4n6wAAAABJRU5ErkJggg==";
 let viewLon = -83.05084664848823; //-77.149279; // -81.831733
 let viewLat = 42.33697589046676 // 38.955995; //  28.119692
 let viewLonLat = [viewLon, viewLat];
@@ -53,12 +56,55 @@ let temporaryBoxMarkers;
 let timeRestrictions;
 let approachTimeRestrictions;
 let connectionsTimeRestrictions;
+let csrfToken = null;
+
+const getCSRFToken = () => {
+  // Fetch CSRF token from the server and return the token string, or null if unavailable
+  return fetch(tokenURL)
+    .then(response => {
+      if(response.status !== 200) {
+        console.error("Failed to fetch CSRF token");
+        return null;
+      }
+      return response.json();
+    })
+    .then(data => {
+      csrfToken = data.csrfToken;
+      return csrfToken;
+    });
+};
+
+/**
+ * Custom tile load function to fetch tiles with CSRF token.
+ * Used for the baseAerialLayer in initMap().
+ */
+const customTileLoadFunction = (imageTile, src) => {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', src);
+  xhr.responseType = 'blob';
+  if (csrfToken) {
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+  }
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const url = URL.createObjectURL(xhr.response);
+      imageTile.getImage().src = url;
+    }else {
+      imageTile.getImage().src = transparentTile;
+    }
+  };
+  xhr.onerror = function() {
+    imageTile.getImage().src = transparentTile;
+  };
+  xhr.send();
+};
 
 function initMap() {
   const baseAerialLayer = new ol.layer.Tile({
     title: "Aerial",
     source: new ol.source.XYZ({
-      url: tilesetURL + aerialTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction
     }),
     type: "base",
     visible: true,
@@ -68,7 +114,8 @@ function initMap() {
     title: "Road",
     type: "base",
     source: new ol.source.XYZ({
-      url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + roadTilesetId+"/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction,
     }),
     visible: false,
   });
@@ -77,7 +124,8 @@ function initMap() {
     title: "Hybrid",
     type: "base",
     source: new ol.source.XYZ({
-      url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}"
+      url: tilesetURL + hybridTilesetId+"/{z}/{x}/{y}",
+      tileLoadFunction: customTileLoadFunction
     }),
     visible: false,
   });
@@ -155,10 +203,10 @@ function initMap() {
   baseLayersGroup = new ol.layer.Group({
     title: "Base Layer",
     layers: [
-      osmLayer,
       baseAerialLayer,
       baseRoadLayer,
       baseHybridLayer,
+      osmLayer,
     ],
   });
 
@@ -263,6 +311,8 @@ function registerMapEvents() {
   map.getView().on("change:resolution", (event) => {
     onZoomCallback(event, map);
   });
+  const viewport = map.getViewport();
+  viewport.addEventListener('wheel', evt=>{ onWheelScrollCallback(map, evt) }, { passive: false });
 }
 
 function registerSelectInteraction() {
@@ -1542,15 +1592,27 @@ function clearMap(){
   $("#builder, #drawLanes, #editLanes, #measureLanes, #drawStopBar, #editStopBar, #deleteMarker, #approachControlLabel, #laneControlLabel, #measureControlLabel, #dragSigns").hide();
 }
 
+function removeWheelZoomInteraction() {
+  map.getInteractions().forEach(function(interaction) {
+    if (interaction instanceof ol.interaction.MouseWheelZoom) {
+      map.removeInteraction(interaction);
+    }
+  });
+}
+
 $(document).ready(() => {
   initMISC();
-  initMap();
-  registerMapEvents();
-  registerSelectInteraction();
-  registerDrawInteractions();
-  initTopNavBar();
-  initSideBar();
-  registerModalButtonEvents();
+  getCSRFToken().then(token => {
+    initMap();
+    removeWheelZoomInteraction();
+    registerMapEvents();
+    registerSelectInteraction();
+    registerDrawInteractions();
+    initTopNavBar();
+    initSideBar();
+    registerModalButtonEvents();
+  });
+ 
 });
 
 export {

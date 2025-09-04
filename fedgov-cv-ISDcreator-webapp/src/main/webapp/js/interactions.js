@@ -701,6 +701,7 @@ function hasSelectedFeatures(map) {
 };
 
 
+
 export {
   laneSelectInteractionCallback,
   vectorSelectInteractionCallback,
