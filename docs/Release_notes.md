@@ -85,35 +85,6 @@ Note: Since we updated Openlayers library from v2 to v10, a mismatch is introduc
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/109, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/110
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Version 2.1.0, released 31st, 2024
 ----------------------------------------
 

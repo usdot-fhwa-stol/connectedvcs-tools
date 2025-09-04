@@ -101,6 +101,10 @@ $(document).ready(function()
             }
         });
     });
+
+    if ($('#alert_placeholder').length === 0) {
+        $('#message_alert').addClass('alert-section-hidden');
+    }
 });
 
 /**
@@ -149,6 +153,7 @@ function resetMessageForm() {
     message_text_input.val("");
     $('.message_size').text("");
     message_status_div.removeClass('has-error has-success');
+    $('#message_alert').addClass('alert-section-hidden');
 }
 
 
@@ -190,6 +195,7 @@ function createMessageJSON()
     let reference = {};
     let referenceChild = {};
     let rgaBaseLayerFields = {};
+    let messageType = $('#message_type').val();
 
     for(let b=0; b< laneFeat.length; b++){
         laneFeat[b].set('inBox', false);
@@ -202,12 +208,13 @@ function createMessageJSON()
 
             let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
             let dfRGALaneTimeRestrictions = {}
-            if (rgaEnabled) {
+            //Lane Time Restrictions
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
                 dfRGALaneTimeRestrictions["timeRestrictions"] = {
                     "daysOfTheWeek": laneFeat[j].get('laneInfoDaySelection'),
                     "timePeriodType": laneFeat[j].get('laneInfoTimePeriodType'),
-                    "laneInfoTimePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
-                    "laneInfoTimePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
+                    "timePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
+                    "timePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
                 };
             }
             if (inside && laneFeat[j].get('laneType') != "Crosswalk"){
@@ -221,10 +228,81 @@ function createMessageJSON()
                         let currentSpeedLimits = [];
                         if(laneFeat[j].get('speedLimitType')) {
                             let mapSpeedLimits = laneFeat[j].get('speedLimitType');
-
                             for (let mapSpeedLimit of mapSpeedLimits) {
-                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type"  && mapSpeedLimit.speedLimitType != "") {
-                                    currentSpeedLimits.push(mapSpeedLimit)
+                                if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
+                                    let speedLimit = { ...mapSpeedLimit };
+                                    let shouldSkipSpeedLimit = false;
+                                    
+                                    if (speedLimit.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                                        delete speedLimit.timeRestrictions;
+                                    }
+                                    
+                                    //Presents alerts for incompatible RGA Speed Limits in MAP
+                                    if (m === 0 && (messageType === "Frame+Map" || messageType === "Map")) {
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Min Speed" && $('#maneuver-alert-min-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Passenger Vehicle Min Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-min-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                          
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Max Speed" && $('#maneuver-alert-max-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Passenger Vehicle Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-max-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                           
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                        if (speedLimit.speedLimitChoice == "advisory" && $()) {
+                                            let speedChoiceAlert = "Advisory speed limit added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
+                                            $('#alert_placeholder').append('<div id="choice-alert-advisory-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dimiss="alert" aria-hidden="true">&times;</button><span>' + speedChoiceAlert + '</span></div>');                                          
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                    }
+                                    //Presents alerts for incompatible MAP Speed Limits in RGA
+                                    if (m === 0 && (messageType === "RGA" || messageType === "Frame+RGA")) {
+                                        if (speedLimit.speedLimitType == "Unknown" && $('#maneuver-alert-unknown-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Unknown speed limit type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-unknown-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                           
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Min Speed" && $('#maneuver-alert-trailer-min-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicles w/ Trailers Min Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-min-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                          
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Max Speed" && $('#maneuver-alert-trailer-max-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicle With Trailers Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-max-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');     
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                        if (speedLimit.speedLimitType == "Vehicles w/ Trailers Night Max Speed" && $('#maneuver-alert-trailer-night-' + laneFeat[j].get('laneNumber')).length === 0) {
+                                            let speedLimitAlert = "Vehicles w/ Trailers Night Max Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
+                                            $('#alert_placeholder').append('<div id="maneuver-alert-trailer-night-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');
+                                            $('#message_alert').removeClass('alert-section-hidden');
+                                        }
+                                    }
+
+                                    //Omits incompatible speed limits from MAP JSON
+                                    if ((messageType === "Frame+Map" || messageType === "Map")) {
+                                        if (speedLimit.speedLimitType == "Passenger Vehicles Min Speed" || 
+                                            speedLimit.speedLimitType == "Passenger Vehicles Max Speed") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                        if (speedLimit.speedLimitChoice == "advisory") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                    }
+                                    
+                                    //Omits incompatible speed limits from RGA JSON
+                                    if ((messageType === "RGA" || messageType === "Frame+RGA")) {
+                                        if (speedLimit.speedLimitType == "Unknown" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Min Speed" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Max Speed" || 
+                                            speedLimit.speedLimitType == "Vehicles w/ Trailers Night Max Speed") {
+                                            shouldSkipSpeedLimit = true;
+                                        }
+                                    }
+                                    
+                                    if (!shouldSkipSpeedLimit) {
+                                        currentSpeedLimits.push(speedLimit);
+                                    }
                                 }
                             }
                         }
@@ -249,11 +327,13 @@ function createMessageJSON()
                             }
                             $("#message_deposit").prop('disabled', true);
                             $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Node elevation empty for node " + m + " in lane " + laneFeat[j].get('laneNumber') + "." +'</span></div>');
+                            $('#message_alert').removeClass('alert-section-hidden');
                         }                 
                     }
                 } else {
                     let dfRGAOffsetZ = {}
-                    if (rgaEnabled){
+                    //RGA - OffsetZ
+                    if (messageType === "Frame+RGA" || messageType === "RGA"){
                         dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
                     }
                     computedLane = {
@@ -271,15 +351,83 @@ function createMessageJSON()
 
                 attributeArray = [];
                 for(let k in laneFeat[j].get('lane_attributes')) {
-                    attributeArray.push(laneFeat[j].get('lane_attributes')[k].id);
+                    let attributeId = laneFeat[j].get('lane_attributes')[k].id;
+                    if (!(attributeId === 12)) {
+                        attributeArray.push(attributeId);
+                    } else {
+                        let laneAttributeAlertMessage = "";
+                        let existingLaneAttrAlert = $('#alert_placeholder').find('#lane-attribute-alert-' + laneFeat[j].get('laneNumber'));
+                        if (existingLaneAttrAlert.length === 0) {
+                            if (messageType === "Frame+RGA" || messageType === "RGA") {
+                                laneAttributeAlertMessage = "Right U-Turn lane attribute for lane " + laneFeat[j].get('laneNumber') + " is not supported for RGA and will not be encoded";
+                            } else if (messageType === "Frame+Map" || messageType === "Map") {
+                                laneAttributeAlertMessage = "Right U-Turn lane attribute for lane " + laneFeat[j].get('laneNumber') + " is not supported for MAP and will not be encoded";
+                            }
+
+                            $('#alert_placeholder').append('<div id="lane-attribute-alert-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ laneAttributeAlertMessage +'</span></div>');                       
+                            $('#message_alert').removeClass('alert-section-hidden');
+                        }                       
+                    }
                 }
+
+                let connectionsArray = laneFeat[j].get('connections');
+                if (connectionsArray?.length) {
+                    let updatedConnections = [];
+                
+                    for (let i = 0; i < connectionsArray.length; i++) {
+                        let connection = { ...connectionsArray[i] };
+                
+                        // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
+                        if (connection.maneuvers) {
+                            if ((messageType === "Frame+RGA" || messageType === "RGA")) {
+                                if (connection.maneuvers.includes("6")) {
+                                    let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
+                                    if (existingManeuverAlert6.length === 0) {
+                                        let connectionManeuverAlert = "Lane Change maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-6-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');   
+                                        $('#message_alert').removeClass('alert-section-hidden');
+                                    }
+                                }
+
+                                if (connection.maneuvers.includes("7")) {
+                                    let existingManeuverAlert7 = $('#alert_placeholder').find('#maneuver-alert-7-' + laneFeat[j].get('laneNumber'));
+                                    if(existingManeuverAlert7.length === 0) {
+                                        let connectionManeuverAlert = "No Stopping maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-7-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>');
+                                        $('#message_alert').removeClass('alert-section-hidden');
+                                    }
+                                }
+                            }
+                        
+                            // Remove maneuver "12" if RGA is disabled
+                            if ((messageType === "Frame+Map" || messageType === "Map") && connection.maneuvers.includes("12")) {
+                                    let existingManeuverAlert12 = $('#alert_placeholder').find('#maneuver-alert-12-' + laneFeat[j].get('laneNumber'));
+                                    if (existingManeuverAlert12.length === 0) {
+                                        let connectionManeuverAlert = "Right U-Turn maneuver added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP ";
+                                        $('#alert_placeholder').append('<div id="maneuver-alert-12-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + connectionManeuverAlert + '</span></div>'); 
+                                        $('#message_alert').removeClass('alert-section-hidden');
+                                    }
+                                connection.maneuvers = connection.maneuvers.filter(maneuver => maneuver !== "12");
+                            }
+                        }
+                        if (connection.timeRestrictions && (messageType === "Frame+Map" || messageType === "Map")) {
+                            // Remove timeRestrictions if RGA is disabled
+                            delete connection.timeRestrictions;
+                        }
+                
+                        updatedConnections.push(connection);
+                    }
+                
+                    connectionsArray = updatedConnections;
+                }
+
                 drivingLaneArray[tempJ] = {
                     "laneID": laneFeat[j].get('laneNumber'),
                     "descriptiveName": laneFeat[j].get('descriptiveName'),
                     "laneType": laneFeat[j].get('laneType'),
                     "typeAttributes": laneFeat[j].get('typeAttribute'),
                     "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "connections": connectionsArray,
                     "laneManeuvers": attributeArray,
                     "isComputed": laneFeat[j].get('computed'),
                     ...dfRGALaneTimeRestrictions
@@ -292,8 +440,8 @@ function createMessageJSON()
 
                 //since some lanes are not in the driving lane
                 tempJ++;
-            } else if(laneFeat[j].get('laneType') == "Crosswalk"){
-                //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
+            } else if(laneFeat[j].get('laneType') == "Crosswalk" || laneFeat[j].get('laneType') == "Sidewalk"){
+                //even though not in a "box" it's still allowed to be outside as a crosswalk or sidewalk - still want to be able to catch vehicle lanes outside
                 laneFeat[j].set('inBox', true);
 
                 if(!laneFeat[j].get('computed')) {
@@ -310,7 +458,7 @@ function createMessageJSON()
                     }
                 } else {
                     let dfRGAOffsetZ = {}
-                    if (rgaEnabled){
+                    if (messageType === "Frame+RGA" || messageType === "RGA"){
                         dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
                     }
                     computedLane = {
@@ -325,10 +473,19 @@ function createMessageJSON()
                 }
 
                 attributeArray = [];
+                for(let k in laneFeat[j].get('lane_attributes')) {
+                    let attributeId = laneFeat[j].get('lane_attributes')[k].id;
+                    if (!(attributeId === 12 && (!(messageType === "Frame+RGA" || messageType === "RGA")))) {
+                        attributeArray.push(attributeId);
+                    }
+                }
 
-                let laneAttributes = laneFeat[j].get('lane_attributes');
-                for (let attr in laneAttributes) {
-                    attributeArray.push(laneAttributes[attr].id);
+                let connectionsArray = laneFeat[j].get('connections');
+                if (!(messageType === "Frame+RGA" || messageType === "RGA") && connectionsArray?.length) {
+                    connectionsArray = connectionsArray.map(connection => ({
+                        ...connection,
+                        maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
+                    }));
                 }
                 crosswalkLaneArray[tempJC] = {
                     "laneID": laneFeat[j].get('laneNumber'),
@@ -336,7 +493,7 @@ function createMessageJSON()
                     "laneType": laneFeat[j].get('laneType'),
                     "typeAttributes": laneFeat[j].get('typeAttribute'),
                     "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": laneFeat[j].get('connections'),
+                    "connections": connectionsArray,
                     "laneManeuvers": attributeArray,
                     "isComputed": laneFeat[j].get('computed'),
                     ...dfRGALaneTimeRestrictions
@@ -355,18 +512,127 @@ function createMessageJSON()
             computedLane = "";
         }
 
-        approachArray[i] = {
-            "approachType": stopFeat[i].get('approachType'),
-            "approachID": stopFeat[i].get('approachID'),
-            "descriptiveName": stopFeat[i].get('approachName'),
-            "speedLimit": stopFeat[i].get('speedLimit'),
-            "drivingLanes": drivingLaneArray
-        };
+        let approaches = stopFeat[i].get('approaches');
+        let approachType = stopFeat[i].get('approachType');
 
-        if (approachArray[i].approachType === undefined) {
-            incompleteApproaches.push(drivingLaneArray[0].laneID);
+        if (messageType === "Frame+RGA" || messageType === "RGA") {
+            if (approaches !== undefined) {
+                // Case 1: rgaEnabled = true, approaches exists
+                approachArray[i] = {
+                    "approachID": stopFeat[i].get('approachID'),
+                    "maneuverControlType": stopFeat[i].get('maneuverControlType'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray,
+                    "approachTypes": approaches
+                };
+            } else {
+                // Case 2: rgaEnabled = true, approaches undefined
+                let existingApproachType = stopFeat[i].get('approachType');
+                if (existingApproachType !== undefined) {
+                    // Dynamically create approaches array
+                    approaches = [{
+                        rowId: 0,
+                        approachType: existingApproachType,
+                        selected: true,
+                        timeRestrictions: {
+                            daysOfTheWeek: [],
+                            timePeriodType: "",
+                            timePeriodValue: "",
+                            timePeriodRange: {}
+                        }
+                    }];
+                    
+                    approachArray[i] = {
+                        "approachID": stopFeat[i].get('approachID'),
+                        "maneuverControlType": stopFeat[i].get('maneuverControlType'),
+                        "descriptiveName": stopFeat[i].get('approachName'),
+                        "speedLimit": stopFeat[i].get('speedLimit'),
+                        "drivingLanes": drivingLaneArray,
+                        "approachTypes": approaches
+                    };
+                } else {
+                    // Neither approaches nor approachType exist
+                    approachArray[i] = {
+                        "approachID": stopFeat[i].get('approachID'),
+                        "maneuverControlType": stopFeat[i].get('maneuverControlType'),
+                        "descriptiveName": stopFeat[i].get('approachName'),
+                        "speedLimit": stopFeat[i].get('speedLimit'),
+                        "drivingLanes": drivingLaneArray,
+                        "approachTypes": undefined
+                    };
+                    approachType = undefined;
+                }
+            }
+        } else {
+            // rgaEnabled = false
+            if (approaches !== undefined) {
+                // Case 1: rgaEnabled = false, approaches exists
+                let selectedApproach = approaches.find(approach => approach.selected === true);
+                approachType = selectedApproach ? selectedApproach.approachType : undefined;
+                
+                approachArray[i] = {
+                    "approachType": approachType,
+                    "approachID": stopFeat[i].get('approachID'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray
+                };
+            } else {
+                // Case 2: rgaEnabled = false, approaches undefined - use original logic
+                approachType = stopFeat[i].get('approachType');
+                
+                approachArray[i] = {
+                    "approachType": approachType,
+                    "approachID": stopFeat[i].get('approachID'),
+                    "descriptiveName": stopFeat[i].get('approachName'),
+                    "speedLimit": stopFeat[i].get('speedLimit'),
+                    "drivingLanes": drivingLaneArray
+                };
+            }
+        }
+
+        let hasValidApproach;
+        let missingRowIds = []; // Array to store rowIds of missing approach types
+
+        if (messageType === "Frame+RGA" || messageType === "RGA") {
+            // For rgaEnabled = true, check if approaches array exists and has valid approachType
+            hasValidApproach = approachArray[i].approachTypes !== undefined &&
+                            approachArray[i].approachTypes.length > 0 &&
+                            approachArray[i].approachTypes.every(approach => approach.approachType !== undefined && approach.approachType !== "Select" &&
+                                approach.approachType !== "undefined");
+            
+            // Find missing rowIds for approaches with undefined approachType
+            if (approachArray[i].approachTypes !== undefined && Array.isArray(approachArray[i].approachTypes)) {
+                approachArray[i].approachTypes.forEach(approach => {
+                    if (approach.approachType === undefined || approach.approachType === null || approach.approachType === "" || approach.approachType === "Select" || approach.approachType === "undefined") {
+                        missingRowIds.push(approach.rowId);
+                    }
+                });
+            }
+        } else {
+            // For rgaEnabled = false, check if approachType is defined in approachArray[i]
+            hasValidApproach = approachArray[i].approachType !== undefined && 
+                                approachArray[i].approachType !== "Select" && 
+                                approachArray[i].approachType !== "undefined";
+        }
+
+        if (!hasValidApproach) {
+            incompleteApproaches.push(drivingLaneArray.length > 0 ? drivingLaneArray[0]?.laneID : "NA");
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." +'</span></div>');
+            
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
+                // Include rowIds in the alert message when rgaEnabled is true
+                let alertMessage = "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + ".";
+                if (missingRowIds.length > 0) {
+                    alertMessage += " Missing Approach Type rowID(s): " + missingRowIds.join(", ") + ".";
+                }
+                $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + alertMessage + '</span></div>');
+                $('#message_alert').removeClass('alert-section-hidden');
+            } else {
+                $('#alert_placeholder').html('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Approach Type empty for approach associated with lane(s) " + incompleteApproaches.toString() + "." + '</span></div>');
+                $('#message_alert').removeClass('alert-section-hidden');
+            }
         }
 
         drivingLaneArray = [];
@@ -380,7 +646,6 @@ function createMessageJSON()
 
 
     for (let a = 0; a < laneFeat.length; a++) {
-
         if (laneFeat[a].get('inBox') == true && laneFeat[a].get('signalGroupID') != null && laneFeat[a].get('stateConfidence') != null) {
 
             let obj = {
@@ -415,11 +680,11 @@ function createMessageJSON()
         }
 
         if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
-            let messageType = $('#message_type').val();
             if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
                     $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');
+                    $('#message_alert').removeClass('alert-section-hidden');
                 }}
         }
     }
@@ -435,6 +700,7 @@ function createMessageJSON()
         if (!laneFeat[j].get("inBox")){
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
+            $('#message_alert').removeClass('alert-section-hidden');
             errors.getSource().addFeature(errorMarker);
         }
         if (!laneFeat[j].get('laneNumber')) {
@@ -442,6 +708,7 @@ function createMessageJSON()
             let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
+            $('#message_alert').removeClass('alert-section-hidden');
             errors.getSource().addFeature(errorMarker);
         }
     }
@@ -465,18 +732,44 @@ function createMessageJSON()
             };
 
             rgaBaseLayerFields = {}; // Ensure to clear the data for each call
-            // Only populate JSON with RGA fields when the RGA toggle is enabled
-            if (rgaEnabled) { // Global variable rgaEnabled is defined in mapping.js
-                rgaBaseLayerFields["contentVersion"] = parseInt(feature.get('contentVersion'));
-                let datetime = parseDatetimeStr(feature.get('contentDateTime'));
-                rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
-                rgaBaseLayerFields["contentDateTime"] = datetime.time;
 
-                // Add mapped geometry ID to intersection geometry reference point
-                reference["mappedGeomID"] = feature.get('mappedGeometryId').split(".").map(num => parseInt(num, 10));
+            const requiredFields = {
+                'contentVersion': 'Content Version',
+                'contentDateTime': 'Content Date Time', 
+                'mappedGeometryId': 'Mapped Geometry ID'
+            };
+            
+            const missingFields = [];
+            
+            for (const [fieldKey, fieldLabel] of Object.entries(requiredFields)) {
+                const value = feature.get(fieldKey);
+                if (value == null || value === "") {
+                    missingFields.push(fieldLabel);
+                }
+            }
 
-                // Validate RGA required fields
-                validateRequiredRGAFields(feature);
+            if (messageType === "Frame+RGA" || messageType === "RGA") {   
+                if (feature.get('contentVersion') == null || feature.get('contentDateTime') == null || feature.get('mappedGeometryId') == null || feature.get('contentVersion') == "" || feature.get('contentDateTime') == "" || feature.get('mappedGeometryId') == "") {
+                    if ($('#rga-data-alert').length === 0) { // Check if the alert already exists
+                        $("#message_deposit").prop('disabled', true);
+                        
+                        const fieldList = missingFields.join(', ');
+                        const alertMessage = `${fieldList} are missing from the Reference Point Marker.`;
+                        
+                        $('#alert_placeholder').append('<div id="rga-data-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + alertMessage + '</span></div>');
+                        $('#message_alert').removeClass('alert-section-hidden');
+                    }
+                } else {
+                    let datetime = parseDatetimeStr(feature.get('contentDateTime'));
+                    rgaBaseLayerFields["timeOfCalculation"] = datetime.date;
+                    rgaBaseLayerFields["contentDateTime"] = datetime.time;
+
+                    // Add mapped geometry ID to intersection geometry reference point
+                    reference["mappedGeomID"] = feature.get('mappedGeometryId').split(".").map(num => parseInt(num, 10));
+
+                    // Validate RGA required fields
+                    validateRequiredRGAFields(feature);
+                }
             }
 
             referenceChild = {
@@ -487,7 +780,8 @@ function createMessageJSON()
 
             if (feature.get('intersectionName') == undefined || feature.get('intersectionName') == "") {
                 $("#message_deposit").prop('disabled', true);
-                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>');
+                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "No intersection name defined." + '</span></div>'); 
+                $('#message_alert').removeClass('alert-section-hidden');
             }
 
         }
@@ -591,6 +885,7 @@ function validateRequiredRGAFields(feature){
         if (feature.get(key) == undefined || feature.get(key) == ""){
             $("#message_deposit").prop('disabled', true);
             $('#alert_placeholder').append('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ value +'</span></div>');
+            $('#message_alert').removeClass('alert-section-hidden');
         }
     }
 }
@@ -605,11 +900,13 @@ function errorCheck(){
     let status = false; //false means there are no errors
     if (lanes.getSource().getFeatures().length == 0) {
         $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Cannot deposit without a region defined." + '</span></div>');
+        $('#message_alert').removeClass('alert-section-hidden');
         status = true;
     }
     
     if (vectors.getSource().getFeatures().length < 2) {
         $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Missing anchor or verified points." + '</span></div>');
+        $('#message_alert').removeClass('alert-section-hidden');
         status = true;
     }
     return status;
@@ -655,4 +952,4 @@ function removeExplicitRGA() {
         disableOrEnableExplicitRGA(this.value);
     });
 }
-document.addEventListener("DOMContentLoaded", removeExplicitRGA);  
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);
