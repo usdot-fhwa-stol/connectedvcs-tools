@@ -1209,15 +1209,22 @@ function registerModalButtonEvents() {
     let road_authority_id_type = $("#road_authority_id_type");
     road_authority_id_type.attr("data-parsley-required", "false");
     road_authority_id.attr("data-parsley-required", "false");
-    if ($("#region").val()?.trim() === "0") {
-      road_authority_id.attr("data-parsley-required", "true");
-      road_authority_id_type.attr("data-parsley-required", "true");
-    } else if (road_authority_id.val()?.length) {
-      road_authority_id_type.attr("data-parsley-required", "true");
+
+    if (!rgaEnabled) {
+      if (($("#region").val()?.trim() === "0")) {
+        road_authority_id.attr("data-parsley-required", "true");
+        road_authority_id_type.attr("data-parsley-required", "true");
+      } else if (road_authority_id.val()?.length) {
+        road_authority_id_type.attr("data-parsley-required", "true");
+      }
     }
 
-    if (road_authority_id_type.val()?.trim()?.toLowerCase()) {
+    if (road_authority_id_type.val()?.trim() && road_authority_id_type.val()?.trim().toUpperCase() !== "NA") {
       road_authority_id.attr("data-parsley-required", "true");
+    }
+    
+    if (road_authority_id.val()?.trim()) {
+      road_authority_id_type.attr("data-parsley-required", "true");
     }
 
     $("#attributes").parsley().validate();
