@@ -15,7 +15,7 @@ cd ../fedgov-cv-rgaencoder/
 mvn install -DskipTests=true
 
 cd ../fedgov-cv-message-builder/
-mvn install -DskipTests=true
+mvn clean install 
 
 cd ../fedgov-cv-asn1decoder/
 mvn install -DskipTests=true
