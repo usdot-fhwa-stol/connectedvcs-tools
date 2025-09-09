@@ -47,7 +47,9 @@ public class TravelerDataFrame {
         private GenericSignage genericSign;
         private SpeedLimit speedLimit;
         private ExitService exitService;
-
+        public Content()
+	    {
+	    }
         public Content(Choice choice) { this.choice = choice; }
 
         public Choice getChoice() { return choice; }
@@ -145,17 +147,22 @@ public class TravelerDataFrame {
     public TravelerDataFrameNewPartIIIContent getContentNew() { return contentNew; }
     public void setContentNew(TravelerDataFrameNewPartIIIContent contentNew) { this.contentNew = contentNew; }
 
-    @Override
-    public String toString() {
-        return "TravelerDataFrame{" +
-                "frameType=" + frameType +
-                ", msgId=" + msgId +
-                ", startTime=" + startTime +
-                ", durationTime=" + durationTime +
-                ", priority=" + priority +
-                ", regions=" + (regions == null ? null : Arrays.toString(regions)) +
-                ", content=" + content +
-                ", contentNew=" + contentNew +
-                '}';
-    }
+@Override
+public String toString() {
+    return "TravelerDataFrame{" +
+            "doNotUse1=" + doNotUse1 +
+            ", frameType=" + frameType +
+            ", msgId=" + msgId +
+            ", startTime=" + startTime +
+            ", durationTime=" + durationTime +
+            ", priority=" + priority +
+            ", doNotUse2=" + doNotUse2 +
+            ", regions=" + (regions == null ? null : Arrays.toString(regions)) +
+            ", doNotUse3=" + doNotUse3 +
+            ", doNotUse4=" + doNotUse4 +
+            ", content=" + content +
+            ", contentNew=" + contentNew +
+            '}';
+}
+
 }

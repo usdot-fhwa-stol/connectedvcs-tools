@@ -16,17 +16,17 @@
 package gov.usdot.cv.timencoder;
 
 public class MinuteOfTheYear {
-    private int value;
+    private long value;
 
-    public MinuteOfTheYear(int value) {
+    public MinuteOfTheYear(long value) {
         this.value = value;
     }
 
-    public int getValue() {
+    public long getValue() {
         return value;
     }
 
-    public void setValue(int value) {
+    public void setValue(long value) {
         this.value = value;
     }
 
