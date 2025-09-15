@@ -609,17 +609,17 @@ function saveApproaches(selectedMarker) {
     let timePeriodValue = "";
     let timePeriodRange = {};
 
-    let selectedType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    let selectedType = $('#row' + i + ' .time_period_option:checked').val();
     timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};
-      timePeriodRange["startDatetime"] = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
-      timePeriodRange["startOffset"] = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
-      timePeriodRange["endDatetime"] = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
-      timePeriodRange["endOffset"] = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+      timePeriodRange["startDatetime"] = $('#row' + i + ' .start_datetime_picker').val();
+      timePeriodRange["startOffset"] = $('#row' + i + ' .start_offset').val();
+      timePeriodRange["endDatetime"] = $('#row' + i + ' .end_datetime_picker').val();
+      timePeriodRange["endOffset"] = $('#row' + i + ' .end_offset').val();
     } else if (timePeriodType === "general") {
-      timePeriodValue = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val() || "";
+      timePeriodValue = $('#row' + i + ' .time_period_general_option:checked').val() || "";
     }
     
     approaches.push({
@@ -674,7 +674,7 @@ async function addApproachRow(readOnly, valueSets) {
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
   $('#row' + approachRowNum).remove();
-  for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
+  for(let i = parseInt(approachRowNum) + 1; i <= approachNumRows; i++) {
       changeApproachRow(i, i - 1, null, null);
   }
   approachNumRows--;
