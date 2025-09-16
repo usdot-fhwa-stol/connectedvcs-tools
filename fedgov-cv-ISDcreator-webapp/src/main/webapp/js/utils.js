@@ -609,17 +609,17 @@ function saveApproaches(selectedMarker) {
     let timePeriodValue = "";
     let timePeriodRange = {};
 
-    let selectedType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    let selectedType = $('#row' + i + ' .time_period_option:checked').val();
     timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};
-      timePeriodRange["startDatetime"] = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
-      timePeriodRange["startOffset"] = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
-      timePeriodRange["endDatetime"] = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
-      timePeriodRange["endOffset"] = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+      timePeriodRange["startDatetime"] = $('#row' + i + ' .start_datetime_picker').val();
+      timePeriodRange["startOffset"] = $('#row' + i + ' .start_offset').val();
+      timePeriodRange["endDatetime"] = $('#row' + i + ' .end_datetime_picker').val();
+      timePeriodRange["endOffset"] = $('#row' + i + ' .end_offset').val();
     } else if (timePeriodType === "general") {
-      timePeriodValue = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val() || "";
+      timePeriodValue = $('#row' + i + ' .time_period_general_option:checked').val() || "";
     }
     
     approaches.push({
@@ -674,7 +674,7 @@ async function addApproachRow(readOnly, valueSets) {
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
   $('#row' + approachRowNum).remove();
-  for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
+  for(let i = parseInt(approachRowNum) + 1; i <= approachNumRows; i++) {
       changeApproachRow(i, i - 1, null, null);
   }
   approachNumRows--;
@@ -762,7 +762,7 @@ function saveConnections(selectedMarker) {
     }
 
     let daysOfTheWeek = [];
-    $('#row' + i + ' .connections_day_selection_dropdown').each(function() {
+    $('#rowCon' + i + ' .connections_day_selection_dropdown').each(function() {
       let selectedValues = $(this).val();
       if (Array.isArray(selectedValues)) {
         daysOfTheWeek.push(...selectedValues);
@@ -775,17 +775,17 @@ function saveConnections(selectedMarker) {
     let timePeriodValue = "";
     let timePeriodRange = {};
 
-    let selectedType = $('#row' + i + ' input[name="connections_time_period' + i + '"]:checked').val();
+    let selectedType = $('#rowCon' + i + ' .time_period_option:checked').val();
     timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};
-      timePeriodRange["startDatetime"] = $('#row' + i + ' #connections_time_period_start_datetime' + i).val();
-      timePeriodRange["startOffset"] = $('#row' + i + ' #connections_time_period_start_offset' + i).val();
-      timePeriodRange["endDatetime"] = $('#row' + i + ' #connections_time_period_end_datetime' + i).val();
-      timePeriodRange["endOffset"] = $('#row' + i + ' #connections_time_period_end_offset' + i).val();
+      timePeriodRange["startDatetime"] = $('#rowCon' + i + ' .start_datetime_picker').val();
+      timePeriodRange["startOffset"] = $('#rowCon' + i + ' .start_offset').val();
+      timePeriodRange["endDatetime"] = $('#rowCon' + i + ' .end_datetime_picker').val();
+      timePeriodRange["endOffset"] = $('#rowCon' + i + ' .end_offset').val();      
     } else if (timePeriodType === "general") {
-      timePeriodValue = $('#row' + i + ' input[name="connections_time_period_general' + i + '"]:checked').val() || "";
+      timePeriodValue = $('#rowCon' + i + ' .time_period_general_option:checked').val() || "";
     }
 
     nodeObject.push({
@@ -839,8 +839,8 @@ async function addRow(readOnly, valueSets) {
 }
 
 function deleteRow(rowNum) {
-  $('#row' + rowNum).remove();
-  for(let i = rowNum + 1; i <= numRows; i++) {
+  $('#rowCon' + rowNum).remove();
+  for(let i = parseInt(rowNum) + 1; i <= numRows; i++) {
       changeRow(i, i - 1, null, null);
   }
   numRows--;
@@ -852,7 +852,7 @@ function deleteRow(rowNum) {
  * Methods
  *****************************************/
 function changeRow(oldVal, newVal, readOnly, valueSets) {
-  $('#row' + oldVal).attr('id', 'row' + newVal);
+  $('#rowCon' + oldVal).attr('id', 'rowCon' + newVal);
   $('#connectionId' + oldVal).attr('id', 'connectionId' + newVal);
   $('input[name="remoteID' + oldVal + '"]').attr('name', 'remoteID' + newVal);
   $('input[name="toLane' + oldVal + '"]').attr('name', 'toLane' + newVal);
@@ -890,11 +890,11 @@ function changeRow(oldVal, newVal, readOnly, valueSets) {
                 // Handle daysOfTheWeek
                 if (timeRestrictions.daysOfTheWeek && Array.isArray(timeRestrictions.daysOfTheWeek)) {
                   setTimeout(() => {
-                    $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('deselectAll', false);
+                    $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('deselectAll', false);
                     timeRestrictions.daysOfTheWeek.forEach(function(day) {
-                      $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('select', day);
+                      $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('select', day);
                     });
-                    $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('refresh');
+                    $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('refresh');
                   }, 100);
                 }
                 
@@ -1797,7 +1797,7 @@ function addConnectionsTimeRestrictions(rowNum, time_restrictions) {
         $(this).removeClass('col-sm-7').addClass('col-sm-12');
     });
     
-    $("[id='row" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
+    $("[id='rowCon" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
   }
 
  /*****************************************
