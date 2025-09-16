@@ -33,6 +33,10 @@ public class TravelerDataFrameList {
         return frames;
     }
 
+    public int getframesize() {
+        return frames.size();
+    }
+
     public void setFrames(List<TravelerDataFrame> frames) {
         this.frames = frames;
     }

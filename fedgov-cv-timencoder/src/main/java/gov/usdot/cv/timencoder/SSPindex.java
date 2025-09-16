@@ -16,7 +16,7 @@
 package gov.usdot.cv.timencoder;
 
 /** Minimal SSPindex ::= INTEGER (0..31) */
-public final class SSPindex {
+public  class SSPindex {
     private int value;
 
     public SSPindex() {}

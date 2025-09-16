@@ -47,7 +47,8 @@ public class Encoder {
     public ByteArrayObject encode(TravelerInformation message) {
         System.out.println("Calling Encoder Java API");
 		logger.debug("Starting TIM encoding process...");
-
+        message.setMsgCnt(300);
+        System.out.println("Message Count: " + message.getMsgCnt());
         byte[] encodeMsg = encodeTIM(message);
 
         if (encodeMsg == null) {

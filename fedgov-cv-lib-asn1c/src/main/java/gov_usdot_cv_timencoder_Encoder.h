@@ -23,8 +23,8 @@ extern "C" {
 #endif
 
 
-JNIEXPORT jstring JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodetim
-  (JNIEnv *, jobject, jbyteArray);
+JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodetim
+  (JNIEnv *, jobject, jobject);
 
 
 #ifdef __cplusplus

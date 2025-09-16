@@ -35,7 +35,7 @@ import gov.usdot.cv.msg.builder.util.JSONMapper;
 @Path("/messages/travelerinfo")
 public class TravelerInformationBuilder {
     
-    private static final Logger logger = LogManager.getLogger(IntersectionSituationDataBuilder.class);
+    private static final Logger logger = LogManager.getLogger(TravelerInformationBuilder.class);
 
     @POST
 	@Produces(MediaType.APPLICATION_JSON)
