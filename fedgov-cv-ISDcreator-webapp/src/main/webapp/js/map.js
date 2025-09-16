@@ -824,15 +824,21 @@ function initSideBar() {
     if (rgaEnabled) {
         // Enable Right U-Turn image
         rightUTurnImg.addClass('drag-lane-img')  // Add the droppable class back
+          .addClass('ui-draggable')
+          .addClass('ui-draggable-handle')
             .removeClass('disabled-lane-img') // Add a class to indicate it's disabled
                     .css({
                         'opacity': '1',
                         'filter': 'none',
                         'pointer-events': 'auto'
                     });
+        
+                    makeImgsDraggable()
     } else {
         // Disable Right U-Turn image
         rightUTurnImg.removeClass('drag-lane-img')
+        .removeClass('ui-draggable')
+        .removeClass('ui-draggable-handle')
         .addClass('disabled-lane-img') // Add a class to indicate it's disabled
                     .css({
                         'opacity': '0.5',
@@ -842,6 +848,11 @@ function initSideBar() {
     }
 });
 
+makeImgsDraggable()
+  
+}
+
+function makeImgsDraggable() {
   $imgs = intersectionSidebar.find(".drag-intersection-img,.drag-lane-img");
   $imgs.draggable({
     appendTo: "body",
@@ -885,7 +896,6 @@ function initSideBar() {
       }
     },
   }); 
-  
 }
  /**
    * Purpose: clone marker image onto layer
