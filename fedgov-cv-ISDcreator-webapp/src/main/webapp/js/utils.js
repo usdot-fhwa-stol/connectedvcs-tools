@@ -1407,7 +1407,6 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
 
 function saveSpeedForm(speedForm) {
   let tmpSpeedLimits = [];
-  // let forms = (speedForm.getForms()).length;
   let formsLength = speedFormIndexArray.length;
   
   for (let i = 0; i < formsLength; i++) {
