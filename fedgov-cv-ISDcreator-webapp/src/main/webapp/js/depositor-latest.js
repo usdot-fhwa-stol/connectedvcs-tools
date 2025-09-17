@@ -720,6 +720,7 @@ function createMessageJSON()
             if (feature.get('revisionNum') > 127) {
                 $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Revision Number must be an integer between 0 and 127." +'</span></div>');
                 $('#message_alert').removeClass('alert-section-hidden');
+                $("#message_deposit").prop('disabled', true);
             }
             reference = {
                 "descriptiveIntersctionName": feature.get('intersectionName'),
