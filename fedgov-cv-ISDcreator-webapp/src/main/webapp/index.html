@@ -1088,13 +1088,13 @@
 					<div class="container-fluid">
 						<form class="form-horizontal">
 							<div class="form-group">
-								<input type="text" class="form-control" id="revision_num" placeholder="0-255">
+								<input type="text" class="revision_num form-control" id="revision_num" placeholder="0-127" oninput="validateRevision()">
 							</div>
 						</form>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" data-dismiss="modal">Continue</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal" id="continue_btn" disabled>Continue</button>
 				</div>
 			</div>
 		</div>
@@ -1775,6 +1775,13 @@
 
 	<!--SheepIt! Form -->
 	<script type="text/javascript" src="external/jquery.sheepItPlugin.js"></script>
+
+	<!--VALIDATE REVISION-->
+	<script src="js/utils.js" type="module"></script>
+	<script type="module">
+	import { validateRevision } from './js/utils.js';
+	window.validateRevision = validateRevision; // Attach to the global scope if needed
+	</script>
 
 	<!--Geocomplete -->
 	<script type="text/javascript" src="external/jquery.geocomplete.min.js"></script>

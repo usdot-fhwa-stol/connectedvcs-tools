@@ -1598,6 +1598,25 @@ function onRegionIdChangeCallback(regionId){
   }
 }
 
+function revisionNumChangeCallback() {
+  const revisionNum = $("#revision_num");
+  const parsleyInstance = revisionNum.parsley();
+  parsleyInstance.removeError('revnum'); // Ensure no lingering custom errors
+  let revisionInput = document.getElementById('revision_num').value;
+  if (revisionInput !== '' && !isNaN(revisionInput) && Number(revisionInput) >= 0 && Number(revisionInput) <= 127) {
+    $("#revision_num").attr('data-parsley-required', false);
+    
+  }
+  else {
+    $("#revision_num").attr('data-parsley-required', true);
+    parsleyInstance.addError('revnum', {
+      message: "Revision Number must be an integer between 0 and 127.",
+      updateClass: true
+    });
+    return;
+  }
+}
+
 function onRoadAuthorityIdChangeCallback() {
   let roadAuthorityIdType = $("#road_authority_id_type").val();
   const roadAuthorityIdInput = $("#road_authority_id");
@@ -2327,6 +2346,16 @@ function isSpeedLimitTypePassengerVehicleMinSpeedSelected(){
   });
   return isChecked;
 }
+
+function validateRevision() {
+  const revisionInput = document.getElementById('revision_num').value;
+  const continueButton = document.getElementById('continue_btn');
+  if (revisionInput !== '' && !isNaN(revisionInput) && Number(revisionInput) >= 0 && Number(revisionInput) <= 127) {
+    continueButton.disabled = false;
+  } else {
+    continueButton.disabled = true;
+  }
+}
 export {
   getCookie,
   isOdd,
@@ -2393,5 +2422,7 @@ export {
   isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
   isSpeedLimitTypePassengerVehicleMinSpeedSelected,
   hideRGAFieldsAssociatedToSpeedLimits,
-  updateApproachTimeRestrictionsHTML
+  updateApproachTimeRestrictionsHTML,
+  validateRevision,
+  revisionNumChangeCallback
 }
