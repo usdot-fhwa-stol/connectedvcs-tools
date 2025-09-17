@@ -718,7 +718,7 @@ function createMessageJSON()
         if (feature.get('marker').name == "Reference Point Marker") {
 
             if (feature.get('revisionNum') > 127) {
-                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Please save the file with a revision number less than or equal to 127." +'</span></div>');
+                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Revision Number must be an integer between 0 and 127." +'</span></div>');
                 $('#message_alert').removeClass('alert-section-hidden');
             }
             reference = {
