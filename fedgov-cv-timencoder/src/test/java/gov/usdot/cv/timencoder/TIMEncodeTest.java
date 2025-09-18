@@ -17,194 +17,223 @@ package gov.usdot.cv.timencoder;
 
 import static org.mockito.Mockito.*;
 
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import gov.usdot.cv.mapencoder.Position3D;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class TIMEncodeTest {
-    private static final Logger logger = LogManager.getLogger(TIMEncodeTest.class);
 
-    private Encoder encoder;
-    private TravelerInformation mockTimData;
-    private TravelerDataFrameList mockList;
-    private TravelerDataFrame mockFrame1, mockFrame2, mockFrame3;
-    private SSPindex doNotUse1, doNotUse2, doNotUse3, doNotUse4;
-    private MsgId msgId1, msgId2, msgId3;
-    private Position3D position1, position2, position3;
-    private MinuteOfTheYear startTime1, startTime2, startTime3;
-    private SignPriority priority1, priority2, priority3;
-    private GeographicalPath[] regions1, regions2, regions3;
-    private TravelerDataFrame.Content content1, content2, content3;
-    private TravelerDataFrameNewPartIIIContent contentNew1, contentNew2, contentNew3;
+        private static final Logger logger = LogManager.getLogger(TIMEncodeTest.class);
 
-    @Before
-    public void setUp() {
-        encoder = new Encoder();
+        // System under test
+        private Encoder encoder;
 
-        // Mock TravelerInformation
-        mockTimData = mock(TravelerInformation.class);
-        when(mockTimData.getMsgCnt()).thenReturn(10);
+        // Top-level TIM and frames
+        private TravelerInformation mockTimData;
+        private TravelerDataFrameList mockList;
+        private TravelerDataFrame mockFrame1, mockFrame2, mockFrame3;
 
-        // Mock TravelerDataFrameList
-        mockList = mock(TravelerDataFrameList.class);
-        when(mockList.getframesize()).thenReturn(3);
-        mockFrame1 = mock(TravelerDataFrame.class);
-        mockFrame2 = mock(TravelerDataFrame.class);
-        mockFrame3 = mock(TravelerDataFrame.class);
-        // mockinfo type
+        // Per-frame fields
+        private MinuteOfTheYear startTime1, startTime2, startTime3;
+        private SignPriority priority1, priority2, priority3;
+        private GeographicalPath[] regions1, regions2, regions3;
 
-        // start time
-        startTime1 = new MinuteOfTheYear(100);
-        startTime2 = new MinuteOfTheYear(200);
-        startTime3 = new MinuteOfTheYear(300);
+        // Content (Part I) + ContentNew (Part III)
+        private TravelerDataFrame.Content content1, content2, content3;
+        private TravelerDataFrameNewPartIIIContent contentNew1, contentNew2, contentNew3;
 
-        // Optional: if encoder calls getFrames()
-        java.util.List<TravelerDataFrame> mockFrames = mock(java.util.List.class);
-        when(mockFrames.size()).thenReturn(3);
-        when(mockFrames.get(0)).thenReturn(mockFrame1);
-        when(mockFrames.get(1)).thenReturn(mockFrame2);
-        when(mockFrames.get(2)).thenReturn(mockFrame3);
-        when(mockList.getFrames()).thenReturn(mockFrames);
+        @Before
+        public void setUp() {
+                // === SUT ===
+                encoder = new Encoder();
 
-        // Mock TravelerDataFrame
-        when(mockFrame1.getFrameType()).thenReturn(TravelerInfoType.ADVISORY);
-        when(mockFrame2.getFrameType()).thenReturn(TravelerInfoType.ROAD_SIGNAGE);
-        when(mockFrame3.getFrameType()).thenReturn(TravelerInfoType.COMMERCIAL_SIGNAGE);
+                // === TravelerInformation ===
+                mockTimData = mock(TravelerInformation.class);
+                when(mockTimData.getMsgCnt()).thenReturn(10);
 
-        // doNotUse1
-        when(mockFrame1.getDoNotUse1()).thenReturn(new SSPindex(0));
-        when(mockFrame2.getDoNotUse1()).thenReturn(new SSPindex(0));
-        when(mockFrame3.getDoNotUse1()).thenReturn(new SSPindex(0));
-        // doNotUse2
-        when(mockFrame1.getDoNotUse2()).thenReturn(new SSPindex(0));
-        when(mockFrame2.getDoNotUse2()).thenReturn(new SSPindex(0));
-        when(mockFrame3.getDoNotUse2()).thenReturn(new SSPindex(0));
-        // doNotUse3
-        when(mockFrame1.getDoNotUse3()).thenReturn(new SSPindex(0));
-        when(mockFrame2.getDoNotUse3()).thenReturn(new SSPindex(0));
-        when(mockFrame3.getDoNotUse3()).thenReturn(new SSPindex(0));
-        // doNotUse4
-        when(mockFrame1.getDoNotUse4()).thenReturn(new SSPindex(0));
-        when(mockFrame2.getDoNotUse4()).thenReturn(new SSPindex(0));
-        when(mockFrame3.getDoNotUse4()).thenReturn(new SSPindex(4));
+                // === TravelerDataFrameList & frames ===
+                mockList = mock(TravelerDataFrameList.class);
+                when(mockList.getframesize()).thenReturn(3);
 
-        // MsgID
-        byte[] bytes = new byte[] { (byte) (3003 >> 8), (byte) (3003 & 0xFF) };
+                mockFrame1 = mock(TravelerDataFrame.class);
+                mockFrame2 = mock(TravelerDataFrame.class);
+                mockFrame3 = mock(TravelerDataFrame.class);
 
-        when(mockFrame1.getMsgId()).thenReturn(new MsgId(
-                new RoadSignID(new Position3D(34.0522, -118.2437, 100, true), new HeadingSlice(0b0000000000001111))));
-        when(mockFrame2.getMsgId()).thenReturn(new MsgId(
-                new RoadSignID(new Position3D(34.0522, -118.2437, 100, true), new HeadingSlice(0b0000000000001111))));
-        when(mockFrame3.getMsgId()).thenReturn(new MsgId(
-                new RoadSignID(new Position3D(34.0522, -118.2437, 100, true), new HeadingSlice(0b0000000000001111))));
+                List<TravelerDataFrame> mockFrames = mock(List.class);
+                when(mockFrames.size()).thenReturn(3);
+                when(mockFrames.get(0)).thenReturn(mockFrame1);
+                when(mockFrames.get(1)).thenReturn(mockFrame2);
+                when(mockFrames.get(2)).thenReturn(mockFrame3);
+                when(mockList.getFrames()).thenReturn(mockFrames);
 
-        // start time
-        when(mockFrame1.getStartTime()).thenReturn(startTime1);
-        when(mockFrame2.getStartTime()).thenReturn(startTime2);
-        when(mockFrame3.getStartTime()).thenReturn(startTime3);
-        // priority
-        when(mockFrame1.getPriority()).thenReturn(new SignPriority(1));
-        when(mockFrame2.getPriority()).thenReturn(new SignPriority(2));
-        when(mockFrame3.getPriority()).thenReturn(new SignPriority(3));
+                when(mockTimData.getDataFrames()).thenReturn(mockList);
 
-        // regions
-        regions1 = new GeographicalPath[] { new GeographicalPath() };
-        regions2 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath() };
-        regions3 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath(), new GeographicalPath() };
-        when(mockFrame1.getRegions()).thenReturn(regions1);
-        when(mockFrame2.getRegions()).thenReturn(regions2);
-        when(mockFrame3.getRegions()).thenReturn(regions3);
-        // content
+                // === Frame types ===
+                when(mockFrame1.getFrameType()).thenReturn(TravelerInfoType.ADVISORY);
+                when(mockFrame2.getFrameType()).thenReturn(TravelerInfoType.ROAD_SIGNAGE);
+                when(mockFrame3.getFrameType()).thenReturn(TravelerInfoType.COMMERCIAL_SIGNAGE);
 
-        GenericSignage genericSignage = new GenericSignage(); // real object
-        genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITIScodes(1001)));
-        genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITISTextPhrase("Hello World")));
-        genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITISTextPhrase("Hello Dhaka")));
-        System.out.println("items size = " + genericSignage.getItems().size()); // should be 2
-    
-     
+                // === Start times ===
+                startTime1 = new MinuteOfTheYear(349_920);
+                startTime2 = new MinuteOfTheYear(362_880);
+                startTime3 = new MinuteOfTheYear(373_470);
+                when(mockFrame1.getStartTime()).thenReturn(startTime1);
+                when(mockFrame2.getStartTime()).thenReturn(startTime2);
+                when(mockFrame3.getStartTime()).thenReturn(startTime3);
 
-        WorkZone wz = new WorkZone(); // real object
+                // === Priorities (init to avoid NPE) ===
+                priority1 = new SignPriority();
+                priority2 = new SignPriority();
+                priority3 = new SignPriority();
+                priority1.setValue(1);
+                priority2.setValue(2);
+                priority3.setValue(3);
+                when(mockFrame1.getPriority()).thenReturn(priority1);
+                when(mockFrame2.getPriority()).thenReturn(priority2);
+                when(mockFrame3.getPriority()).thenReturn(priority3);
 
-        wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1071)));
-        wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1072)));
-        wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1073)));
-        wz.getItems().add(new WorkZone.WorkZoneItem(new ITISTextPhrase("Road Work Ahead")));
+                // === MsgId (RoadSignID w/ position + heading) ===
+                Position3D pos = new Position3D(34.0522, -118.2437, 100, true);
+                MsgId msgId = new MsgId(new RoadSignID(pos, new HeadingSlice(0b0000000000001111)));
+                when(mockFrame1.getMsgId()).thenReturn(msgId);
+                when(mockFrame2.getMsgId()).thenReturn(msgId);
+                when(mockFrame3.getMsgId()).thenReturn(msgId);
 
-        System.out.println("items size = " + wz.getItems().size()); // should be 4
+                // === Regions ===
+                // All the fields are optional will add in later story
+                regions1 = new GeographicalPath[] { new GeographicalPath() };
+                regions2 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath() };
+                regions3 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath(),
+                                new GeographicalPath() };
+                when(mockFrame1.getRegions()).thenReturn(regions1);
+                when(mockFrame2.getRegions()).thenReturn(regions2);
+                when(mockFrame3.getRegions()).thenReturn(regions3);
 
- 
+                // === Content (Part I) ===
+                // WorkZone (real object)
+                WorkZone wz = new WorkZone();
+                wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1071)));
+                wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1072)));
+                wz.getItems().add(new WorkZone.WorkZoneItem(new ITIScodes(1073)));
+                wz.getItems().add(new WorkZone.WorkZoneItem(new ITISTextPhrase("Road Work Ahead")));
+                logger.debug("WorkZone items: {}", wz.getItems().size()); // 4
 
-        // Make sure your Content returns THIS wz
-        TravelerDataFrame.Content content = mock(TravelerDataFrame.Content.class);
-        when(content.getChoice()).thenReturn(TravelerDataFrame.Content.Choice.WORK_ZONE);
-        when(content.getWorkZone()).thenReturn(wz);
+                // GenericSignage (real object)
+                GenericSignage genericSignage = new GenericSignage();
+                genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITIScodes(1001)));
+                genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITISTextPhrase("Speed n30")));
+                genericSignage.getItems().add(new GenericSignage.GenericSignageItem(new ITISTextPhrase("n35")));
+                logger.debug("GenericSignage items: {}", genericSignage.getItems().size()); // 3
 
-        content1 = mock(TravelerDataFrame.Content.class);
-        when(content1.getChoice()).thenReturn(TravelerDataFrame.Content.Choice.GENERIC_SIGN);
-        when(content1.getGenericSign()).thenReturn(genericSignage);
-       
+                // Advisory
+                ITIScodesAndText advisory = new ITIScodesAndText();
+                advisory.getItems().add(new ITIScodesAndText.Item(new ITIScodes(2001)));
+                advisory.getItems().add(new ITIScodesAndText.Item(new ITISTextPhrase("Slippery Wet")));
 
-        GenericSignage gs = mock(GenericSignage.class);
-        SpeedLimit sl = mock(SpeedLimit.class);
-        ExitService es = mock(ExitService.class);
+                // Content for frame1 (WorkZone)
+                content1 = mock(TravelerDataFrame.Content.class);
+                when(content1.getChoice()).thenReturn(TravelerDataFrame.Content.Choice.WORK_ZONE);
+                when(content1.getWorkZone()).thenReturn(wz);
 
+                // Content for frame2 (Generic Sign)
+                content2 = mock(TravelerDataFrame.Content.class);
+                when(content2.getChoice()).thenReturn(TravelerDataFrame.Content.Choice.GENERIC_SIGN);
+                when(content2.getGenericSign()).thenReturn(genericSignage);
 
-        when(mockFrame1.getContent()).thenReturn(content);
-        when(mockFrame2.getContent()).thenReturn(content1);
-        when(mockFrame3.getContent()).thenReturn(content);
-        // new content
-        // ===== Part III (contentNew) mocks =====
+                // Content for frame3 (WorkZone)
+                content3 = mock(TravelerDataFrame.Content.class);
+                when(content3.getChoice()).thenReturn(TravelerDataFrame.Content.Choice.ADVISORY);
+                when(content3.getAdvisory()).thenReturn(advisory);
 
-        // Frame 1: PORTLAND_CEMENT, DRY, SMOOTH
-        PortlandCement pc1 = new PortlandCement(PortlandCementType.PortlandCementType_newSharp); // adjust enum/value as
-                                                                                                 // you have it
-        DescriptionOfRoadSurface desc1 = new DescriptionOfRoadSurface(pc1);
-        FrictionInformation fric1 = new FrictionInformation(
-                desc1);
-        fric1.setDryOrWet(RoadSurfaceCondition.DRY);
-        contentNew1 = new TravelerDataFrameNewPartIIIContent();
-        contentNew1.setFrictionInformation(fric1);
-        when(mockFrame1.getContentNew()).thenReturn(contentNew1);
-        // Frame 2: ASPHALT_OR_TAR, WET, ROUGH
-        AsphaltOrTar at2 = new AsphaltOrTar(AsphaltOrTarType.AsphaltOrTarType_newSharp); // adjust enum/value as you
-                                                                                         // have it
-        DescriptionOfRoadSurface desc2 = new DescriptionOfRoadSurface(pc1);
-        FrictionInformation fric2 = new FrictionInformation(
-                desc2);
-        fric2.setDryOrWet(RoadSurfaceCondition.WET);
-        contentNew2 = new TravelerDataFrameNewPartIIIContent();
-        contentNew2.setFrictionInformation(fric2);
-        when(mockFrame2.getContentNew()).thenReturn(contentNew2);
-        // Frame 3: GRAVEL, ICE, SNOW
-        Gravel g3 = new Gravel(GravelType.GravelType_loose); // adjust enum/value as you have it
-        DescriptionOfRoadSurface desc3 = new DescriptionOfRoadSurface(pc1);
-        FrictionInformation fric3 = new FrictionInformation(
-                desc3);
-        fric3.setDryOrWet(RoadSurfaceCondition.WET);
-        contentNew3 = new TravelerDataFrameNewPartIIIContent();
-        contentNew3.setFrictionInformation(fric3);
-        when(mockFrame3.getContentNew()).thenReturn(contentNew3);
+                // Attach content to frames
+                when(mockFrame1.getContent()).thenReturn(content1);
+                when(mockFrame2.getContent()).thenReturn(content2);
+                when(mockFrame3.getContent()).thenReturn(content3);
 
-        // Mock TravelerInfoType for each fram
-        // Attach to TravelerInformation
-        when(mockTimData.getDataFrames()).thenReturn(mockList);
-    }
+                // === ContentNew (Part III) ===
+                // Frame 1: Portland Cement, DRY
+                PortlandCement pc1 = new PortlandCement(PortlandCementType.PortlandCementType_newSharp);
+                DescriptionOfRoadSurface desc1 = new DescriptionOfRoadSurface(pc1);
+                FrictionInformation fric1 = new FrictionInformation(desc1);
+                fric1.setDryOrWet(RoadSurfaceCondition.DRY);
+                contentNew1 = new TravelerDataFrameNewPartIIIContent();
+                contentNew1.setFrictionInformation(fric1);
+                when(mockFrame1.getContentNew()).thenReturn(contentNew1);
 
-    @Test
-    public void TIM_encode_test() {
-        ByteArrayObject result = encoder.encode(mockTimData);
+                // Frame 2: Asphalt/Tar, WET
+                AsphaltOrTar at2 = new AsphaltOrTar(AsphaltOrTarType.AsphaltOrTarType_trafficPolished);
+                DescriptionOfRoadSurface desc2 = new DescriptionOfRoadSurface(at2);
+                FrictionInformation fric2 = new FrictionInformation(desc2);
+                fric2.setDryOrWet(RoadSurfaceCondition.WET);
+                contentNew2 = new TravelerDataFrameNewPartIIIContent();
+                contentNew2.setFrictionInformation(fric2);
+                when(mockFrame2.getContentNew()).thenReturn(contentNew2);
 
-        Assert.assertNotNull("Byte array should not be null", result.getMessage());
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
-        Assert.assertArrayEquals(
-                "Encoded TIM message doesn't match expected output",
-                expected,
-                result.getMessage());
-    }
+                // Frame 3: Snow (WET) — note: gravel created but friction uses snow desc per
+                // original
+                Snow snow = new Snow(SnowType.SnowType_loose);
+                DescriptionOfRoadSurface descSnow = new DescriptionOfRoadSurface(snow);
+                FrictionInformation fric3 = new FrictionInformation(descSnow);
+                fric3.setDryOrWet(RoadSurfaceCondition.WET);
+                contentNew3 = new TravelerDataFrameNewPartIIIContent();
+                contentNew3.setFrictionInformation(fric3);
+                when(mockFrame3.getContentNew()).thenReturn(contentNew3);
+
+        }
+
+        @Test
+        public void TIM_encode_test() {
+                ByteArrayObject result = encoder.encode(mockTimData);
+
+                Assert.assertNotNull("Byte array should not be null", result.getMessage());
+                byte[] expected = new byte[] {
+                                (byte) 0x00, (byte) 0x1F, (byte) 0x80, (byte) 0x88, (byte) 0x00, (byte) 0xA5,
+                                (byte) 0x00, (byte) 0x62,
+                                (byte) 0x93, (byte) 0xE1, (byte) 0xBA, (byte) 0x20, (byte) 0x49, (byte) 0x9E,
+                                (byte) 0x86, (byte) 0xEE,
+                                (byte) 0x20, (byte) 0xC8, (byte) 0x00, (byte) 0x1E, (byte) 0xAA, (byte) 0xDC,
+                                (byte) 0x00, (byte) 0x00,
+                                (byte) 0x08, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x09, (byte) 0x81,
+                                (byte) 0x0B, (byte) 0xC0,
+                                (byte) 0x86, (byte) 0x00, (byte) 0x43, (byte) 0x1F, (byte) 0x52, (byte) 0xDF,
+                                (byte) 0x87, (byte) 0x22,
+                                (byte) 0x0A, (byte) 0xFB, (byte) 0xF9, (byte) 0x6B, (byte) 0x41, (byte) 0x07,
+                                (byte) 0x46, (byte) 0x5C,
+                                (byte) 0x39, (byte) 0x00, (byte) 0x40, (byte) 0x88, (byte) 0x00, (byte) 0x20,
+                                (byte) 0x14, (byte) 0x52,
+                                (byte) 0x7C, (byte) 0x37, (byte) 0x44, (byte) 0x09, (byte) 0x33, (byte) 0xD0,
+                                (byte) 0xDD, (byte) 0xC4,
+                                (byte) 0x19, (byte) 0x00, (byte) 0x03, (byte) 0xD6, (byte) 0x26, (byte) 0x00,
+                                (byte) 0x00, (byte) 0x02,
+                                (byte) 0x00, (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x88,
+                                (byte) 0x07, (byte) 0xD3,
+                                (byte) 0x8A, (byte) 0x7C, (byte) 0x32, (byte) 0xE5, (byte) 0xC8, (byte) 0x83,
+                                (byte) 0x73, (byte) 0x36,
+                                (byte) 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8, (byte) 0x08, (byte) 0x11,
+                                (byte) 0x09, (byte) 0x24,
+                                (byte) 0x03, (byte) 0x8A, (byte) 0x4F, (byte) 0x86, (byte) 0xE8, (byte) 0x81,
+                                (byte) 0x26, (byte) 0x7A,
+                                (byte) 0x1B, (byte) 0xB8, (byte) 0x83, (byte) 0x20, (byte) 0x00, (byte) 0x7A,
+                                (byte) 0xD9, (byte) 0x6F,
+                                (byte) 0x00, (byte) 0x00, (byte) 0x60, (byte) 0x20, (byte) 0x00, (byte) 0x00,
+                                (byte) 0x00, (byte) 0x00,
+                                (byte) 0x00, (byte) 0x04, (byte) 0x0F, (byte) 0xA3, (byte) 0x05, (byte) 0xD3,
+                                (byte) 0xD9, (byte) 0xA7,
+                                (byte) 0x87, (byte) 0x0C, (byte) 0xBC, (byte) 0xBC, (byte) 0xA0, (byte) 0xAF,
+                                (byte) 0x97, (byte) 0xA0,
+                                (byte) 0x08, (byte) 0x11, (byte) 0x39, (byte) 0x40
+                };
+
+                Assert.assertArrayEquals(
+                                "Encoded TIM message doesn't match expected output",
+                                expected,
+                                result.getMessage());
+
+        }
 }

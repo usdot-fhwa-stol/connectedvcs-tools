@@ -17,7 +17,7 @@ package gov.usdot.cv.timencoder;
 
 public class SignPriority {
     private int value;
-
+    public SignPriority () {}
     public SignPriority(int value) {
         this.value = value;
     }

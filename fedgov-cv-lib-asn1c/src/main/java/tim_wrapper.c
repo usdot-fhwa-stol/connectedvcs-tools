@@ -108,12 +108,10 @@ int ia5_truncate_len(const char *s, int maxlen)
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     JNIEnv *env, jobject cls, jobject timobject)
 {
-    printf("\n*** encodeTIM method of asn1c_timencoder is successfully called ***\n");
-
+    // Initilize empty TIM
     TravelerInformation_t tim;
     memset(&tim, 0, sizeof(tim));
 
-    // ---- TravelerInformation.msgCnt ----
     if (timobject == NULL)
     {
         fprintf(stderr, "timobject is NULL\n");
@@ -146,8 +144,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
         return NULL;
     }
-    tim.msgCnt = (long)j_msgCnt; // Common_MsgCount_t is typically long-compatible
-    printf("tim.msgCnt (assigned) = %ld\n", tim.msgCnt);
+    tim.msgCnt = (long)j_msgCnt;
+    printf("msgCnt = %d\n", j_msgCnt);
 
     // ---- TravelerInformation.dataFrames (TravelerDataFrameList) ----
     jmethodID midGetDataFrames = (*env)->GetMethodID(
@@ -165,19 +163,17 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     {
         (*env)->ExceptionDescribe(env);
         (*env)->ExceptionClear(env);
-        (*env)->DeleteLocalRef(env, timClass);
+        (*env)->DeleteLocalRef(env, tdfListObj);
 
         return NULL;
     }
     if (!tdfListObj)
     {
         printf("TravelerDataFrameList is null (0 frames)\n");
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
         (*env)->DeleteLocalRef(env, timClass);
-        // Return dummy bytes (no frames)
-        jbyte buffer[] = {(jbyte)0xDE, (jbyte)0xAD, (jbyte)0xBE, (jbyte)0xEF};
-        jbyteArray result = (*env)->NewByteArray(env, 4);
-        (*env)->SetByteArrayRegion(env, result, 0, 4, buffer);
-        return result;
+        return NULL;
     }
 
     jclass tdfCls = (*env)->GetObjectClass(env, tdfListObj);
@@ -230,16 +226,14 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     {
         (*env)->ExceptionDescribe(env);
         (*env)->ExceptionClear(env);
-        n = 0;
     }
-    printf("List size = %d\n", n);
 
     // ---- Cache TravelerDataFrame getters (using first element to get class) ----
     jclass frameCls = NULL;
     jmethodID mid_getDoNotUse1 = NULL, mid_getDoNotUse2 = NULL, mid_getDoNotUse3 = NULL, mid_getDoNotUse4 = NULL;
     jmethodID mid_getFrameType = NULL, mid_getMsgId = NULL, mid_getStartTime = NULL, mid_getDurationTime = NULL;
     jmethodID mid_getPriority = NULL, mid_getRegions = NULL, mid_getContent = NULL, mid_getContentNew = NULL;
-
+    // If frame exist initilize the methods to get the method IDs
     if (n > 0)
     {
         jobject first = (*env)->CallObjectMethod(env, listObj, midGet, 0);
@@ -277,7 +271,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         }
     }
 
-    // ---- Iterate frames ----
+    // ---- Iterate frames to get the value of fields from Traveler Data Frame ----
     for (jint i = 0; i < n; i++)
     {
         jobject frame = (*env)->CallObjectMethod(env, listObj, midGet, i);
@@ -333,12 +327,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
-        // msgId (MsgId with enum Choice)
-        // ---- msgId (minimal: RoadSignID only) ----
-        // ---- msgId (RoadSignID only) ----
-        // ---- msgId (RoadSignID only, minimal) ----
-
-        // ---- msgId (RoadSignID only, minimal) ----
+        // msgId (MsgId -> RoadSignID)
         if (msgId)
         {
             jclass msgIdCls = (*env)->GetObjectClass(env, msgId);
@@ -372,9 +361,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     float ele = midEle ? (*env)->CallFloatMethod(env, posObj, midEle) : 0.0f;
                     jboolean haveEle = midEleExists ? (*env)->CallBooleanMethod(env, posObj, midEleExists) : JNI_FALSE;
 
-                    // J2735 units: 1/10 micro-degree (1e-7 deg)
                     rs->position.lat = (Common_Latitude_t)llrint(lat * 1e7);
-                    rs->position.Long = (Common_Longitude_t)llrint(lon * 1e7);
+                    rs->position.Long = (Common_Latitude_t)llrint(lon * 1e7);
 
                     // Optional elevation: decimeters (0.1 m)
                     if (haveEle)
@@ -382,7 +370,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         rs->position.elevation = (Common_Elevation_t *)calloc(1, sizeof(*rs->position.elevation));
                         if (rs->position.elevation)
                         {
-                            *rs->position.elevation = (Common_Elevation_t)llrint((double)ele * 10.0);
+                            *rs->position.elevation =ele;
                         }
                     }
 
@@ -399,34 +387,43 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 {
                     jclass hsCls = (*env)->GetObjectClass(env, hsObj);
                     jmethodID midIntVal = (*env)->GetMethodID(env, hsCls, "intValue", "()I");
-                    jint mask = midIntVal ? (*env)->CallIntMethod(env, hsObj, midIntVal) : 0;
+
+                    jint mask = 0;
+                    if (midIntVal)
+                    {
+                        mask = (*env)->CallIntMethod(env, hsObj, midIntVal);
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            mask = 0;
+                        }
+                    }
+                    mask &= 0xFFFF;
 
                     rs->viewAngle.buf = (uint8_t *)calloc(1, 2);
-                    rs->viewAngle.size = 2;
-                    rs->viewAngle.bits_unused = 0;
                     if (rs->viewAngle.buf)
                     {
                         rs->viewAngle.buf[0] = (uint8_t)((mask >> 8) & 0xFF);
                         rs->viewAngle.buf[1] = (uint8_t)(mask & 0xFF);
+                        rs->viewAngle.size = 2;
+                        rs->viewAngle.bits_unused = 0;
                     }
 
                     (*env)->DeleteLocalRef(env, hsCls);
                     (*env)->DeleteLocalRef(env, hsObj);
                 }
+                else
+                {
+                    tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
+                }
 
-                (*env)->DeleteLocalRef(env, rsCls);
-                (*env)->DeleteLocalRef(env, rsObj);
+                (*env)->DeleteLocalRef(env, msgIdCls);
             }
             else
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
             }
-
-            (*env)->DeleteLocalRef(env, msgIdCls);
-        }
-        else
-        {
-            tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
         }
 
         // startTime (MinuteOfTheYear)
@@ -445,15 +442,9 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jclass durCls = (*env)->GetObjectClass(env, durationTime);
             jmethodID midGetDur = (*env)->GetMethodID(env, durCls, "getValue", "()I");
             jint dur = midGetDur ? (*env)->CallIntMethod(env, durationTime, midGetDur) : 0;
-            tdf->durationTime = (long)dur; // e.g., 0 is valid
+            tdf->durationTime = (long)dur;
             printf("Duration (minutes) = %d\n", dur);
             (*env)->DeleteLocalRef(env, durCls);
-        }
-        else
-        {
-            // If Java omitted it, set to 0 explicitly (still valid)
-            tdf->durationTime = 0;
-            printf("Duration (minutes) missing; set to 0\n");
         }
 
         // priority (SignPriority)
@@ -486,6 +477,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
             for (jsize j = 0; j < arrSize; j++)
             {
+
+                // Tod: All the fields of GeographicalPath need to be filled here.As it's optional field is left blank for this story
                 GeographicalPath_t *gp = (GeographicalPath_t *)calloc(1, sizeof(*gp));
                 if (!gp)
                 {
@@ -495,10 +488,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 {
                     fprintf(stderr, "ASN_SEQUENCE_ADD(GeographicalPath) failed at %d\n", (int)j);
                     free(gp);
-                }
-                else
-                {
-                    // ok
                 }
             }
         }
@@ -544,6 +533,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 {
                     jclass enumCls = (*env)->GetObjectClass(env, contentChoiceObj);
                     jmethodID midName = (*env)->GetMethodID(env, enumCls, "name", "()Ljava/lang/String;");
+                    // ordinal() returns the position in enum declaration, starting from 0
                     jmethodID midOrdinal = (*env)->GetMethodID(env, enumCls, "ordinal", "()I");
                     jstring nameStr = (jstring)(*env)->CallObjectMethod(env, contentChoiceObj, midName);
                     jint ordinal = (*env)->CallIntMethod(env, contentChoiceObj, midOrdinal);
@@ -553,177 +543,199 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                     case 0:
                     {
-                        //     // ADVISORY
-                        //     tdf->content.present = TravelerDataFrame__content_PR_advisory;
+                        tdf->content.present = TravelerDataFrame__content_PR_advisory;
 
-                        //     // Content.getAdvisory(): ITIScodesAndText
-                        //     jmethodID midGetAdv = (*env)->GetMethodID(
-                        //         env, contentCls, "getAdvisory", "()Lgov/usdot/cv/timencoder/ITIScodesAndText;");
-                        //     jobject advObj = midGetAdv ? (*env)->CallObjectMethod(env, content, midGetAdv) : NULL;
-                        //     if ((*env)->ExceptionCheck(env))
-                        //     {
-                        //         (*env)->ExceptionDescribe(env);
-                        //         (*env)->ExceptionClear(env);
-                        //         advObj = NULL;
-                        //     }
-                        //     if (!advObj)
-                        //     {
-                        //         printf("Advisory is null\n");
-                        //         break;
-                        //     }
+                        // Content.getSpeedLimit(): SpeedLimit
+                        jmethodID midGetSL = (*env)->GetMethodID(
+                            env, contentCls, "getAdvisory", "()Lgov/usdot/cv/timencoder/ITIScodesAndText;");
+                        jobject slObj = midGetSL ? (*env)->CallObjectMethod(env, content, midGetSL) : NULL;
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            slObj = NULL;
+                        }
+                        if (!slObj)
+                        {
+                            printf("ITISCodeandText is null\n");
+                            break;
+                        }
 
-                        //     jclass advCls = (*env)->GetObjectClass(env, advObj);
+                        jclass slCls = (*env)->GetObjectClass(env, slObj);
+                        // SpeedLimit.getItems(): List<RegulatorySpeedLimit> (or similar)
+                        jmethodID midGetItems = (*env)->GetMethodID(env, slCls, "getItems", "()Ljava/util/List;");
+                        jobject itemsList = midGetItems ? (*env)->CallObjectMethod(env, slObj, midGetItems) : NULL;
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            itemsList = NULL;
+                        }
+                        if (!itemsList)
+                        {
+                            printf("SpeedLimit.items is null\n");
+                            (*env)->DeleteLocalRef(env, slCls);
+                            (*env)->DeleteLocalRef(env, slObj);
+                            break;
+                        }
 
-                        //     // ITIScodesAndText.getItems(): List<ITISItem> (Choice { ITIS, TEXT })
-                        //     jmethodID midGetItems = (*env)->GetMethodID(env, advCls,
-                        //                                                 "getItems", "()Ljava/util/List;");
-                        //     jobject itemsList = midGetItems ? (*env)->CallObjectMethod(env, advObj, midGetItems) : NULL;
-                        //     if ((*env)->ExceptionCheck(env))
-                        //     {
-                        //         (*env)->ExceptionDescribe(env);
-                        //         (*env)->ExceptionClear(env);
-                        //         itemsList = NULL;
-                        //     }
-                        //     if (!itemsList)
-                        //     {
-                        //         printf("Advisory.items is null\n");
-                        //         (*env)->DeleteLocalRef(env, advCls);
-                        //         (*env)->DeleteLocalRef(env, advObj);
-                        //         break;
-                        //     }
+                        jclass listCls = (*env)->GetObjectClass(env, itemsList);
+                        jmethodID midIterator = (*env)->GetMethodID(env, listCls, "iterator", "()Ljava/util/Iterator;");
+                        jobject iterator = (*env)->CallObjectMethod(env, itemsList, midIterator);
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            iterator = NULL;
+                        }
 
-                        //     jclass listCls = (*env)->GetObjectClass(env, itemsList);
-                        //     jmethodID midIterator = (*env)->GetMethodID(env, listCls,
-                        //                                                 "iterator", "()Ljava/util/Iterator;");
-                        //     jobject iterator = (*env)->CallObjectMethod(env, itemsList, midIterator);
-                        //     if ((*env)->ExceptionCheck(env))
-                        //     {
-                        //         (*env)->ExceptionDescribe(env);
-                        //         (*env)->ExceptionClear(env);
-                        //         iterator = NULL;
-                        //     }
+                        if (iterator)
+                        {
+                            jclass itCls = (*env)->GetObjectClass(env, iterator);
+                            jmethodID midHasNext = (*env)->GetMethodID(env, itCls, "hasNext", "()Z");
+                            jmethodID midNext = (*env)->GetMethodID(env, itCls, "next", "()Ljava/lang/Object;");
 
-                        //     if (iterator)
-                        //     {
-                        //         jclass itCls = (*env)->GetObjectClass(env, iterator);
-                        //         jmethodID midHasNext = (*env)->GetMethodID(env, itCls, "hasNext", "()Z");
-                        //         jmethodID midNext = (*env)->GetMethodID(env, itCls, "next", "()Ljava/lang/Object;");
+                            while ((*env)->CallBooleanMethod(env, iterator, midHasNext))
+                            {
+                                jobject itemObj = (*env)->CallObjectMethod(env, iterator, midNext);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                    break;
+                                }
+                                if (!itemObj)
+                                    continue;
 
-                        //         int idx = 0;
-                        //         while ((*env)->CallBooleanMethod(env, iterator, midHasNext))
-                        //         {
-                        //             jobject itemObj = (*env)->CallObjectMethod(env, iterator, midNext);
-                        //             if ((*env)->ExceptionCheck(env))
-                        //             {
-                        //                 (*env)->ExceptionDescribe(env);
-                        //                 (*env)->ExceptionClear(env);
-                        //                 break;
-                        //             }
-                        //             if (!itemObj)
-                        //             {
-                        //                 idx++;
-                        //                 continue;
-                        //             }
+                                jclass itemCls = (*env)->GetObjectClass(env, itemObj);
+                                jmethodID midGetChoice = (*env)->GetMethodID(
+                                    env, itemCls, "getChoice",
+                                    "()Lgov/usdot/cv/timencoder/ITIScodesAndText$Item$Choice;");
+                                jobject choiceObj = midGetChoice ? (*env)->CallObjectMethod(env, itemObj, midGetChoice) : NULL;
 
-                        //             jclass itemCls = (*env)->GetObjectClass(env, itemObj);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                    choiceObj = NULL;
+                                }
+                                const char *ename = NULL;
+                                jstring jname = NULL;
 
-                        //             // ITISItem.getChoice(): enum { ITIS, TEXT }
-                        //             jmethodID midGetChoice = (*env)->GetMethodID(
-                        //                 env, itemCls, "getChoice",
-                        //                 "()Lgov/usdot/cv/timencoder/ITIScodesAndText$ITISItem$Choice;");
-                        //             jobject choiceObj = midGetChoice ? (*env)->CallObjectMethod(env, itemObj, midGetChoice) : NULL;
+                                if (choiceObj)
+                                {
+                                    jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
+                                    jmethodID midName = (*env)->GetMethodID(env, choiceCls, "name", "()Ljava/lang/String;");
+                                    if (midName)
+                                    {
+                                        jname = (jstring)(*env)->CallObjectMethod(env, choiceObj, midName);
+                                        if ((*env)->ExceptionCheck(env))
+                                        {
+                                            (*env)->ExceptionDescribe(env);
+                                            (*env)->ExceptionClear(env);
+                                            jname = NULL;
+                                        }
+                                        if (jname)
+                                            ename = (*env)->GetStringUTFChars(env, jname, 0);
+                                    }
+                                    (*env)->DeleteLocalRef(env, choiceCls);
+                                    (*env)->DeleteLocalRef(env, choiceObj);
+                                }
+                                if (!ename)
+                                {
 
-                        //             jint ord = -1;
-                        //             if (choiceObj)
-                        //             {
-                        //                 jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
-                        //                 jmethodID midOrd = (*env)->GetMethodID(env, choiceCls, "ordinal", "()I");
-                        //                 if (midOrd)
-                        //                     ord = (*env)->CallIntMethod(env, choiceObj, midOrd);
-                        //                 (*env)->DeleteLocalRef(env, choiceCls);
-                        //                 (*env)->DeleteLocalRef(env, choiceObj);
-                        //             }
+                                    (*env)->DeleteLocalRef(env, itemCls);
+                                    (*env)->DeleteLocalRef(env, itemObj);
+                                    if (jname)
+                                        (*env)->DeleteLocalRef(env, jname);
 
-                        //             if (ord == 0)
-                        //             {
-                        //                 // ITIS → ITIScodes number
-                        //                 jmethodID midGetItis = (*env)->GetMethodID(
-                        //                     env, itemCls, "getItis", "()Lgov/usdot/cv/timencoder/ITIScodes;");
-                        //                 jobject itisObj = midGetItis ? (*env)->CallObjectMethod(env, itemObj, midGetItis) : NULL;
-                        //                 if ((*env)->ExceptionCheck(env))
-                        //                 {
-                        //                     (*env)->ExceptionDescribe(env);
-                        //                     (*env)->ExceptionClear(env);
-                        //                 }
-                        //                 if (itisObj)
-                        //                 {
-                        //                     long code = get_long_from_java_number_like(env, itisObj);
+                                    continue;
+                                }
+                                if (strcmp(ename, "ITIS") == 0)
+                                {
+                                    // GenericSignageItem.getItis(): ITIScodes
+                                    jmethodID midGetItis = (*env)->GetMethodID(
+                                        env, itemCls, "getItis", "()Lgov/usdot/cv/timencoder/ITIScodes;");
+                                    jobject itisObj = midGetItis ? (*env)->CallObjectMethod(env, itemObj, midGetItis) : NULL;
+                                    if ((*env)->ExceptionCheck(env))
+                                    {
+                                        (*env)->ExceptionDescribe(env);
+                                        (*env)->ExceptionClear(env);
+                                        itisObj = NULL;
+                                    }
+                                    if (itisObj)
+                                    {
+                                        long code = get_long_from_java_number_like(env, itisObj); // your helper
+                                        struct ITIS_ITIScodesAndText__Member *node =
+                                            (struct ITIS_ITIScodesAndText__Member *)calloc(1, sizeof(*node));
+                                        if (node)
+                                        {
+                                            node->item.present = ITIS_ITIScodesAndText__Member__item_PR_itis;
+                                            // cast to the generated typedef if present; otherwise long is fine
+                                            node->item.choice.itis = (ITIS_ITIScodes_t)code;
+                                            if (ASN_SEQUENCE_ADD(&tdf->content.choice.speedLimit.list, node) != 0)
+                                            {
+                                                fprintf(stderr, "ASN_SEQUENCE_ADD(ITISCodeandText itis) failed\n");
+                                                free(node);
+                                            }
+                                        }
+                                        (*env)->DeleteLocalRef(env, itisObj);
+                                    }
+                                }
+                                else if (strcmp(ename, "TEXT") == 0)
+                                {
+                                    // GenericSignageItem.getText(): ITISTextPhrase (Java)
+                                    jmethodID midGetText = (*env)->GetMethodID(
+                                        env, itemCls, "getText", "()Lgov/usdot/cv/timencoder/ITISTextPhrase;");
+                                    jobject textObj = midGetText ? (*env)->CallObjectMethod(env, itemObj, midGetText) : NULL;
+                                    if ((*env)->ExceptionCheck(env))
+                                    {
+                                        (*env)->ExceptionDescribe(env);
+                                        (*env)->ExceptionClear(env);
+                                        textObj = NULL;
+                                    }
+                                    if (textObj)
+                                    {
+                                        struct ITIS_ITIScodesAndText__Member *node =
+                                            (struct ITIS_ITIScodesAndText__Member *)calloc(1, sizeof(*node));
+                                        if (node)
+                                        {
+                                            node->item.present = ITIS_ITIScodesAndText__Member__item_PR_text; // IA5String(1..63)
+                                            if (!fill_octet_from_java_string_like(env, &node->item.choice.text, textObj, 63))
+                                            {
+                                                free(node);
+                                            }
+                                            else if (ASN_SEQUENCE_ADD(&tdf->content.choice.genericSign.list, node) != 0)
+                                            {
+                                                fprintf(stderr, "ASN_SEQUENCE_ADD(ITISCodeandText text) failed\n");
+                                                free(node);
+                                            }
+                                        }
+                                        (*env)->DeleteLocalRef(env, textObj);
+                                    }
+                                }
 
-                        //                     // Allocate one advisory item node; name may differ in your asn1c code
-                        //                     struct ITIScodesAndText__Member *node =
-                        //                         (struct ITIScodesAndText__Member *)calloc(1, sizeof(*node));
-                        //                     if (node)
-                        //                     {
-                        //                         node->item.present = ITIScodesAndText__Member__item_PR_itis;
-                        //                         node->item.choice.itis = code;
-                        //                         if (ASN_SEQUENCE_ADD(&tdf->content.choice.advisory.list, node) != 0)
-                        //                         {
-                        //                             fprintf(stderr, "ASN_SEQUENCE_ADD(advisory itis) failed\n");
-                        //                             free(node);
-                        //                         }
-                        //                     }
-                        //                     (*env)->DeleteLocalRef(env, itisObj);
-                        //                 }
-                        //             }
-                        //             else if (ord == 1)
-                        //             {
-                        //                 // TEXT → ITISTextPhrase
-                        //                 jmethodID midGetText = (*env)->GetMethodID(
-                        //                     env, itemCls, "getText", "()Lgov/usdot/cv/timencoder/ITISTextPhrase;");
-                        //                 jobject textObj = midGetText ? (*env)->CallObjectMethod(env, itemObj, midGetText) : NULL;
-                        //                 if ((*env)->ExceptionCheck(env))
-                        //                 {
-                        //                     (*env)->ExceptionDescribe(env);
-                        //                     (*env)->ExceptionClear(env);
-                        //                 }
-                        //                 if (textObj)
-                        //                 {
-                        //                     struct ITIScodesAndText__Member *node =
-                        //                         (struct ITIScodesAndText__Member *)calloc(1, sizeof(*node));
-                        //                     if (node)
-                        //                     {
-                        //                         node->item.present = ITIScodesAndText__Member__item_PR_text;
-                        //                         if (!fill_octet_from_java_string_like(env, &node->item.choice.text, textObj, 63))
-                        //                         {
-                        //                             free(node);
-                        //                         }
-                        //                         else
-                        //                         {
-                        //                             if (ASN_SEQUENCE_ADD(&tdf->content.choice.advisory.list, node) != 0)
-                        //                             {
-                        //                                 fprintf(stderr, "ASN_SEQUENCE_ADD(advisory text) failed\n");
-                        //                                 free(node);
-                        //                             }
-                        //                         }
-                        //                     }
-                        //                     (*env)->DeleteLocalRef(env, textObj);
-                        //                 }
-                        //             }
+                                if (jname && ename)
+                                    (*env)->ReleaseStringUTFChars(env, jname, ename);
+                                if (jname)
+                                    (*env)->DeleteLocalRef(env, jname);
+                                (*env)->DeleteLocalRef(env, itemCls);
+                                (*env)->DeleteLocalRef(env, itemObj);
+                            }
+                            (*env)->DeleteLocalRef(env, itCls);
+                            (*env)->DeleteLocalRef(env, iterator);
+                        }
+                        else
+                        {
+                            fprintf(stderr, "ITISCodeandText : iterator() returned null\n");
+                        }
 
-                        //             (*env)->DeleteLocalRef(env, itemCls);
-                        //             (*env)->DeleteLocalRef(env, itemObj);
-                        //             idx++;
-                        //         }
-
-                        //         (*env)->DeleteLocalRef(env, itCls);
-                        //         (*env)->DeleteLocalRef(env, iterator);
-                        //     }
-
-                        //     (*env)->DeleteLocalRef(env, listCls);
-                        //     (*env)->DeleteLocalRef(env, advCls);
-                        //     (*env)->DeleteLocalRef(env, advObj);
-                        //     break;
-                        // }
+                        (*env)->DeleteLocalRef(env, listCls);
+                        (*env)->DeleteLocalRef(env, slCls);
+                        (*env)->DeleteLocalRef(env, itemsList);
+                        (*env)->DeleteLocalRef(env, slObj);
+                        break;
+                    }
 
                     case 1:
                     { // WORK_ZONE
@@ -810,7 +822,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 jint ordinal = -1;
                                 if (choiceObj)
                                 {
-                                    // printf("  WZ[%d]: has choice\n %d", (int)k, (int)itemCount);
+
                                     jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
                                     jmethodID midOrdinal = (*env)->GetMethodID(env, choiceCls, "ordinal", "()I");
                                     if (midOrdinal)
@@ -821,7 +833,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                                 if (ordinal == 0)
                                 {
-                                    // Choice.ITIS -> WorkZoneItem.getItis(): ITIScodes
+
                                     jmethodID midGetItis = (*env)->GetMethodID(
                                         env, itemCls, "getItis", "()Lgov/usdot/cv/timencoder/ITIScodes;");
                                     jobject itisObj = midGetItis ? (*env)->CallObjectMethod(env, itemObj, midGetItis) : NULL;
@@ -855,7 +867,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 }
                                 else if (ordinal == 1)
                                 {
-                                    // Choice.TEXT -> WorkZoneItem.getText(): ITISTextPhrase
+
                                     jmethodID midGetText = (*env)->GetMethodID(
                                         env, itemCls, "getText", "()Lgov/usdot/cv/timencoder/ITISTextPhrase;");
                                     jobject textObj = midGetText ? (*env)->CallObjectMethod(env, itemObj, midGetText) : NULL;
@@ -926,13 +938,11 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         }
                         if (!gsObj)
                         {
-                            printf("GenericSignage is null\n");
+                            // nothing to encode for this arm
                             break;
                         }
 
                         jclass gsCls = (*env)->GetObjectClass(env, gsObj);
-
-                        // ---- get items list ----
                         jmethodID midGetItems = (*env)->GetMethodID(env, gsCls, "getItems", "()Ljava/util/List;");
                         jobject itemsList = midGetItems ? (*env)->CallObjectMethod(env, gsObj, midGetItems) : NULL;
                         if ((*env)->ExceptionCheck(env))
@@ -943,16 +953,14 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         }
                         if (!itemsList)
                         {
-                            printf("GenericSignage.items is null\n");
                             (*env)->DeleteLocalRef(env, gsCls);
                             (*env)->DeleteLocalRef(env, gsObj);
                             break;
                         }
 
-                        // ---- prepare to iterate ----
                         jclass listCls = (*env)->GetObjectClass(env, itemsList);
-                        jmethodID midIterator = (*env)->GetMethodID(env, listCls, "iterator", "()Ljava/util/Iterator;");
-                        jobject iterator = midIterator ? (*env)->CallObjectMethod(env, itemsList, midIterator) : NULL;
+                        jmethodID midIter = (*env)->GetMethodID(env, listCls, "iterator", "()Ljava/util/Iterator;");
+                        jobject iterator = midIter ? (*env)->CallObjectMethod(env, itemsList, midIter) : NULL;
                         if ((*env)->ExceptionCheck(env))
                         {
                             (*env)->ExceptionDescribe(env);
@@ -960,18 +968,12 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                             iterator = NULL;
                         }
 
-                        // IMPORTANT: zero the ASN.1 target list
-                        memset(&tdf->content.choice.genericSign, 0, sizeof(tdf->content.choice.genericSign));
-                        int added = 0;
-
                         if (iterator)
                         {
-                            printf("Generic Signage\n");
                             jclass itCls = (*env)->GetObjectClass(env, iterator);
                             jmethodID midHasNext = (*env)->GetMethodID(env, itCls, "hasNext", "()Z");
                             jmethodID midNext = (*env)->GetMethodID(env, itCls, "next", "()Ljava/lang/Object;");
 
-                            int idx = 0;
                             while (midHasNext && (*env)->CallBooleanMethod(env, iterator, midHasNext))
                             {
                                 if ((*env)->ExceptionCheck(env))
@@ -979,20 +981,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
                                     break;
-                                }
-
-                                if (added >= 16)
-                                {
-                                    fprintf(stderr, "GenericSignage: too many items; max is 16\n");
-                                    // drain iterator but stop adding
-                                    (void)(midNext ? (*env)->CallObjectMethod(env, iterator, midNext) : NULL);
-                                    if ((*env)->ExceptionCheck(env))
-                                    {
-                                        (*env)->ExceptionDescribe(env);
-                                        (*env)->ExceptionClear(env);
-                                    }
-                                    idx++;
-                                    continue;
                                 }
 
                                 jobject itemObj = midNext ? (*env)->CallObjectMethod(env, iterator, midNext) : NULL;
@@ -1003,14 +991,11 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     break;
                                 }
                                 if (!itemObj)
-                                {
-                                    idx++;
                                     continue;
-                                }
 
                                 jclass itemCls = (*env)->GetObjectClass(env, itemObj);
 
-                                // --- read Choice via name() (kept as requested) ---
+                                // item.getChoice() -> enum name()
                                 jmethodID midGetChoice = (*env)->GetMethodID(
                                     env, itemCls, "getChoice",
                                     "()Lgov/usdot/cv/timencoder/GenericSignage$GenericSignageItem$Choice;");
@@ -1044,128 +1029,78 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     (*env)->DeleteLocalRef(env, choiceObj);
                                 }
 
-                                if (!ename)
+                                if (ename)
                                 {
-                                    fprintf(stderr, "GenericSignage item[%d]: choice name() is null\n", idx);
-                                    (*env)->DeleteLocalRef(env, itemCls);
-                                    (*env)->DeleteLocalRef(env, itemObj);
-                                    if (jname)
-                                        (*env)->DeleteLocalRef(env, jname);
-                                    idx++;
-                                    continue;
-                                }
-
-                                if (strcmp(ename, "ITIS") == 0)
-                                {
-                                    // GenericSignageItem.getItis(): ITIScodes
-                                    jmethodID midGetItis = (*env)->GetMethodID(
-                                        env, itemCls, "getItis", "()Lgov/usdot/cv/timencoder/ITIScodes;");
-                                    jobject itisObj = midGetItis ? (*env)->CallObjectMethod(env, itemObj, midGetItis) : NULL;
-                                    if ((*env)->ExceptionCheck(env))
+                                    if (strcmp(ename, "ITIS") == 0)
                                     {
-                                        (*env)->ExceptionDescribe(env);
-                                        (*env)->ExceptionClear(env);
-                                        itisObj = NULL;
-                                    }
-
-                                    if (itisObj)
-                                    {
-                                        long code = get_long_from_java_number_like(env, itisObj); // your helper
-                                        struct GenericSignage__Member *node =
-                                            (struct GenericSignage__Member *)calloc(1, sizeof(*node));
-                                        if (node)
+                                        jmethodID midGetItis = (*env)->GetMethodID(
+                                            env, itemCls, "getItis", "()Lgov/usdot/cv/timencoder/ITIScodes;");
+                                        jobject itisObj = midGetItis ? (*env)->CallObjectMethod(env, itemObj, midGetItis) : NULL;
+                                        if ((*env)->ExceptionCheck(env))
                                         {
-                                            node->item.present = GenericSignage__Member__item_PR_itis;
-                                            // cast to the generated typedef if present; otherwise long is fine
-                                            node->item.choice.itis = (ITIS_ITIScodes_t)code;
-                                            if (ASN_SEQUENCE_ADD(&tdf->content.choice.genericSign.list, node) != 0)
-                                            {
-                                                fprintf(stderr, "ASN_SEQUENCE_ADD(genericSign itis) failed\n");
-                                                free(node);
-                                            }
-                                            else
-                                            {
-                                                added++;
-                                            }
+                                            (*env)->ExceptionDescribe(env);
+                                            (*env)->ExceptionClear(env);
+                                            itisObj = NULL;
                                         }
-                                        (*env)->DeleteLocalRef(env, itisObj);
-                                    }
-                                    else
-                                    {
-                                        fprintf(stderr, "GenericSignage item[%d]: getItis() returned null\n", idx);
-                                    }
-                                }
-                                else if (strcmp(ename, "TEXT") == 0)
-                                {
-                                    // GenericSignageItem.getText(): ITISTextPhrase (Java)
-                                    jmethodID midGetText = (*env)->GetMethodID(
-                                        env, itemCls, "getText", "()Lgov/usdot/cv/timencoder/ITISTextPhrase;");
-                                    jobject textObj = midGetText ? (*env)->CallObjectMethod(env, itemObj, midGetText) : NULL;
-                                    if ((*env)->ExceptionCheck(env))
-                                    {
-                                        (*env)->ExceptionDescribe(env);
-                                        (*env)->ExceptionClear(env);
-                                        textObj = NULL;
-                                    }
-
-                                    if (textObj)
-                                    {
-                                        struct GenericSignage__Member *node =
-                                            (struct GenericSignage__Member *)calloc(1, sizeof(*node));
-                                        if (node)
+                                        if (itisObj)
                                         {
-                                            node->item.present = GenericSignage__Member__item_PR_text; // IA5String(1..63)
-                                            if (!fill_octet_from_java_string_like(env, &node->item.choice.text, textObj, 63))
+                                            long code = get_long_from_java_number_like(env, itisObj);
+                                            struct GenericSignage__Member *node =
+                                                (struct GenericSignage__Member *)calloc(1, sizeof(*node));
+                                            if (node)
                                             {
-                                                free(node);
+                                                node->item.present = GenericSignage__Member__item_PR_itis;
+                                                node->item.choice.itis = (ITIS_ITIScodes_t)code;
+                                                if (ASN_SEQUENCE_ADD(&tdf->content.choice.genericSign.list, node) != 0)
+                                                {
+                                                    free(node);
+                                                }
                                             }
-                                            else if (ASN_SEQUENCE_ADD(&tdf->content.choice.genericSign.list, node) != 0)
-                                            {
-                                                fprintf(stderr, "ASN_SEQUENCE_ADD(genericSign text) failed\n");
-                                                free(node);
-                                            }
-                                            else
-                                            {
-                                                added++;
-                                            }
+                                            (*env)->DeleteLocalRef(env, itisObj);
                                         }
-                                        (*env)->DeleteLocalRef(env, textObj);
                                     }
-                                    else
+                                    else if (strcmp(ename, "TEXT") == 0)
                                     {
-                                        fprintf(stderr, "GenericSignage item[%d]: getText() returned null\n", idx);
+                                        jmethodID midGetText = (*env)->GetMethodID(
+                                            env, itemCls, "getText", "()Lgov/usdot/cv/timencoder/ITISTextPhrase;");
+                                        jobject textObj = midGetText ? (*env)->CallObjectMethod(env, itemObj, midGetText) : NULL;
+                                        if ((*env)->ExceptionCheck(env))
+                                        {
+                                            (*env)->ExceptionDescribe(env);
+                                            (*env)->ExceptionClear(env);
+                                            textObj = NULL;
+                                        }
+                                        if (textObj)
+                                        {
+                                            struct GenericSignage__Member *node =
+                                                (struct GenericSignage__Member *)calloc(1, sizeof(*node));
+                                            if (node)
+                                            {
+                                                node->item.present = GenericSignage__Member__item_PR_text; // IA5String(1..63)
+                                                if (!fill_octet_from_java_string_like(env, &node->item.choice.text, textObj, 63))
+                                                {
+                                                    free(node);
+                                                }
+                                                else if (ASN_SEQUENCE_ADD(&tdf->content.choice.genericSign.list, node) != 0)
+                                                {
+                                                    free(node);
+                                                }
+                                            }
+                                            (*env)->DeleteLocalRef(env, textObj);
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    fprintf(stderr, "GenericSignage item[%d]: unknown Choice name=%s\n", idx, ename);
                                 }
 
-                                // release name() chars then delete jname
                                 if (jname && ename)
                                     (*env)->ReleaseStringUTFChars(env, jname, ename);
                                 if (jname)
                                     (*env)->DeleteLocalRef(env, jname);
-
                                 (*env)->DeleteLocalRef(env, itemCls);
                                 (*env)->DeleteLocalRef(env, itemObj);
-                                idx++;
                             }
 
                             (*env)->DeleteLocalRef(env, itCls);
                             (*env)->DeleteLocalRef(env, iterator);
-                        }
-                        else
-                        {
-                            fprintf(stderr, "GenericSignage: iterator() returned null\n");
-                        }
-
-                        // enforce SIZE(1..16): if none added, clear present so encoder won’t fail
-                        if (added == 0)
-                        {
-                            fprintf(stderr, "GenericSignage has no items (violates SIZE(1..16)); dropping content\n");
-                            tdf->content.present = 0; // or switch to another valid content variant
-                            // Optionally free the list if you want to be extra tidy.
                         }
 
                         // cleanup locals
@@ -1257,7 +1192,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 const char *ename = NULL;
                                 jstring jname = NULL;
 
-                                  if (choiceObj)
+                                if (choiceObj)
                                 {
                                     jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
                                     jmethodID midName = (*env)->GetMethodID(env, choiceCls, "name", "()Ljava/lang/String;");
@@ -1278,12 +1213,12 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 }
                                 if (!ename)
                                 {
-                                   
+
                                     (*env)->DeleteLocalRef(env, itemCls);
                                     (*env)->DeleteLocalRef(env, itemObj);
                                     if (jname)
                                         (*env)->DeleteLocalRef(env, jname);
-                                   
+
                                     continue;
                                 }
                                 if (strcmp(ename, "ITIS") == 0)
@@ -1345,11 +1280,9 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                                 fprintf(stderr, "ASN_SEQUENCE_ADD(Speed Limit text) failed\n");
                                                 free(node);
                                             }
-                               
                                         }
                                         (*env)->DeleteLocalRef(env, textObj);
                                     }
-
                                 }
 
                                 if (jname && ename)
@@ -1358,7 +1291,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     (*env)->DeleteLocalRef(env, jname);
                                 (*env)->DeleteLocalRef(env, itemCls);
                                 (*env)->DeleteLocalRef(env, itemObj);
-                           
                             }
                             (*env)->DeleteLocalRef(env, itCls);
                             (*env)->DeleteLocalRef(env, iterator);
@@ -1375,9 +1307,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         break;
                     }
 
-
                     case 4:
-                     {
+                    {
                         tdf->content.present = TravelerDataFrame__content_PR_exitService;
 
                         // Content.getSpeedLimit(): SpeedLimit
@@ -1457,7 +1388,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 const char *ename = NULL;
                                 jstring jname = NULL;
 
-                                  if (choiceObj)
+                                if (choiceObj)
                                 {
                                     jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
                                     jmethodID midName = (*env)->GetMethodID(env, choiceCls, "name", "()Ljava/lang/String;");
@@ -1478,12 +1409,12 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 }
                                 if (!ename)
                                 {
-                                   
+
                                     (*env)->DeleteLocalRef(env, itemCls);
                                     (*env)->DeleteLocalRef(env, itemObj);
                                     if (jname)
                                         (*env)->DeleteLocalRef(env, jname);
-                                   
+
                                     continue;
                                 }
                                 if (strcmp(ename, "ITIS") == 0)
@@ -1545,11 +1476,9 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                                 fprintf(stderr, "ASN_SEQUENCE_ADD(EXIT SERVICE text) failed\n");
                                                 free(node);
                                             }
-                               
                                         }
                                         (*env)->DeleteLocalRef(env, textObj);
                                     }
-
                                 }
 
                                 if (jname && ename)
@@ -1558,7 +1487,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     (*env)->DeleteLocalRef(env, jname);
                                 (*env)->DeleteLocalRef(env, itemCls);
                                 (*env)->DeleteLocalRef(env, itemObj);
-                           
                             }
                             (*env)->DeleteLocalRef(env, itCls);
                             (*env)->DeleteLocalRef(env, iterator);
@@ -1596,18 +1524,13 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         (*env)->DeleteLocalRef(env, enumCls);
                         (*env)->DeleteLocalRef(env, contentChoiceObj);
                     }
-                    }
-                }
-                else
-                {
-                    printf("Content Choice = <null>\n");
                 }
             }
+            else
+            {
+                printf("Content Choice = <null>\n");
+            }
             (*env)->DeleteLocalRef(env, contentCls);
-        }
-        else
-        {
-            printf("Content field is null\n");
         }
 
         // ---- contentNew (Part III: FrictionInformation) ----
@@ -1685,15 +1608,14 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (typeObj)
                                 {
                                     jclass typeCls = (*env)->GetObjectClass(env, typeObj);
-                                    jmethodID midTypeName = (*env)->GetMethodID(env, typeCls, "name", "()Ljava/lang/String;");
-                                    jstring typeNameJ = (jstring)(*env)->CallObjectMethod(env, typeObj, midTypeName);
-                                    if (typeNameJ)
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
                                     {
-                                        const char *typeName = (*env)->GetStringUTFChars(env, typeNameJ, 0);
-                                        printf("Content New: PortlandCement.type = %s\n", typeName ? typeName : "<null>");
-                                        if (typeName)
-                                            (*env)->ReleaseStringUTFChars(env, typeNameJ, typeName);
-                                        (*env)->DeleteLocalRef(env, typeNameJ);
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.portlandCement.type = enumVal;
                                     }
                                     (*env)->DeleteLocalRef(env, typeCls);
                                     (*env)->DeleteLocalRef(env, typeObj);
@@ -1703,9 +1625,251 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                             }
                         }
 
+                        else if (choiceOrdinal == 1)
+                        {
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getAsphaltOrTar",
+                                "()Lgov/usdot/cv/timencoder/AsphaltOrTar;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_asphaltOrTar;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/AsphaltOrTarType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.asphaltOrTar.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+                        else if (choiceOrdinal == 2)
+                        {
+
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getGravel",
+                                "()Lgov/usdot/cv/timencoder/Gravel;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_gravel;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/GravelType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.gravel.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+                        else if (choiceOrdinal == 3)
+                        {
+
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getGrass",
+                                "()Lgov/usdot/cv/timencoder/Grass;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_gravel;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/GrassType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.grass.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+
+                        else if (choiceOrdinal == 4)
+                        {
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getCinders",
+                                "()Lgov/usdot/cv/timencoder/Cinders;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_gravel;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/CindersType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.cinders.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+                        else if (choiceOrdinal == 5)
+                        {
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getRock",
+                                "()Lgov/usdot/cv/timencoder/Rock;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_gravel;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/RockTyoe;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.rock.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+                        else if (choiceOrdinal == 6)
+                        {
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getIce",
+                                "()Lgov/usdot/cv/timencoder/Ice;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_ice;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/IceType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.ice.type = enumVal;
+                                    }
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+                        else if (choiceOrdinal == 7)
+                        {
+                            jmethodID midGetAS = (*env)->GetMethodID(
+                                env, descCls, "getSnow",
+                                "()Lgov/usdot/cv/timencoder/Snow;");
+                            jobject asObj = midGetAS ? (*env)->CallObjectMethod(env, descObj, midGetAS) : NULL;
+                            fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_snow;
+                            if (asObj)
+                            {
+                                jclass asCls = (*env)->GetObjectClass(env, asObj);
+                                jmethodID midGetType = (*env)->GetMethodID(
+                                    env, asCls, "getType",
+                                    "()Lgov/usdot/cv/timencoder/SnowType;");
+                                jobject typeObj = midGetType ? (*env)->CallObjectMethod(env, asObj, midGetType) : NULL;
+                                if (typeObj)
+                                {
+                                    // Call SnowType.intValue()
+                                    jclass typeCls = (*env)->GetObjectClass(env, typeObj);
+                                    jmethodID midIntVal = (*env)->GetMethodID(env, typeCls, "intValue", "()I");
+                                    jint enumVal = midIntVal ? (*env)->CallIntMethod(env, typeObj, midIntVal) : -1;
+
+                                    if (enumVal >= 0)
+                                    {
+                                        printf("Content New: Snow.type intValue=%d\n", enumVal);
+                                        // Assign to ASN.1 field
+                                        fip->roadSurfaceDescription.choice.snow.type = enumVal;
+                                    }
+
+                                    (*env)->DeleteLocalRef(env, typeCls);
+                                    (*env)->DeleteLocalRef(env, typeObj);
+                                }
+                                (*env)->DeleteLocalRef(env, asCls);
+                                (*env)->DeleteLocalRef(env, asObj);
+                            }
+                        }
+
+                        else
+                        {
+                            printf("Content New: RoadSurfaceDescription: unhandled choice ordinal %d\n", (int)choiceOrdinal);
+                        }
+
                         (*env)->DeleteLocalRef(env, choiceCls);
                         (*env)->DeleteLocalRef(env, choiceObj);
                     }
+
                     else
                     {
                         printf("Content New: Choice is null\n");
@@ -1726,26 +1890,39 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 if (dryObj)
                 {
                     jclass dryCls = (*env)->GetObjectClass(env, dryObj);
-                    jmethodID midDryName = (*env)->GetMethodID(env, dryCls, "name", "()Ljava/lang/String;");
-                    jstring dryNameJ = (jstring)(*env)->CallObjectMethod(env, dryObj, midDryName);
-                    if (dryNameJ)
+                    jmethodID midIntVal = (*env)->GetMethodID(env, dryCls, "intValue", "()I");
+                    jint intVal = (midIntVal) ? (*env)->CallIntMethod(env, dryObj, midIntVal) : -1;
+
+                    if ((*env)->ExceptionCheck(env))
                     {
-
-                        const char *dryName = (*env)->GetStringUTFChars(env, dryNameJ, 0);
-                        printf("Content New: dryOrWet = %s\n", dryName ? dryName : "<null>");
-                        if (dryName)
-                            (*env)->ReleaseStringUTFChars(env, dryNameJ, dryName);
-                        fip->dryOrWet = (RoadSurfaceCondition_t *)calloc(1, sizeof(*fip->dryOrWet));
-                        *fip->dryOrWet = (long)1;
-
-                        (*env)->DeleteLocalRef(env, dryNameJ);
+                        (*env)->ExceptionDescribe(env);
+                        (*env)->ExceptionClear(env);
+                        intVal = -1;
                     }
-                    (*env)->DeleteLocalRef(env, dryCls);
-                    (*env)->DeleteLocalRef(env, dryObj);
+
+                    // Only allocate if value is 0 (DRY) or 1 (WET)
+                    if (intVal == 0 || intVal == 1)
+                    {
+                        fip->dryOrWet = (RoadSurfaceCondition_t *)calloc(1, sizeof(*fip->dryOrWet));
+                        if (fip->dryOrWet)
+                        {
+                            *fip->dryOrWet = (long)intVal;
+                            printf("Content New: dryOrWet = %d\n", intVal);
+                        }
+                        else
+                        {
+                            fprintf(stderr, "OOM: dryOrWet\n");
+                        }
+                    }
+                    else
+                    { // explicitly null for invalid values
+                        printf("Content New: dryOrWet skipped (invalid value %d)\n", intVal);
+                    }
                 }
                 else
                 {
-                    printf("Content New: dryOrWet = <absent>\n");
+
+                    fip->dryOrWet = NULL;
                 }
 
                 // Optional: roadRoughness
@@ -1755,19 +1932,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 jobject roughObj = midGetRough ? (*env)->CallObjectMethod(env, frictionObj, midGetRough) : NULL;
                 if (roughObj)
                 {
-                    jclass roughCls = (*env)->GetObjectClass(env, roughObj);
-                    jmethodID midRoughName = (*env)->GetMethodID(env, roughCls, "name", "()Ljava/lang/String;");
-                    jstring roughNameJ = (jstring)(*env)->CallObjectMethod(env, roughObj, midRoughName);
-                    if (roughNameJ)
-                    {
-                        const char *roughName = (*env)->GetStringUTFChars(env, roughNameJ, 0);
-                        printf("Content New: roadRoughness = %s\n", roughName ? roughName : "<null>");
-                        if (roughName)
-                            (*env)->ReleaseStringUTFChars(env, roughNameJ, roughName);
-                        (*env)->DeleteLocalRef(env, roughNameJ);
-                    }
-                    (*env)->DeleteLocalRef(env, roughCls);
-                    (*env)->DeleteLocalRef(env, roughObj);
+                    // Todo: get Road Roughness information
                 }
                 else
                 {
@@ -1833,13 +1998,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     if (frameCls)
         (*env)->DeleteLocalRef(env, frameCls);
 
-    // // ---- Dummy return payload ----
-    // jbyte buffer[] = {(jbyte)0xDE, (jbyte)0xAD, (jbyte)0xBE, (jbyte)0xEF};
-    // jbyteArray result = (*env)->NewByteArray(env, 4);
-    // (*env)->SetByteArrayRegion(env, result, 0, 4, buffer);
-
-    // ASN_STRUCT_FREE(asn_DEF_MessageFrame, message); // free temp ASN.1 struct
-
     uint8_t buffer[10240]; // or malloc if you want dynamic
     asn_enc_rval_t ec;
     MessageFrame_t *message = (MessageFrame_t *)calloc(1, sizeof(*message));
@@ -1853,19 +2011,18 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     asn_fprint(stdout, &asn_DEF_MessageFrame, message);
 
     ec = uper_encode_to_buffer(
-        &asn_DEF_MessageFrame, // type descriptor
-        NULL,                  // constraints (usually NULL)
-        message,               // pointer to your struct
-        buffer,                // destination buffer
-        sizeof(buffer)         // buffer size
-    );
+        &asn_DEF_MessageFrame,
+        NULL,
+        message,
+        buffer,
+        sizeof(buffer));
 
     if (ec.encoded != -1)
     {
         printf("UPER encoded %zd bits\n", ec.encoded);
         size_t nbytes = (ec.encoded + 7) / 8;
 
-        // --- Hex dump (your code) ---
+        // --- Hex dump for debugging ---
         size_t hex_len = nbytes * 3; // "AA " per byte
         char *hex = (char *)malloc(hex_len + 1);
         if (hex)
@@ -1878,7 +2035,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             free(hex);
         }
 
-        // --- Decode back into a MessageFrame ---
+        // --- Decode back for sanity check ---
         MessageFrame_t *decoded = NULL;
         asn_dec_rval_t dr = uper_decode_complete(
             /*opt_codec_ctx=*/NULL,
@@ -1892,33 +2049,30 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             printf("UPER decode OK, consumed %zu bits (~%zu bytes)\n",
                    dr.consumed, (dr.consumed + 7) / 8);
 
-            // Pretty-print the decoded message (XER)
-            // Requires XER support (default unless compiled with -no-gen-XER)
+            // Pretty-print decoded structure (XER)
             asn_fprint(stdout, &asn_DEF_MessageFrame, decoded);
         }
         else
         {
-            // RC_FAIL or RC_WMORE
             printf("UPER decode FAILED (code=%d), consumed %zu bits at about byte %zu\n",
                    dr.code, dr.consumed, dr.consumed / 8);
         }
 
-        // Always free the decoded structure
-        if (decoded)
+        // --- Return actual byte array to Java ---
+        jbyteArray result = (*env)->NewByteArray(env, nbytes);
+        if (result != NULL)
         {
-            ASN_STRUCT_FREE(asn_DEF_MessageFrame, decoded);
+            (*env)->SetByteArrayRegion(env, result, 0, nbytes, (jbyte *)buffer);
         }
+
+        // free decoded struct
+        ASN_STRUCT_FREE(asn_DEF_MessageFrame, decoded);
+
+        return result;
     }
     else
     {
-        printf("UPER encoding failed\n");
+        printf("UPER encode failed\n");
+        return NULL;
     }
-    //  return outBuf;
-
-    // For making the test Pass
-    jbyte buff[] = {(jbyte)0xDE, (jbyte)0xAD, (jbyte)0xBE, (jbyte)0xEF};
-
-    jbyteArray result = (*env)->NewByteArray(env, 4);
-    (*env)->SetByteArrayRegion(env, result, 0, 4, buff);
-    return result;
 }
