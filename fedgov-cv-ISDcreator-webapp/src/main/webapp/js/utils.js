@@ -4,6 +4,7 @@ let approachNumRows = -1;
 let timeRestrictions;
 let tmpLaneAttributes = {}
 let selectedMarker;
+let speedFormIndexArray = [];
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
 import { selectedMarker as selectedMarkerMAP } from "./map.js";
@@ -1309,7 +1310,20 @@ function addSpeedForm(speedForm) {
     setRGAStatus();
 }
 
+function addToSpeedFormIndexArray(numToAdd) {
+  if (!speedFormIndexArray.includes(numToAdd)) {
+    speedFormIndexArray.push(numToAdd);
+  }
+}
+
+function removeFromSpeedFormIndexArray(numToRemove) {
+  speedFormIndexArray = speedFormIndexArray.filter(function (value) {
+    return value !== numToRemove;
+  });
+}
+
 function rebuildSpeedForm(speedForm, speedLimitArray) {
+  speedFormIndexArray = [...Array(speedLimitArray.length).keys()]; 
   removeSpeedForm(speedForm);
   let results = speedLimitArray.length;
 
@@ -1393,17 +1407,18 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
 
 function saveSpeedForm(speedForm) {
   let tmpSpeedLimits = [];
-  let forms = (speedForm.getForms()).length;
+  let formsLength = speedFormIndexArray.length;
   
-  for (let i = 0; i < forms; i++) {
+  for (let i = 0; i < formsLength; i++) {
       // Get selected days of the week
       let daysOfTheWeek = [];
-      $(`#speedForm_${i}_day_selection option:selected`).each(function() {
+      let currentIndex = speedFormIndexArray[i]
+      $(`#speedForm_${currentIndex}_day_selection option:selected`).each(function() {
           daysOfTheWeek.push($(this).val());
       });
       
       // Get time period type (none, range, general)
-      let timePeriodType = $(`input[name="speedForm_${i}_time_period"]:checked`).val() || "";
+      let timePeriodType = $(`input[name="speedForm_${currentIndex}_time_period"]:checked`).val() || "";
       
       // Initialize time period value and range
       let timePeriodValue = "";
@@ -1411,20 +1426,20 @@ function saveSpeedForm(speedForm) {
       
       // Get specific time period data based on type
       if (timePeriodType === 'general') {
-          timePeriodValue = $(`input[name="speedForm_${i}_time_period_general"]:checked`).val();
+          timePeriodValue = $(`input[name="speedForm_${currentIndex}_time_period_general"]:checked`).val();
       } else if (timePeriodType === 'range') {
           timePeriodRange = {
-              startDateTime: $(`#speedForm_${i}_time_period_start_datetime`).val(),
-              startOffset: $(`#speedForm_${i}_time_period_start_offset`).val(),
-              endDateTime: $(`#speedForm_${i}_time_period_end_datetime`).val(),
-              endOffset: $(`#speedForm_${i}_time_period_end_offset`).val()
+              startDateTime: $(`#speedForm_${currentIndex}_time_period_start_datetime`).val(),
+              startOffset: $(`#speedForm_${currentIndex}_time_period_start_offset`).val(),
+              endDateTime: $(`#speedForm_${currentIndex}_time_period_end_datetime`).val(),
+              endOffset: $(`#speedForm_${currentIndex}_time_period_end_offset`).val()
           };
       }
       
       tmpSpeedLimits.push({
-          speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-          velocity: $("#speedForm_" + i + "_velocity").val(),
-          speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val(),
+          speedLimitType: $("#speedForm_"+ currentIndex + "_speedLimitType option:selected").text(),
+          velocity: $("#speedForm_" + currentIndex + "_velocity").val(),
+          speedLimitChoice: $(`input[name="speedForm_${currentIndex}_speedLimitChoice"]:checked`).val(),
           timeRestrictions: {
               daysOfTheWeek: daysOfTheWeek,
               timePeriodType: timePeriodType,
@@ -1435,6 +1450,7 @@ function saveSpeedForm(speedForm) {
   }
   
   removeSpeedForm(speedForm);
+  speedFormIndexArray = [];
   return tmpSpeedLimits;
 }
 
@@ -2374,6 +2390,8 @@ export {
   addSpeedForm,
   resetSpeedDropdowns,
   saveSpeedForm,
+  removeFromSpeedFormIndexArray,
+  addToSpeedFormIndexArray,
   rebuildSpeedForm,
   unselectFeature,
   removeSpeedForm,

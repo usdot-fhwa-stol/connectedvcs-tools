@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, revisionNumChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -1149,12 +1149,22 @@ function initMISC() {
     minFormsCount: 0,
     iniFormsCount: 1,
     afterAdd: function (source, newForm) {
+      const addedIndex = newForm.data("formIndex");
+      addToSpeedFormIndexArray(addedIndex);
       $("[id*=speedLimitType]").change(() => {
         console.log("speedForm limit type change");
         resetSpeedDropdowns(speedForm);
         updateSpeedTimeRestrictionsHTML();
       });
     },
+    beforeRemoveCurrent: function (source, event) {
+      const form = $(event.currentTarget).data("removableClone"); 
+      if (form) {
+        const removedIndex = form.data("formIndex");
+        // Call a function that is imported from utils and send the index being removed
+        removeFromSpeedFormIndexArray(removedIndex);
+      }
+    }
   });
 
   $("#speedForm_add").click(function () {
