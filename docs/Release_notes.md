@@ -44,7 +44,6 @@ This release focuses on enhancements for RGA message, addressing reported issues
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/167, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/171
 
-
 Version 2.2.3, released Sep 2nd, 2025
 ----------------------------------------
 
@@ -255,6 +254,3 @@ This release of the Map Tool introduces several significant updates:
 Known Issues related to this release:
 
 - **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
-
-
-
