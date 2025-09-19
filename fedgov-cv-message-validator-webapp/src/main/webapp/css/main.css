@@ -1,0 +1,78 @@
+body {
+    padding-top: 5px;
+}
+
+.page-header {
+    margin: 5px 0 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.validation-container {
+    padding: 40px 15px;
+    text-align: center;
+    background-color: lightgray;
+    border: 2px solid #a1a1a1;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.validation-input-container {
+    margin-bottom: 20px;
+}
+
+.pdu-type-selection {
+    margin-bottom: 35px;
+    font-size: 16px;
+}
+
+.encoding-type-selection {
+    margin-bottom: 35px;
+    font-size: 16px;
+}
+
+.message-container {
+    margin-bottom: 20px;
+}
+
+.encoded-msg-textarea {
+    width: 725px;
+    max-width: 725px;
+    height: 175px;
+    min-height: 100px;
+    max-height: 200px;
+    padding: 5px;
+}
+
+.results-textarea {
+    width: 725px;
+    max-width: 725px;
+    height: 400px;
+    min-height: 100px;
+    max-height: 500px;
+    padding: 5px;
+}
+
+.small-results-textarea {
+    width: 725px;
+    max-width: 725px;
+    padding: 5px;
+}
+
+.success_results {
+    border: 2px solid;
+    border-color: green;
+    background-color: limegreen;
+    font-weight: bold;
+}
+
+.error_results {
+    border: 2px solid;
+    border-color: red;
+    background-color: lightcoral;
+    font-weight: bold;
+}

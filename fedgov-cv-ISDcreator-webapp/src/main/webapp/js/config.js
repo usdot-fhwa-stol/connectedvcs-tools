@@ -43,9 +43,9 @@ var lane_attributes = [
 	},
 	{
 	  id: 3,
-	  name: "U-Turn",
-	  description: "Maneuver U-Turn Allowed",
-	  img_src: "./img/intersection-builder/lane/u-turn.png"
+	  name: "Left U-Turn",
+	  description: "Left Maneuver U-Turn Allowed",
+	  img_src: "./img/intersection-builder/lane/leftu-turn.jpg"
 	},
 	{
 	  id: 4,
@@ -88,6 +88,12 @@ var lane_attributes = [
 	  name: "Caution",
 	  description: "Caution",
 	  img_src: "./img/intersection-builder/lane/caution.png"
+	},
+	{
+	  id: 12,
+	  name: "Right U-Turn",
+	  description: "Right Maneuver U-Turn Allowed",
+	  img_src: "./img/intersection-builder/lane/rightu-turn.jpg"
 	}
 ];
 
@@ -158,6 +164,14 @@ var help_notes = [
     	description: "Used to relate the index of an approach, either ingress or egress within the subject lane. <br>" +
     			"--Zero to be used when valid value is unknown."
     },
+	{
+		value: "maneuver_control_type",
+		title: "Maneuver Control Type",
+		max: "N/A",
+		min: "N/A",
+		units: "N/A",
+		description: "Indicates what type of control applies to a connection maneuver."
+	},
     {
     	value: "intersection_name",
     	title: "Intersection Name",
@@ -342,6 +356,14 @@ var help_notes = [
     	units: "N/A",
     	description: "Relates the type of speed limit to which a given speed refers."
     },
+	{
+		value: "speed_limit_choice",
+		title: "Speed Limit Choice",
+		max: "N/A",
+		min: "N/A",
+		units: "N/A",
+		description: "Indicates if the speed limit choice is a regulatory or an advisory one. Statutory speed limits should be classified as regulatory. Speed limit choice defaults to regulatory in MAP. Speed limit choice can be advisory or regulatory in RGA."
+	},
     {
     	value: "velocity",
     	title: "Velocity",
