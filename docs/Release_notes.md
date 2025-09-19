@@ -8,15 +8,18 @@ Version 2.3.0, released Sep 19th, 2025
 This release focuses on enhancements for RGA message, addressing reported issues on existing MAP Tool, and laying groundwork for future feature development. The key updates include completing integration for the RGA Movements Container, RGA Way Use Container, and resolving critical bugs found in the production environment. This release also includes improvements to security of the tool.
 
 ### **<ins>Enhancements in Release:</ins>** 
+
 **Epic MAP-246: Add Movements Container to RGA Message**  
 **Summary:**
   - **RGA Movements Container:** Integration for the RGA Movements Container functionality has been completed.   
+
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/145 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/146 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/147 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/152 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/150 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/148 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/142 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/144 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/139 ,  https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/149 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/137 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/141 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/143 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/156
 
 **Epic MAP-247: Add Way use Container to RGA Message**  
 **Summary:**
   - **Way Use Container:** Integration for the RGA Way Use Container functionality has been completed. 
+
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/158 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/161 , (https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/153 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/135 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/157 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/151 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/154 , (https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/155 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/175
 
@@ -28,6 +31,7 @@ This release focuses on enhancements for RGA message, addressing reported issues
  - Addressed an error loading old MAP files without RGA data (MAP-337). 
  - Investigated a missing approach for sidewalks (MAP-332). 
  - Resolved a problem with duplicate lane IDs (MAP-346). 
+
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/132, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/165, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/168
 
@@ -36,6 +40,7 @@ This release focuses on enhancements for RGA message, addressing reported issues
 **Summary:** This Epic captured general bugs found in the production environment as below: 
  - Implement caches and zoom control to reduce tile set API calls to Azure Map service 
  - Add Cross Site Request Forgery and Referrer headers protection to tileset API 
+
 **<ins>Pull Requests:</ins>**  
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/167, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/171
 
@@ -250,5 +255,6 @@ This release of the Map Tool introduces several significant updates:
 Known Issues related to this release:
 
 - **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
+
 
 
