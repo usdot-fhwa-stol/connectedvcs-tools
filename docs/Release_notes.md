@@ -130,7 +130,7 @@ Note: Since we updated Openlayers library from v2 to v10, a mismatch is introduc
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/109, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/110
 
 
-Version 2.1.0, released 31st, 2024
+Version 2.1.0, released Dec 31st, 2024
 ----------------------------------------
 
 ### **Summary**  
@@ -190,7 +190,7 @@ This Hotfix 2.0.2 focuses on addressing tileAge data displayed on the MAPTool IS
 **<ins>Fixes:</ins>** 
 - Removed tileAge API calls to bing maps. NOTE: tile age will no longer be available to users of the current MAP Tool.
 
-Version 2.0.1, released Nov 1st, 2024
+Version 2.0.1, released Nov 8th, 2024
 ----------------------------------------
 
 ### **Summary**
@@ -225,35 +225,32 @@ In addition to the security fixes above, we have implemented AWS security featur
    - webappopen.connectedvcs.com 
    - webapptest.connectedvcs.com (test site) 
 
-Version 2.0.0, released April 25th, 2024
+Version 2.0.0, released April 30th, 2024
 ----------------------------------------
 
 ### **Summary**
 
-In this release, the MAP (also known as ISD) tool packages have been updated to use the open-source ASN1C compiler. These updates are validated with new and enhanced unit tests. UI updates include the removal of TIM and Message Validator buttons from the landing page, along with updated text in the ASN.1 text box of the MAP tool. After removing all traces of the proprietary tool, a public GitHub repository was created to release the code. All code has been added to this new repo, the README has been updated with build instructions, and the CI/CD pipeline has been revised. Lastly, a production environment has been established, and the code is now live at https://webappopen.connectedvcs.com. 
+In this release, MAP tool packages based on opensource ASN1c compiler is updated to support intersection fields that is validated with new and updated unit tests. UI updates include removal of TIM and Message Validator buttons along with an updated text in the ASN.1 text box of ISD tool. After removing all the traces to the proprietary tool, a public GitHub repo is created to release the code to public. All the code is added to this new repo, updated README with build instructions, and updated CI/CD pipeline. Lastly, production environment is created and the code is released at https://webappopen.connectedvcs.com. 
 
-This release of the Map Tool introduces several significant updates:
+This release includes the several features related to Map tool:
 
-- **<ins> Integration of Open-Source ASN1C Compiler:</ins>** After integrating the open-source ASN1c compiler, the message-builder and map-encoder packages have been updated to support all mandatory and selected optional intersection fields used in the existing MAP tool.
+- After integrating the opensource ASN1c compiler, message-builder and map-encoder code is updated to support all the mandatory intersection fields along with the optional fields used in existing MAP tool. 
+- Added and updated unit tests in message-builder and map-encoder to test the new code.
+- The message builder package is updated to record the generated MAP message and its encoded hex string in a log file that will be saved on the server for verification purposes. 
+- In the UI, removed buttons to TIM and message validator on landing page since those are not implemented in this version of the open-source tool; updated the ASN.1 text box of the ISD tool that it will not be populated in this version of the Tool.
+- Removed all traces of the proprietary tool. 
+- Created the connectedvcs-tools GitHub repo to prepare for the public release. 
+- Updated the README file with build instruction to build the packages from command line. 
+- Updated GitHub actions CI/CD workflows to build and run sonar scanner to source code. 
+- Created production environment based off connectedvcs-tools (Map tool) GitHub repository. The Production environment has been deployed with a new domain name as https://webappopen.connectedvcs.com.
 
-- **<ins> Enhanced Testing:</ins>** Added and updated unit tests for message-builder and map-encoder to cover the new functionalities.
+Known issues in this release related to Map tool: 
 
-- **<ins> Server Logs:</ins>** The message builder package now logs the generated MAP message and its encoded hex string to a server-side file for further verification purposes.
+- The open-source ASN1C compiler is partially replaced in the Map Tool for this release. ASN1C is only implemented within the ISD tool, while TIM and Message Validator are disabled. 
 
-- **<ins> UI Adjustments:</ins>**
-    - Removed buttons for TIM and message validator from the landing page as these features are not implemented in this version.
-    - Updated the ASN.1 text box in the MAP tool to reflect that it will not be populated in this release.
+NOTE: Production URL has the master code
 
-- **<ins> Removal of Proprietay Components:</ins>** All components of the proprietary tool have been removed.
+Production website : https://webappopen.connectedvcs.com 
 
-- **<ins> Repository and CI/CD Updates:</ins>**
-    - Created the connectedvcs-tools GitHub repository in preparation for public release.
-    - Updated the README file with command line build instructions.
-    - Enhanced GitHub Actions CI/CD workflows to include a sonar scanner for source code analysis.
-
-- **<ins> Production Environment:</ins>** Established a production environment based on the connectedvcs-tools (MAP tool, etc.) GitHub repository. The production site is now live at https://webappopen.connectedvcs.com.
-
-Known Issues related to this release:
-
-- **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
+GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
 
