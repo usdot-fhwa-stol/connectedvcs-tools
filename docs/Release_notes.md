@@ -5,7 +5,9 @@ Version 2.3.0, released Sep 19th, 2025
 ----------------------------------------
 
 ### **Summary**  
-This release focuses on enhancements for RGA message, addressing reported issues on existing MAP Tool, and laying groundwork for future feature development. The key updates include completing integration for the RGA Movements Container, RGA Way Use Container, and resolving critical bugs found in the production environment. This release also includes improvements to security of the tool.
+This release focuses on enhancements for the RGA message, addressing reported issues for the existing MAP Tool, and laying the groundwork for future feature development. The key updates include completing integration for the RGA Movements Container, RGA Way Use Container, and resolving critical bugs found in the production environment. This release also includes improvements to the security of the tool.
+
+As of this update, the tool now fully supports SAE J2945/A RGA message creation and conversion of J2735 MAP to J2945/A RGA, and maintains support for SAE J2735 MAP message creation.
 
 ### **<ins>Enhancements in Release:</ins>** 
 
@@ -254,3 +256,4 @@ This release of the Map Tool introduces several significant updates:
 Known Issues related to this release:
 
 - **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
+
