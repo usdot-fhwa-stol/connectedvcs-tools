@@ -49,6 +49,7 @@ public class TIMEncodeTest {
         private TravelerDataFrameNewPartIIIContent contentNew1, contentNew2, contentNew3;
         private SSPindex donotUse1, donotUse2, donotUse3, donotUse4;
         private MinutesDuration duration1, duration2, duration3;
+        private HeadingSlice heading;
 
         @Before
         public void setUp() {
@@ -99,10 +100,11 @@ public class TIMEncodeTest {
                 when(mockFrame1.getPriority()).thenReturn(priority1);
                 when(mockFrame2.getPriority()).thenReturn(priority2);
                 when(mockFrame3.getPriority()).thenReturn(priority3);
-
+                //HeadingSLice
+                heading = new HeadingSlice(0b0000000000001111);
                 // === MsgId (RoadSignID w/ position + heading) ===
                 Position3D pos = new Position3D(34.0522, -118.2437, 100, true);
-                MsgId msgId = new MsgId(new RoadSignID(pos, new HeadingSlice(0b0000000000001111)));
+                MsgId msgId = new MsgId(new RoadSignID(pos, heading));
                 when(mockFrame1.getMsgId()).thenReturn(msgId);
                 when(mockFrame2.getMsgId()).thenReturn(msgId);
                 when(mockFrame3.getMsgId()).thenReturn(msgId);
