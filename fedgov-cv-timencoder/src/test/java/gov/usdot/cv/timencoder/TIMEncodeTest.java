@@ -47,6 +47,8 @@ public class TIMEncodeTest {
         // Content (Part I) + ContentNew (Part III)
         private TravelerDataFrame.Content content1, content2, content3;
         private TravelerDataFrameNewPartIIIContent contentNew1, contentNew2, contentNew3;
+        private SSPindex donotUse1, donotUse2, donotUse3, donotUse4;
+        private MinutesDuration duration1, duration2, duration3;
 
         @Before
         public void setUp() {
@@ -59,7 +61,7 @@ public class TIMEncodeTest {
 
                 // === TravelerDataFrameList & frames ===
                 mockList = mock(TravelerDataFrameList.class);
-                when(mockList.getframesize()).thenReturn(3);
+                when(mockList.getFrameSize()).thenReturn(3);
 
                 mockFrame1 = mock(TravelerDataFrame.class);
                 mockFrame2 = mock(TravelerDataFrame.class);
@@ -105,6 +107,23 @@ public class TIMEncodeTest {
                 when(mockFrame2.getMsgId()).thenReturn(msgId);
                 when(mockFrame3.getMsgId()).thenReturn(msgId);
 
+                // === Duration ===
+                duration1 = new MinutesDuration(5);
+                duration2 = new MinutesDuration(60);
+                duration3 = new MinutesDuration(120);
+                when(mockFrame1.getDurationTime()).thenReturn(duration1);
+                when(mockFrame2.getDurationTime()).thenReturn(duration2);
+                when(mockFrame3.getDurationTime()).thenReturn(duration3);
+
+                // SSPindex
+                donotUse1 = new SSPindex(4);
+                donotUse2 = new SSPindex(3);
+                donotUse3 = new SSPindex(2);
+                donotUse4 = new SSPindex(1);
+                when(mockFrame1.getDoNotUse1()).thenReturn(donotUse1);
+                when(mockFrame2.getDoNotUse2()).thenReturn(donotUse2);
+                when(mockFrame3.getDoNotUse3()).thenReturn(donotUse3);
+                when(mockFrame3.getDoNotUse4()).thenReturn(donotUse4);
                 // === Regions ===
                 // All the fields are optional will add in later story
                 regions1 = new GeographicalPath[] { new GeographicalPath() };
@@ -194,40 +213,31 @@ public class TIMEncodeTest {
                 Assert.assertNotNull("Byte array should not be null", result.getMessage());
                 byte[] expected = new byte[] {
                                 (byte) 0x00, (byte) 0x1F, (byte) 0x80, (byte) 0x88, (byte) 0x00, (byte) 0xA5,
-                                (byte) 0x00, (byte) 0x62,
-                                (byte) 0x93, (byte) 0xE1, (byte) 0xBA, (byte) 0x20, (byte) 0x49, (byte) 0x9E,
-                                (byte) 0x86, (byte) 0xEE,
-                                (byte) 0x20, (byte) 0xC8, (byte) 0x00, (byte) 0x1E, (byte) 0xAA, (byte) 0xDC,
-                                (byte) 0x00, (byte) 0x00,
-                                (byte) 0x08, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x09, (byte) 0x81,
-                                (byte) 0x0B, (byte) 0xC0,
+                                (byte) 0x08, (byte) 0x62, (byte) 0x93, (byte) 0xE1, (byte) 0xBA, (byte) 0x20,
+                                (byte) 0x49, (byte) 0x9E, (byte) 0x86, (byte) 0xEE,
+                                (byte) 0x20, (byte) 0xC9, (byte) 0xE0, (byte) 0x00, (byte) 0xAA, (byte) 0xDC,
+                                (byte) 0x00, (byte) 0x01, (byte) 0x48, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                                (byte) 0x09, (byte) 0x81, (byte) 0x0B, (byte) 0xC0,
                                 (byte) 0x86, (byte) 0x00, (byte) 0x43, (byte) 0x1F, (byte) 0x52, (byte) 0xDF,
-                                (byte) 0x87, (byte) 0x22,
-                                (byte) 0x0A, (byte) 0xFB, (byte) 0xF9, (byte) 0x6B, (byte) 0x41, (byte) 0x07,
-                                (byte) 0x46, (byte) 0x5C,
+                                (byte) 0x87, (byte) 0x22, (byte) 0x0A, (byte) 0xFB, (byte) 0xF9, (byte) 0x6B,
+                                (byte) 0x41, (byte) 0x07, (byte) 0x46, (byte) 0x5C,
                                 (byte) 0x39, (byte) 0x00, (byte) 0x40, (byte) 0x88, (byte) 0x00, (byte) 0x20,
-                                (byte) 0x14, (byte) 0x52,
-                                (byte) 0x7C, (byte) 0x37, (byte) 0x44, (byte) 0x09, (byte) 0x33, (byte) 0xD0,
-                                (byte) 0xDD, (byte) 0xC4,
-                                (byte) 0x19, (byte) 0x00, (byte) 0x03, (byte) 0xD6, (byte) 0x26, (byte) 0x00,
-                                (byte) 0x00, (byte) 0x02,
-                                (byte) 0x00, (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x88,
-                                (byte) 0x07, (byte) 0xD3,
+                                (byte) 0x14, (byte) 0x52, (byte) 0x7C, (byte) 0x37, (byte) 0x44, (byte) 0x09,
+                                (byte) 0x33, (byte) 0xD0, (byte) 0xDD, (byte) 0xC4,
+                                (byte) 0x19, (byte) 0x3C, (byte) 0x00, (byte) 0x16, (byte) 0x26, (byte) 0x00,
+                                (byte) 0x01, (byte) 0xE2, (byte) 0x18, (byte) 0x80, (byte) 0x00, (byte) 0x00,
+                                (byte) 0x00, (byte) 0x88, (byte) 0x07, (byte) 0xD3,
                                 (byte) 0x8A, (byte) 0x7C, (byte) 0x32, (byte) 0xE5, (byte) 0xC8, (byte) 0x83,
-                                (byte) 0x73, (byte) 0x36,
-                                (byte) 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8, (byte) 0x08, (byte) 0x11,
-                                (byte) 0x09, (byte) 0x24,
+                                (byte) 0x73, (byte) 0x36, (byte) 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8,
+                                (byte) 0x08, (byte) 0x11, (byte) 0x09, (byte) 0x24,
                                 (byte) 0x03, (byte) 0x8A, (byte) 0x4F, (byte) 0x86, (byte) 0xE8, (byte) 0x81,
-                                (byte) 0x26, (byte) 0x7A,
-                                (byte) 0x1B, (byte) 0xB8, (byte) 0x83, (byte) 0x20, (byte) 0x00, (byte) 0x7A,
-                                (byte) 0xD9, (byte) 0x6F,
-                                (byte) 0x00, (byte) 0x00, (byte) 0x60, (byte) 0x20, (byte) 0x00, (byte) 0x00,
-                                (byte) 0x00, (byte) 0x00,
-                                (byte) 0x00, (byte) 0x04, (byte) 0x0F, (byte) 0xA3, (byte) 0x05, (byte) 0xD3,
-                                (byte) 0xD9, (byte) 0xA7,
+                                (byte) 0x26, (byte) 0x7A, (byte) 0x1B, (byte) 0xB8, (byte) 0x83, (byte) 0x27,
+                                (byte) 0x80, (byte) 0x02, (byte) 0xD9, (byte) 0x6F,
+                                (byte) 0x00, (byte) 0x78, (byte) 0x60, (byte) 0x20, (byte) 0x00, (byte) 0x00,
+                                (byte) 0x00, (byte) 0x04, (byte) 0x10, (byte) 0x04, (byte) 0x0F, (byte) 0xA3,
+                                (byte) 0x05, (byte) 0xD3, (byte) 0xD9, (byte) 0xA7,
                                 (byte) 0x87, (byte) 0x0C, (byte) 0xBC, (byte) 0xBC, (byte) 0xA0, (byte) 0xAF,
-                                (byte) 0x97, (byte) 0xA0,
-                                (byte) 0x08, (byte) 0x11, (byte) 0x39, (byte) 0x40
+                                (byte) 0x97, (byte) 0xA0, (byte) 0x08, (byte) 0x11, (byte) 0x39, (byte) 0x40
                 };
 
                 Assert.assertArrayEquals(

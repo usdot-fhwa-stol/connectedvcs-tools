@@ -33,7 +33,8 @@ public class TravelerDataFrameList {
         return frames;
     }
 
-    public int getframesize() {
+    public int getFrameSize
+() {
         return frames.size();
     }
 

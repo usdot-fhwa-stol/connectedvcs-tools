@@ -1,7 +1,17 @@
 /*
  * Copyright (C) 2025 LEIDOS.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #include <stdio.h>
 #include <stdlib.h> // calloc, free
@@ -96,7 +106,12 @@ static long parse_itis_code_string(const char *s)
         v = -v;
     return v;
 }
-
+static inline uint8_t bitrev8(uint8_t x) {
+    x = (x >> 4) | (x << 4);
+    x = ((x & 0xCC) >> 2) | ((x & 0x33) << 2);
+    x = ((x & 0xAA) >> 1) | ((x & 0x55) << 1);
+    return x;
+}
 int ia5_truncate_len(const char *s, int maxlen)
 {
     if (!s)
@@ -370,7 +385,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         rs->position.elevation = (Common_Elevation_t *)calloc(1, sizeof(*rs->position.elevation));
                         if (rs->position.elevation)
                         {
-                            *rs->position.elevation =ele;
+                            *rs->position.elevation = ele;
                         }
                     }
 
@@ -399,13 +414,18 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                             mask = 0;
                         }
                     }
-                    mask &= 0xFFFF;
 
+                    // Constrain to 16 bits
+                    mask &= 0xFFFF;
                     rs->viewAngle.buf = (uint8_t *)calloc(1, 2);
                     if (rs->viewAngle.buf)
                     {
-                        rs->viewAngle.buf[0] = (uint8_t)((mask >> 8) & 0xFF);
-                        rs->viewAngle.buf[1] = (uint8_t)(mask & 0xFF);
+                        uint8_t lo = (uint8_t)(mask & 0xFF);
+                        uint8_t hi = (uint8_t)((mask >> 8) & 0xFF);
+
+                        // ASN.1 BIT STRING is MSB-first within each byte
+                        rs->viewAngle.buf[0] = bitrev8(lo);
+                        rs->viewAngle.buf[1] = bitrev8(hi); 
                         rs->viewAngle.size = 2;
                         rs->viewAngle.bits_unused = 0;
                     }
