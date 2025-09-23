@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import gov.usdot.cv.msg.builder.util.ObjectPrinter;
 
 import gov.usdot.cv.mapencoder.Position3D;
 
@@ -55,7 +56,7 @@ public class TIMEncodeTest {
         public void setUp() {
                 // === SUT ===
                 encoder = new Encoder();
-
+           
                 // === TravelerInformation ===
                 mockTimData = mock(TravelerInformation.class);
                 when(mockTimData.getMsgCnt()).thenReturn(10);
@@ -211,6 +212,7 @@ public class TIMEncodeTest {
         @Test
         public void TIM_encode_test() {
                 ByteArrayObject result = encoder.encode(mockTimData);
+                
 
                 Assert.assertNotNull("Byte array should not be null", result.getMessage());
                 byte[] expected = new byte[] {
