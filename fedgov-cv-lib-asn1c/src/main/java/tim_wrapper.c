@@ -230,20 +230,20 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         return NULL;
     }
 
-    jint n = (*env)->CallIntMethod(env, listObj, midSize);
+    jint numberOfFrames = (*env)->CallIntMethod(env, listObj, midSize);
     if ((*env)->ExceptionCheck(env))
     {
         (*env)->ExceptionDescribe(env);
         (*env)->ExceptionClear(env);
     }
 
-    // ---- Cache TravelerDataFrame getters (using first element to get class) ----
+
     jclass frameCls = NULL;
     jmethodID mid_getDoNotUse1 = NULL, mid_getDoNotUse2 = NULL, mid_getDoNotUse3 = NULL, mid_getDoNotUse4 = NULL;
     jmethodID mid_getFrameType = NULL, mid_getMsgId = NULL, mid_getStartTime = NULL, mid_getDurationTime = NULL;
     jmethodID mid_getPriority = NULL, mid_getRegions = NULL, mid_getContent = NULL, mid_getContentNew = NULL;
     // If frame exist initilize the methods to get the method IDs
-    if (n > 0)
+    if (numberOfFrames > 0)
     {
         jobject first = (*env)->CallObjectMethod(env, listObj, midGet, 0);
         if ((*env)->ExceptionCheck(env) || !first)
@@ -268,7 +268,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     }
 
     // ---- Iterate frames to get the value of fields from Traveler Data Frame ----
-    for (jint i = 0; i < n; i++)
+    for (jint i = 0; i < numberOfFrames; i++)
     {
         jobject frame = (*env)->CallObjectMethod(env, listObj, midGet, i);
         TravelerDataFrame_t *tdf = (TravelerDataFrame_t *)calloc(1, sizeof(*tdf));
