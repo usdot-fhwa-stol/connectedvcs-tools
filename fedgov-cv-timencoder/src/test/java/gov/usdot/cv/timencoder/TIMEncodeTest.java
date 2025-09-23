@@ -24,8 +24,6 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import gov.usdot.cv.msg.builder.util.ObjectPrinter;
-
 import gov.usdot.cv.mapencoder.Position3D;
 
 public class TIMEncodeTest {
