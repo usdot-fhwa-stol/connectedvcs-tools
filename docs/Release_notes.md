@@ -232,15 +232,15 @@ Version 2.0.0, released April 30th, 2024
 
 In this release, MAP tool packages based on opensource ASN1c compiler is updated to support intersection fields that is validated with new and updated unit tests. UI updates include removal of TIM and Message Validator buttons along with an updated text in the ASN.1 text box of ISD tool. After removing all the traces to the proprietary tool, a public GitHub repo is created to release the code to public. All the code is added to this new repo, updated README with build instructions, and updated CI/CD pipeline. Lastly, production environment is created and the code is released at https://webappopen.connectedvcs.com. 
 
-This release includes the several features related to Map tool:
+This release includes the several features related to the Map tool:
 
-- After integrating the opensource ASN1c compiler, message-builder and map-encoder code is updated to support all the mandatory intersection fields along with the optional fields used in existing MAP tool. 
+- After integrating the opensource [ASN1c compiler](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-lib-asn1c), [message-builder](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-message-builder) and [map-encoder](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-mapencoder) code is updated to support all the mandatory intersection fields along with the optional fields used in existing MAP tool. 
 - Added and updated unit tests in message-builder and map-encoder to test the new code.
 - The message builder package is updated to record the generated MAP message and its encoded hex string in a log file that will be saved on the server for verification purposes. 
-- In the UI, removed buttons to TIM and message validator on landing page since those are not implemented in this version of the open-source tool; updated the ASN.1 text box of the ISD tool that it will not be populated in this version of the Tool.
-- Removed all traces of the proprietary tool. 
+- In the UI, removed buttons to [TIM](https://webappopen.connectedvcs.com/#:~:text=the%20SDW%20warehouse.-,This%20version%20is%20disabled.%20Please%20try%20the%20legacy%20version%20here.,-Message%20Validator) and [message validator](https://webappopen.connectedvcs.com/#:~:text=into%20a%20warehouse.-,This%20version%20is%20disabled.%20Please%20try%20the%20legacy%20version%20here.) on landing page since those are not implemented in this version of the open-source tool; updated the ASN.1 text box of the ISD tool that it will not be populated in this version of the Tool.
+- Removed all traces of the proprietary MAP tool. 
 - Created the connectedvcs-tools GitHub repo to prepare for the public release. 
-- Updated the README file with build instruction to build the packages from command line. 
+- Updated the README file with build instruction to build the packages from docker command line. 
 - Updated GitHub actions CI/CD workflows to build and run sonar scanner to source code. 
 - Created production environment based off connectedvcs-tools (Map tool) GitHub repository. The Production environment has been deployed with a new domain name as https://webappopen.connectedvcs.com.
 
@@ -253,4 +253,5 @@ NOTE: Production URL has the master code
 Production website : https://webappopen.connectedvcs.com 
 
 GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
+
 
