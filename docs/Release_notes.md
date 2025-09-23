@@ -230,7 +230,7 @@ Version 2.0.0, released April 30th, 2024
 
 ### **Summary**
 
-In this release, MAP tool packages based on opensource ASN1c compiler is updated to support intersection fields that is validated with new and updated unit tests. UI updates include removal of TIM and Message Validator buttons along with an updated text in the ASN.1 text box of MAP tool. After removing all the traces to the proprietary tool, a public GitHub repo is created to release the code to public. All the code is added to this new repo, updated README with build instructions, and updated CI/CD pipeline. Lastly, production environment is created and the code is released at https://webappopen.connectedvcs.com. 
+In this release, the MAP (formerly ISD) tool packages have been updated to use the open-source ASN1c compiler. These updates are validated with new and enhanced unit tests. UI updates include the removal of TIM and Message Validator buttons, along with updated text in the ASN.1 text box of the MAP tool. After removing all traces of the proprietary compiler, a public GitHub repository was created to release the code. All code has been added to this new repo, the README has been updated with build instructions, and the CI/CD pipeline has been revised. Lastly, a production environment has been established, and the code is now live at https://webappopen.connectedvcs.com.
 
 This release includes the several features related to the Map tool:
 
@@ -253,6 +253,7 @@ NOTE: Production URL has the master code
 Production website : https://webappopen.connectedvcs.com 
 
 GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
+
 
 
 
