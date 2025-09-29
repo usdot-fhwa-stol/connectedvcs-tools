@@ -15,36 +15,75 @@
  */
 package gov.usdot.cv.timencoder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ITIScodesAndText {
-    private ITIScodes code; 
-    private String text;    
 
-    public ITIScodes getCode() {
-        return code;
+    private List<Item> items = new ArrayList<>();
+
+    public ITIScodesAndText() {
     }
 
-    public void setCode(ITIScodes code) {
-        this.code = code;
-        this.text = null; 
+    public ITIScodesAndText(List<Item> items) {
+        this.items = items;
     }
 
-    public String getText() {
-        return text;
+    public List<Item> getItems() {
+        return items;
     }
 
-    public void setText(String text) {
-        this.text = text;
-        this.code = null; 
+    public void setItems(List<Item> items) {
+        this.items = items;
     }
 
     @Override
     public String toString() {
-        if (code != null) {
-            return "ITIScodesAndText{code=" + code.intValue() + "}";
-        } else if (text != null) {
-            return "ITIScodesAndText{text='" + text + "'}";
-        } else {
-            return "ITIScodesAndText{}";
+        return "ITIScodesAndText{" +
+                "items=" + items +
+                '}';
+    }
+
+    // ---- Inner class ----
+    public static class Item {
+
+        public enum Choice {
+            ITIS, TEXT
+        }
+
+        private Choice choice;
+        private ITIScodes itis;
+        private ITISTextPhrase text;
+
+        public Item(ITIScodes itis) {
+            this.choice = Choice.ITIS;
+            this.itis = itis;
+        }
+
+        public Item(ITISTextPhrase text) {
+            this.choice = Choice.TEXT;
+            this.text = text;
+        }
+
+        public Choice getChoice() {
+            return choice;
+        }
+
+        public ITIScodes getItis() {
+            return itis;
+        }
+
+        public ITISTextPhrase getText() {
+            return text;
+        }
+
+        @Override
+        public String toString() {
+            return "Item{" +
+                    "choice=" + choice +
+                    ", itis=" + itis +
+                    ", text=" + text +
+                    '}';
         }
     }
 }
