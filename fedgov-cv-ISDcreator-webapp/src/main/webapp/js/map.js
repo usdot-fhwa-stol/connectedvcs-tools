@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -824,15 +824,21 @@ function initSideBar() {
     if (rgaEnabled) {
         // Enable Right U-Turn image
         rightUTurnImg.addClass('drag-lane-img')  // Add the droppable class back
+          .addClass('ui-draggable')
+          .addClass('ui-draggable-handle')
             .removeClass('disabled-lane-img') // Add a class to indicate it's disabled
                     .css({
                         'opacity': '1',
                         'filter': 'none',
                         'pointer-events': 'auto'
                     });
+        
+                    makeImgsDraggable()
     } else {
         // Disable Right U-Turn image
         rightUTurnImg.removeClass('drag-lane-img')
+        .removeClass('ui-draggable')
+        .removeClass('ui-draggable-handle')
         .addClass('disabled-lane-img') // Add a class to indicate it's disabled
                     .css({
                         'opacity': '0.5',
@@ -842,6 +848,11 @@ function initSideBar() {
     }
 });
 
+makeImgsDraggable()
+  
+}
+
+function makeImgsDraggable() {
   $imgs = intersectionSidebar.find(".drag-intersection-img,.drag-lane-img");
   $imgs.draggable({
     appendTo: "body",
@@ -885,7 +896,6 @@ function initSideBar() {
       }
     },
   }); 
-  
 }
  /**
    * Purpose: clone marker image onto layer
@@ -1115,6 +1125,10 @@ function initMISC() {
     onRoadAuthorityIdChangeCallback();
   });
 
+  $('#revision_num').on('keyup', () => {
+    revisionNumChangeCallback();
+  })
+
   $("#mapped_geometry_id").on("keyup", () => {
     onMappedGeomIdChangeCallback();
   })
@@ -1135,12 +1149,22 @@ function initMISC() {
     minFormsCount: 0,
     iniFormsCount: 1,
     afterAdd: function (source, newForm) {
+      const addedIndex = newForm.data("formIndex");
+      addToSpeedFormIndexArray(addedIndex);
       $("[id*=speedLimitType]").change(() => {
         console.log("speedForm limit type change");
         resetSpeedDropdowns(speedForm);
         updateSpeedTimeRestrictionsHTML();
       });
     },
+    beforeRemoveCurrent: function (source, event) {
+      const form = $(event.currentTarget).data("removableClone"); 
+      if (form) {
+        const removedIndex = form.data("formIndex");
+        // Call a function that is imported from utils and send the index being removed
+        removeFromSpeedFormIndexArray(removedIndex);
+      }
+    }
   });
 
   $("#speedForm_add").click(function () {
@@ -1621,6 +1645,7 @@ $(document).ready(() => {
   });
  
 });
+
 
 export {
   lanes,
