@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2025 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package gov.usdot.cv.timencoder;
+
+public class Extent {
+    private long value;
+
+    public static final long useInstantlyOnly = 0;
+	public static final long useFor3meters = 1;
+	public static final long useFor10meters = 2;
+	public static final long useFor50meters = 3;
+	public static final long useFor100meters = 4;
+	public static final long useFor500meters = 5;
+	public static final long useFor1000meters = 6;
+	public static final long useFor5000meters = 7;
+	public static final long useFor10000meters = 8;
+	public static final long useFor50000meters = 9;
+	public static final long useFor100000meters = 10;
+	public static final long useFor500000meters = 11;
+	public static final long useFor1000000meters = 12;
+	public static final long useFor5000000meters = 13;
+	public static final long useFor10000000meters = 14;
+	public static final long forever = 15;
+
+    public Extent(long value) {
+        this.value = value;
+    }    
+
+    public long getValue() {
+        return value;
+    }
+
+    public void setValue(long value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "Extent{" +
+                "value=" + value +
+                '}';
+    }
+}
