@@ -16,24 +16,21 @@
 
 package gov.usdot.cv.timencoder;
 
-public class DirectionOfUse {
-    private long value;
+public enum DirectionOfUse {
 
-    public static final long unavailable = 0;
-	public static final long forward = 1;
-	public static final long reverse = 2;
-	public static final long both = 3;
+    unavailable(0),
+    forward(1),
+    reverse(2),
+    both(3);
 
-    public DirectionOfUse(long value) {
+    private final long value;
+
+    DirectionOfUse(long value) {
         this.value = value;
     }
 
     public long getValue() {
         return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
     }
 
     @Override

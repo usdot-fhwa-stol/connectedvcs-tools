@@ -16,28 +16,25 @@
 
 package gov.usdot.cv.timencoder;
 
-public class DistanceUnits {
-    private int value;
+public enum DistanceUnits {
 
-    public static final long centimeter = 0;
-	public static final long cm2_5 = 1;
-	public static final long decimeter = 2;
-	public static final long meter = 3;
-	public static final long kilometer = 4;
-	public static final long foot = 5;
-	public static final long yard = 6;
-	public static final long mile = 7;
+    centimeter(0),
+    cm2_5(1),
+    decimeter(2),
+    meter(3),
+    kilometer(4),
+    foot(5),
+    yard(6),
+    mile(7);
 
-    public DistanceUnits(int value) {
+    private final int value;
+
+    DistanceUnits(int value) {
         this.value = value;
     }    
 
     public int getValue() {
         return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
     }
 
     @Override

@@ -16,32 +16,29 @@
 
 package gov.usdot.cv.timencoder;
 
-public class NodeAttributeLL {
-    private long value;
+public enum NodeAttributeLL {
 
-    public static final long reserved = 0;
-    public static final long stopLine = 1;
-    public static final long roundedCapStyleA = 2;
-    public static final long roundedCapStyleB = 3;
-	public static final long mergePoint = 4;
-	public static final long divergePoint = 5;
-	public static final long downstreamStopLine = 6;
-	public static final long downstreamStartNode = 7;
-	public static final long closedToTraffic = 8;
-	public static final long safeIsland = 9;
-	public static final long curbPresentAtStepOff = 10;
-	public static final long hydrantPresent = 11;
+    reserved(0),
+    stopLine(1),
+    roundedCapStyleA(2),
+    roundedCapStyleB(3),
+    mergePoint(4),
+    divergePoint(5),
+    downstreamStopLine(6),
+    downstreamStartNode(7),
+    closedToTraffic(8),
+    safeIsland(9),
+    curbPresentAtStepOff(10),
+    hydrantPresent(11);
 
-    public NodeAttributeLL(long value) {
+    private final long value;
+
+    NodeAttributeLL(long value) {
         this.value = value;
     }    
 
     public long getValue() {
         return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
     }
 
     @Override

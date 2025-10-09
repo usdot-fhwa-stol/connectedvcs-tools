@@ -17,27 +17,24 @@
 
 package gov.usdot.cv.timencoder;
 
-public class MUTCDCode {
-    private long value;
+public enum MUTCDCode {
 
-	public static final long none = 0;
-	public static final long regulatory = 1;
-	public static final long warning = 2;
-	public static final long maintenance = 3;
-	public static final long motoristService = 4;
-	public static final long guide = 5;
-	public static final long rec = 6;
+    none(0),
+    regulatory(1),
+    warning(2),
+    maintenance(3),
+    motoristService(4),
+    guide(5),
+    rec(6);
 
-    public MUTCDCode(long value) {
+    private final long value;
+
+    MUTCDCode(long value) {
         this.value = value;
     }    
 
     public long getValue() {
         return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
     }
 
     @Override
