@@ -31,13 +31,13 @@ public enum NodeAttributeLL {
     curbPresentAtStepOff(10),
     hydrantPresent(11);
 
-    private final long value;
+    private final int value;
 
-    NodeAttributeLL(long value) {
+    NodeAttributeLL(int value) {
         this.value = value;
     }    
 
-    public long getValue() {
+    public int getValue() {
         return value;
     }
 

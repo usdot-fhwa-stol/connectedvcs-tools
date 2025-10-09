@@ -27,13 +27,13 @@ public enum MUTCDCode {
     guide(5),
     rec(6);
 
-    private final long value;
+    private final int value;
 
-    MUTCDCode(long value) {
+    MUTCDCode(int value) {
         this.value = value;
     }    
 
-    public long getValue() {
+    public int getValue() {
         return value;
     }
 

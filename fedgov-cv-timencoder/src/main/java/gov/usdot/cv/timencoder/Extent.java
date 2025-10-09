@@ -16,36 +16,33 @@
 
 package gov.usdot.cv.timencoder;
 
-public class Extent {
-    private long value;
+public enum Extent {
 
-    public static final long useInstantlyOnly = 0;
-	public static final long useFor3meters = 1;
-	public static final long useFor10meters = 2;
-	public static final long useFor50meters = 3;
-	public static final long useFor100meters = 4;
-	public static final long useFor500meters = 5;
-	public static final long useFor1000meters = 6;
-	public static final long useFor5000meters = 7;
-	public static final long useFor10000meters = 8;
-	public static final long useFor50000meters = 9;
-	public static final long useFor100000meters = 10;
-	public static final long useFor500000meters = 11;
-	public static final long useFor1000000meters = 12;
-	public static final long useFor5000000meters = 13;
-	public static final long useFor10000000meters = 14;
-	public static final long forever = 15;
+    useInstantlyOnly(0),
+    useFor3meters(1),
+    useFor10meters(2),
+    useFor50meters(3),
+    useFor100meters(4),
+    useFor500meters(5),
+    useFor1000meters(6),
+    useFor5000meters(7),
+    useFor10000meters(8),
+    useFor50000meters(9),
+    useFor100000meters(10),
+    useFor500000meters(11),
+    useFor1000000meters(12),
+    useFor5000000meters(13),
+    useFor10000000meters(14),
+    forever(15);
 
-    public Extent(long value) {
+    private final int value;
+
+    Extent(int value) {
         this.value = value;
     }    
 
-    public long getValue() {
+    public int getValue() {
         return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
     }
 
     @Override

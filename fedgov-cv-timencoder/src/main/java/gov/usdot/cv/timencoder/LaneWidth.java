@@ -17,17 +17,17 @@
 package gov.usdot.cv.timencoder;
 
 public class LaneWidth {
-    private long value;
+    private int value;
 
-    public LaneWidth(long value) {
+    public LaneWidth(int value) {
         this.value = value;
     }
 
-    public long getValue() {
+    public int getValue() {
         return value;
     }
 
-    public void setValue(long value) {
+    public void setValue(int value) {
         this.value = value;
     }
 

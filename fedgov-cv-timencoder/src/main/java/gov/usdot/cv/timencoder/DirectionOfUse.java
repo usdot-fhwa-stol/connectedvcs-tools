@@ -23,13 +23,13 @@ public enum DirectionOfUse {
     reverse(2),
     both(3);
 
-    private final long value;
+    private final int value;
 
-    DirectionOfUse(long value) {
+    DirectionOfUse(int value) {
         this.value = value;
     }
 
-    public long getValue() {
+    public int getValue() {
         return value;
     }
 
