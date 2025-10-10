@@ -45,10 +45,12 @@ public class Encoder {
     public native byte[] encodeTIM(TravelerInformation message);
 
     public ByteArrayObject encode(TravelerInformation message) {
+
         System.out.println("Calling Encoder Java API");
 		logger.debug("Starting TIM encoding process...");
+       // System.out.println(message.toString());
         byte[] encodeMsg = encodeTIM(message);
-
+          System.out.println("JNI call completed");
         if (encodeMsg == null) {
             logger.error("Encoding failed. Returned byte array is null.");
             return new ByteArrayObject("TIM", null);

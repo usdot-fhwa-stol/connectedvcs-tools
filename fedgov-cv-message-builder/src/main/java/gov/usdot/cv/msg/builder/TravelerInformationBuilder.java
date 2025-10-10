@@ -14,18 +14,13 @@
  * the License.
  */
 package gov.usdot.cv.msg.builder;
-import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
-import javax.sound.sampled.Port;
-import javax.swing.plaf.synth.Region;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -42,96 +37,81 @@ import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.msg.builder.exception.MessageBuildException;
 import gov.usdot.cv.timencoder.*;
 import gov.usdot.cv.msg.builder.input.TravelerInputData;
-import gov.usdot.cv.msg.builder.message.SemiMessage;
 import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
-import gov.usdot.cv.mapencoder.Position3D.*;
 
 
 @Path("/messages/travelerinfo")
 public class TravelerInformationBuilder {
-    
-    private static final Logger logger = LogManager.getLogger(TravelerInformationBuilder.class);
+
+	private static final Logger logger = LogManager.getLogger(TravelerInformationBuilder.class);
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 	private static final int MAX_MINUTES_DURATION = 32000; // DSRC spec
 
-    @POST
+	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.TEXT_PLAIN)
 	public TravelerInformationMessage build(String timData) {
-        logger.debug("Building TIM/ADV with input data : " + timData);
+		logger.debug("Building TIM/ADV with input data : " + timData);
 		TravelerInformationMessage tim = new TravelerInformationMessage();
-        TravelerInputData travInputData = null;
+		TravelerInputData travInputData = null;
 		boolean deposit = false;
 		TravelerInformation ti = null;
-
-		//TODO: will implement later
-		//The Two classes needs to be generated 
-		//AdvisoryMessage asd = null;
-       // MessageFrame mf = null;
 		GenerateType generateType = GenerateType.TIM;
-        
+
 		System.out.println("Input JSON: " + timData);
 
-        try {
+		try {
 			travInputData = JSONMapper.jsonStringToPojo(timData, TravelerInputData.class);
-            deposit = (travInputData != null && travInputData.deposit != null);
-           
-            //TODO:
-            //validate is commented out will investigate later
-            //travInputData.validate();
-            travInputData.applyLatLonOffset();
+			deposit = (travInputData != null && travInputData.deposit != null);
+
+			// TODO:
+			// validate is commented out will investigate later
+			// travInputData.validate();
+			travInputData.applyLatLonOffset();
 			travInputData.initialzeReferencePoints();
 			generateType = travInputData.getGenerateType();
-
-			ti = buildTravelerInformation(travInputData);
-
-			if(generateType.equals(GenerateType.ASD)) {
-				//Todo: will implement later
-				//asd = buildAdvisoryMessage(travInputData, J2735Helper.getHexString(ti));
-			}
-			else if(generateType.equals(GenerateType.FramePlusTIM)) {
-				//Todo: will implement later
-				//mf = buildMessageFramePlusTIM(ti);
-			}
-			
-			System.out.println("Built TIM/ADV: " + ti.toString());
 
 		} catch (Exception e) {
 			logger.error("Error parsing TravelerInputData ", e);
 			throw new MessageBuildException(e.toString());
 		}
 
+		try {
+			String hexString = "00";
+			String readableString = "Unexpected type: " + generateType;
 
-			try {
-				String hexString = "00";
-				String readableString = "Unexpected type: " + generateType;
-
-				switch(generateType) {
-					case ASD:
+			switch (generateType) {
+				case ASD:
+					//Need to decide whether we will implement ASD
 					break;
 				case TIM:
 					tim = new TravelerInformationMessage();
-					//TODO: will implement later
-					//hexString = J2735TIMHelper.getHexString(ti);
-					//readableString = ti.toString();
+					ti = buildTravelerInformation(travInputData);
+					hexString = J2735TIMHelper.getHexString(ti).substring(8);
+					readableString = ti.toString();
 					break;
 				case FramePlusTIM:
+					tim = new TravelerInformationMessage();
+					ti = buildTravelerInformation(travInputData);
+					hexString = J2735TIMHelper.getHexString(ti);
+					readableString = ti.toString();
 					break;
 			}
-		
+
 			tim.setHexString(hexString);
+			System.out.println("TIM/ADV Hex: " + hexString);
 			tim.setReadableString(readableString);
 		} catch (Exception e) {
 			logger.error("Error encoding TravelerInformation ", e);
-			//throw new MessageEncodeException(e.toString());
+			// throw new MessageEncodeException(e.toString());
 		}
 
-        return tim;
+		return tim;
 
-    }
+	}
 
-    private TravelerInformation buildTravelerInformation(TravelerInputData travInputData) throws ParseException {
+	private TravelerInformation buildTravelerInformation(TravelerInputData travInputData) throws ParseException {
 		TravelerInformation tim = new TravelerInformation();
 		tim.setDataFrames(buildDataFrames(travInputData));
 		tim.setMsgCnt(tim.getDataFrames().getFrames().size());
@@ -139,34 +119,32 @@ public class TravelerInformationBuilder {
 		return tim;
 	}
 
-    private TravelerDataFrameList buildDataFrames(TravelerInputData travInputData) throws ParseException {
+	private TravelerDataFrameList buildDataFrames(TravelerInputData travInputData) throws ParseException {
 		TravelerDataFrameList dataFrames = new TravelerDataFrameList();
 		TravelerDataFrame dataFrame = new TravelerDataFrame();
-		
+
 		// -- Part I, Frame header
 		dataFrame.setDoNotUse1(new SSPindex(travInputData.anchorPoint.sspTimRights));
-		
+
 		dataFrame.setFrameType(TravelerInfoType.fromValue(travInputData.anchorPoint.infoType));
 		dataFrame.setMsgId(getMessageId(travInputData));
-		//ToDO:Optional field will implemen later
-		//dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
-		
-		//dataFrame.setMsgId(new MsgId(1000));  This is a mandatory field and needs to be implemented
+		// ToDO:Optional field will be implemented later
+		// dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
 		dataFrame.setStartTime(new MinuteOfTheYear(getStartTime(travInputData)));
 		dataFrame.setDurationTime(new MinutesDuration(getDurationTime(travInputData)));
 		dataFrame.setPriority(new SignPriority(travInputData.anchorPoint.priority));
-		
+
 		// -- Part II, Applicable Regions of Use
 		dataFrame.setDoNotUse2(new SSPindex(travInputData.anchorPoint.sspTypeRights));
 		// To Do: Build regions
 		dataFrame.setRegions(buildRegions(travInputData));
-		
+
 		// -- Part III, Content
-		dataFrame.setDoNotUse3(new SSPindex(travInputData.anchorPoint.sspContentRights));		// allowed message types
-		dataFrame.setDoNotUse4(new SSPindex(travInputData.anchorPoint.sspLocationRights));	// allowed message content	
+		dataFrame.setDoNotUse3(new SSPindex(travInputData.anchorPoint.sspContentRights)); // allowed message types
+		dataFrame.setDoNotUse4(new SSPindex(travInputData.anchorPoint.sspLocationRights)); // allowed message content
 		dataFrame.setContent(buildContent(travInputData));
 		dataFrame.setContentNew(buiildContentNew(travInputData));
-		
+
 		dataFrames.addFrame(dataFrame);
 		return dataFrames;
 	}
@@ -178,7 +156,7 @@ public class TravelerInformationBuilder {
 		System.out.println("Content Type: " + contentType);
 		if ("Advisory".equals(contentType)) {
 			content.setAdvisory(buildAdvisory(codes, 100, 500));
-		}  else if ("Work Zone".equals(contentType)) {
+		} else if ("Work Zone".equals(contentType)) {
 			content.setWorkZone(buildWorkZone(codes, 16, 16));
 		} else if ("Speed Limit".equals(contentType)) {
 			content.setSpeedLimit(buildSpeedLimit(codes, 16, 16));
@@ -197,160 +175,171 @@ public class TravelerInformationBuilder {
 		return contentNew;
 	}
 
-private ITIScodesAndText buildAdvisory(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
-    ITIScodesAndText advisory = new ITIScodesAndText();
-    if (codes == null || sizeLimit <= 0) return advisory;
+	private ITIScodesAndText buildAdvisory(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
+		ITIScodesAndText advisory = new ITIScodesAndText();
+		if (codes == null || sizeLimit <= 0)
+			return advisory;
 
-    // ensure items list exists (same pattern as WorkZone)
-    List<ITIScodesAndText.Item> items = advisory.getItems();
-    if (items == null) {
-        items = new ArrayList<>();
-        advisory.setItems(items);
-    }
+		List<ITIScodesAndText.Item> items = advisory.getItems();
+		if (items == null) {
+			items = new ArrayList<>();
+			advisory.setItems(items);
+		}
 
-    for (ItisContent code : codes) {
-        if (code == null) continue;
+		for (ItisContent code : codes) {
+			if (code == null)
+				continue;
 
-        if (code.hasText()) {
-            // If your class is ITISTextPhrase, replace ITIStext below
-            ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
-            items.add(new ITIScodesAndText.Item(text));
-            if (items.size() >= sizeLimit) break;
+			if (code.hasText()) {
+				
+				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
+				items.add(new ITIScodesAndText.Item(text));
+				if (items.size() >= sizeLimit)
+					break;
 
-        } else if (code.hasCodes() && code.codes != null) {
-            // If you don't need an encoder and code.codes is already int[], use that directly
-            int[] itisCodes = ItisNumberEncoder.encode(code.codes);
-            for (int itisCode : itisCodes) {
-                items.add(new ITIScodesAndText.Item(new ITIScodes(itisCode)));
-                if (items.size() >= sizeLimit) break;
-            }
-        }
-    }
-    return advisory;
-}
+			} else if (code.hasCodes() && code.codes != null) {
 
-	
-private WorkZone buildWorkZone(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
-    WorkZone wz = new WorkZone();
-    if (codes == null || sizeLimit <= 0) return wz;
+				int[] itisCodes = ItisNumberEncoder.encode(code.codes);
+				for (int itisCode : itisCodes) {
+					items.add(new ITIScodesAndText.Item(new ITIScodes(itisCode)));
+					if (items.size() >= sizeLimit)
+						break;
+				}
+			}
+		}
+		return advisory;
+	}
 
-    // ensure list exists
-    List<WorkZone.WorkZoneItem> items = wz.getItems();
-    if (items == null) {
-        items = new ArrayList<>();
-        wz.setItems(items);
-    }
-    for (ItisContent code : codes) {
-        if (code == null) continue;
+	private WorkZone buildWorkZone(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
+		WorkZone wz = new WorkZone();
+		if (codes == null || sizeLimit <= 0)
+			return wz;
+		List<WorkZone.WorkZoneItem> items = wz.getItems();
+		if (items == null) {
+			items = new ArrayList<>();
+			wz.setItems(items);
+		}
+		for (ItisContent code : codes) {
+			if (code == null)
+				continue;
 
-        if (code.hasText()) {
-            // NOTE: using your class name ITISTextPhrase (matches your WorkZone)
-            ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
-            items.add(new WorkZone.WorkZoneItem(text));
-            if (items.size() >= sizeLimit) break;
+			if (code.hasText()) {
+				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
+				items.add(new WorkZone.WorkZoneItem(text));
+				if (items.size() >= sizeLimit)
+					break;
 
-        } else if (code.hasCodes() && code.codes != null) {
-			 int[] itisCodes = ItisNumberEncoder.encode(code.codes);
-            for (int itisCode : itisCodes) { 
-                items.add(new WorkZone.WorkZoneItem(new ITIScodes(itisCode)));
-                if (items.size() >= sizeLimit) break ;
-            }
-        }
-    }
-    return wz;
-}
+			} else if (code.hasCodes() && code.codes != null) {
+				int[] itisCodes = ItisNumberEncoder.encode(code.codes);
+				for (int itisCode : itisCodes) {
+					items.add(new WorkZone.WorkZoneItem(new ITIScodes(itisCode)));
+					if (items.size() >= sizeLimit)
+						break;
+				}
+			}
+		}
+		return wz;
+	}
 
-	
 	private SpeedLimit buildSpeedLimit(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
-    SpeedLimit sl = new SpeedLimit();
-    if (codes == null || sizeLimit <= 0) return sl;
-
-    // ensure list exists
-    List<SpeedLimit.SpeedLimitItem> items = sl.getItems();
-    if (items == null) {
-        items = new ArrayList<>();
-        sl.setItems(items);
-    }
-
-    for (ItisContent code : codes) {
-        if (code == null) continue;
-
-        if (code.hasText()) {
-            ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
-            items.add(new SpeedLimit.SpeedLimitItem(text));
-            if (items.size() >= sizeLimit) break;
-
-        } else if (code.hasCodes() && code.codes != null) {
-            int[] itisCodes = ItisNumberEncoder.encode(code.codes);
-            for (int itisCode : itisCodes) {
-                items.add(new SpeedLimit.SpeedLimitItem(new ITIScodes(itisCode)));
-                if (items.size() >= sizeLimit) break;
-            }
-        }
-    }
-    return sl;
-}
-
-private ExitService buildExitService(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
-    ExitService es = new ExitService();
-    if (codes == null || sizeLimit <= 0) return es;
-
-    List<ExitService.ExitServiceItem> items = es.getItems();
-    if (items == null) {
-        items = new ArrayList<>();
-        es.setItems(items);
-    }
-
-    for (ItisContent code : codes) {
-        if (code == null) continue;
-
-        if (code.hasText()) {
-            ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit)); // or ITIStextPhrase
-            items.add(new ExitService.ExitServiceItem(text));
-            if (items.size() >= sizeLimit) break;
-
-        } else if (code.hasCodes() && code.codes != null) {
-            int[] itisCodes = ItisNumberEncoder.encode(code.codes); // or: code.codes
-            for (int itisCode : itisCodes) {
-                items.add(new ExitService.ExitServiceItem(new ITIScodes(itisCode)));
-                if (items.size() >= sizeLimit) break;
-            }
-        }
-    }
-    return es;
-}
+		SpeedLimit sl = new SpeedLimit();
+		if (codes == null || sizeLimit <= 0)
+			return sl;
 
 
-private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
-    GenericSignage gs = new GenericSignage();
-    if (codes == null || sizeLimit <= 0) return gs;
+		List<SpeedLimit.SpeedLimitItem> items = sl.getItems();
+		if (items == null) {
+			items = new ArrayList<>();
+			sl.setItems(items);
+		}
 
-    List<GenericSignage.GenericSignageItem> items = gs.getItems();
-    if (items == null) {
-        items = new ArrayList<>();
-        gs.setItems(items);
-    }
+		for (ItisContent code : codes) {
+			if (code == null)
+				continue;
 
-    for (ItisContent code : codes) {
-        if (code == null) continue;
+			if (code.hasText()) {
+				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
+				items.add(new SpeedLimit.SpeedLimitItem(text));
+				if (items.size() >= sizeLimit)
+					break;
 
-        if (code.hasText()) {
-            ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
-            items.add(new GenericSignage.GenericSignageItem(text));
-            if (items.size() >= sizeLimit) break;
+			} else if (code.hasCodes() && code.codes != null) {
+				int[] itisCodes = ItisNumberEncoder.encode(code.codes);
+				for (int itisCode : itisCodes) {
+					items.add(new SpeedLimit.SpeedLimitItem(new ITIScodes(itisCode)));
+					if (items.size() >= sizeLimit)
+						break;
+				}
+			}
+		}
+		return sl;
+	}
 
-        } else if (code.hasCodes() && code.codes != null) {
-            int[] itisCodes = ItisNumberEncoder.encode(code.codes);
-            for (int itisCode : itisCodes) {
-                items.add(new GenericSignage.GenericSignageItem(new ITIScodes(itisCode)));
-                if (items.size() >= sizeLimit) break;
-            }
-        }
-    }
-    return gs;
-}
+	private ExitService buildExitService(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
+		ExitService es = new ExitService();
+		if (codes == null || sizeLimit <= 0)
+			return es;
 
+		List<ExitService.ExitServiceItem> items = es.getItems();
+		if (items == null) {
+			items = new ArrayList<>();
+			es.setItems(items);
+		}
 
+		for (ItisContent code : codes) {
+			if (code == null)
+				continue;
+
+			if (code.hasText()) {
+				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit)); // or ITIStextPhrase
+				items.add(new ExitService.ExitServiceItem(text));
+				if (items.size() >= sizeLimit)
+					break;
+
+			} else if (code.hasCodes() && code.codes != null) {
+				int[] itisCodes = ItisNumberEncoder.encode(code.codes); // or: code.codes
+				for (int itisCode : itisCodes) {
+					items.add(new ExitService.ExitServiceItem(new ITIScodes(itisCode)));
+					if (items.size() >= sizeLimit)
+						break;
+				}
+			}
+		}
+		return es;
+	}
+
+	private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLimit, final int textLengthLimit) {
+		GenericSignage gs = new GenericSignage();
+		if (codes == null || sizeLimit <= 0)
+			return gs;
+
+		List<GenericSignage.GenericSignageItem> items = gs.getItems();
+		if (items == null) {
+			items = new ArrayList<>();
+			gs.setItems(items);
+		}
+
+		for (ItisContent code : codes) {
+			if (code == null)
+				continue;
+
+			if (code.hasText()) {
+				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
+				items.add(new GenericSignage.GenericSignageItem(text));
+				if (items.size() >= sizeLimit)
+					break;
+
+			} else if (code.hasCodes() && code.codes != null) {
+				int[] itisCodes = ItisNumberEncoder.encode(code.codes);
+				for (int itisCode : itisCodes) {
+					items.add(new GenericSignage.GenericSignageItem(new ITIScodes(itisCode)));
+					if (items.size() >= sizeLimit)
+						break;
+				}
+			}
+		}
+		return gs;
+	}
 
 	private long getStartTime(TravelerInputData travInputData) throws ParseException {
 		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
@@ -363,14 +352,14 @@ private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLi
 	private int getStartYear(TravelerInputData travInputData) throws ParseException {
 		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
 		Calendar cal = Calendar.getInstance();
-	    cal.setTime(startDate);
-	    return cal.get(Calendar.YEAR);
+		cal.setTime(startDate);
+		return cal.get(Calendar.YEAR);
 	}
 
-		private int getDurationTime(TravelerInputData travInputData) throws ParseException {
+	private int getDurationTime(TravelerInputData travInputData) throws ParseException {
 		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
 		Date endDate = sdf.parse(travInputData.anchorPoint.endTime);
-		
+
 		long diff = endDate.getTime() - startDate.getTime();
 		int durationInMinutes = (int) (diff / 1000 / 60);
 		if (durationInMinutes > MAX_MINUTES_DURATION)
@@ -378,8 +367,7 @@ private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLi
 		return durationInMinutes;
 	}
 
-
-		private MsgId getMessageId(TravelerInputData travInputData) {
+	private MsgId getMessageId(TravelerInputData travInputData) {
 		MsgId msgId = new MsgId();
 		// always using RoadSign for now
 		boolean isRoadSign = true;
@@ -387,24 +375,26 @@ private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLi
 			RoadSignID roadSignID = new RoadSignID();
 
 			roadSignID.setPosition(getAnchorPointPosition(travInputData));
+			// Todo: will implement later
 			roadSignID.setViewAngle(getHeadingSlice(travInputData));
-
-			//roadSignID.setMutcdCode(MUTCDCode.valueOf(travInputData.anchorPoint.mutcd));
+			//Todo: 
+			// MUTCD code is an optional field will be implement later story
+			// roadSignID.setMutcdCode(MUTCDCode.valueOf(travInputData.anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
 		} else {
-			//msgId.setChosenFlag(MsgId.furtherInfoID_chosen);
-			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00,0x00 }));
+			// msgId.setChosenFlag(MsgId.furtherInfoID_chosen);
+			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00, 0x00 }));
 		}
 		return msgId;
 	}
 
 	private static Position3D getAnchorPointPosition(TravelerInputData travInputData) {
 		AnchorPoint anchorPoint = travInputData.anchorPoint;
-		assert(anchorPoint != null);
+		assert (anchorPoint != null);
 		Position3D anchorPos = new Position3D();
 		anchorPos.setLongitude(J2735TIMHelper.convertGeoCoordinateToInt(anchorPoint.referenceLon));
 		anchorPos.setLatitude(J2735TIMHelper.convertGeoCoordinateToInt(anchorPoint.referenceLat));
-		if(travInputData.enableElevation) {
+		if (travInputData.enableElevation) {
 			anchorPos.setElevationExists(true);
 			anchorPos.setElevation((float) anchorPoint.referenceElevation);
 		}
@@ -415,67 +405,67 @@ private GenericSignage buildGenericSignage(ItisContent[] codes, final int sizeLi
 		int[] heading = travInputData.anchorPoint.heading;
 		HeadingSlice headingSlice = new HeadingSlice();
 		if (heading != null && heading.length != 0) {
-			for (int i=0; i<heading.length; i++) {
+			for (int i = 0; i < heading.length; i++) {
 				headingSlice.set(i, heading[i] == 1);
 			}
 		}
-		
+
 		return headingSlice;
 	}
 
-
 	private GeographicalPath[] buildRegions(TravelerInputData travInputData) {
-    List<GeographicalPath> regionList = new ArrayList<>();
-    GeographicalPath region1 = new GeographicalPath();
-   //TOdo: will implement later
-    regionList.add(region1);
-	return regionList.toArray(new GeographicalPath[0]);
+		List<GeographicalPath> regionList = new ArrayList<>();
+		GeographicalPath region1 = new GeographicalPath();
+		// TOdo: will be implemented in a  later story
+		regionList.add(region1);
+		return regionList.toArray(new GeographicalPath[0]);
 	}
-	
-	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData)
-	{
+
+	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {
 		FrictionInformation fInformation = new FrictionInformation();
 		DescriptionOfRoadSurface roadSurface = new DescriptionOfRoadSurface();
-	//
-
 		//
-		String surfaceValue = "portland_cement"; // will get from input later
 
-		int type_value = 1; // will get from travinput later
+		//ToDo: Inputs of surface condition will be implemented in a later story
+		String surfaceValue = "portland_cement"; 
+
+		int type_value = 1; 
 		switch (surfaceValue.toLowerCase()) {
-        case "portland_cement":
-			roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(type_value)));
-			break;
-        case "asphalt_or_tar":
-			roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
-            break;
-        case "gravel":
-			roadSurface = new DescriptionOfRoadSurface(new Gravel(GravelType.fromInt(type_value)));
-            break;
-        case "grass":
-			roadSurface = new DescriptionOfRoadSurface(new Grass(GrassType.fromInt(type_value)));
-            break;
-        case "cinders":
-			roadSurface = new DescriptionOfRoadSurface(new Cinders(CindersType.fromInt(type_value)));
-            break;
-        case "rock":
-			roadSurface = new DescriptionOfRoadSurface(new Rock(RockType.fromInt(type_value)));
-            break;
-        case "ice":
-			roadSurface = new DescriptionOfRoadSurface(new Ice(IceType.fromInt(type_value)));
-            break;
-        case "snow":
-			roadSurface = new DescriptionOfRoadSurface(new Snow(SnowType.fromInt(type_value)));
-            break;
-        default:
+			case "portland_cement":
+				roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(0)));
+				break;
+			case "asphalt_or_tar":
+				roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
+				break;
+			case "gravel":
+				roadSurface = new DescriptionOfRoadSurface(new Gravel(GravelType.fromInt(type_value)));
+				break;
+			case "grass":
+				roadSurface = new DescriptionOfRoadSurface(new Grass(GrassType.fromInt(type_value)));
+				break;
+			case "cinders":
+				roadSurface = new DescriptionOfRoadSurface(new Cinders(CindersType.fromInt(type_value)));
+				break;
+			case "rock":
+				roadSurface = new DescriptionOfRoadSurface(new Rock(RockType.fromInt(type_value)));
+				break;
+			case "ice":
+				roadSurface = new DescriptionOfRoadSurface(new Ice(IceType.fromInt(type_value)));
+				break;
+			case "snow":
+				roadSurface = new DescriptionOfRoadSurface(new Snow(SnowType.fromInt(type_value)));
+				break;
+			default:
 
-            break;
-    }
+				break;
+		}
 
-	fInformation.setRoadSurfaceDescription(roadSurface);
-	int dry_wet_value = 1; // will get from travinput later
-	fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+		fInformation.setRoadSurfaceDescription(roadSurface);
 
-	return fInformation;
+		//Todo:will get from travinput in a later story
+		int dry_wet_value = 1; 
+		fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+
+		return fInformation;
 	}
 }
