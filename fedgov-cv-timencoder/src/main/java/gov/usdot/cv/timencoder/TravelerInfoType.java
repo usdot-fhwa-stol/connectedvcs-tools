@@ -32,6 +32,15 @@ public enum TravelerInfoType {
         return value;
     }
 
+    public static TravelerInfoType fromValue(int value) {
+        for (TravelerInfoType type : TravelerInfoType.values()) {
+            if (type.value == value) {
+                return type;
+            }
+        }
+        return UNKNOWN; // default/fallback if not matched
+    }
+
     @Override
     public String toString() {
         return "TravelerInfoType{" +
