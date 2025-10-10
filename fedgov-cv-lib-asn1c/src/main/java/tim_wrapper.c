@@ -117,6 +117,7 @@ int ia5_truncate_len(const char *s, int maxlen)
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     JNIEnv *env, jobject cls, jobject timobject)
 {
+    
     // Initilize empty TIM
     TravelerInformation_t tim;
     memset(&tim, 0, sizeof(tim));
@@ -351,8 +352,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     float ele = midEle ? (*env)->CallFloatMethod(env, posObj, midEle) : 0.0f;
                     jboolean haveEle = midEleExists ? (*env)->CallBooleanMethod(env, posObj, midEleExists) : JNI_FALSE;
 
-                    rs->position.lat = (Common_Latitude_t)llrint(lat * 1e7);
-                    rs->position.Long = (Common_Latitude_t)llrint(lon * 1e7);
+                    rs->position.lat = (Common_Latitude_t)((long) lat);
+                    rs->position.Long = (Common_Latitude_t) ((long) lon);
 
                     // Optional elevation: decimeters (0.1 m)
                     if (haveEle)
@@ -425,7 +426,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         {
 
             jclass startTimeCls = (*env)->GetObjectClass(env, startTime);
-            jmethodID midGetMinute = (*env)->GetMethodID(env, startTimeCls, "getValue", "()I");
+            jmethodID midGetMinute = (*env)->GetMethodID(env, startTimeCls, "getValue", "()J");
             jint start = (*env)->CallIntMethod(env, startTime, midGetMinute);
             tdf->startTime = (long)start;
             printf("Start Time (minute of year) = %d\n", start);
