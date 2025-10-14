@@ -15,6 +15,7 @@
  */
 package gov.usdot.cv.msg.builder;
 import java.text.ParseException;
+import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -83,7 +84,7 @@ public class TravelerInformationBuilder {
 
 			switch (generateType) {
 				case ASD:
-					//Need to decide whether we will implement ASD
+					//TODO: ASD encoding will be implemented in a later story
 					break;
 				case TIM:
 					tim = new TravelerInformationMessage();
@@ -104,7 +105,7 @@ public class TravelerInformationBuilder {
 			tim.setReadableString(readableString);
 		} catch (Exception e) {
 			logger.error("Error encoding TravelerInformation ", e);
-			// throw new MessageEncodeException(e.toString());
+			throw new MessageEncodeException(e.toString());
 		}
 
 		return tim;
@@ -115,7 +116,6 @@ public class TravelerInformationBuilder {
 		TravelerInformation tim = new TravelerInformation();
 		tim.setDataFrames(buildDataFrames(travInputData));
 		tim.setMsgCnt(tim.getDataFrames().getFrames().size());
-
 		return tim;
 	}
 
@@ -128,7 +128,7 @@ public class TravelerInformationBuilder {
 
 		dataFrame.setFrameType(TravelerInfoType.fromValue(travInputData.anchorPoint.infoType));
 		dataFrame.setMsgId(getMessageId(travInputData));
-		// ToDO:Optional field will be implemented later
+		// TODO:StartYear is an Optional field will be implemented later
 		// dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
 		dataFrame.setStartTime(new MinuteOfTheYear(getStartTime(travInputData)));
 		dataFrame.setDurationTime(new MinutesDuration(getDurationTime(travInputData)));
@@ -373,16 +373,14 @@ public class TravelerInformationBuilder {
 		boolean isRoadSign = true;
 		if (isRoadSign) {
 			RoadSignID roadSignID = new RoadSignID();
-
 			roadSignID.setPosition(getAnchorPointPosition(travInputData));
-			// Todo: will implement later
 			roadSignID.setViewAngle(getHeadingSlice(travInputData));
 			//Todo: 
 			// MUTCD code is an optional field will be implement later story
 			// roadSignID.setMutcdCode(MUTCDCode.valueOf(travInputData.anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
 		} else {
-			// msgId.setChosenFlag(MsgId.furtherInfoID_chosen);
+			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as well
 			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00, 0x00 }));
 		}
 		return msgId;
@@ -416,7 +414,7 @@ public class TravelerInformationBuilder {
 	private GeographicalPath[] buildRegions(TravelerInputData travInputData) {
 		List<GeographicalPath> regionList = new ArrayList<>();
 		GeographicalPath region1 = new GeographicalPath();
-		// TOdo: will be implemented in a  later story
+		// TODO: will be implemented in a  later story
 		regionList.add(region1);
 		return regionList.toArray(new GeographicalPath[0]);
 	}
