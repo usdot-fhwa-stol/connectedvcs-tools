@@ -28,7 +28,7 @@ import org.apache.logging.log4j.Logger;
 
 public class J2735TIMHelper {
 		private static final Logger logger = LogManager.getLogger(J2735TIMHelper.class);
-	private static final String START_CURLY_BRACKET = "{";
+
 
 	// This constant is used to convert the given LAT/LON to J2735 format
 	private static final int LAT_LONG_CONVERSION_FACTOR = 10000000;

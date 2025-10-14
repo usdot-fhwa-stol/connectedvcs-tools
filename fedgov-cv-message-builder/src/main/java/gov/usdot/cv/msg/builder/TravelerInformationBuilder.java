@@ -64,6 +64,7 @@ public class TravelerInformationBuilder {
 
 		try {
 			travInputData = JSONMapper.jsonStringToPojo(timData, TravelerInputData.class);
+
 			deposit = (travInputData != null && travInputData.deposit != null);
 
 			// TODO:
@@ -71,6 +72,7 @@ public class TravelerInformationBuilder {
 			// travInputData.validate();
 			travInputData.applyLatLonOffset();
 			travInputData.initialzeReferencePoints();
+			System.out.println("Checking type : " + travInputData.getGenerateType());
 			generateType = travInputData.getGenerateType();
 
 		} catch (Exception e) {
@@ -89,7 +91,7 @@ public class TravelerInformationBuilder {
 				case TIM:
 					tim = new TravelerInformationMessage();
 					ti = buildTravelerInformation(travInputData);
-					hexString = J2735TIMHelper.getHexString(ti).substring(8);
+					hexString = J2735TIMHelper.getHexString(ti).substring(6);
 					readableString = ti.toString();
 					break;
 				case FramePlusTIM:

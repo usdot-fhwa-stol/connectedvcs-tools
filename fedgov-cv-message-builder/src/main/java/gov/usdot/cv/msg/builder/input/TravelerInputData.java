@@ -14,7 +14,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import gov.usdot.cv.msg.builder.util.GeoPoint;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
-// import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
 
 
 public class TravelerInputData {
@@ -50,7 +50,7 @@ public class TravelerInputData {
 	public Deposit deposit;
 	public ApplicableRegion applicableRegion;
 	public String messageType = "TIM";
-	// public OffsetEncodingType nodeOffsets = OffsetEncodingType.Standard;
+    public OffsetEncodingType nodeOffsets = OffsetEncodingType.Standard;
 	public boolean enableElevation = true;
 	
 	// @Override
