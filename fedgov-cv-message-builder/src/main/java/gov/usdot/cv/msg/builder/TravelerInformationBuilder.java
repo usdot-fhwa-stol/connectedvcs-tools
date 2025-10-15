@@ -157,14 +157,19 @@ public class TravelerInformationBuilder {
 		Content content = new Content();
 		System.out.println("Content Type: " + contentType);
 		if ("Advisory".equals(contentType)) {
+			//takes max 100 itis codes or text with max length of 500 chars
 			content.setAdvisory(buildAdvisory(codes, 100, 500));
 		} else if ("Work Zone".equals(contentType)) {
+			//takes max 16 itis codes or text with max length of 16 chars
 			content.setWorkZone(buildWorkZone(codes, 16, 16));
 		} else if ("Speed Limit".equals(contentType)) {
+			//takes max 16 itis codes or text with max length of 16 chars
 			content.setSpeedLimit(buildSpeedLimit(codes, 16, 16));
 		} else if ("Exit Service".equals(contentType)) {
+			//takes max 16 itis codes or text with max length of 16 chars
 			content.setExitService(buildExitService(codes, 16, 16));
 		} else {
+			//takes max 16 itis codes or text with max length of 16 chars
 			content.setGenericSign(buildGenericSignage(codes, 16, 16));
 		}
 		return content;
