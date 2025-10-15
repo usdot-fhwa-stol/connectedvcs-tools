@@ -15,10 +15,6 @@
  */
 package gov.usdot.cv.timencoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import gov.usdot.cv.mapencoder.LaneDataAttribute;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.mapencoder.RoadSegmentReferenceID;
 
@@ -32,11 +28,9 @@ public class GeographicalPath {
     private boolean closedPath;
     private HeadingSlice direction;
     private Description description;
-    private Regional regional;
 
     public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, LaneWidth laneWidth,
-            DirectionOfUse directionality, boolean closedPath, HeadingSlice direction, Description description,
-            Regional regional) {
+            DirectionOfUse directionality, boolean closedPath, HeadingSlice direction, Description description) {
         this.name = name;
         this.id = id;
         this.anchor = anchor;
@@ -45,7 +39,6 @@ public class GeographicalPath {
         this.closedPath = closedPath;
         this.direction = direction;
         this.description = description;
-        this.regional = regional;
     }
 
     public DescriptiveName getName() {
@@ -72,9 +65,6 @@ public class GeographicalPath {
     public Description getDescription() {
         return description;
     }
-    public Regional getRegional() {
-        return regional;
-    }
 
     public void setName(DescriptiveName name) {
         this.name = name;
@@ -100,9 +90,6 @@ public class GeographicalPath {
     public void setDescription(Description description) {
         this.description = description;
     }
-    public void setRegional(Regional regional) {
-        this.regional = regional;
-    }
 
     @Override
     public String toString() {
@@ -115,7 +102,6 @@ public class GeographicalPath {
                 ", closedPath=" + closedPath +
                 ", direction=" + direction +
                 ", description=" + description +
-                ", regional=" + regional +
                 '}';
     }
 
@@ -152,42 +138,5 @@ public class GeographicalPath {
                  "choice =" + choice;
         }
 
-    }
-
-    public static class Regional {
-        private List<LaneDataAttribute> elements = new ArrayList<>();
-
-        public Regional() {
-        }
-
-        public Regional(List<LaneDataAttribute> elements) {
-            this.elements = elements;
-        }
-
-        public List<LaneDataAttribute> getElements() {
-            return elements;
-        }
-
-        public int getElementSize() {
-            return elements.size();
-        }
-
-        public void setElements(List<LaneDataAttribute> elements) {
-            this.elements = elements;
-        }
-
-        public void addElement(LaneDataAttribute element) {
-            if (elements == null) {
-                elements = new ArrayList<>();
-            }
-            elements.add(element);
-        }
-
-        @Override
-        public String toString() {
-            return "Regional{" +
-                    "elements=" + elements +
-                    '}';
-        }
     }
 }

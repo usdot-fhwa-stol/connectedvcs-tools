@@ -26,14 +26,12 @@ public class GeometricProjection {
     private Extent extent;
     private LaneWidth laneWidth;
     private Circle circle;
-    private Regional regional;
 
-    public GeometricProjection(HeadingSlice direction, Extent extent, LaneWidth laneWidth, Circle circle, Regional regional) {
+    public GeometricProjection(HeadingSlice direction, Extent extent, LaneWidth laneWidth, Circle circle) {
         this.direction = direction;
         this.extent = extent;
         this.laneWidth = laneWidth;
         this.circle = circle;
-        this.regional = regional;
     }
 
     public HeadingSlice getHeadingSlice() {
@@ -48,9 +46,6 @@ public class GeometricProjection {
     public Circle getCircle() {
         return circle;
     }
-    public Regional getRegional() {
-        return regional;
-    }
 
     public void setHeadingSlice(HeadingSlice direction) {
         this.direction = direction;
@@ -64,9 +59,7 @@ public class GeometricProjection {
     public void setCircle(Circle circle) {
         this.circle = circle;
     }
-    public void setRegional(Regional regional) {
-        this.regional = regional;
-    }
+
     @Override
     public String toString() {
         return "GeometricProjection {" +
@@ -74,46 +67,7 @@ public class GeometricProjection {
                  ", extent =" + extent +
                  ", laneWidth=" + laneWidth +
                  ", circle=" + circle +
-                 ", regional=" + regional +
                  '}';
     }
-
-    // ---- Inner class ----
-    public static class Regional {
-    private List<LaneDataAttribute> elements = new ArrayList<>();
-
-    public Regional() {
-    }
-
-    public Regional(List<LaneDataAttribute> elements) {
-        this.elements = elements;
-    }
-
-    public List<LaneDataAttribute> getElements() {
-        return elements;
-    }
-
-    public int getElementSize() {
-        return elements.size();
-    }
-
-    public void setElements(List<LaneDataAttribute> elements) {
-        this.elements = elements;
-    }
-
-    public void addElement(LaneDataAttribute element) {
-        if (elements == null) {
-            elements = new ArrayList<>();
-        }
-        elements.add(element);
-    }
-
-    @Override
-    public String toString() {
-        return "Regional{" +
-                "elements=" + elements +
-                '}';
-    }
-}
     
 }

@@ -25,7 +25,6 @@ public class NodeOffsetPointLL {
     private int node_LL5_chosen;
     private int node_LL6_chosen;
     private int node_LatLon_chosen;
-    private int regional_chosen;
 
     // Choices
     public static final int NODE_LL1 = 1;
@@ -35,15 +34,13 @@ public class NodeOffsetPointLL {
     public static final int NODE_LL5 = 5;
     public static final int NODE_LL6 = 6;
     public static final int NODE_LATLON = 7;
-    public static final int REGIONAL = 8;
 
     public NodeOffsetPointLL() {
 
     }
 
     public NodeOffsetPointLL(int choice, int node_LL1_chosen, int node_LL2_chosen, int node_LL3_chosen,
-            int node_LL4_chosen, int node_LL5_chosen, int node_LL6_chosen, int node_LatLon_chosen,
-            int regional_chosen) {
+            int node_LL4_chosen, int node_LL5_chosen, int node_LL6_chosen, int node_LatLon_chosen) {
         this.choice = choice;
         this.node_LL1_chosen = node_LL1_chosen;
         this.node_LL2_chosen = node_LL2_chosen;
@@ -52,7 +49,6 @@ public class NodeOffsetPointLL {
         this.node_LL5_chosen = node_LL5_chosen;
         this.node_LL6_chosen = node_LL6_chosen;
         this.node_LatLon_chosen = node_LatLon_chosen;
-        this.regional_chosen = regional_chosen;
     }
 
     public int getChoice() {
@@ -103,12 +99,6 @@ public class NodeOffsetPointLL {
     public void setNode_LatLon_chosen(int node_LatLon_chosen) {
         this.node_LatLon_chosen = node_LatLon_chosen;
     }
-    public int getRegional_chosen() {
-        return regional_chosen;
-    }
-    public void setRegional_chosen(int regional_chosen) {
-        this.regional_chosen = regional_chosen;
-    }
 
     @Override
     public String toString() {
@@ -121,7 +111,6 @@ public class NodeOffsetPointLL {
                 + ", node_LL5_chosen=" + node_LL5_chosen
                 + ", node_LL6_chosen=" + node_LL6_chosen
                 + ", node_LatLon_chosen=" + node_LatLon_chosen
-                + ", regional_chosen=" + regional_chosen
                 + '}';
     }
     
