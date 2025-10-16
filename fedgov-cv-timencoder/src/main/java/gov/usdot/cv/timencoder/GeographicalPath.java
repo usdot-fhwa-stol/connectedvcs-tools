@@ -112,23 +112,23 @@ public class GeographicalPath {
         }
 
         private Choice choice;
-        private int path_chosen;
-        private int geometry_chosen;
-        private int oldRegion_chosen;
+        private OffsetSystem path_chosen;
+        private GeometricProjection geometry_chosen;
+        private ValidRegion oldRegion_chosen;
 
         public Choice getChoice() {
             return choice;
         }
 
-        public int getPathChosen() {
+        public OffsetSystem getPathChosen() {
             return path_chosen;
         }
 
-        public int getGeometryChosen() {
+        public GeometricProjection getGeometryChosen() {
             return geometry_chosen;
         }
 
-        public int getOldRegionChosen() {
+        public ValidRegion getOldRegionChosen() {
             return oldRegion_chosen;
         }
 
