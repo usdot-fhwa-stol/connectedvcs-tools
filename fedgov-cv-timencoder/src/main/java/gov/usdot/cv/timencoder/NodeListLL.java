@@ -20,6 +20,10 @@ package gov.usdot.cv.timencoder;
 public class NodeListLL {
     private NodeSetLL nodes;
 
+    public NodeListLL() {
+        
+    }
+    
     public NodeListLL(NodeSetLL nodes) {
         this.nodes = nodes;
     }

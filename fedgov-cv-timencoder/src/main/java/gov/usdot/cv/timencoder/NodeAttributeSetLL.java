@@ -16,11 +16,6 @@
 
 package gov.usdot.cv.timencoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import gov.usdot.cv.mapencoder.LaneDataAttribute;
-
 public class NodeAttributeSetLL {
     private NodeAttributeLLList localNode;
     private SegmentAttributeLLList disabled;
@@ -29,6 +24,10 @@ public class NodeAttributeSetLL {
     private Offset_B10 dWidth;
     private Offset_B10 dElevation;
     
+    public NodeAttributeSetLL() {
+
+    }
+
     public NodeAttributeSetLL(NodeAttributeLLList localNode, SegmentAttributeLLList disabled,
             SegmentAttributeLLList enabled, LaneDataAttributeList data, Offset_B10 dWidth, Offset_B10 dElevation) {
         this.localNode = localNode;

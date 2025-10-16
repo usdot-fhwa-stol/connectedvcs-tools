@@ -107,7 +107,7 @@ public class GeographicalPath {
                 ", direction=" + direction +
                 ", description=" + description +
                 '}';
-    }
+    }    
 
     public static class Description {
         

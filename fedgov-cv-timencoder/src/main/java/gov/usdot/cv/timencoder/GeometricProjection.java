@@ -27,6 +27,10 @@ public class GeometricProjection {
     private LaneWidth laneWidth;
     private Circle circle;
 
+    public GeometricProjection() {
+
+    }
+    
     public GeometricProjection(HeadingSlice direction, Extent extent, LaneWidth laneWidth, Circle circle) {
         this.direction = direction;
         this.extent = extent;

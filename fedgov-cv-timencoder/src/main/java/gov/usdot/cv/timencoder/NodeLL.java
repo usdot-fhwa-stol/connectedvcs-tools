@@ -22,6 +22,10 @@ public class NodeLL {
     private NodeOffsetPointXY delta;
     private NodeAttributeSetLL attributes;
 
+    public NodeLL() {
+        
+    }
+    
     public NodeLL(NodeOffsetPointXY delta, NodeAttributeSetLL attributes) {
         this.delta = delta;
         this.attributes = attributes;
