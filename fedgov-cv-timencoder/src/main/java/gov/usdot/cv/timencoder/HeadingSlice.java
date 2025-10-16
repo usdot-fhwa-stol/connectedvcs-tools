@@ -23,7 +23,7 @@ public final class HeadingSlice {
   public HeadingSlice(int mask) { this.mask = mask & 0xFFFF; }
 
   private boolean get(int i) { return ((mask >>> i) & 1) == 1; }
-  private void set(int i, boolean v) {
+  public void set(int i, boolean v) {
     if (v) mask |= (1 << i); else mask &= ~(1 << i);
     mask &= 0xFFFF;
   }
