@@ -16,6 +16,8 @@
 
 package gov.usdot.cv.timencoder;
 
+import gov.usdot.cv.mapencoder.NodeListXY;
+
 public class OffsetSystem {
     private Zoom scale;
     private Offset offset;
@@ -46,48 +48,39 @@ public class OffsetSystem {
     }
 
     // Inner class
-    private static class Offset {
-        private int choice;
-        private int xy_chosen;
-        private int ll_chosen;
+    public static class Offset {
 
-        // Values
-        public static final int XY_CHOSEN = 1;
-        public static final int LL_CHOSEN = 2;
-
-        public Offset() {
-        }
-        
-        public Offset(int choice, int xy_chosen, int ll_chosen) {
-            this.choice = choice;
-            this.xy_chosen = xy_chosen;
-            this.ll_chosen = ll_chosen;
+        public enum Choice {
+            xy_chosen,
+            ll_chosen
         }
 
-        public int getChoice() {
+        private Choice choice;
+        private NodeListXY xy_chosen;
+        private NodeListLL ll_chosen;
+
+        public Choice getChoice() {
             return choice;
         }
-        public void setChoice(int choice) {
+        public void setChoice(Choice choice) {
             this.choice = choice;
         }
-        public int getXy_chosen() {
+        public NodeListXY getXy_chosen() {
             return xy_chosen;
         }
-        public void setXy_chosen(int xy_chosen) {
+        public void setXy_chosen(NodeListXY xy_chosen) {
             this.xy_chosen = xy_chosen;
         }
-        public int getLl_chosen() {
+        public NodeListLL getLl_chosen() {
             return ll_chosen;
         }
-        public void setLl_chosen(int ll_chosen) {
+        public void setLl_chosen(NodeListLL ll_chosen) {
             this.ll_chosen = ll_chosen;
         }
         @Override
         public String toString() {
             return "Offset{" +
                     "choice=" + choice +
-                    ", xy_chosen=" + xy_chosen +
-                    ", ll_chosen=" + ll_chosen +
                     '}';
         }
 

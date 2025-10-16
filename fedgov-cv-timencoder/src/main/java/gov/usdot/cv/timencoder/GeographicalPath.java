@@ -139,7 +139,8 @@ public class GeographicalPath {
         @Override
         public String toString() {
             return "Description {" +
-                 "choice =" + choice;
+                 "choice =" + choice +
+                 "}";
         }
 
     }
