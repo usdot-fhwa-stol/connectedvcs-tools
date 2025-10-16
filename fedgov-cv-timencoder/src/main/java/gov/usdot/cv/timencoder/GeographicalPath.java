@@ -29,6 +29,10 @@ public class GeographicalPath {
     private HeadingSlice direction;
     private Description description;
 
+    public GeographicalPath() {
+        
+    }
+
     public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, LaneWidth laneWidth,
             DirectionOfUse directionality, boolean closedPath, HeadingSlice direction, Description description) {
         this.name = name;
