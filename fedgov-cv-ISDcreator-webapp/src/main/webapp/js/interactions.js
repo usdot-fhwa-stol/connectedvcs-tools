@@ -181,9 +181,13 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       $(".lane_number").hide();
       $(".lane_info_time_restrictions").hide();
     }
-    let nodeLaneWidth;
+    let nodeLaneWidth = [];
     if(laneFeatures[selectedMarker.get("lane")]?.get("laneWidth")){
-        nodeLaneWidth = laneFeatures[selectedMarker.get("lane")]?.get("laneWidth");
+      for (let i = 0; i < laneFeatures.length; i++) {
+        const featureLaneWidth = laneFeatures[i]?.get("laneWidth");
+        const currentLaneWidth = featureLaneWidth?.[i];
+        nodeLaneWidth[i] = currentLaneWidth;
+      }
     }
 
     if (nodeLaneWidth && nodeLaneWidth[selectedMarker.get("number")]){

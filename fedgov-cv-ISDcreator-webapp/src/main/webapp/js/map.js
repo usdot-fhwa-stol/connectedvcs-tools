@@ -1421,7 +1421,7 @@ function registerModalButtonEvents() {
         });
 
         nodeLaneWidth[selectedMarker.get("number")] = $("#lane_width").val();
-        lanes.getSource().getFeatures()[selectedMarker.get("lane")].set("laneWidth", nodeLaneWidth);
+        lanes.getSource().getFeatures()[selectedMarker.get("number")].set("laneWidth", nodeLaneWidth);
         nodeLaneWidth = [];
 
         selectedMarker.set("elevation", $("#elev").val());
