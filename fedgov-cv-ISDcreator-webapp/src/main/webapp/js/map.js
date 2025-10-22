@@ -41,7 +41,7 @@ let sharedWith_object, typeAttribute_object, typeAttributeName, laneTypeOptions 
 let typeAttributeNameSaved = "";
 let sharedWith = [];
 let typeAttribute = [];
-let nodeLaneWidth = [];
+let nodeLaneWidth;
 let signalPhase, stateConfidence, laneNum, laneType, approaches, intersectionID, approachID, maneuverControlType;
 let hiddenDrag, intersectionSidebar, deleteMode, currentControl;
 let $imgs;
@@ -1420,9 +1420,9 @@ function registerModalButtonEvents() {
           lon: parseFloat($("#long").val()),
         });
 
-        nodeLaneWidth[selectedMarker.get("number")] = $("#lane_width").val();
-        lanes.getSource().getFeatures()[selectedMarker.get("number")].set("laneWidth", nodeLaneWidth);
-        nodeLaneWidth = [];
+        nodeLaneWidth = $("#lane_width").val();
+        lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")] = nodeLaneWidth
+        nodeLaneWidth = 0;
 
         selectedMarker.set("elevation", $("#elev").val());
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
