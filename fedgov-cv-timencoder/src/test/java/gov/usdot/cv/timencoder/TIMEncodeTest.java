@@ -102,7 +102,7 @@ public class TIMEncodeTest {
                 // HeadingSLice
                 heading = new HeadingSlice(0b0000000000001111);
                 // === MsgId (RoadSignID w/ position + heading) ===
-                Position3D pos = new Position3D(34.0522, -118.2437, 100, true);
+                Position3D pos = new Position3D(4.23369794E8, -8.30508547E8, 100, true);
                 MsgId msgId = new MsgId(new RoadSignID(pos, heading));
                 when(mockFrame1.getMsgId()).thenReturn(msgId);
                 when(mockFrame2.getMsgId()).thenReturn(msgId);
@@ -212,41 +212,28 @@ public class TIMEncodeTest {
                 ByteArrayObject result = encoder.encode(mockTimData);
                 Assert.assertNotNull("Byte array should not be null", result.getMessage());
                 byte[] expected = new byte[] {
-                                (byte) 0x00, (byte) 0x1F, (byte) 0x80, (byte) 0x88, (byte) 0x00, (byte) 0xA5,
-                                (byte) 0x08, (byte) 0x62,
-                                (byte) 0x93, (byte) 0xE1, (byte) 0xBA, (byte) 0x20, (byte) 0x49, (byte) 0x9E,
-                                (byte) 0x86, (byte) 0xEE,
-                                (byte) 0x20, (byte) 0xC8, (byte) 0x00, (byte) 0x1E, (byte) 0xAA, (byte) 0xDC,
-                                (byte) 0x00, (byte) 0x01,
-                                (byte) 0x48, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x09, (byte) 0x81,
-                                (byte) 0x0B, (byte) 0xC0,
-                                (byte) 0x86, (byte) 0x00, (byte) 0x43, (byte) 0x1F, (byte) 0x52, (byte) 0xDF,
-                                (byte) 0x87, (byte) 0x22,
-                                (byte) 0x0A, (byte) 0xFB, (byte) 0xF9, (byte) 0x6B, (byte) 0x41, (byte) 0x07,
-                                (byte) 0x46, (byte) 0x5C,
-                                (byte) 0x39, (byte) 0x00, (byte) 0x40, (byte) 0x88, (byte) 0x00, (byte) 0x20,
-                                (byte) 0x14, (byte) 0x52,
-                                (byte) 0x7C, (byte) 0x37, (byte) 0x44, (byte) 0x09, (byte) 0x33, (byte) 0xD0,
-                                (byte) 0xDD, (byte) 0xC4,
-                                (byte) 0x19, (byte) 0x00, (byte) 0x03, (byte) 0xD6, (byte) 0x26, (byte) 0x00,
-                                (byte) 0x01, (byte) 0xE2,
-                                (byte) 0x18, (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x88,
-                                (byte) 0x07, (byte) 0xD3,
-                                (byte) 0x8A, (byte) 0x7C, (byte) 0x32, (byte) 0xE5, (byte) 0xC8, (byte) 0x83,
-                                (byte) 0x73, (byte) 0x36,
-                                (byte) 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8, (byte) 0x08, (byte) 0x11,
-                                (byte) 0x09, (byte) 0x24,
-                                (byte) 0x03, (byte) 0x8A, (byte) 0x4F, (byte) 0x86, (byte) 0xE8, (byte) 0x81,
-                                (byte) 0x26, (byte) 0x7A,
-                                (byte) 0x1B, (byte) 0xB8, (byte) 0x83, (byte) 0x20, (byte) 0x00, (byte) 0x7A,
-                                (byte) 0xD9, (byte) 0x6F,
-                                (byte) 0x00, (byte) 0x78, (byte) 0x60, (byte) 0x20, (byte) 0x00, (byte) 0x00,
-                                (byte) 0x00, (byte) 0x04,
-                                (byte) 0x10, (byte) 0x04, (byte) 0x0F, (byte) 0xA3, (byte) 0x05, (byte) 0xD3,
-                                (byte) 0xD9, (byte) 0xA7,
-                                (byte) 0x87, (byte) 0x0C, (byte) 0xBC, (byte) 0xBC, (byte) 0xA0, (byte) 0xAF,
-                                (byte) 0x97, (byte) 0xA0,
-                                (byte) 0x08, (byte) 0x11, (byte) 0x39, (byte) 0x40
+                                0x00, 0x1F, (byte) 0x80, (byte) 0x88, 0x00, (byte) 0xA5, 0x08, 0x62, (byte) 0x9D,
+                                (byte) 0xC2, 0x0A, (byte) 0x84,
+                                0x73, (byte) 0x92, (byte) 0x87, (byte) 0xF8, 0x20, (byte) 0xC8, 0x00, 0x1E, (byte) 0xAA,
+                                (byte) 0xDC, 0x00, 0x01,
+                                0x48, 0x00, 0x00, 0x00, 0x09, (byte) 0x81, 0x0B, (byte) 0xC0, (byte) 0x86, 0x00, 0x43,
+                                0x1F,
+                                0x52, (byte) 0xDF, (byte) 0x87, 0x22, 0x0A, (byte) 0xFB, (byte) 0xF9, 0x6B, 0x41, 0x07,
+                                0x46, 0x5C,
+                                0x39, 0x00, 0x40, (byte) 0x88, 0x00, 0x20, 0x14, 0x53, (byte) 0xB8, 0x41, 0x50,
+                                (byte) 0x8E,
+                                0x72, 0x50, (byte) 0xFF, 0x04, 0x19, 0x00, 0x03, (byte) 0xD6, 0x26, 0x00, 0x01,
+                                (byte) 0xE2,
+                                0x18, (byte) 0x80, 0x00, 0x00, 0x00, (byte) 0x88, 0x07, (byte) 0xD3, (byte) 0x8A, 0x7C,
+                                0x32, (byte) 0xE5,
+                                (byte) 0xC8, (byte) 0x83, 0x73, 0x36, 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8, 0x08,
+                                0x11, 0x09, 0x24,
+                                0x03, (byte) 0x8A, 0x77, 0x08, 0x2A, 0x11, (byte) 0xCE, 0x4A, 0x1F, (byte) 0xE0,
+                                (byte) 0x83, 0x20,
+                                0x00, 0x7A, (byte) 0xD9, 0x6F, 0x00, 0x78, 0x60, 0x20, 0x00, 0x00, 0x00, 0x04,
+                                0x10, 0x04, 0x0F, (byte) 0xA3, 0x05, (byte) 0xD3, (byte) 0xD9, (byte) 0xA7, (byte) 0x87,
+                                0x0C, (byte) 0xBC, (byte) 0xBC,
+                                (byte) 0xA0, (byte) 0xAF, (byte) 0x97, (byte) 0xA0, 0x08, 0x11, 0x39, 0x40
                 };
 
                 Assert.assertArrayEquals(
@@ -255,7 +242,5 @@ public class TIMEncodeTest {
                                 result.getMessage());
 
         }
-
-
 
 }
