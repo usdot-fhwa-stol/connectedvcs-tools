@@ -154,12 +154,12 @@
 			<li class="content-tab"><a href="#content-tab" onclick="$('#attribute-tabs a[href=\'#content-tab\']').tab('show'); return false;">Content</a></li>
 			<li class="direction-tab"><a href="#direction-tab" onclick="$('#attribute-tabs a[href=\'#direction-tab\']').tab('show'); return false;">Directionality</a></li>
 			<li class="itis-tab"><a href="#itis-tab" onclick="$('#attribute-tabs a[href=\'#itis-tab\']').tab('show'); return false;">ITIS Codes</a></li>
+			<li class="road-condition-tab"><a href="#road-condition-tab" onclick="$('#attribute-tabs a[href=\'#road-condition-tab\']').tab('show'); return false;">Road Condition</a></li>
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane active" id="marker-info-tab">
 				<div class="panel-body">
-					<div class="panel-body">
-				
+					<div class="panel-body">				
 					<div class="row start_time">
 						<div class="col-sm-4"><label for="start_time">Start Time:</label></div>
 			            <div class="col-sm-7">
@@ -420,10 +420,47 @@
 						<br/><br/>
 					</div>
 				</div>
-
 				<div class="btn-group">
 					<button type="button" class="btnDone btn btn-primary">Done</button>
 					<button type="button" class="btnClose btn btn-primary">Cancel</button>
+				</div>
+			</div>
+		</div>
+		<div class="tab-pane" id="road-condition-tab">
+			<div class="panel-body">
+				<div class="panel-body">
+					<div class="form-group">
+						<div class="row road condition">
+							<div class="col-sm-4"><label for="direction">Description of Road Surface:</label></div>
+							<div class="col-sm-7"><div id="direction" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Road Surface Type <span class="caret"></span></a>
+								<ul class="dropdown-menu">
+									<li><a href="#">Portland Cement</a></li>
+									<li><a href="#">Asphalt or Tar</a></li>
+									<li><a href="#">Gravel</a></li>
+									<li><a href="#">Grass</a></li>
+									<li><a href="#">Cinders</a></li>
+									<li><a href="#">Rock</a></li>
+									<li><a href="#">Ice</a></li>
+									<li><a href="#">Snow</a></li>
+								</ul>
+							</div></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="direction"></i></div>
+						</div>
+						<div class="row road-surface">
+							<div class="col-sm-4"><label for="info-type">Road Surface Type:</label></div>
+							<div class="col-sm-7"><div id="info-type" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Condition <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">(0) Dry</a></li>
+										<li><a href="#">(1) Wet</a></li>
+									</ul>
+							</div></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="info-type"></i></div>
+						</div>
+						</div>
+					<div class="btn-group">
+							<button type="button" class="btnDone btn btn-primary">Done</button>
+						 <button type="button" class="btnClose btn btn-primary">Cancel</button>
+					 </div>
 				</div>
 			</div>
 		</div>

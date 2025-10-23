@@ -327,7 +327,9 @@ function createMessageJSON() {
                 priority: attrs.priority,
                 startTime: attrs.startTime,
                 endTime: attrs.endTime,
-                heading: getHeading(attrs.heading)
+                heading: getHeading(attrs.heading),
+                roadSurface: attrs.roadSurface?.substring(1, 2),
+                dry_wet_value: attrs.dry_wet_value
             };
         }
 
