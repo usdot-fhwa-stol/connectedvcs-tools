@@ -13,9 +13,10 @@
 	<link rel="stylesheet" href="external/font-awesome-4.3.0/css/font-awesome.css">
 	
 	<!-- FROM OPENLAYERS 2 -->
-	<link rel="stylesheet" href="external/openlayers2/theme/default/style.css" type="text/css">
-	<link rel="stylesheet" href="external/openlayers2/theme/default/google.css" type="text/css">
-	<link rel="stylesheet" href="external/openlayers2/examples/style.css" type="text/css">
+	<link rel="stylesheet" href="external/openlayers10/ol.css">
+
+	<link rel="stylesheet" href="external/openlayers10/ol.css">
+
 	
 	<!-- BOOTSTRAP -->
 	<link rel="stylesheet" href="external/bootstrap/css/bootstrap.css">
@@ -35,7 +36,7 @@
 	
 </head>
 
-<body onload="init()">
+<body>
 
     <!-- Navigation -->
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -48,7 +49,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/"><img id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
+                <a class="navbar-brand" href="/"><img style="display: none;" id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -59,6 +60,7 @@
 							<div class="input-group-btn">
 								<button id="address-search-btn" type='button' class="btn btn-default" disabled><i class="fa fa-search"></i></button>
 							</div>
+							<ul class="dropdown-menu" id="dropdown-menu-search"></ul>
 						</div>
 					</form>
 				</div>
@@ -67,7 +69,7 @@
 			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">File <span class="caret"></span></a>
 			          <ul class="dropdown-menu" role="menu">
 			            <li><a href="#" onclick="saveMap();">Save</a></li>
-			            <li><a href="#" onclick="loadFile();">Open</a></li>
+			            <li><a href="#" id="openFile">Open</a></li>
 			            <li><input type="file" id="fileToLoad"></li>
 						  <li class="divider"></li>
 						  <li><a href="#" onclick="loadKMLTrace();">Open KML Stencil</a></li>
@@ -101,7 +103,7 @@
 							<li><a href="#instructions_modal" data-toggle="modal" data-target="#instructions_modal">Instructions</a></li>
 							<li class="divider"></li>
 							<li><a href="#" onclick="alert('To request support or report problems please email\nthe CAV Support Services at: CAVSupportServices@dot.gov.');">Support</a></li>
-							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('TIM Builder Tool for J2735 9/2024 (UPER encoding)\n\n\t  Version 4.0.0, Released on 4/25/2024');">About</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('TIM Builder Tool for J2735 3/2016 (UPER encoding)\n\n\t  Version 3.4.0, Released on 6/14/2022');">About</a></li>
 						</ul>
 					</li>
                 </ul>
@@ -113,9 +115,6 @@
 
 	<!-- MAP -->
 	<div id="map" class="smallmap">
-		<div id="tileAge">Tile Age:
-			<span class="start"></span> - <span class="end"></span>
-		</div>
 		<div id="zoomLevel">Zoom Level:
 			<span class="zoom"></span>
 		</div>
@@ -807,6 +806,8 @@
 	
 
 	<!--******************************************* SCRIPTS *******************************************-->
+
+	<!-- <script src="/private-resources/js/TIMcreator-webapp-keys.js"></script> -->
 	
 	<script src="external/jquery.min.js"></script>
 	<script src="external/jquery-ui.min.js"></script>
@@ -815,7 +816,9 @@
 	<script src="external/modernizr-2.6.2.min.js"></script>
 	
 	<!-- FROM OPENLAYERS 2 -->
-	<script src="external/openlayers2/OpenLayers.js"></script>
+	<script src="external/openlayers10/dist/ol.js"></script>
+	  <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ol-ext/dist/ol-ext.min.js"></script>
 	
 	<!-- BOOTSTRAP -->
 	<script src="external/bootstrap/js/bootstrap.min.js"></script>
@@ -832,22 +835,38 @@
 	<script type="text/javascript" src="external/jquery.sheepItPlugin.js"></script>
 
 	<!--Geocomplete -->
-	<script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=YOUR_API_KEY"></script>
 	<script type="text/javascript" src="external/jquery.geocomplete.min.js"></script>
 	
 	<!-- CUSTOM MAP CODE -->
-	<script src="js/mapping.js"></script>
-	
+	<script type="module">
+		import {Clear,toggleWidthArray} from './js/mapping.js'
+		window.Clear=Clear;
+		window.toggleWidthArray=toggleWidthArray;
+	</script>
 	<!-- OTHER -->
-	<script src="js/config.js"></script>
-	<script src="js/mapTools.js"></script>
+	 <script type="module">
+  		import { saveMap,loadKMLTrace,deleteTrace,loadRSMTrace} from './js/mapTools.js'
+ 		window.saveMap = saveMap;
+		window.loadKMLTrace= loadKMLTrace;
+		window.deleteTrace= deleteTrace;
+		window.loadRSMTrace=loadRSMTrace;
+
+	</script>
 	<script src="js/sidebar.js"></script>
-	<script src="js/main.js"></script>
-	<script src="js/navbar.js"></script>
-	<script src="js/depositor.js"></script>
+	<script src="js/config.js"></script>
+	<script type="module" src="js/main.js"></script>
+	<script type="module">
+	import {ToggleLanes,TogglePoints} from './js/navbar.js'
+	window.ToggleLanes=ToggleLanes;
+	window.TogglePoints=TogglePoints;
+	</script>
+
+	<script type="module" src="js/depositor.js"></script>
 	<script src="js/circle.js"></script>
 	<script src="js/bing.js"></script>
 	<script src="js/latlon-vincenty.js"></script>
+	<script src="js/bing.js"></script>
+	<script type="module" src="js/api.js"></script>
 	
 
 </body>

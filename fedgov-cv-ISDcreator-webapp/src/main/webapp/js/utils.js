@@ -4,6 +4,7 @@ let approachNumRows = -1;
 let timeRestrictions;
 let tmpLaneAttributes = {}
 let selectedMarker;
+let speedFormIndexArray = [];
 import { getElev, getNearestIntersectionJSON } from "./api.js";
 import { toggleControlsOn } from "./files.js";
 import { selectedMarker as selectedMarkerMAP } from "./map.js";
@@ -609,17 +610,17 @@ function saveApproaches(selectedMarker) {
     let timePeriodValue = "";
     let timePeriodRange = {};
 
-    let selectedType = $('#row' + i + ' input[name="approach_time_period' + i + '"]:checked').val();
+    let selectedType = $('#row' + i + ' .time_period_option:checked').val();
     timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};
-      timePeriodRange["startDatetime"] = $('#row' + i + ' #approach_time_period_start_datetime' + i).val();
-      timePeriodRange["startOffset"] = $('#row' + i + ' #approach_time_period_start_offset' + i).val();
-      timePeriodRange["endDatetime"] = $('#row' + i + ' #approach_time_period_end_datetime' + i).val();
-      timePeriodRange["endOffset"] = $('#row' + i + ' #approach_time_period_end_offset' + i).val();
+      timePeriodRange["startDatetime"] = $('#row' + i + ' .start_datetime_picker').val();
+      timePeriodRange["startOffset"] = $('#row' + i + ' .start_offset').val();
+      timePeriodRange["endDatetime"] = $('#row' + i + ' .end_datetime_picker').val();
+      timePeriodRange["endOffset"] = $('#row' + i + ' .end_offset').val();
     } else if (timePeriodType === "general") {
-      timePeriodValue = $('#row' + i + ' input[name="approach_time_period_general' + i + '"]:checked').val() || "";
+      timePeriodValue = $('#row' + i + ' .time_period_general_option:checked').val() || "";
     }
     
     approaches.push({
@@ -674,7 +675,7 @@ async function addApproachRow(readOnly, valueSets) {
 //Add deleteApproachRow
 function deleteApproachRow(approachRowNum) {
   $('#row' + approachRowNum).remove();
-  for(let i = approachRowNum + 1; i <= approachNumRows; i++) {
+  for(let i = parseInt(approachRowNum) + 1; i <= approachNumRows; i++) {
       changeApproachRow(i, i - 1, null, null);
   }
   approachNumRows--;
@@ -762,7 +763,7 @@ function saveConnections(selectedMarker) {
     }
 
     let daysOfTheWeek = [];
-    $('#row' + i + ' .connections_day_selection_dropdown').each(function() {
+    $('#rowCon' + i + ' .connections_day_selection_dropdown').each(function() {
       let selectedValues = $(this).val();
       if (Array.isArray(selectedValues)) {
         daysOfTheWeek.push(...selectedValues);
@@ -775,17 +776,17 @@ function saveConnections(selectedMarker) {
     let timePeriodValue = "";
     let timePeriodRange = {};
 
-    let selectedType = $('#row' + i + ' input[name="connections_time_period' + i + '"]:checked').val();
+    let selectedType = $('#rowCon' + i + ' .time_period_option:checked').val();
     timePeriodType = selectedType ? selectedType.trim().toLowerCase() : "";
 
     if (timePeriodType === "range") {
       timePeriodRange = {};
-      timePeriodRange["startDatetime"] = $('#row' + i + ' #connections_time_period_start_datetime' + i).val();
-      timePeriodRange["startOffset"] = $('#row' + i + ' #connections_time_period_start_offset' + i).val();
-      timePeriodRange["endDatetime"] = $('#row' + i + ' #connections_time_period_end_datetime' + i).val();
-      timePeriodRange["endOffset"] = $('#row' + i + ' #connections_time_period_end_offset' + i).val();
+      timePeriodRange["startDatetime"] = $('#rowCon' + i + ' .start_datetime_picker').val();
+      timePeriodRange["startOffset"] = $('#rowCon' + i + ' .start_offset').val();
+      timePeriodRange["endDatetime"] = $('#rowCon' + i + ' .end_datetime_picker').val();
+      timePeriodRange["endOffset"] = $('#rowCon' + i + ' .end_offset').val();      
     } else if (timePeriodType === "general") {
-      timePeriodValue = $('#row' + i + ' input[name="connections_time_period_general' + i + '"]:checked').val() || "";
+      timePeriodValue = $('#rowCon' + i + ' .time_period_general_option:checked').val() || "";
     }
 
     nodeObject.push({
@@ -839,8 +840,8 @@ async function addRow(readOnly, valueSets) {
 }
 
 function deleteRow(rowNum) {
-  $('#row' + rowNum).remove();
-  for(let i = rowNum + 1; i <= numRows; i++) {
+  $('#rowCon' + rowNum).remove();
+  for(let i = parseInt(rowNum) + 1; i <= numRows; i++) {
       changeRow(i, i - 1, null, null);
   }
   numRows--;
@@ -852,7 +853,7 @@ function deleteRow(rowNum) {
  * Methods
  *****************************************/
 function changeRow(oldVal, newVal, readOnly, valueSets) {
-  $('#row' + oldVal).attr('id', 'row' + newVal);
+  $('#rowCon' + oldVal).attr('id', 'rowCon' + newVal);
   $('#connectionId' + oldVal).attr('id', 'connectionId' + newVal);
   $('input[name="remoteID' + oldVal + '"]').attr('name', 'remoteID' + newVal);
   $('input[name="toLane' + oldVal + '"]').attr('name', 'toLane' + newVal);
@@ -890,11 +891,11 @@ function changeRow(oldVal, newVal, readOnly, valueSets) {
                 // Handle daysOfTheWeek
                 if (timeRestrictions.daysOfTheWeek && Array.isArray(timeRestrictions.daysOfTheWeek)) {
                   setTimeout(() => {
-                    $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('deselectAll', false);
+                    $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('deselectAll', false);
                     timeRestrictions.daysOfTheWeek.forEach(function(day) {
-                      $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('select', day);
+                      $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('select', day);
                     });
-                    $('#row' + newVal + ' .connections_day_selection_dropdown').multiselect('refresh');
+                    $('#rowCon' + newVal + ' .connections_day_selection_dropdown').multiselect('refresh');
                   }, 100);
                 }
                 
@@ -1309,7 +1310,20 @@ function addSpeedForm(speedForm) {
     setRGAStatus();
 }
 
+function addToSpeedFormIndexArray(numToAdd) {
+  if (!speedFormIndexArray.includes(numToAdd)) {
+    speedFormIndexArray.push(numToAdd);
+  }
+}
+
+function removeFromSpeedFormIndexArray(numToRemove) {
+  speedFormIndexArray = speedFormIndexArray.filter(function (value) {
+    return value !== numToRemove;
+  });
+}
+
 function rebuildSpeedForm(speedForm, speedLimitArray) {
+  speedFormIndexArray = [...Array(speedLimitArray.length).keys()]; 
   removeSpeedForm(speedForm);
   let results = speedLimitArray.length;
 
@@ -1393,17 +1407,18 @@ function rebuildSpeedForm(speedForm, speedLimitArray) {
 
 function saveSpeedForm(speedForm) {
   let tmpSpeedLimits = [];
-  let forms = (speedForm.getForms()).length;
+  let formsLength = speedFormIndexArray.length;
   
-  for (let i = 0; i < forms; i++) {
+  for (let i = 0; i < formsLength; i++) {
       // Get selected days of the week
       let daysOfTheWeek = [];
-      $(`#speedForm_${i}_day_selection option:selected`).each(function() {
+      let currentIndex = speedFormIndexArray[i]
+      $(`#speedForm_${currentIndex}_day_selection option:selected`).each(function() {
           daysOfTheWeek.push($(this).val());
       });
       
       // Get time period type (none, range, general)
-      let timePeriodType = $(`input[name="speedForm_${i}_time_period"]:checked`).val() || "";
+      let timePeriodType = $(`input[name="speedForm_${currentIndex}_time_period"]:checked`).val() || "";
       
       // Initialize time period value and range
       let timePeriodValue = "";
@@ -1411,20 +1426,20 @@ function saveSpeedForm(speedForm) {
       
       // Get specific time period data based on type
       if (timePeriodType === 'general') {
-          timePeriodValue = $(`input[name="speedForm_${i}_time_period_general"]:checked`).val();
+          timePeriodValue = $(`input[name="speedForm_${currentIndex}_time_period_general"]:checked`).val();
       } else if (timePeriodType === 'range') {
           timePeriodRange = {
-              startDateTime: $(`#speedForm_${i}_time_period_start_datetime`).val(),
-              startOffset: $(`#speedForm_${i}_time_period_start_offset`).val(),
-              endDateTime: $(`#speedForm_${i}_time_period_end_datetime`).val(),
-              endOffset: $(`#speedForm_${i}_time_period_end_offset`).val()
+              startDateTime: $(`#speedForm_${currentIndex}_time_period_start_datetime`).val(),
+              startOffset: $(`#speedForm_${currentIndex}_time_period_start_offset`).val(),
+              endDateTime: $(`#speedForm_${currentIndex}_time_period_end_datetime`).val(),
+              endOffset: $(`#speedForm_${currentIndex}_time_period_end_offset`).val()
           };
       }
       
       tmpSpeedLimits.push({
-          speedLimitType: $("#speedForm_"+ i + "_speedLimitType option:selected").text(),
-          velocity: $("#speedForm_" + i + "_velocity").val(),
-          speedLimitChoice: $(`input[name="speedForm_${i}_speedLimitChoice"]:checked`).val(),
+          speedLimitType: $("#speedForm_"+ currentIndex + "_speedLimitType option:selected").text(),
+          velocity: $("#speedForm_" + currentIndex + "_velocity").val(),
+          speedLimitChoice: $(`input[name="speedForm_${currentIndex}_speedLimitChoice"]:checked`).val(),
           timeRestrictions: {
               daysOfTheWeek: daysOfTheWeek,
               timePeriodType: timePeriodType,
@@ -1435,6 +1450,7 @@ function saveSpeedForm(speedForm) {
   }
   
   removeSpeedForm(speedForm);
+  speedFormIndexArray = [];
   return tmpSpeedLimits;
 }
 
@@ -1579,6 +1595,25 @@ function onRegionIdChangeCallback(regionId){
   }else{
       $("#road_authority_id").attr('data-parsley-required', false);
       $("#road_authority_id_type").attr('data-parsley-required', false);
+  }
+}
+
+function revisionNumChangeCallback() {
+  const revisionNum = $("#revision_num");
+  const parsleyInstance = revisionNum.parsley();
+  parsleyInstance.removeError('revnum'); // Ensure no lingering custom errors
+  let revisionInput = document.getElementById('revision_num').value;
+  if (revisionInput !== '' && !isNaN(revisionInput) && Number(revisionInput) >= 0 && Number(revisionInput) <= 127) {
+    $("#revision_num").attr('data-parsley-required', false);
+    
+  }
+  else {
+    $("#revision_num").attr('data-parsley-required', true);
+    parsleyInstance.addError('revnum', {
+      message: "Revision Number must be an integer between 0 and 127.",
+      updateClass: true
+    });
+    return;
   }
 }
 
@@ -1797,7 +1832,7 @@ function addConnectionsTimeRestrictions(rowNum, time_restrictions) {
         $(this).removeClass('col-sm-7').addClass('col-sm-12');
     });
     
-    $("[id='row" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
+    $("[id='rowCon" + rowNum + "'] .connections_time_restrictions").html(connections_time_restrictions);
   }
 
  /*****************************************
@@ -2311,6 +2346,16 @@ function isSpeedLimitTypePassengerVehicleMinSpeedSelected(){
   });
   return isChecked;
 }
+
+function validateRevision() {
+  const revisionInput = document.getElementById('revision_num').value;
+  const continueButton = document.getElementById('continue_btn');
+  if (revisionInput !== '' && !isNaN(revisionInput) && Number(revisionInput) >= 0 && Number(revisionInput) <= 127) {
+    continueButton.disabled = false;
+  } else {
+    continueButton.disabled = true;
+  }
+}
 export {
   getCookie,
   isOdd,
@@ -2345,6 +2390,8 @@ export {
   addSpeedForm,
   resetSpeedDropdowns,
   saveSpeedForm,
+  removeFromSpeedFormIndexArray,
+  addToSpeedFormIndexArray,
   rebuildSpeedForm,
   unselectFeature,
   removeSpeedForm,
@@ -2375,5 +2422,7 @@ export {
   isSpeedLimitTypePassengerVehicleMaxSpeedSelected,
   isSpeedLimitTypePassengerVehicleMinSpeedSelected,
   hideRGAFieldsAssociatedToSpeedLimits,
-  updateApproachTimeRestrictionsHTML
+  updateApproachTimeRestrictionsHTML,
+  validateRevision,
+  revisionNumChangeCallback
 }

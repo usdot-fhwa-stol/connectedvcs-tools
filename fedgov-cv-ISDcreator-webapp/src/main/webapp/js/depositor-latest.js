@@ -440,8 +440,8 @@ function createMessageJSON()
 
                 //since some lanes are not in the driving lane
                 tempJ++;
-            } else if(laneFeat[j].get('laneType') == "Crosswalk"){
-                //even though not in a "box" it's still allowed to be outside as a crosswalk - still want to be able to catch vehicle lanes outside
+            } else if(laneFeat[j].get('laneType') == "Crosswalk" || laneFeat[j].get('laneType') == "Sidewalk"){
+                //even though not in a "box" it's still allowed to be outside as a crosswalk or sidewalk - still want to be able to catch vehicle lanes outside
                 laneFeat[j].set('inBox', true);
 
                 if(!laneFeat[j].get('computed')) {
@@ -717,6 +717,11 @@ function createMessageJSON()
         let feature = vectorFeatures[f];
         if (feature.get('marker').name == "Reference Point Marker") {
 
+            if (feature.get('revisionNum') > 127) {
+                $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Revision Number must be an integer between 0 and 127." +'</span></div>');
+                $('#message_alert').removeClass('alert-section-hidden');
+                $("#message_deposit").prop('disabled', true);
+            }
             reference = {
                 "descriptiveIntersctionName": feature.get('intersectionName'),
                 "layerID": feature.get('layerID'),
