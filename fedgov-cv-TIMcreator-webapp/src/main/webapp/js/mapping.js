@@ -504,6 +504,7 @@ function registerMapEvents() {
     $('#itis-tab').removeClass('active');
     $('#direction-tab').removeClass('active');
     $('#content-tab').removeClass('active');
+    $('#road-condition-tab').removeClass('active');
     $('#marker-info-tab').addClass('active');
 
     $("#nwlat").prop('readonly', true);
@@ -511,7 +512,7 @@ function registerMapEvents() {
     $("#selat").prop('readonly', true);
     $("#selong").prop('readonly', true);
 
-    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights").hide();
+    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights").hide();
     $(".nwlat, .nwlong, .selat, .selong").show();
 
     const geom = selected_marker.getGeometry().getCoordinates()[0];
@@ -568,12 +569,12 @@ function registerMapEvents() {
     }
 
     $('#attribute-tabs li').removeClass('active');
-    $('#itis-tab, #direction-tab, #content-tab').removeClass('active');
+    $('#itis-tab, #direction-tab, #content-tab', '#direction-tab').removeClass('active');
     $('#marker-info-tab').addClass('active');
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights').hide();
+    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface').hide();
     $('.direction-tab, .content-tab, .itis-tab').hide();
 
     $(".lat, .long, .elev, .lane_width").show();
@@ -660,12 +661,12 @@ function registerMapEvents() {
     }
 
     $('#attribute-tabs li').removeClass('active');
-    $('#itis-tab, #direction-tab, #content-tab').removeClass('active');
+    $('#itis-tab, #direction-tab, #content-tab, #road-condition-tab').removeClass('active');
     $('#marker-info-tab').addClass('active');
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights").hide();
+    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition").hide();
     $(".direction-tab, .content-tab, .itis-tab").hide();
 
     $(".lat, .long, .elev").show();
@@ -1345,6 +1346,7 @@ function referencePointWindow(feature) {
   $('#itis-tab').removeClass('active');
   $('#direction-tab').removeClass('active');
   $('#content-tab').removeClass('active');
+  $('#road-condition-tab').removeClass('active');
   $('#marker-info-tab').addClass('active');
 
   $('.radius').hide();
@@ -1376,6 +1378,8 @@ function referencePointWindow(feature) {
   $('.ssp_type_rights').show();
   $('.ssp_content_rights').show();
   $('.ssp_loc_rights').show();
+  $(".road_condition").show();
+  $(".road_surface").show();
 
   if (feature.get('marker').name === "Verified Point Marker") {
     $(".selection-panel").text('Verified Point Configuration');
@@ -1391,6 +1395,8 @@ function referencePointWindow(feature) {
     $(".master_lane_width").hide();
     $('.ssp_tim_rights').hide();
     $('.ssp_loc_rights').hide();
+    $('.road_condition').hide();
+    $('.road_surface').hide();
 
     $("#lat").prop('readonly', true);
     $("#long").prop('readonly', true);
@@ -1433,6 +1439,9 @@ function referencePointWindow(feature) {
 
   const infoType = selected_marker.get('infoType');
   $('#info-type .dropdown-toggle').html((infoType || "Select A Type") + " <span class='caret'></span>");
+
+  const roadCondition = selected_marker.get('road_condition');
+  $('#road-condition .dropdown-toggle').html((roadCondition || "Select A Condition") + " <span class='caret'></span>");
 
   if (selected_marker.get('heading')) {
     drawCircleSlices(selected_marker.get('heading'));
@@ -1560,6 +1569,7 @@ $(".btnDone").click(function () {
         + $("#content-tab .parsley-errors-list li").length
         + $("#direction-tab .parsley-errors-list li").length
         + $("#itis-tab .parsley-errors-list li").length;
+        + $("#road-condition-tab .parsley-errors-list li").length;
     } else {
       error_count += $(".parsley-errors-list li:visible").length;
     }
@@ -1665,6 +1675,8 @@ $(".btnDone").click(function () {
         selected_marker.set('priority', priority);
         selected_marker.set('direction', direction || '');
         selected_marker.set('heading', JSON.parse(JSON.stringify(circles)));
+        selected_marker.set('roadSurface', $("#road_condition").val());
+        selected_marker.set('dry_wet_value', $("#road_surface").val());
       }
     }
 
@@ -1673,16 +1685,19 @@ $(".btnDone").click(function () {
   } else {
     if ($("#marker-info-tab .row:not([style='display: none;']) .parsley-errors-list li").length > 0) {
       $('#marker-info-tab').addClass('active');
-      $('#itis-tab, #direction-tab, #content-tab').removeClass('active');
+      $('#itis-tab, #direction-tab, #content-tab, #road-condition-tab').removeClass('active');
     } else if ($("#content-tab .parsley-errors-list li").length > 0) {
       $('#content-tab').addClass('active');
-      $('#marker-info-tab, #direction-tab, #itis-tab').removeClass('active');
+      $('#marker-info-tab, #direction-tab, #itis-tab, #road-condition-tab').removeClass('active');
     } else if ($("#direction-tab .parsley-errors-list li").length > 0) {
       $('#direction-tab').addClass('active');
-      $('#marker-info-tab, #content-tab, #itis-tab').removeClass('active');
+      $('#marker-info-tab, #content-tab, #itis-tab, #road-condition-tab').removeClass('active');
     } else if ($("#itis-tab .parsley-errors-list li").length > 0 || itis_check) {
       $('#itis-tab').addClass('active');
-      $('#marker-info-tab, #content-tab, #direction-tab').removeClass('active');
+      $('#marker-info-tab, #content-tab, #direction-tab, #road-condition-tab').removeClass('active');
+    } else if ($("#road-condition-tab .parsley-errors-list li").length > 0) {
+      $('#road-condition-tab').addClass('active');
+      $('#marker-info-tab, #content-tab, #direction-tab, #itis-tab').removeClass('active');
     }
   }
 
