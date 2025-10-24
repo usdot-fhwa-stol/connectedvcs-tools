@@ -328,8 +328,8 @@ function createMessageJSON() {
                 startTime: attrs.startTime,
                 endTime: attrs.endTime,
                 heading: getHeading(attrs.heading),
-                roadSurface: attrs.roadSurface?.substring(1, 2),
-                dry_wet_value: attrs.dry_wet_value
+                road_surface: attrs.road_surface?.substring(1, 2),
+                road_condition: attrs.road_condition
             };
         }
 
