@@ -512,7 +512,7 @@ function registerMapEvents() {
     $("#selat").prop('readonly', true);
     $("#selong").prop('readonly', true);
 
-    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_condition").hide();
+    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface").hide();
     $(".nwlat, .nwlong, .selat, .selong").show();
 
     const geom = selected_marker.getGeometry().getCoordinates()[0];
@@ -575,7 +575,7 @@ function registerMapEvents() {
     $("#lat, #long, #elev").prop('readonly', false);
 
     $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface').hide();
-    $('.direction-tab, .content-tab, .itis-tab').hide();
+    $('.direction-tab, .content-tab, .itis-tab, .road-condition-tab').hide();
 
     $(".lat, .long, .elev, .lane_width").show();
 
@@ -667,7 +667,7 @@ function registerMapEvents() {
     $("#lat, #long, #elev").prop('readonly', false);
 
     $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition").hide();
-    $(".direction-tab, .content-tab, .itis-tab").hide();
+    $(".direction-tab, .content-tab, .itis-tab, .road-condition-tab").hide();
 
     $(".lat, .long, .elev").show();
 
@@ -1371,6 +1371,7 @@ function referencePointWindow(feature) {
   $(".info-type").show();
   $('.direction-tab').show();
   $('.content-tab').show();
+  $('.road-condition-tab').show();
   $('.itis-tab').show();
   $(".speed_limit").show();
   $(".master_lane_width").show();
@@ -1390,6 +1391,7 @@ function referencePointWindow(feature) {
     $(".info-type").hide();
     $('.direction-tab').hide();
     $('.content-tab').hide();
+    $('.road-condition-tab').hide();
     $('.itis-tab').hide();
     $(".speed_limit").hide();
     $(".master_lane_width").hide();
