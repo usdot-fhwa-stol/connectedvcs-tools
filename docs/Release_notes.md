@@ -1,5 +1,18 @@
 Map Tool Release Notes
 ----------------------------
+Version 2.3.1, released Oct 27th, 2025
+----------------------------------------
+
+### **Summary**  
+Maptool release version 2.3.1 is a hotfix release for 2.3.0.
+
+**HELPDESK-105: Hotfix for Mapp Tool Lane Width Delta Bug**  
+
+### **<ins>Fixes in Release:</ins>**
+ - Fixed a bug that caused MAP Tool to set the Lane Width Delta to 0 for all other nodes in the lane.
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/202/
 
 Version 2.3.0, released Sep 19th, 2025
 ----------------------------------------
