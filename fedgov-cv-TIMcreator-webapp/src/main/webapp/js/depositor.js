@@ -413,6 +413,7 @@ function errorCheck() {
                 const content = feature.get('content');
                 const priority = feature.get('priority');
                 const mutcd = feature.get('mutcd');
+                const road_condition = feature.get('road_condition');
 
                 if (!startTime || !endTime) {
                     $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
@@ -442,6 +443,14 @@ function errorCheck() {
                     $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <span>Missing mutcd codes.</span>
+                    </div>`);
+                    status = true;
+                }
+
+                if (!road_condition) {
+                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                        <span>Missing road condition.</span>
                     </div>`);
                     status = true;
                 }
