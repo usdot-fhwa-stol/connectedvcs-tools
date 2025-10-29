@@ -1845,11 +1845,11 @@ $(".dropdown-menu li a").click(function () {
   }
 
   if (type == "road_condition") {
-    roadCondition = selText;
+    road_condition = selText;
   }
 
   if (type == "road_surface") {
-    roadSurface = selText;
+    road_surface = selText;
   }
 });
 
