@@ -23,7 +23,7 @@ var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
 var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit;
-var mutcd, priority, direction, extent, info_type, ttl;
+var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_condition;
 var circle_bounds;
 let box, laneConnections, errors;
 let overlayLayersGroup, baseLayersGroup;
@@ -1442,8 +1442,11 @@ function referencePointWindow(feature) {
   const infoType = selected_marker.get('infoType');
   $('#info-type .dropdown-toggle').html((infoType || "Select A Type") + " <span class='caret'></span>");
 
-  const roadCondition = selected_marker.get('road_condition');
-  $('#road-condition .dropdown-toggle').html((roadCondition || "Select A Condition") + " <span class='caret'></span>");
+  const road_condition = selected_marker.get('road_condition');
+  $('#road_condition .dropdown-toggle').html((road_condition || "Select A Condition") + " <span class='caret'></span>");
+
+  const road_surface = selected_marker.get('road_surface');
+  $('#road_surface .dropdown-toggle').html((road_surface || "Select A Surface") + " <span class='caret'></span>");
 
   if (selected_marker.get('heading')) {
     drawCircleSlices(selected_marker.get('heading'));
@@ -1677,8 +1680,8 @@ $(".btnDone").click(function () {
         selected_marker.set('priority', priority);
         selected_marker.set('direction', direction || '');
         selected_marker.set('heading', JSON.parse(JSON.stringify(circles)));
-        selected_marker.set('road_condition', $("#road_condition").val());
-        selected_marker.set('road_surface', $("#road_surface").val());
+        selected_marker.set('road_condition', road_condition);
+        selected_marker.set('road_surface', road_surface);
       }
     }
 
@@ -1839,6 +1842,14 @@ $(".dropdown-menu li a").click(function () {
 
   if (type == "time") {
     ttl = selText;
+  }
+
+  if (type == "road_condition") {
+    roadCondition = selText;
+  }
+
+  if (type == "road_surface") {
+    roadSurface = selText;
   }
 });
 
@@ -2026,6 +2037,8 @@ export function setFeatureAttributes(feature) {
   direction = feature.get('direction');
   info_type = feature.get('infoType');
   content = feature.get('content');
+  road_condition = feature.get('road_condition');
+  road_surface = feature.get('road_surface');
 }
 
 function showMarkers(laneFeature, laneMarkers) {
