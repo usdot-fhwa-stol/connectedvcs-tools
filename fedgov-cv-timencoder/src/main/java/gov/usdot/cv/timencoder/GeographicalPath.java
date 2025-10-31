@@ -23,7 +23,7 @@ public class GeographicalPath {
     private DescriptiveName name;
     private RoadSegmentReferenceID id;
     private Position3D anchor;
-    private LaneWidth laneWidth;
+    private int laneWidth;
     private DirectionOfUse directionality;
     private boolean closedPath;
     private HeadingSlice direction;
@@ -33,7 +33,7 @@ public class GeographicalPath {
         
     }
 
-    public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, LaneWidth laneWidth,
+    public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, int laneWidth,
             DirectionOfUse directionality, boolean closedPath, HeadingSlice direction, Description description) {
         this.name = name;
         this.id = id;
@@ -54,7 +54,7 @@ public class GeographicalPath {
     public Position3D getAnchor() {
         return anchor;
     }
-    public LaneWidth getLaneWidth() {
+    public int getLaneWidth() {
         return laneWidth;
     }
     public DirectionOfUse getDirectionality() {
@@ -79,7 +79,7 @@ public class GeographicalPath {
     public void setAnchor(Position3D anchor) {
         this.anchor = anchor;
     }
-    public void setLaneWidth(LaneWidth laneWidth) {
+    public void setLaneWidth(int laneWidth) {
         this.laneWidth = laneWidth;
     }
     public void setDirectionality(DirectionOfUse directionality) {
