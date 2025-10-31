@@ -418,12 +418,12 @@ public class TravelerInformationBuilder {
 		return headingSlice;
 	}
 
-	private GeographicalPath[] buildRegions(TravelerInputData travInputData) {
+	private List<GeographicalPath> buildRegions(TravelerInputData travInputData) {
 		List<GeographicalPath> regionList = new ArrayList<>();
 		GeographicalPath region1 = new GeographicalPath();
 		// TODO: will be implemented in a  later story
 		regionList.add(region1);
-		return regionList.toArray(new GeographicalPath[0]);
+		return regionList;
 	}
 
 	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {

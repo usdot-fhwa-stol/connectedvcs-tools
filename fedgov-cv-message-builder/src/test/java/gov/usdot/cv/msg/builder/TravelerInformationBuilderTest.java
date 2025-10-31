@@ -29,8 +29,8 @@ public class TravelerInformationBuilderTest {
 
 	@Test
 	public void testBuildTravelerInformation() throws IOException {
-		testBuildTravelerInformation("sample_tim.json","0011006099ba1ebc7a9ba5640000ca3162d0080000000807cd4040880100"); 
-		testBuildTravelerInformation("sample_timplusframe.json","001f1e0011006099ba1ebc7a9ba5640000ca3162d0080000000807cd4040880100");
+		testBuildTravelerInformation("sample_tim.json","0011006099ba1ebc7a9ba5640000ca3162d00800280000000807cd4040880100"); 
+		testBuildTravelerInformation("sample_timplusframe.json","001f200011006099ba1ebc7a9ba5640000ca3162d00800280000000807cd4040880100");
 
 	}
 
