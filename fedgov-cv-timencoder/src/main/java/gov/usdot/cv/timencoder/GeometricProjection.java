@@ -24,14 +24,14 @@ import gov.usdot.cv.mapencoder.LaneDataAttribute;
 public class GeometricProjection {
     private HeadingSlice direction;
     private Extent extent;
-    private LaneWidth laneWidth;
+    private int laneWidth;
     private Circle circle;
 
     public GeometricProjection() {
 
     }
     
-    public GeometricProjection(HeadingSlice direction, Extent extent, LaneWidth laneWidth, Circle circle) {
+    public GeometricProjection(HeadingSlice direction, Extent extent, int laneWidth, Circle circle) {
         this.direction = direction;
         this.extent = extent;
         this.laneWidth = laneWidth;
@@ -44,7 +44,7 @@ public class GeometricProjection {
     public Extent getExtent() {
         return extent;
     }
-    public LaneWidth getLaneWidth() {
+    public int getLaneWidth() {
         return laneWidth;
     }
     public Circle getCircle() {
@@ -57,7 +57,7 @@ public class GeometricProjection {
     public void setExtent(Extent extent) {
         this.extent = extent;
     }
-    public void setLaneWidth(LaneWidth laneWidth) {
+    public void setLaneWidth(int laneWidth) {
         this.laneWidth = laneWidth;
     }
     public void setCircle(Circle circle) {

@@ -17,6 +17,7 @@ package gov.usdot.cv.timencoder;
 
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +26,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import gov.usdot.cv.mapencoder.Position3D;
-
+import gov.usdot.cv.timencoder.GeographicalPath.Description;
+import gov.usdot.cv.timencoder.GeographicalPath.Description.Choice;
+import gov.usdot.cv.mapencoder.NodeListXY;
+import gov.usdot.cv.mapencoder.NodeSetXY;
+import gov.usdot.cv.mapencoder.NodeXY;
+import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
+import gov.usdot.cv.mapencoder.NodeXY20b;
+import gov.usdot.cv.mapencoder.NodeXY22b;
+import gov.usdot.cv.mapencoder.NodeXY24b;
+import gov.usdot.cv.mapencoder.NodeXY26b;
+import gov.usdot.cv.mapencoder.NodeXY28b;
+import gov.usdot.cv.mapencoder.NodeXY32b;
+import gov.usdot.cv.mapencoder.NodeLLmD64b;
+import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
 public class TIMEncodeTest {
 
         private static final Logger logger = LogManager.getLogger(TIMEncodeTest.class);
@@ -41,7 +55,38 @@ public class TIMEncodeTest {
         // Per-frame fields
         private MinuteOfTheYear startTime1, startTime2, startTime3;
         private SignPriority priority1, priority2, priority3;
-        private GeographicalPath[] regions1, regions2, regions3;
+        private List<GeographicalPath> regions1, regions2, regions3;
+        private GeographicalPath mockRegion1, mockRegion2, mockRegion3;
+        private HeadingSlice headingSlice1, headingSlice2, headingSlice3;
+        private Description mockDescription1, mockDescription2, mockDescription3;
+        private GeometricProjection mockGeometricProjection1;
+        private Circle mockCircle1;
+        NodeListXY mockNodeListXY;
+        NodeSetXY mockNodeSetXY;
+        NodeXY mockNodeXY1;
+        NodeOffsetPointXY mockNodeOffsetPointXY1;
+        NodeXY20b mockNodeXY20b;
+        NodeXY mockNodeXY2;
+        NodeOffsetPointXY mockNodeOffsetPointXY2;
+        NodeXY22b mockNodeXY22b;
+        NodeXY mockNodeXY3;
+        NodeOffsetPointXY mockNodeOffsetPointXY3;
+        NodeXY24b mockNodeXY24b;
+        NodeXY mockNodeXY4;
+        NodeOffsetPointXY mockNodeOffsetPointXY4;
+        NodeXY26b mockNodeXY26b;
+        NodeXY mockNodeXY5;
+        NodeOffsetPointXY mockNodeOffsetPointXY5;
+        NodeXY28b mockNodeXY28b;
+        NodeXY mockNodeXY6;
+        NodeOffsetPointXY mockNodeOffsetPointXY6;
+        NodeXY32b mockNodeXY32b;
+        NodeXY mockNodeXY7;
+        NodeOffsetPointXY mockNodeOffsetPointXY7;
+        NodeLLmD64b mockNodeLLmD64b;
+        OffsetSystem mockOffsetSystem;
+        OffsetSystem.Offset mockOffset;
+        NodeAttributeSetXY mockNodeAttributeSetXY;
 
         // Content (Part I) + ContentNew (Part III)
         private TravelerDataFrame.Content content1, content2, content3;
@@ -125,12 +170,162 @@ public class TIMEncodeTest {
                 when(mockFrame2.getDoNotUse2()).thenReturn(donotUse2);
                 when(mockFrame3.getDoNotUse3()).thenReturn(donotUse3);
                 when(mockFrame3.getDoNotUse4()).thenReturn(donotUse4);
+
                 // === Regions ===
-                // All the fields are optional will add in later story
-                regions1 = new GeographicalPath[] { new GeographicalPath() };
-                regions2 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath() };
-                regions3 = new GeographicalPath[] { new GeographicalPath(), new GeographicalPath(),
-                                new GeographicalPath() };
+                mockRegion1 = mock(GeographicalPath.class);
+                mockRegion2 = mock(GeographicalPath.class);
+                mockRegion3 = mock(GeographicalPath.class);
+
+                when(mockRegion1.getAnchor()).thenReturn(new Position3D(4.13369794E8, -8.30508547E8, 100, true));
+                when(mockRegion2.getAnchor()).thenReturn(new Position3D(4.23369794E8, -8.40508547E8, 200, true));
+                when(mockRegion3.getAnchor()).thenReturn(new Position3D(4.33369794E8, -8.50508547E8, 300, true));
+
+                when(mockRegion1.getLaneWidth()).thenReturn(360);
+                when(mockRegion2.getLaneWidth()).thenReturn(361);
+                when(mockRegion3.getLaneWidth()).thenReturn(362);
+
+                when(mockRegion1.getDirectionality()).thenReturn(DirectionOfUse.forward);
+                when(mockRegion2.getDirectionality()).thenReturn(DirectionOfUse.reverse);
+                when(mockRegion3.getDirectionality()).thenReturn(DirectionOfUse.both);
+
+                when(mockRegion1.isClosedPath()).thenReturn(true);
+                when(mockRegion2.isClosedPath()).thenReturn(false);
+                when(mockRegion3.isClosedPath()).thenReturn(true);
+
+                headingSlice1 = new HeadingSlice(0b1010000000000000);
+                headingSlice2 = new HeadingSlice(0b1110000000000000);
+                headingSlice3 = new HeadingSlice(0b1111000000000000);
+
+                when(mockRegion1.getDirection()).thenReturn(headingSlice1);
+                when(mockRegion2.getDirection()).thenReturn(headingSlice2);
+                when(mockRegion3.getDirection()).thenReturn(headingSlice3);
+
+                mockDescription1 = mock(Description.class);
+                when(mockDescription1.getChoice()).thenReturn(Choice.geometry_chosen);
+                mockGeometricProjection1 = mock(GeometricProjection.class);
+                mockCircle1 = mock(Circle.class);
+                HeadingSlice headingSlice4 = new HeadingSlice(0b1111101000000000);
+                when(mockGeometricProjection1.getHeadingSlice()).thenReturn(headingSlice4);
+                when(mockGeometricProjection1.getExtent()).thenReturn(Extent.useFor3meters);
+                when(mockGeometricProjection1.getLaneWidth()).thenReturn(370);
+                when(mockCircle1.getCenter()).thenReturn(new Position3D(4.53369794E8, -8.30508547E8, 50, true));
+                when(mockCircle1.getRadius()).thenReturn(new Radius_B12(30));
+                when(mockCircle1.getUnits()).thenReturn(DistanceUnits.meter);
+                when(mockGeometricProjection1.getCircle()).thenReturn(mockCircle1);
+                when(mockDescription1.getGeometryChosen()).thenReturn(mockGeometricProjection1);
+                when(mockRegion1.getDescription()).thenReturn(mockDescription1);
+
+                NodeListXY mockNodeListXY = mock(NodeListXY.class);
+                NodeSetXY mockNodeSetXY = mock(NodeSetXY.class);
+
+                NodeXY mockNodeXY1 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY1 = mock(NodeOffsetPointXY.class);
+                NodeXY20b mockNodeXY20b = mock(NodeXY20b.class);
+
+                NodeXY mockNodeXY2 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY2 = mock(NodeOffsetPointXY.class);
+                NodeXY22b mockNodeXY22b = mock(NodeXY22b.class);
+
+                NodeXY mockNodeXY3 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY3 = mock(NodeOffsetPointXY.class);
+                NodeXY24b mockNodeXY24b = mock(NodeXY24b.class);
+
+                NodeXY mockNodeXY4 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY4 = mock(NodeOffsetPointXY.class);
+                NodeXY26b mockNodeXY26b = mock(NodeXY26b.class);
+
+                NodeXY mockNodeXY5 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY5 = mock(NodeOffsetPointXY.class);
+                NodeXY28b mockNodeXY28b = mock(NodeXY28b.class);
+
+                NodeXY mockNodeXY6 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY6 = mock(NodeOffsetPointXY.class);
+                NodeXY32b mockNodeXY32b = mock(NodeXY32b.class);
+
+                NodeXY mockNodeXY7 = mock(NodeXY.class);
+                NodeOffsetPointXY mockNodeOffsetPointXY7 = mock(NodeOffsetPointXY.class);
+                NodeLLmD64b mockNodeLLmD64b = mock(NodeLLmD64b.class);
+
+                mockNodeAttributeSetXY = mock(NodeAttributeSetXY.class);
+                mockOffsetSystem = mock(OffsetSystem.class);
+                mockOffset = mock(OffsetSystem.Offset.class);
+
+                // === Delta encodings for each node ===
+                when(mockNodeXY20b.getX()).thenReturn(2F);
+                when(mockNodeXY20b.getY()).thenReturn(3F);
+                when(mockNodeOffsetPointXY1.getChoice()).thenReturn((byte) 1);
+                when(mockNodeOffsetPointXY1.getNodeXY1()).thenReturn(mockNodeXY20b);
+                when(mockNodeXY1.getDelta()).thenReturn(mockNodeOffsetPointXY1);
+                when(mockNodeXY1.isAttributesExists()).thenReturn(false);
+
+                when(mockNodeXY22b.getX()).thenReturn(4F);
+                when(mockNodeXY22b.getY()).thenReturn(5F);
+                when(mockNodeOffsetPointXY2.getChoice()).thenReturn((byte) 2);
+                when(mockNodeOffsetPointXY2.getNodeXY2()).thenReturn(mockNodeXY22b);
+                when(mockNodeXY2.getDelta()).thenReturn(mockNodeOffsetPointXY2);
+                when(mockNodeXY2.isAttributesExists()).thenReturn(false);
+
+                when(mockNodeXY24b.getX()).thenReturn((short) 6);
+                when(mockNodeXY24b.getY()).thenReturn((short) 7);
+                when(mockNodeOffsetPointXY3.getChoice()).thenReturn((byte) 3);
+                when(mockNodeOffsetPointXY3.getNodeXY3()).thenReturn(mockNodeXY24b);
+                when(mockNodeXY3.getDelta()).thenReturn(mockNodeOffsetPointXY3);
+                when(mockNodeXY3.isAttributesExists()).thenReturn(false);
+
+                when(mockNodeXY26b.getX()).thenReturn(8F);
+                when(mockNodeXY26b.getY()).thenReturn(9F);
+                when(mockNodeOffsetPointXY4.getChoice()).thenReturn((byte) 4);
+                when(mockNodeOffsetPointXY4.getNodeXY4()).thenReturn(mockNodeXY26b);
+                when(mockNodeXY4.getDelta()).thenReturn(mockNodeOffsetPointXY4);
+                when(mockNodeXY4.isAttributesExists()).thenReturn(false);
+               
+                when(mockNodeXY28b.getX()).thenReturn(10F);
+                when(mockNodeXY28b.getY()).thenReturn(11F);
+                when(mockNodeOffsetPointXY5.getChoice()).thenReturn((byte) 5);
+                when(mockNodeOffsetPointXY5.getNodeXY5()).thenReturn(mockNodeXY28b);
+                when(mockNodeXY5.getDelta()).thenReturn(mockNodeOffsetPointXY5);
+                when(mockNodeXY5.isAttributesExists()).thenReturn(false);
+
+                when(mockNodeXY32b.getX()).thenReturn(12F);
+                when(mockNodeXY32b.getY()).thenReturn(13F);
+                when(mockNodeOffsetPointXY6.getChoice()).thenReturn((byte) 6);
+                when(mockNodeOffsetPointXY6.getNodeXY6()).thenReturn(mockNodeXY32b);
+                when(mockNodeXY6.getDelta()).thenReturn(mockNodeOffsetPointXY6);
+                when(mockNodeXY6.isAttributesExists()).thenReturn(false);
+
+                when(mockNodeLLmD64b.getLatitude()).thenReturn(14);
+                when(mockNodeLLmD64b.getLongitude()).thenReturn(15);
+                when(mockNodeOffsetPointXY7.getChoice()).thenReturn((byte) 7);
+                when(mockNodeOffsetPointXY7.getNodeLatLon()).thenReturn(mockNodeLLmD64b);
+                when(mockNodeXY7.getDelta()).thenReturn(mockNodeOffsetPointXY7);
+                when(mockNodeXY7.isAttributesExists()).thenReturn(true);
+                when(mockNodeAttributeSetXY.isDWidthExists()).thenReturn(true);
+                when(mockNodeAttributeSetXY.getDWidth()).thenReturn((float)12);
+                when(mockNodeAttributeSetXY.isDElevationExists()).thenReturn(true);
+                when(mockNodeAttributeSetXY.getDElevation()).thenReturn((float)50);
+                
+                when(mockNodeXY7.getAttributes()).thenReturn(mockNodeAttributeSetXY);
+
+                // === NodeSetXY and NodeListXY ===
+                when(mockNodeSetXY.getNodeSetXY()).thenReturn(new NodeXY[] {
+                                mockNodeXY1, mockNodeXY2, mockNodeXY3, mockNodeXY4,
+                                mockNodeXY5, mockNodeXY6, mockNodeXY7
+                });
+                when(mockNodeListXY.getNodes()).thenReturn(mockNodeSetXY);
+                when(mockOffset.getXy_chosen()).thenReturn(mockNodeListXY);
+                when(mockOffsetSystem.getOffset()).thenReturn(mockOffset);
+                // === Hook NodeListXY into Description ===
+                mockDescription2 = mock(Description.class);
+                when(mockDescription2.getChoice()).thenReturn(Choice.path_chosen);
+                when(mockDescription2.getPathChosen()).thenReturn(mockOffsetSystem);
+
+                // === Hook Description into Region 2 ===
+                when(mockRegion2.getDescription()).thenReturn(mockDescription2);
+
+                regions1 = Arrays.asList(mockRegion1);
+                regions2 = Arrays.asList(mockRegion2);
+                regions3 = Arrays.asList(mockRegion3);
+
                 when(mockFrame1.getRegions()).thenReturn(regions1);
                 when(mockFrame2.getRegions()).thenReturn(regions2);
                 when(mockFrame3.getRegions()).thenReturn(regions3);
@@ -212,35 +407,34 @@ public class TIMEncodeTest {
                 ByteArrayObject result = encoder.encode(mockTimData);
                 Assert.assertNotNull("Byte array should not be null", result.getMessage());
                 byte[] expected = new byte[] {
-                                0x00, 0x1F, (byte) 0x80, (byte) 0x88, 0x00, (byte) 0xA5, 0x08, 0x62, (byte) 0x9D,
-                                (byte) 0xC2, 0x0A, (byte) 0x84,
-                                0x73, (byte) 0x92, (byte) 0x87, (byte) 0xF8, 0x20, (byte) 0xC8, 0x00, 0x1E, (byte) 0xAA,
-                                (byte) 0xDC, 0x00, 0x01,
-                                0x48, 0x00, 0x00, 0x00, 0x09, (byte) 0x81, 0x0B, (byte) 0xC0, (byte) 0x86, 0x00, 0x43,
-                                0x1F,
-                                0x52, (byte) 0xDF, (byte) 0x87, 0x22, 0x0A, (byte) 0xFB, (byte) 0xF9, 0x6B, 0x41, 0x07,
-                                0x46, 0x5C,
-                                0x39, 0x00, 0x40, (byte) 0x88, 0x00, 0x20, 0x14, 0x53, (byte) 0xB8, 0x41, 0x50,
-                                (byte) 0x8E,
-                                0x72, 0x50, (byte) 0xFF, 0x04, 0x19, 0x00, 0x03, (byte) 0xD6, 0x26, 0x00, 0x01,
-                                (byte) 0xE2,
-                                0x18, (byte) 0x80, 0x00, 0x00, 0x00, (byte) 0x88, 0x07, (byte) 0xD3, (byte) 0x8A, 0x7C,
-                                0x32, (byte) 0xE5,
-                                (byte) 0xC8, (byte) 0x83, 0x73, 0x36, 0x12, (byte) 0xDC, (byte) 0xCD, (byte) 0xA8, 0x08,
-                                0x11, 0x09, 0x24,
-                                0x03, (byte) 0x8A, 0x77, 0x08, 0x2A, 0x11, (byte) 0xCE, 0x4A, 0x1F, (byte) 0xE0,
-                                (byte) 0x83, 0x20,
-                                0x00, 0x7A, (byte) 0xD9, 0x6F, 0x00, 0x78, 0x60, 0x20, 0x00, 0x00, 0x00, 0x04,
-                                0x10, 0x04, 0x0F, (byte) 0xA3, 0x05, (byte) 0xD3, (byte) 0xD9, (byte) 0xA7, (byte) 0x87,
-                                0x0C, (byte) 0xBC, (byte) 0xBC,
-                                (byte) 0xA0, (byte) 0xAF, (byte) 0x97, (byte) 0xA0, 0x08, 0x11, 0x39, 0x40
-                };
+                        0x00, 0x1F, (byte) 0x80, (byte) 0xE6, 0x00, (byte) 0xA5, 0x08, 0x62, (byte) 0x9D, (byte) 0xC2, 
+                        0x0A, (byte) 0x84, 0x73, (byte) 0x92, (byte) 0x87, (byte) 0xF8, 0x20, (byte) 0xC8, 0x00, 0x1E, 
+                        (byte) 0xAA, (byte) 0xDC, 0x00, 0x01, 0x48, 0x00, 0x7E, 0x53, (byte) 0x92, 0x1B, (byte) 0xB0, 
+                        (byte) 0x8E, 0x72, 0x50, (byte) 0xFF, 0x04, 0x19, 0x00, (byte) 0xB4, 0x3A, 0x00, 0x02, (byte) 0xDF, 
+                        0x40, 0x02, 0x05, (byte) 0xC9, 0x50, (byte) 0xAA, (byte) 0xC8, (byte) 0xC2, 0x39, (byte) 0xC9, 0x43, 
+                        (byte) 0xFC, 0x10, 0x32, 0x01, (byte) 0xE6, 0x00, 0x13, 0x02, 0x17, (byte) 0x81, 0x0C, 0x00, 
+                        (byte) 0x86, 0x3E, (byte) 0xA5, (byte) 0xBF, 0x0E, 0x44, 0x15, (byte) 0xF7, (byte) 0xF2, (byte) 0xD6, 
+                        (byte) 0x82, 0x0E, (byte) 0x8C, (byte) 0xB8, 0x72, 0x00, (byte) 0x81, 0x10, 0x00, 0x40, 0x28, 
+                        (byte) 0xA7, 0x70, (byte) 0x82, (byte) 0xA1, 0x1C, (byte) 0xE4, (byte) 0xA1, (byte) 0xFE, 0x08, 0x32, 
+                        0x00, 0x07, (byte) 0xAC, 0x4C, 0x00, 0x03, (byte) 0xC4, 0x30, 0x1F, (byte) 0x94, (byte) 0xEE, 0x10, 
+                        0x54, 0x23, (byte) 0x93, 0x0A, (byte) 0xD7, (byte) 0xC1, 0x0C, (byte) 0x80, 0x2D, 0x33, (byte) 0x80, 
+                        0x00, 0x00, (byte) 0xA0, (byte) 0x80, (byte) 0xA0, 0x30, (byte) 0xC0, 0x48, 0x0A, 0x28, 0x06, 
+                        (byte) 0x80, 0x71, (byte) 0xC0, 0x22, 0x01, 0x24, (byte) 0x80, 0x2A, 0x00, (byte) 0xB2, (byte) 0xC0, 
+                        0x06, 0x40, 0x06, (byte) 0xB9, (byte) 0xAD, 0x27, 0x48, 0x39, (byte) 0xAD, 0x27, 0x48, 0x70, 
+                        0x34, 0x19, 0x19, 0x00, 0x08, (byte) 0x80, 0x7D, 0x38, (byte) 0xA7, (byte) 0xC3, 0x2E, 0x5C, 
+                        (byte) 0x88, 0x37, 0x33, 0x61, 0x2D, (byte) 0xCC, (byte) 0xDA, (byte) 0x80, (byte) 0x81, 0x10, 
+                        (byte) 0x92, 0x40, 0x38, (byte) 0xA7, 0x70, (byte) 0x82, (byte) 0xA1, 0x1C, (byte) 0xE4, (byte) 0xA1, 
+                        (byte) 0xFE, 0x08, 0x32, 0x00, 0x07, (byte) 0xAD, (byte) 0x96, (byte) 0xF0, 0x07, (byte) 0x86, 0x00, 
+                        0x1F, 0x14, (byte) 0xF7, (byte) 0x99, (byte) 0xBC, 0x23, (byte) 0x89, (byte) 0x81, 0x6F, (byte) 0xC1, 
+                        0x12, (byte) 0xC0, 0x2D, 0x5F, (byte) 0xC0, 0x00, 0x41, 0x00, 0x40, (byte) 0xFA, 0x30, 0x5D, 
+                        0x3D, (byte) 0x9A, 0x78, 0x70, (byte) 0xCB, (byte) 0xCB, (byte) 0xCA, 0x0A, (byte) 0xF9, 0x7A, 
+                        0x00, (byte) 0x81, 0x13, (byte) 0x94, 0x00
+                    };
 
                 Assert.assertArrayEquals(
-                                "Encoded TIM message doesn't match expected output",
-                                expected,
-                                result.getMessage());
-
+                "Encoded TIM message doesn't match expected output",
+                expected,
+                result.getMessage());
         }
 
 }

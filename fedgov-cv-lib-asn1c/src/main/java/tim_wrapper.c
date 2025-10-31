@@ -117,6 +117,20 @@ int ia5_truncate_len(const char *s, int maxlen)
 JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     JNIEnv *env, jobject cls, jobject timobject)
 {
+    // NodeList Choice Constants
+    const int NODE_SET_XY = 0;
+    const int COMPUTED_LANE = 1;
+
+    // NodeOffSet Point Choice Constants
+    const int NODE_XY1 = 1;
+    const int NODE_XY2 = 2;
+    const int NODE_XY3 = 3;
+    const int NODE_XY4 = 4;
+    const int NODE_XY5 = 5;
+    const int NODE_XY6 = 6;
+    const int NODE_LAT_LON = 7;
+    const int NODE_REGIONAL = 8;
+
     // Initilize empty TIM
     TravelerInformation_t tim;
     memset(&tim, 0, sizeof(tim));
@@ -471,32 +485,725 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, doNotUse2Cls);
         }
 
-        // regions (GeographicalPath[])
-        mid_getRegions = (*env)->GetMethodID(env, frameCls, "getRegions", "()[Lgov/usdot/cv/timencoder/GeographicalPath;");
-        jobject regionsArr = mid_getRegions ? (*env)->CallObjectMethod(env, frame, mid_getRegions) : NULL;
-        if (regionsArr)
+        // --- Get regions list from TravelerDataFrame ---
+        mid_getRegions = (*env)->GetMethodID(env, frameCls, "getRegions", "()Ljava/util/List;");
+        jobject regionsListObj = (*env)->CallObjectMethod(env, frame, mid_getRegions);
+
+        if (regionsListObj)
         {
+            jclass regionsListCls = (*env)->GetObjectClass(env, regionsListObj);
+            jmethodID midRegionsSize = (*env)->GetMethodID(env, regionsListCls, "size", "()I");
+            jmethodID midRegionsGet = (*env)->GetMethodID(env, regionsListCls, "get", "(I)Ljava/lang/Object;");
+            jint numRegions = (*env)->CallIntMethod(env, regionsListObj, midRegionsSize);
 
-            jsize arrSize = (*env)->GetArrayLength(env, (jarray)regionsArr);
-            printf("Regions array size = %d\n", (int)arrSize);
+            printf("Regions array size = %d\n", numRegions);
 
-            for (jsize j = 0; j < arrSize; j++)
+            for (jint r = 0; r < numRegions; r++)
             {
-
-                // TODO: All the fields of GeographicalPath need to be filled here.As it's optional field is left blank for this story
+                jobject geoPathObj = (*env)->CallObjectMethod(env, regionsListObj, midRegionsGet, r);
                 GeographicalPath_t *gp = (GeographicalPath_t *)calloc(1, sizeof(*gp));
-                if (!gp)
+
+                if (ASN_SEQUENCE_ADD(&tdf->regions.list, gp) != 0)
                 {
-                    fprintf(stderr, "calloc GeographicalPath failed\n");
-                }
-                else if (ASN_SEQUENCE_ADD(&tdf->regions.list, gp) != 0)
-                {
-                    fprintf(stderr, "ASN_SEQUENCE_ADD(GeographicalPath) failed at %d\n", (int)j);
+                    fprintf(stderr, "ASN_SEQUENCE_ADD(GeographicalPath) failed at index %d\n", (int)r);
                     free(gp);
+                    (*env)->DeleteLocalRef(env, geoPathObj);
+                    continue;
+                }
+
+                jclass geoPathCls = (*env)->GetObjectClass(env, geoPathObj);
+
+                // --- getAnchor() ---
+                jmethodID midGetAnchor = (*env)->GetMethodID(env, geoPathCls, "getAnchor", "()Lgov/usdot/cv/mapencoder/Position3D;");
+                if (midGetAnchor)
+                {
+                    jobject anchorPosObj = (*env)->CallObjectMethod(env, geoPathObj, midGetAnchor);
+                    if (anchorPosObj)
+                    {
+                        jclass anchorPosCls = (*env)->GetObjectClass(env, anchorPosObj);
+                        jmethodID midAnchorLat = (*env)->GetMethodID(env, anchorPosCls, "getLatitude", "()D");
+                        jmethodID midAnchorLon = (*env)->GetMethodID(env, anchorPosCls, "getLongitude", "()D");
+                        jmethodID midAnchorEle = (*env)->GetMethodID(env, anchorPosCls, "getElevation", "()F");
+                        jmethodID midAnchorEleExists = (*env)->GetMethodID(env, anchorPosCls, "isElevationExists", "()Z");
+
+                        double anchorLat = midAnchorLat ? (*env)->CallDoubleMethod(env, anchorPosObj, midAnchorLat) : 0.0;
+                        double anchorLon = midAnchorLon ? (*env)->CallDoubleMethod(env, anchorPosObj, midAnchorLon) : 0.0;
+                        float anchorEle = midAnchorEle ? (*env)->CallFloatMethod(env, anchorPosObj, midAnchorEle) : 0.0f;
+                        jboolean haveAnchorEle = midAnchorEleExists ? (*env)->CallBooleanMethod(env, anchorPosObj, midAnchorEleExists) : JNI_FALSE;
+
+                        Position3D_t *anchor = (Position3D_t *)calloc(1, sizeof(*anchor));
+                        if (!anchor)
+                        {
+                            fprintf(stderr, "calloc Position3D failed\n");
+                        }
+                        else
+                        {
+                            anchor->lat = (Common_Latitude_t)((long)anchorLat);
+                            anchor->Long = (Common_Longitude_t)((long)anchorLon);
+
+                            if (haveAnchorEle)
+                            {
+                                anchor->elevation = (Common_Elevation_t *)calloc(1, sizeof(*anchor->elevation));
+                                if (anchor->elevation)
+                                {
+                                    *anchor->elevation = (long)(anchorEle); // convert float -> long if ASN type is integer-based
+                                    printf("Anchor elevation = %.2f\n", anchorEle);
+                                }
+                            }
+
+                            gp->anchor = anchor;
+                        }
+
+                        (*env)->DeleteLocalRef(env, anchorPosCls);
+                        (*env)->DeleteLocalRef(env, anchorPosObj);
+                    }
+                }
+
+                /* --- getLaneWidth() --- */
+                jmethodID midGetLaneWidth = (*env)->GetMethodID(env, geoPathCls, "getLaneWidth", "()I");
+                if (midGetLaneWidth)
+                {
+                    printf("LaneWidth if loop \n");
+                    jint lwVal = (*env)->CallIntMethod(env, geoPathObj, midGetLaneWidth);
+                    printf("LaneWidth value = %d\n", lwVal);
+                    // allocate and store into gp->laneWidth (optional ASN.1 field)
+                    gp->laneWidth = (LaneWidth_t *)calloc(1, sizeof(*gp->laneWidth));
+                    if (gp->laneWidth)
+                    {
+                        *gp->laneWidth = (LaneWidth_t)lwVal;
+                    }
+                    else
+                    {
+                        fprintf(stderr, "calloc LaneWidth failed\n");
+                    }
+                }
+                else
+                {
+                    {
+                        fprintf(stderr, "Warning: getLaneWidth() method not found on GeographicalPath\n");
+                    }
+                }
+
+                /* --- getDirectionality() --- */
+                jmethodID midGetDirectionality = (*env)->GetMethodID(env, geoPathCls, "getDirectionality", "()Lgov/usdot/cv/timencoder/DirectionOfUse;");
+                if (midGetDirectionality)
+                {
+                    jobject directionalityObj = (*env)->CallObjectMethod(env, geoPathObj, midGetDirectionality);
+                    if (directionalityObj)
+                    {
+                        jclass directionalityCls = (*env)->GetObjectClass(env, directionalityObj);
+                        jmethodID midGetValue = (*env)->GetMethodID(env, directionalityCls, "getValue", "()I");
+
+                        if (midGetValue)
+                        {
+                            jint dirVal = (*env)->CallIntMethod(env, directionalityObj, midGetValue);
+                            printf("Directionality value = %d\n", dirVal);
+
+                            gp->directionality = (DirectionOfUse_t *)calloc(1, sizeof(*gp->directionality));
+                            if (gp->directionality)
+                            {
+                                *gp->directionality = (DirectionOfUse_t)dirVal;
+                            }
+                            else
+                            {
+                                fprintf(stderr, "calloc DirectionOfUse failed\n");
+                            }
+                        }
+                        else
+                        {
+                            fprintf(stderr, "Warning: getValue() method not found on DirectionOfUse\n");
+                        }
+
+                        (*env)->DeleteLocalRef(env, directionalityCls);
+                        (*env)->DeleteLocalRef(env, directionalityObj);
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Warning: getDirectionality() method not found on GeographicalPath\n");
+                }
+
+                /* --- isClosedPath() --- */
+                jmethodID midIsClosedPath = (*env)->GetMethodID(env, geoPathCls, "isClosedPath", "()Z");
+                if (midIsClosedPath)
+                {
+                    jboolean closedVal = (*env)->CallBooleanMethod(env, geoPathObj, midIsClosedPath);
+                    printf("ClosedPath value = %d\n", closedVal);
+
+                    gp->closedPath = (BOOLEAN_t *)calloc(1, sizeof(*gp->closedPath));
+                    if (gp->closedPath)
+                    {
+                        *gp->closedPath = closedVal ? 1 : 0;
+                    }
+                    else
+                    {
+                        fprintf(stderr, "calloc closedPath failed\n");
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Warning: isClosedPath() method not found on GeographicalPath\n");
+                }
+
+                /* --- getDirection() --- */
+                jmethodID midGetDirection = (*env)->GetMethodID(env, geoPathCls, "getDirection", "()Lgov/usdot/cv/timencoder/HeadingSlice;");
+                jobject directionObj = midGetDirection ? (*env)->CallObjectMethod(env, geoPathObj, midGetDirection) : NULL;
+
+                if (directionObj)
+                {
+                    jclass directionCls = (*env)->GetObjectClass(env, directionObj);
+                    jmethodID dirIntValue = (*env)->GetMethodID(env, directionCls, "intValue", "()I");
+
+                    jint dirMask = 0;
+                    if (dirIntValue)
+                    {
+                        dirMask = (*env)->CallIntMethod(env, directionObj, dirIntValue);
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            dirMask = 0;
+                        }
+                    }
+
+                    // Constrain to 16 bits
+                    dirMask &= 0xFFFF;
+                    gp->direction = (HeadingSlice_t *)calloc(1, sizeof(HeadingSlice_t));
+                    if (gp->direction)
+                    {
+                        gp->direction->buf = (uint8_t *)calloc(1, 2);
+                        if (gp->direction->buf)
+                        {
+                            gp->direction->buf[0] = (uint8_t)((dirMask >> 8) & 0xFF);
+                            gp->direction->buf[1] = (uint8_t)(dirMask & 0xFF);
+                            gp->direction->bits_unused = 0;
+                            gp->direction->size = 2;
+                        }
+                    }
+
+                    (*env)->DeleteLocalRef(env, directionCls);
+                    (*env)->DeleteLocalRef(env, directionObj);
+                }
+                else
+                {
+                    fprintf(stderr, "Warning: getDirection() returned NULL\n");
+                }
+
+                /* --- getDescription() --- */
+                jmethodID midGetDescription = (*env)->GetMethodID(env, geoPathCls, "getDescription", "()Lgov/usdot/cv/timencoder/GeographicalPath$Description;");
+                jobject descObj = midGetDescription ? (*env)->CallObjectMethod(env, geoPathObj, midGetDescription) : NULL;
+                if (descObj)
+                {
+                    // Get the Choice enum object returned by Description.getChoice()
+                    jclass descCls = (*env)->GetObjectClass(env, descObj);
+                    jmethodID midGetChoice = (*env)->GetMethodID(env, descCls, "getChoice", "()Lgov/usdot/cv/timencoder/GeographicalPath$Description$Choice;");
+                    jobject choiceObj = midGetChoice ? (*env)->CallObjectMethod(env, descObj, midGetChoice) : NULL;
+
+                    int choiceOrdinal = -1;
+                    if (choiceObj)
+                    {
+                        jclass choiceCls = (*env)->GetObjectClass(env, choiceObj);
+                        jmethodID midOrdinal = (*env)->GetMethodID(env, choiceCls, "ordinal", "()I");
+                        if (midOrdinal)
+                        {
+                            jint ord = (*env)->CallIntMethod(env, choiceObj, midOrdinal);
+                            printf("choiceOrdinal = %d\n", ord);
+                            choiceOrdinal = (int)ord;
+                        }
+                    }
+
+                    gp->description = (struct GeographicalPath__description *)calloc(1, sizeof(*gp->description));
+                    switch (choiceOrdinal)
+                    {
+                    case 0: /* path_chosen */
+                    {
+                        printf("GeographicalPath__description_PR_path \n");
+                        gp->description->present = GeographicalPath__description_PR_path;
+
+                        // get OffsetSystem from Description.getPathChosen()
+                        jmethodID midGetPath = (*env)->GetMethodID(env, descCls, "getPathChosen", "()Lgov/usdot/cv/timencoder/OffsetSystem;");
+                        jobject offsetSysObj = midGetPath ? (*env)->CallObjectMethod(env, descObj, midGetPath) : NULL;
+                        if (!offsetSysObj)
+                        {
+                            printf("path_chosen: OffsetSystem is NULL\n");
+                            break;
+                        }
+                        jclass offsetSysCls = (*env)->GetObjectClass(env, offsetSysObj);
+
+                        // --- scale (Zoom) optional ---
+                        jmethodID midGetScale = (*env)->GetMethodID(env, offsetSysCls, "getScale", "()Lgov/usdot/cv/timencoder/Zoom;");
+                        jobject zoomObj = midGetScale ? (*env)->CallObjectMethod(env, offsetSysObj, midGetScale) : NULL;
+                        if (zoomObj)
+                        {
+                            jclass zoomCls = (*env)->GetObjectClass(env, zoomObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, zoomCls, "getValue", "()I");
+                            if (midGetValue)
+                            {
+                                jint zVal = (*env)->CallIntMethod(env, zoomObj, midGetValue);
+                                gp->description->choice.path.scale = (Zoom_t *)calloc(1, sizeof(Zoom_t));
+                                if (gp->description->choice.path.scale)
+                                {
+                                    *(gp->description->choice.path.scale) = (Zoom_t)zVal;
+                                    printf("OffsetSystem.scale = %ld\n", (long)*(gp->description->choice.path.scale));
+                                }
+                                else
+                                {
+                                    fprintf(stderr, "calloc failed for OffsetSystem.scale\n");
+                                }
+                            }
+                            (*env)->DeleteLocalRef(env, zoomCls);
+                            (*env)->DeleteLocalRef(env, zoomObj);
+                        }
+                        else
+                        {
+                            gp->description->choice.path.scale = NULL;
+                        }
+
+                        // --- offset (choice: xy ) ---
+                        jmethodID midGetOffset = (*env)->GetMethodID(env, offsetSysCls, "getOffset", "()Lgov/usdot/cv/timencoder/OffsetSystem$Offset;");
+                        jobject offsetObj = midGetOffset ? (*env)->CallObjectMethod(env, offsetSysObj, midGetOffset) : NULL;
+                        if (!offsetObj)
+                        {
+                            printf("OffsetSystem.offset is NULL\n");
+                            (*env)->DeleteLocalRef(env, offsetSysCls);
+                            (*env)->DeleteLocalRef(env, offsetSysObj);
+                            break;
+                        }
+
+                        jclass offsetCls = (*env)->GetObjectClass(env, offsetObj);
+                        // xy_chosen object
+                        jmethodID midGetNodeListXY = (*env)->GetMethodID(env, offsetCls, "getXy_chosen", "()Lgov/usdot/cv/mapencoder/NodeListXY;");
+                        jobject pathNodeListObj = midGetNodeListXY ? (*env)->CallObjectMethod(env, offsetObj, midGetNodeListXY) : NULL;
+
+                        if (pathNodeListObj)
+                        {
+                            // offset.present = xy
+                            gp->description->choice.path.offset.present = OffsetSystem__offset_PR_xy;
+
+                            jclass pathNodeListCls = (*env)->GetObjectClass(env, pathNodeListObj);
+
+                            jmethodID midGetPathNodeListChoice = (*env)->GetMethodID(env, pathNodeListCls, "getChoice", "()B");
+                            jbyte pathNodeListChoice = pathNodeListChoice ? (*env)->CallByteMethod(env, pathNodeListObj, midGetPathNodeListChoice) : 0;
+
+                            NodeSetXY_t *pathNodeSetXY = calloc(1, sizeof(NodeSetXY_t));
+
+                            if (pathNodeListChoice == NODE_SET_XY)
+                            {
+                                gp->description->choice.path.offset.choice.xy.present = NodeListXY_PR_nodes;
+
+                                // Get NodeSetXY object
+                                jmethodID midGetNodes = (*env)->GetMethodID(env, pathNodeListCls, "getNodes", "()Lgov/usdot/cv/mapencoder/NodeSetXY;");
+                                jobject pathNodesObj = (*env)->CallObjectMethod(env, pathNodeListObj, midGetNodes);
+                                jclass pathNodesCls = (*env)->GetObjectClass(env, pathNodesObj);
+
+                                // Retrieve NodeXY[] array
+                                jmethodID midGetNodeSetXY = (*env)->GetMethodID(env, pathNodesCls, "getNodeSetXY", "()[Lgov/usdot/cv/mapencoder/NodeXY;");
+                                jobject pathNodeSetXYArray = (*env)->CallObjectMethod(env, pathNodesObj, midGetNodeSetXY);
+
+                                jsize pathNodesCount = (*env)->GetArrayLength(env, pathNodeSetXYArray);
+
+                                for (int pathIndex = 0; pathIndex < pathNodesCount; pathIndex++)
+                                {
+                                    NodeXY_t *pathNodeXY = calloc(1, sizeof(NodeXY_t));
+
+                                    jobject pathNodeXYObj = (jobject)(*env)->GetObjectArrayElement(env, pathNodeSetXYArray, pathIndex);
+                                    jclass pathNodeXYCls = (*env)->GetObjectClass(env, pathNodeXYObj);
+
+                                    // Get delta object
+                                    jmethodID midGetDelta = (*env)->GetMethodID(env, pathNodeXYCls, "getDelta", "()Lgov/usdot/cv/mapencoder/NodeOffsetPointXY;");
+                                    jobject pathDeltaObj = (*env)->CallObjectMethod(env, pathNodeXYObj, midGetDelta);
+                                    jclass pathDeltaCls = (*env)->GetObjectClass(env, pathDeltaObj);
+
+                                    // Get delta choice
+                                    jmethodID midGetDeltaChoice = (*env)->GetMethodID(env, pathDeltaCls, "getChoice", "()B");
+                                    jbyte pathDeltaChoice = (*env)->CallByteMethod(env, pathDeltaObj, midGetDeltaChoice);
+
+                                    if (pathDeltaChoice == NODE_XY1)
+                                    {
+                                        jmethodID midGetXY1 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY1", "()Lgov/usdot/cv/mapencoder/NodeXY20b;");
+                                        jobject nodeXY1Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY1);
+                                        jclass nodeXY1Cls = (*env)->GetObjectClass(env, nodeXY1Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY1Cls, "getX", "()F");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY1Cls, "getY", "()F");
+
+                                        jfloat xVal = (*env)->CallFloatMethod(env, nodeXY1Obj, midGetX);
+                                        jfloat yVal = (*env)->CallFloatMethod(env, nodeXY1Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY1;
+                                        pathNodeXY->delta.choice.node_XY1.x = (Offset_B10_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY1.y = (Offset_B10_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_XY2)
+                                    {
+                                        jmethodID midGetXY2 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY2", "()Lgov/usdot/cv/mapencoder/NodeXY22b;");
+                                        jobject nodeXY2Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY2);
+                                        jclass nodeXY2Cls = (*env)->GetObjectClass(env, nodeXY2Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY2Cls, "getX", "()F");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY2Cls, "getY", "()F");
+
+                                        jfloat xVal = (*env)->CallFloatMethod(env, nodeXY2Obj, midGetX);
+                                        jfloat yVal = (*env)->CallFloatMethod(env, nodeXY2Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY2;
+                                        pathNodeXY->delta.choice.node_XY2.x = (Offset_B11_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY2.y = (Offset_B11_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_XY3)
+                                    {
+                                        jmethodID midGetXY3 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY3", "()Lgov/usdot/cv/mapencoder/NodeXY24b;");
+                                        jobject nodeXY3Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY3);
+                                        jclass nodeXY3Cls = (*env)->GetObjectClass(env, nodeXY3Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY3Cls, "getX", "()S");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY3Cls, "getY", "()S");
+
+                                        jshort xVal = (*env)->CallShortMethod(env, nodeXY3Obj, midGetX);
+                                        jshort yVal = (*env)->CallShortMethod(env, nodeXY3Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY3;
+                                        pathNodeXY->delta.choice.node_XY3.x = (Offset_B12_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY3.y = (Offset_B12_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_XY4)
+                                    {
+                                        jmethodID midGetXY4 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY4", "()Lgov/usdot/cv/mapencoder/NodeXY26b;");
+                                        jobject nodeXY4Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY4);
+                                        jclass nodeXY4Cls = (*env)->GetObjectClass(env, nodeXY4Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY4Cls, "getX", "()F");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY4Cls, "getY", "()F");
+
+                                        jfloat xVal = (*env)->CallFloatMethod(env, nodeXY4Obj, midGetX);
+                                        jfloat yVal = (*env)->CallFloatMethod(env, nodeXY4Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY4;
+                                        pathNodeXY->delta.choice.node_XY4.x = (Offset_B13_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY4.y = (Offset_B13_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_XY5)
+                                    {
+                                        jmethodID midGetXY5 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY5", "()Lgov/usdot/cv/mapencoder/NodeXY28b;");
+                                        jobject nodeXY5Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY5);
+                                        jclass nodeXY5Cls = (*env)->GetObjectClass(env, nodeXY5Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY5Cls, "getX", "()F");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY5Cls, "getY", "()F");
+
+                                        jfloat xVal = (*env)->CallFloatMethod(env, nodeXY5Obj, midGetX);
+                                        jfloat yVal = (*env)->CallFloatMethod(env, nodeXY5Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY5;
+                                        pathNodeXY->delta.choice.node_XY5.x = (Offset_B14_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY5.y = (Offset_B14_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_XY6)
+                                    {
+                                        jmethodID midGetXY6 = (*env)->GetMethodID(env, pathDeltaCls, "getNodeXY6", "()Lgov/usdot/cv/mapencoder/NodeXY32b;");
+                                        jobject nodeXY6Obj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetXY6);
+                                        jclass nodeXY6Cls = (*env)->GetObjectClass(env, nodeXY6Obj);
+
+                                        jmethodID midGetX = (*env)->GetMethodID(env, nodeXY6Cls, "getX", "()F");
+                                        jmethodID midGetY = (*env)->GetMethodID(env, nodeXY6Cls, "getY", "()F");
+
+                                        jfloat xVal = (*env)->CallFloatMethod(env, nodeXY6Obj, midGetX);
+                                        jfloat yVal = (*env)->CallFloatMethod(env, nodeXY6Obj, midGetY);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_XY6;
+                                        pathNodeXY->delta.choice.node_XY6.x = (Offset_B16_t)((long)xVal);
+                                        pathNodeXY->delta.choice.node_XY6.y = (Offset_B16_t)((long)yVal);
+                                    }
+                                    else if (pathDeltaChoice == NODE_LAT_LON)
+                                    {
+                                        jmethodID midGetLatLon = (*env)->GetMethodID(env, pathDeltaCls, "getNodeLatLon", "()Lgov/usdot/cv/mapencoder/NodeLLmD64b;");
+                                        jobject nodeLatLonObj = (*env)->CallObjectMethod(env, pathDeltaObj, midGetLatLon);
+                                        jclass nodeLatLonCls = (*env)->GetObjectClass(env, nodeLatLonObj);
+
+                                        jmethodID midGetLat = (*env)->GetMethodID(env, nodeLatLonCls, "getLatitude", "()I");
+                                        jmethodID midGetLon = (*env)->GetMethodID(env, nodeLatLonCls, "getLongitude", "()I");
+
+                                        jint lat = (*env)->CallIntMethod(env, nodeLatLonObj, midGetLat);
+                                        jint lon = (*env)->CallIntMethod(env, nodeLatLonObj, midGetLon);
+
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_node_LatLon;
+                                        pathNodeXY->delta.choice.node_LatLon.lat = (Common_Latitude_t)((long)lat);
+                                        pathNodeXY->delta.choice.node_LatLon.lon = (Common_Longitude_t)((long)lon);
+                                    }
+                                    else if (pathDeltaChoice == NODE_REGIONAL)
+                                    {
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_regional;
+                                    }
+                                    else
+                                    {
+                                        pathNodeXY->delta.present = NodeOffsetPointXY_PR_NOTHING;
+                                    }
+
+                                    jmethodID isPathAttributesExists = (*env)->GetMethodID(env, pathNodeXYCls, "isAttributesExists", "()Z");
+                                    jboolean pathAttributesExists = (*env)->CallBooleanMethod(env, pathNodeXYObj, isPathAttributesExists);
+                                    if (pathAttributesExists)
+                                    {
+                                        NodeAttributeSetXY_t *pathNodeAttributeSetXY;
+                                        pathNodeAttributeSetXY = calloc(1, sizeof(NodeAttributeSetXY_t));
+
+                                        // Get Attributes object and class
+                                        jmethodID getPathAttributes = (*env)->GetMethodID(env, pathNodeXYCls, "getAttributes", "()Lgov/usdot/cv/mapencoder/NodeAttributeSetXY;");
+                                        jobject pathAttributesObj = (*env)->CallObjectMethod(env, pathNodeXYObj, getPathAttributes);
+                                        jclass pathNodeAttributeSetXYClass = (*env)->GetObjectClass(env, pathAttributesObj);
+
+                                        // Check if dWidth exists
+                                        jmethodID isPathDWidthExists = (*env)->GetMethodID(env, pathNodeAttributeSetXYClass, "isDWidthExists", "()Z");
+                                        jboolean pathDWidthExists = (*env)->CallBooleanMethod(env, pathAttributesObj, isPathDWidthExists);
+
+                                        if (pathDWidthExists)
+                                        {
+                                            jmethodID getPathDWidth = (*env)->GetMethodID(env, pathNodeAttributeSetXYClass, "getDWidth", "()F");
+                                            jfloat pathDWidth = (*env)->CallFloatMethod(env, pathAttributesObj, getPathDWidth);
+
+                                            Offset_B10_t *pathNodeDWidth = calloc(1, sizeof(Offset_B10_t));
+                                            *pathNodeDWidth = (long)pathDWidth;
+                                            pathNodeAttributeSetXY->dWidth = pathNodeDWidth;
+                                        }
+
+                                        // Check if dElevation exists
+                                        jmethodID isPathDElevationExists = (*env)->GetMethodID(env, pathNodeAttributeSetXYClass, "isDElevationExists", "()Z");
+                                        jboolean pathDElevationExists = (*env)->CallBooleanMethod(env, pathAttributesObj, isPathDElevationExists);
+
+                                        if (pathDElevationExists)
+                                        {
+                                            jmethodID getPathDElevation = (*env)->GetMethodID(env, pathNodeAttributeSetXYClass, "getDElevation", "()F");
+                                            jfloat pathDElevation = (*env)->CallFloatMethod(env, pathAttributesObj, getPathDElevation);
+
+                                            Offset_B10_t *pathNodeDElevation = calloc(1, sizeof(Offset_B10_t));
+                                            *pathNodeDElevation = (long)pathDElevation;
+                                            pathNodeAttributeSetXY->dElevation = pathNodeDElevation;
+                                        }
+
+                                        pathNodeXY->attributes = pathNodeAttributeSetXY;
+
+                                    }
+
+                                    ASN_SEQUENCE_ADD(&pathNodeSetXY->list, pathNodeXY);
+                                }
+                                gp->description->choice.path.offset.choice.xy.choice.nodes = *pathNodeSetXY;
+                            }
+                        }
+
+                        break;
+                    }
+                    case 1: /* geometry_chosen */
+                    {
+                        printf("GeographicalPath__description_PR_geometry \n");
+                        gp->description->present = GeographicalPath__description_PR_geometry;
+
+                        jmethodID midGetGeometry = (*env)->GetMethodID(env, descCls, "getGeometryChosen", "()Lgov/usdot/cv/timencoder/GeometricProjection;");
+                        jobject geomObj = midGetGeometry ? (*env)->CallObjectMethod(env, descObj, midGetGeometry) : NULL;
+
+                        if (!geomObj)
+                        {
+                            printf("geometry_chosen: GeometricProjection object is NULL\n");
+                            break;
+                        }
+
+                        jclass geomCls = (*env)->GetObjectClass(env, geomObj);
+
+                        // getHeadingSlice() : HeadingSlice
+                        jmethodID midGetHeadingSlice = (*env)->GetMethodID(env, geomCls, "getHeadingSlice", "()Lgov/usdot/cv/timencoder/HeadingSlice;");
+                        jobject headingDirObj = midGetHeadingSlice ? (*env)->CallObjectMethod(env, geomObj, midGetHeadingSlice) : NULL;
+
+                        if (headingDirObj)
+                        {
+                            jclass headingDirCls = (*env)->GetObjectClass(env, headingDirObj);
+                            jmethodID headIntValue = (*env)->GetMethodID(env, headingDirCls, "intValue", "()I");
+
+                            jint headMask = 0;
+                            if (headIntValue)
+                            {
+                                headMask = (*env)->CallIntMethod(env, headingDirObj, headIntValue);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                    headMask = 0;
+                                }
+                            }
+
+                            // Constrain to 16 bits
+                            headMask &= 0xFFFF;
+                            gp->description->choice.geometry.direction.buf = (uint8_t *)calloc(1, 2);
+                            if (gp->description->choice.geometry.direction.buf)
+                            {
+                                gp->description->choice.geometry.direction.buf[0] = (uint8_t)((headMask >> 8) & 0xFF);
+                                gp->description->choice.geometry.direction.buf[1] = (uint8_t)(headMask & 0xFF);
+                                gp->description->choice.geometry.direction.bits_unused = 0;
+                                gp->description->choice.geometry.direction.size = 2;
+                            }
+
+                            (*env)->DeleteLocalRef(env, headingDirCls);
+                            (*env)->DeleteLocalRef(env, headingDirObj);
+                        }
+                        else
+                        {
+                            fprintf(stderr, "Warning: getDirection() returned NULL\n");
+                        }
+
+                        /* ---- extent (optional enum) ---- */
+                        jmethodID midGetExtent = (*env)->GetMethodID(env, geomCls, "getExtent", "()Lgov/usdot/cv/timencoder/Extent;");
+                        jobject extentObj = midGetExtent ? (*env)->CallObjectMethod(env, geomObj, midGetExtent) : NULL;
+                        if (extentObj)
+                        {
+                            // Extent class has getValue() returning int
+                            jclass extentCls = (*env)->GetObjectClass(env, extentObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, extentCls, "getValue", "()I");
+                            if (midGetValue)
+                            {
+                                jint extentVal = (*env)->CallIntMethod(env, extentObj, midGetValue);
+                                // assign to pointer field (note ASN type Extent_t is typedef long)
+                                gp->description->choice.geometry.extent = (Extent_t *)calloc(1, sizeof(Extent_t));
+                                if (gp->description->choice.geometry.extent)
+                                {
+                                    *(gp->description->choice.geometry.extent) = (Extent_t)extentVal;
+                                }
+                                else
+                                {
+                                    fprintf(stderr, "calloc failed for extent\n");
+                                }
+                            }
+                            (*env)->DeleteLocalRef(env, extentCls);
+                            (*env)->DeleteLocalRef(env, extentObj);
+                        }
+                        else
+                        {
+                            // optional - extent absent
+                            gp->description->choice.geometry.extent = NULL;
+                        }
+
+                        /* ---- laneWidth (optional int) ---- */
+                        jmethodID midGetLaneWidth = (*env)->GetMethodID(env, geomCls, "getLaneWidth", "()I");
+                        if (midGetLaneWidth)
+                        {
+                            jint laneWidthVal = (*env)->CallIntMethod(env, geomObj, midGetLaneWidth);
+                            gp->description->choice.geometry.laneWidth = (LaneWidth_t *)calloc(1, sizeof(LaneWidth_t));
+                            if (gp->description->choice.geometry.laneWidth)
+                            {
+                                *(gp->description->choice.geometry.laneWidth) = (LaneWidth_t)laneWidthVal;
+                            }
+                            else
+                            {
+                                fprintf(stderr, "calloc failed for laneWidth\n");
+                            }
+                        }
+
+                        /* ---- circle (required field ) ---- */
+                        jmethodID midGetCircle = (*env)->GetMethodID(env, geomCls, "getCircle", "()Lgov/usdot/cv/timencoder/Circle;");
+                        jobject circleObj = midGetCircle ? (*env)->CallObjectMethod(env, geomObj, midGetCircle) : NULL;
+                        if (circleObj)
+                        {
+                            jclass circleCls = (*env)->GetObjectClass(env, circleObj);
+
+                            /* 4a) center : Position3D */
+                            jmethodID midGetCenter = (*env)->GetMethodID(env, circleCls, "getCenter", "()Lgov/usdot/cv/mapencoder/Position3D;");
+                            jobject centerObj = midGetCenter ? (*env)->CallObjectMethod(env, circleObj, midGetCenter) : NULL;
+                            if (centerObj)
+                            {
+                                jclass posCls = (*env)->GetObjectClass(env, centerObj);
+                                jmethodID midGetLat = (*env)->GetMethodID(env, posCls, "getLatitude", "()D");
+                                jmethodID midGetLon = (*env)->GetMethodID(env, posCls, "getLongitude", "()D");
+                                jmethodID midGetElevation = (*env)->GetMethodID(env, posCls, "getElevation", "()F");
+                                jmethodID midElevationExists = (*env)->GetMethodID(env, posCls, "isElevationExists", "()Z");
+
+                                double centerLat = midGetLat ? (*env)->CallDoubleMethod(env, centerObj, midGetLat) : 0.0;
+                                double centerLon = midGetLon ? (*env)->CallDoubleMethod(env, centerObj, midGetLon) : 0.0;
+                                float centerElevation = midGetElevation ? (*env)->CallFloatMethod(env, centerObj, midGetElevation) : 0.0f;
+                                jboolean centerElevExists = midElevationExists ? (*env)->CallBooleanMethod(env, centerObj, midElevationExists) : JNI_FALSE;
+
+                                printf("Circle center: centerLat=%f centerLon=%f elev=%f exists=%d\n", centerLat, centerLon, centerElevation, (int)centerElevExists);
+
+                                Common_Latitude_t lat_asn = (Common_Latitude_t)((long)centerLat);
+                                Common_Longitude_t lon_asn = (Common_Longitude_t)((long)centerLon);
+
+                                gp->description->choice.geometry.circle.center.lat = lat_asn;
+                                gp->description->choice.geometry.circle.center.Long = lon_asn;
+
+                                if (centerElevExists)
+                                {
+                                    gp->description->choice.geometry.circle.center.elevation = (Common_Elevation_t *)calloc(1, sizeof(Common_Elevation_t));
+                                    if (gp->description->choice.geometry.circle.center.elevation)
+                                    {
+                                        *(gp->description->choice.geometry.circle.center.elevation) = (long)(centerElevation);
+                                    }
+                                    else
+                                    {
+                                        fprintf(stderr, "calloc failed for center elevation\n");
+                                    }
+                                }
+                                else
+                                {
+                                    gp->description->choice.geometry.circle.center.elevation = NULL;
+                                }
+                            }
+                            else
+                            {
+                                printf("Circle.center is NULL\n");
+                            }
+
+                            /* 4b) radius : Radius_B12 -> typically integer */
+                            jmethodID midGetRadius = (*env)->GetMethodID(env, circleCls, "getRadius", "()Lgov/usdot/cv/timencoder/Radius_B12;");
+                            jobject radiusObj = midGetRadius ? (*env)->CallObjectMethod(env, circleObj, midGetRadius) : NULL;
+                            if (radiusObj)
+                            {
+                                jclass radCls = (*env)->GetObjectClass(env, radiusObj);
+                                jmethodID midGetRadValue = (*env)->GetMethodID(env, radCls, "getValue", "()I");
+                                if (midGetRadValue)
+                                {
+                                    jint radiusVal = (*env)->CallIntMethod(env, radiusObj, midGetRadValue);
+                                    gp->description->choice.geometry.circle.radius = (Radius_B12_t)radiusVal;
+                                }
+                                (*env)->DeleteLocalRef(env, radCls);
+                                (*env)->DeleteLocalRef(env, radiusObj);
+                            }
+                            else
+                            {
+                                printf("Circle.radius is NULL\n");
+                            }
+
+                            /* units : DistanceUnits */
+                            jmethodID midGetUnits = (*env)->GetMethodID(env, circleCls, "getUnits", "()Lgov/usdot/cv/timencoder/DistanceUnits;");
+                            jobject unitsObj = midGetUnits ? (*env)->CallObjectMethod(env, circleObj, midGetUnits) : NULL;
+                            if (unitsObj)
+                            {
+                                jclass unitsCls = (*env)->GetObjectClass(env, unitsObj);
+                                jmethodID midGetUnitsVal = (*env)->GetMethodID(env, unitsCls, "getValue", "()I");
+                                if (midGetUnitsVal)
+                                {
+                                    jint uVal = (*env)->CallIntMethod(env, unitsObj, midGetUnitsVal);
+                                    gp->description->choice.geometry.circle.units = (DistanceUnits_t)uVal;
+                                }
+                                (*env)->DeleteLocalRef(env, unitsCls);
+                                (*env)->DeleteLocalRef(env, unitsObj);
+                            }
+                            else
+                            {
+                                printf("Circle.units is NULL (using default?)\n");
+                            }
+
+                            (*env)->DeleteLocalRef(env, circleCls);
+                            (*env)->DeleteLocalRef(env, circleObj);
+                        }
+                        else
+                        {
+                            printf("GeometricProjection.circle is NULL\n");
+                        }
+
+                        break;
+                    }
+                    default:
+                        gp->description->present = GeographicalPath__description_PR_NOTHING;
+                        break;
+                    }
                 }
             }
         }
-
         else
         {
             printf("Regions array is null\n");
@@ -519,9 +1226,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         mid_getDoNotUse4 = (*env)->GetMethodID(env, frameCls, "getDoNotUse4", "()Lgov/usdot/cv/timencoder/SSPindex;");
         jobject doNotUse4 = mid_getDoNotUse4 ? (*env)->CallObjectMethod(env, frame, mid_getDoNotUse4) : NULL;
         if (doNotUse4)
-
         {
-
             jclass doNotUse4Cls = (*env)->GetObjectClass(env, doNotUse4);
             jmethodID midGetIndex4 = (*env)->GetMethodID(env, doNotUse4Cls, "get", "()I");
             jint index4 = (*env)->CallIntMethod(env, doNotUse4, midGetIndex4);
@@ -532,11 +1237,9 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
         // ---- content (legacy Part II) ----
         mid_getContent = (*env)->GetMethodID(env, frameCls, "getContent", "()Lgov/usdot/cv/timencoder/TravelerDataFrame$Content;");
-
         jobject content = mid_getContent ? (*env)->CallObjectMethod(env, frame, mid_getContent) : NULL;
         if (content)
         {
-
             jclass contentCls = (*env)->GetObjectClass(env, content);
             jmethodID midGetContentChoice = (*env)->GetMethodID(
                 env, contentCls, "getChoice",
@@ -1984,8 +2687,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, durationTime);
         if (priority)
             (*env)->DeleteLocalRef(env, priority);
-        if (regionsArr)
-            (*env)->DeleteLocalRef(env, regionsArr);
+        if (regionsListObj)
+            (*env)->DeleteLocalRef(env, regionsListObj);
         if (content)
             (*env)->DeleteLocalRef(env, content);
         if (contentNew)

@@ -15,7 +15,9 @@
  */
 package gov.usdot.cv.timencoder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class TravelerDataFrame {
 
@@ -29,7 +31,8 @@ public class TravelerDataFrame {
 
     // ---- Part II: regions ----
     private SSPindex doNotUse2;
-    private GeographicalPath[] regions;
+    // private GeographicalPath[] regions;
+    private List<GeographicalPath> regions = new ArrayList<>();
 
     // ---- Part III: content ----
     private SSPindex doNotUse3;
@@ -132,8 +135,8 @@ public class TravelerDataFrame {
     public SSPindex getDoNotUse2() { return doNotUse2; }
     public void setDoNotUse2(SSPindex doNotUse2) { this.doNotUse2 = doNotUse2; }
 
-    public GeographicalPath[] getRegions() { return regions; }
-    public void setRegions(GeographicalPath[] regions) { this.regions = regions; }
+    public List<GeographicalPath> getRegions() { return regions; }
+    public void setRegions(List<GeographicalPath> regions) { this.regions = regions; }
 
     public SSPindex getDoNotUse3() { return doNotUse3; }
     public void setDoNotUse3(SSPindex doNotUse3) { this.doNotUse3 = doNotUse3; }
@@ -157,7 +160,7 @@ public class TravelerDataFrame {
             ", durationTime=" + durationTime +
             ", priority=" + priority +
             ", doNotUse2=" + doNotUse2 +
-            ", regions=" + (regions == null ? null : Arrays.toString(regions)) +
+            ", regions=" + (regions == null ? null : regions) +
             ", doNotUse3=" + doNotUse3 +
             ", doNotUse4=" + doNotUse4 +
             ", content=" + content +
