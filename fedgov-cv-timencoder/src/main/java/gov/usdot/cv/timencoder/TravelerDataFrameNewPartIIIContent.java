@@ -26,7 +26,8 @@ public class TravelerDataFrameNewPartIIIContent {
     public void setFrictionInformation(FrictionInformation frictionInformation) {
         this.frictionInformation = frictionInformation;
     }
-     @Override
+
+    @Override
     public String toString() {
         return "TravelerDataFrameNewPartIIIContent{" +
                 "frictionInformation=" + frictionInformation +
