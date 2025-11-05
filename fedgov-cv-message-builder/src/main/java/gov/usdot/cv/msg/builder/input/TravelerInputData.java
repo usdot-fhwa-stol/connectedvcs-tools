@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import gov.usdot.cv.msg.builder.util.GeoPoint;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
+import gov.usdot.cv.timencoder.FrictionInformation;
 
 public class TravelerInputData {
 
@@ -45,6 +46,8 @@ public class TravelerInputData {
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm a");
 
 	public Region[] regions;
+	//TarvelerDataFrameNewPartIIIContent newPartIIIContent
+	public FrictionInformation frictionInformation;
 	public AnchorPoint anchorPoint;
 	public VerifiedPoint verifiedPoint;
 	public Deposit deposit;
