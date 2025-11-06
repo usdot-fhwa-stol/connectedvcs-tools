@@ -170,6 +170,39 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     tim.msgCnt = (long)j_msgCnt;
     printf("msgCnt = %d\n", j_msgCnt);
 
+    // --- packetID ---
+    jmethodID getPacketID = (*env)->GetMethodID(env, timClass, "getPacketID", "()Lgov/usdot/cv/timencoder/UniqueMSGID;");
+    jobject packetIDObj = (*env)->CallObjectMethod(env, timobject, getPacketID);
+
+    if (packetIDObj != NULL)
+    {
+        jclass uniqueMsgIDClass = (*env)->GetObjectClass(env, packetIDObj);
+        jmethodID getValue = (*env)->GetMethodID(env, uniqueMsgIDClass, "getValue", "()Ljava/lang/String;");
+        jstring jPacketIDStr = (*env)->CallObjectMethod(env, packetIDObj, getValue);
+
+        if (jPacketIDStr != NULL)
+        {
+            const char *packetIDStr = (*env)->GetStringUTFChars(env, jPacketIDStr, 0);
+
+            size_t packetIDStrLen = strlen(packetIDStr);
+            OCTET_STRING_t octetPacketString;
+            octetPacketString.buf = (uint8_t *)calloc(1, (packetIDStrLen + 1));
+
+            for (size_t p = 0; p < packetIDStrLen; p++)
+            {
+                octetPacketString.buf[p] = (uint8_t)packetIDStr[p];
+            }
+            octetPacketString.size = packetIDStrLen;
+
+            UniqueMSGID_t *packetID = calloc(1, sizeof(UniqueMSGID_t));
+            *packetID = octetPacketString;
+            tim.packetID = packetID;
+
+            (*env)->ReleaseStringUTFChars(env, jPacketIDStr, packetIDStr);
+            (*env)->DeleteLocalRef(env, jPacketIDStr);
+        }
+    }
+
     // ---- TravelerInformation.dataFrames (TravelerDataFrameList) ----
     jmethodID midGetDataFrames = (*env)->GetMethodID(
         env, timClass, "getDataFrames", "()Lgov/usdot/cv/timencoder/TravelerDataFrameList;");
@@ -423,12 +456,68 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
                 }
 
+                  // --- mutcdCode ---
+                jmethodID midGetMutcd = (*env)->GetMethodID(
+                    env, rsCls, "getMutcdCode", "()Lgov/usdot/cv/timencoder/MUTCDCode;");
+                jobject mutcdObj = midGetMutcd ? (*env)->CallObjectMethod(env, rsObj, midGetMutcd) : NULL;
+
+                if (mutcdObj)
+                {
+                    jclass mutcdCls = (*env)->GetObjectClass(env, mutcdObj);
+                    jmethodID midGetValue = (*env)->GetMethodID(env, mutcdCls, "getValue", "()I");
+
+                    if (midGetValue)
+                    {
+                        jint codeValue = (*env)->CallIntMethod(env, mutcdObj, midGetValue);
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            codeValue = 0;
+                        }
+
+                        rs->mutcdCode = (MUTCDCode_t *)calloc(1, sizeof(MUTCDCode_t));
+                        if (rs->mutcdCode)
+                        {
+                            *rs->mutcdCode = (MUTCDCode_t)codeValue;
+                            printf("MUTCDCode set to %ld\n", (long)*rs->mutcdCode);
+                        }
+                    }
+
+                    (*env)->DeleteLocalRef(env, mutcdCls);
+                    (*env)->DeleteLocalRef(env, mutcdObj);
+                }
+
                 (*env)->DeleteLocalRef(env, msgIdCls);
             }
             else
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
             }
+        }
+
+        // --- startYear (DYear) ---
+        jmethodID mid_getStartYear = (*env)->GetMethodID(env, frameCls, "getStartYear", "()Lgov/usdot/cv/timencoder/DYear;");
+        jobject startYearObj = mid_getStartYear ? (*env)->CallObjectMethod(env, frame, mid_getStartYear) : NULL;
+        if (startYearObj)
+        {
+            jclass startYearCls = (*env)->GetObjectClass(env, startYearObj);
+            jmethodID midGetYearVal = (*env)->GetMethodID(env, startYearCls, "getValue", "()I");
+            jint yearVal = midGetYearVal ? (*env)->CallIntMethod(env, startYearObj, midGetYearVal) : 0;
+
+            // Allocate and set DYear_t (long *)
+            DYear_t *yearPtr = (DYear_t *)calloc(1, sizeof(DYear_t));
+            *yearPtr = (long)yearVal;
+            tdf->startYear = yearPtr;
+
+            printf("Start Year = %d\n", yearVal);
+
+            (*env)->DeleteLocalRef(env, startYearCls);
+            (*env)->DeleteLocalRef(env, startYearObj);
+        }
+        else
+        {
+            tdf->startYear = NULL; // optional field
         }
 
         // startTime (MinuteOfTheYear)

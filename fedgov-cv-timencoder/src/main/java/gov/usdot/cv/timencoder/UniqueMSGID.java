@@ -17,24 +17,24 @@
 package gov.usdot.cv.timencoder;
 
 public class UniqueMSGID {
-    private byte[] value;
+    private String value;
 
-    public UniqueMSGID(byte[] value) {
+    public UniqueMSGID(String value) {
         this.value = value;
     }
 
-    public byte[] getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(byte[] value) {
+    public void setValue(String value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
         return "UniqueMSGID{" +
-                "value=" + value +
+                "value='" + value + '\'' +
                 '}';
     }
 }

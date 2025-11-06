@@ -18,6 +18,7 @@ import gov.usdot.cv.mapencoder.Position3D;
 public class RoadSignID {
     private Position3D position;
     private HeadingSlice viewAngle;
+    private MUTCDCode mutcdCode;
 
     public RoadSignID() { }
 
@@ -40,6 +41,14 @@ public class RoadSignID {
 
     public void setViewAngle(HeadingSlice viewAngle) {
         this.viewAngle = viewAngle;
+    }
+
+    public MUTCDCode getMutcdCode() {
+        return mutcdCode;
+    }
+
+    public void setMutcdCode(MUTCDCode mutcdCode) {
+        this.mutcdCode = mutcdCode;
     }
 
     @Override

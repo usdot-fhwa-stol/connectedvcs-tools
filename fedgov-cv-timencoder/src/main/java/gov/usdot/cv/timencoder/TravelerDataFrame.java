@@ -25,6 +25,7 @@ public class TravelerDataFrame {
     private SSPindex doNotUse1;
     private TravelerInfoType frameType;
     private MsgId msgId;   // uses your standalone MsgId
+    private DYear startYear;
     private MinuteOfTheYear startTime;
     private MinutesDuration durationTime;
     private SignPriority priority;
@@ -122,6 +123,9 @@ public class TravelerDataFrame {
 
     public MsgId getMsgId() { return msgId; }
     public void setMsgId(MsgId msgId) { this.msgId = msgId; }
+
+    public DYear getStartYear() { return startYear; }
+    public void setStartYear(DYear startYear) { this.startYear = startYear; }
 
     public MinuteOfTheYear getStartTime() { return startTime; }
     public void setStartTime(MinuteOfTheYear startTime) { this.startTime = startTime; }
