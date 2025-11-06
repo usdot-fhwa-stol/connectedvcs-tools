@@ -14,27 +14,27 @@
  * the License.
  */
 
-package gov.usdot.cv.timencoder;
+ package gov.usdot.cv.timencoder;
 
-public class UniqueMSGID {
-    private String value;
-
-    public UniqueMSGID(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return "UniqueMSGID{" +
-                "value='" + value + '\'' +
-                '}';
-    }
-}
+ public class UniqueMSGID {
+     private byte[] value;
+ 
+     public UniqueMSGID(byte[] value) {
+         this.value = value;
+     }
+ 
+     public byte[] getValue() {
+         return value;
+     }
+ 
+     public void setValue(byte[] value) {
+         this.value = value;
+     }
+ 
+     @Override
+     public String toString() {
+         return "UniqueMSGID{" +
+                 "value=" + value +
+                 '}';
+     }
+ }
