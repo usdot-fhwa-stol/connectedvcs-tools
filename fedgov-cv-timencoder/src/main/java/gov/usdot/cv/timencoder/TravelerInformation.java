@@ -19,12 +19,12 @@ public class TravelerInformation {
 
     private int msgCnt;
     private MinuteOfTheYear timeStamp;
+    private UniqueMSGID packetID;
     private TravelerDataFrameList dataFrames;
 
     /*
      * This is optional in ASN.1; will implement in a later story:
      *
-     * private UniqueMSGID packetID;
      * private URLBase urlB;
      * private List<RegionalExtension> regional; // SIZE(1..4)
      */
@@ -53,6 +53,15 @@ public class TravelerInformation {
         this.timeStamp = timeStamp;
     }
 
+    
+    public UniqueMSGID getPacketID() {
+        return packetID;
+    }
+
+    public void setPacketID(UniqueMSGID packetID) {
+        this.packetID = packetID;
+    }
+
     public TravelerDataFrameList getDataFrames() {
         return dataFrames;
     }
@@ -61,11 +70,13 @@ public class TravelerInformation {
         this.dataFrames = dataFrames;
     }
 
+    
     @Override
     public String toString() {
         return "TravelerInformation{" +
                 "msgCnt=" + msgCnt +
                 ", timeStamp=" + timeStamp +
+                ", packetID=" + packetID +
                 ", dataFrames=" + dataFrames +
                 '}';
     }

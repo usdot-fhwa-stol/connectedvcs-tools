@@ -168,7 +168,34 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         return NULL;
     }
     tim.msgCnt = (long)j_msgCnt;
-    printf("msgCnt = %d\n", j_msgCnt);
+
+    // --- packetID ---
+    jmethodID getPacketID = (*env)->GetMethodID(env, timClass, "getPacketID", "()Lgov/usdot/cv/timencoder/UniqueMSGID;");
+    jobject packetIDObj = (*env)->CallObjectMethod(env, timobject, getPacketID);
+
+    if (packetIDObj != NULL)
+    {
+        jclass uniqueMsgIDClass = (*env)->GetObjectClass(env, packetIDObj);
+        jmethodID getValue = (*env)->GetMethodID(env, uniqueMsgIDClass, "getValue", "()[B");
+        jbyteArray jByteArrayValue = (jbyteArray)(*env)->CallObjectMethod(env, packetIDObj, getValue);
+    
+        if (jByteArrayValue != NULL)
+        {
+            jsize length = (*env)->GetArrayLength(env, jByteArrayValue);
+            jbyte *bytes = (*env)->GetByteArrayElements(env, jByteArrayValue, NULL);
+    
+            // Allocate ASN.1 structure
+            UniqueMSGID_t *packetID = (UniqueMSGID_t *)calloc(1, sizeof(UniqueMSGID_t));
+            packetID->size = length;
+            packetID->buf = (uint8_t *)calloc(1, length);
+            memcpy(packetID->buf, bytes, length);
+    
+            tim.packetID = packetID;
+    
+            (*env)->ReleaseByteArrayElements(env, jByteArrayValue, bytes, JNI_ABORT);
+            (*env)->DeleteLocalRef(env, jByteArrayValue);
+        }
+    }
 
     // ---- TravelerInformation.dataFrames (TravelerDataFrameList) ----
     jmethodID midGetDataFrames = (*env)->GetMethodID(
@@ -299,7 +326,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->ExceptionClear(env);
         }
 
-        printf("\n--- Frame %d ---\n", i);
 
         // doNotUse1
         mid_getDoNotUse1 = (*env)->GetMethodID(env, frameCls, "getDoNotUse1", "()Lgov/usdot/cv/timencoder/SSPindex;");
@@ -310,7 +336,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetIndex = (*env)->GetMethodID(env, doNotUse1Cls, "get", "()I");
             jint index = (*env)->CallIntMethod(env, doNotUse1, midGetIndex);
             tdf->doNotUse1 = (long)index;
-            printf("doNotUse1 SSP Index = %d\n", index);
             (*env)->DeleteLocalRef(env, doNotUse1Cls);
         }
 
@@ -323,7 +348,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetVal = (*env)->GetMethodID(env, frameTypeCls, "getValue", "()I");
             jint val = (*env)->CallIntMethod(env, frameType, midGetVal);
             tdf->frameType = (TravelerInfoType_t)val;
-            printf("Traveler Info Type = %d\n", val);
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
@@ -423,12 +447,65 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
                 }
 
+                  // --- mutcdCode ---
+                jmethodID midGetMutcd = (*env)->GetMethodID(
+                    env, rsCls, "getMutcdCode", "()Lgov/usdot/cv/timencoder/MUTCDCode;");
+                jobject mutcdObj = midGetMutcd ? (*env)->CallObjectMethod(env, rsObj, midGetMutcd) : NULL;
+
+                if (mutcdObj)
+                {
+                    jclass mutcdCls = (*env)->GetObjectClass(env, mutcdObj);
+                    jmethodID midGetValue = (*env)->GetMethodID(env, mutcdCls, "getValue", "()I");
+
+                    if (midGetValue)
+                    {
+                        jint codeValue = (*env)->CallIntMethod(env, mutcdObj, midGetValue);
+                        if ((*env)->ExceptionCheck(env))
+                        {
+                            (*env)->ExceptionDescribe(env);
+                            (*env)->ExceptionClear(env);
+                            codeValue = 0;
+                        }
+
+                        rs->mutcdCode = (MUTCDCode_t *)calloc(1, sizeof(MUTCDCode_t));
+                        if (rs->mutcdCode)
+                        {
+                            *rs->mutcdCode = (MUTCDCode_t)codeValue;
+                        }
+                    }
+
+                    (*env)->DeleteLocalRef(env, mutcdCls);
+                    (*env)->DeleteLocalRef(env, mutcdObj);
+                }
+
                 (*env)->DeleteLocalRef(env, msgIdCls);
             }
             else
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_NOTHING;
             }
+        }
+
+        // --- startYear (DYear) ---
+        jmethodID mid_getStartYear = (*env)->GetMethodID(env, frameCls, "getStartYear", "()Lgov/usdot/cv/timencoder/DYear;");
+        jobject startYearObj = mid_getStartYear ? (*env)->CallObjectMethod(env, frame, mid_getStartYear) : NULL;
+        if (startYearObj)
+        {
+            jclass startYearCls = (*env)->GetObjectClass(env, startYearObj);
+            jmethodID midGetYearVal = (*env)->GetMethodID(env, startYearCls, "getValue", "()I");
+            jint yearVal = midGetYearVal ? (*env)->CallIntMethod(env, startYearObj, midGetYearVal) : 0;
+
+            // Allocate and set DYear_t (long *)
+            DYear_t *yearPtr = (DYear_t *)calloc(1, sizeof(DYear_t));
+            *yearPtr = (long)yearVal;
+            tdf->startYear = yearPtr;
+
+            (*env)->DeleteLocalRef(env, startYearCls);
+            (*env)->DeleteLocalRef(env, startYearObj);
+        }
+        else
+        {
+            tdf->startYear = NULL; // optional field
         }
 
         // startTime (MinuteOfTheYear)
@@ -441,7 +518,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetMinute = (*env)->GetMethodID(env, startTimeCls, "getValue", "()J");
             jint start = (*env)->CallIntMethod(env, startTime, midGetMinute);
             tdf->startTime = (long)start;
-            printf("Start Time (minute of year) = %d\n", start);
             (*env)->DeleteLocalRef(env, startTimeCls);
         }
 
@@ -453,7 +529,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetDur = (*env)->GetMethodID(env, durCls, "getValue", "()I");
             jint dur = midGetDur ? (*env)->CallIntMethod(env, durationTime, midGetDur) : 0;
             tdf->durationTime = (long)dur;
-            printf("Duration (minutes) = %d\n", dur);
             (*env)->DeleteLocalRef(env, durCls);
         }
 
@@ -467,7 +542,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetPri = (*env)->GetMethodID(env, priorityCls, "getValue", "()I");
             jint pri = (*env)->CallIntMethod(env, priority, midGetPri);
             tdf->priority = (long)pri;
-            printf("Priority = %d\n", pri);
             (*env)->DeleteLocalRef(env, priorityCls);
         }
 
@@ -481,7 +555,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetIndex2 = (*env)->GetMethodID(env, doNotUse2Cls, "get", "()I");
             jint index2 = (*env)->CallIntMethod(env, doNotUse2, midGetIndex2);
             tdf->doNotUse2 = (long)index2;
-            printf("doNotUse2 SSP Index = %d\n", index2);
             (*env)->DeleteLocalRef(env, doNotUse2Cls);
         }
 
@@ -495,8 +568,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midRegionsSize = (*env)->GetMethodID(env, regionsListCls, "size", "()I");
             jmethodID midRegionsGet = (*env)->GetMethodID(env, regionsListCls, "get", "(I)Ljava/lang/Object;");
             jint numRegions = (*env)->CallIntMethod(env, regionsListObj, midRegionsSize);
-
-            printf("Regions array size = %d\n", numRegions);
 
             for (jint r = 0; r < numRegions; r++)
             {
@@ -547,7 +618,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (anchor->elevation)
                                 {
                                     *anchor->elevation = (long)(anchorEle); // convert float -> long if ASN type is integer-based
-                                    printf("Anchor elevation = %.2f\n", anchorEle);
                                 }
                             }
 
@@ -563,9 +633,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 jmethodID midGetLaneWidth = (*env)->GetMethodID(env, geoPathCls, "getLaneWidth", "()I");
                 if (midGetLaneWidth)
                 {
-                    printf("LaneWidth if loop \n");
                     jint lwVal = (*env)->CallIntMethod(env, geoPathObj, midGetLaneWidth);
-                    printf("LaneWidth value = %d\n", lwVal);
                     // allocate and store into gp->laneWidth (optional ASN.1 field)
                     gp->laneWidth = (LaneWidth_t *)calloc(1, sizeof(*gp->laneWidth));
                     if (gp->laneWidth)
@@ -597,7 +665,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (midGetValue)
                         {
                             jint dirVal = (*env)->CallIntMethod(env, directionalityObj, midGetValue);
-                            printf("Directionality value = %d\n", dirVal);
 
                             gp->directionality = (DirectionOfUse_t *)calloc(1, sizeof(*gp->directionality));
                             if (gp->directionality)
@@ -628,7 +695,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 if (midIsClosedPath)
                 {
                     jboolean closedVal = (*env)->CallBooleanMethod(env, geoPathObj, midIsClosedPath);
-                    printf("ClosedPath value = %d\n", closedVal);
 
                     gp->closedPath = (BOOLEAN_t *)calloc(1, sizeof(*gp->closedPath));
                     if (gp->closedPath)
@@ -707,7 +773,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (midOrdinal)
                         {
                             jint ord = (*env)->CallIntMethod(env, choiceObj, midOrdinal);
-                            printf("choiceOrdinal = %d\n", ord);
                             choiceOrdinal = (int)ord;
                         }
                     }
@@ -717,7 +782,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     {
                     case 0: /* path_chosen */
                     {
-                        printf("GeographicalPath__description_PR_path \n");
                         gp->description->present = GeographicalPath__description_PR_path;
 
                         // get OffsetSystem from Description.getPathChosen()
@@ -744,7 +808,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (gp->description->choice.path.scale)
                                 {
                                     *(gp->description->choice.path.scale) = (Zoom_t)zVal;
-                                    printf("OffsetSystem.scale = %ld\n", (long)*(gp->description->choice.path.scale));
                                 }
                                 else
                                 {
@@ -993,7 +1056,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     }
                     case 1: /* geometry_chosen */
                     {
-                        printf("GeographicalPath__description_PR_geometry \n");
                         gp->description->present = GeographicalPath__description_PR_geometry;
 
                         jmethodID midGetGeometry = (*env)->GetMethodID(env, descCls, "getGeometryChosen", "()Lgov/usdot/cv/timencoder/GeometricProjection;");
@@ -1117,8 +1179,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 float centerElevation = midGetElevation ? (*env)->CallFloatMethod(env, centerObj, midGetElevation) : 0.0f;
                                 jboolean centerElevExists = midElevationExists ? (*env)->CallBooleanMethod(env, centerObj, midElevationExists) : JNI_FALSE;
 
-                                printf("Circle center: centerLat=%f centerLon=%f elev=%f exists=%d\n", centerLat, centerLon, centerElevation, (int)centerElevExists);
-
                                 Common_Latitude_t lat_asn = (Common_Latitude_t)((long)centerLat);
                                 Common_Longitude_t lon_asn = (Common_Longitude_t)((long)centerLon);
 
@@ -1218,7 +1278,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetIndex3 = (*env)->GetMethodID(env, doNotUse3Cls, "get", "()I");
             jint index3 = (*env)->CallIntMethod(env, doNotUse3, midGetIndex3);
             tdf->doNotUse3 = (long)index3;
-            printf("doNotUse3 SSP Index = %d\n", index3);
             (*env)->DeleteLocalRef(env, doNotUse3Cls);
         }
 
@@ -1231,7 +1290,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jmethodID midGetIndex4 = (*env)->GetMethodID(env, doNotUse4Cls, "get", "()I");
             jint index4 = (*env)->CallIntMethod(env, doNotUse4, midGetIndex4);
             tdf->doNotUse4 = (long)index4;
-            printf("doNotUse4 SSP Index = %d\n", index4);
             (*env)->DeleteLocalRef(env, doNotUse4Cls);
         }
 
@@ -1525,8 +1583,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     continue;
                                 }
 
-                                printf("WorkZone item index %d\n", idx);
-
                                 jclass itemCls = (*env)->GetObjectClass(env, itemObj);
 
                                 // WorkZoneItem.getChoice(): Choice (enum)
@@ -1561,8 +1617,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     if (itisObj)
                                     {
                                         long code = get_long_from_java_number_like(env, itisObj);
-                                        //   printf("  WZ[%-3d] ITIS = %ld\n", (int)k, code);
-
                                         struct WorkZone__Member *witem = (struct WorkZone__Member *)calloc(1, sizeof(*witem));
                                         if (witem)
                                         {
@@ -2225,7 +2279,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (nameStr)
                         {
                             const char *nameUtf = (*env)->GetStringUTFChars(env, nameStr, NULL);
-                            printf("Content Choice = %s (ordinal=%d)\n", nameUtf ? nameUtf : "<null>", (int)ordinal);
                             if (nameUtf)
                                 (*env)->ReleaseStringUTFChars(env, nameStr, nameUtf);
                             (*env)->DeleteLocalRef(env, nameStr);
@@ -2295,8 +2348,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (choiceNameJ)
                         {
                             const char *choiceName = (*env)->GetStringUTFChars(env, choiceNameJ, 0);
-                            printf("Content New: RoadSurfaceDescription.Choice = %s (ordinal=%d)\n",
-                                   choiceName ? choiceName : "<null>", (int)choiceOrdinal);
                             if (choiceName)
                                 (*env)->ReleaseStringUTFChars(env, choiceNameJ, choiceName);
                             (*env)->DeleteLocalRef(env, choiceNameJ);
@@ -2563,7 +2614,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                                     if (enumVal >= 0)
                                     {
-                                        printf("Content New: Snow.type intValue=%d\n", enumVal);
                                         // Assign to ASN.1 field
                                         fip->roadSurfaceDescription.choice.snow.type = enumVal;
                                     }
@@ -2622,7 +2672,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (fip->dryOrWet)
                         {
                             *fip->dryOrWet = (long)intVal;
-                            printf("Content New: dryOrWet = %d\n", intVal);
                         }
                         else
                         {
