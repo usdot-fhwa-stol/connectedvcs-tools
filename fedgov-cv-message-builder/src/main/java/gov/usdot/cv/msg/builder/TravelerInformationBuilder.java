@@ -67,9 +67,7 @@ public class TravelerInformationBuilder {
 
 			deposit = (travInputData != null && travInputData.deposit != null);
 
-			// TODO:
-			// validate is commented out will investigate later
-			// travInputData.validate();
+			travInputData.validate();
 			travInputData.applyLatLonOffset();
 			travInputData.initialzeReferencePoints();
 			System.out.println("Checking type : " + travInputData.getGenerateType());
