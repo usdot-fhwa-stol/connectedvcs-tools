@@ -107,7 +107,8 @@ public class TravelerInputValidationTest {
     @Test(expected = IllegalArgumentException.class)
     public void validate_startTimeAfterEndTime  () throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.endTime = "";
+        data.anchorPoint.startTime = "05/22/2015 10:56 AM";
+        data.anchorPoint.endTime = "05/21/2015 10:56 AM";
         data.validate();
     }
 
