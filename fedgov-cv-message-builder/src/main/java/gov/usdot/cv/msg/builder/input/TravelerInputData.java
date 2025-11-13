@@ -71,6 +71,11 @@ public class TravelerInputData {
 		return GenerateType.fromType(messageType);
 	}
 
+/*
+ * Validates TIM message inputs (region types, coordinates,
+ * MUTCD codes, start/end times, infoType, TTL, etc.).
+ * Throws IllegalArgumentException if any value is invalid.
+ */
 	public void validate() {
 		if (regions == null || regions.length == 0) {
 			throw new IllegalArgumentException("regions cannot be null/empty");
