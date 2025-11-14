@@ -47,7 +47,7 @@ public class TravelerInputData {
 	}
 
 	private static final Logger logger = LogManager.getLogger(TravelerInputData.class);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm a");
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 
 	public Region[] regions;
 	public AnchorPoint anchorPoint;
@@ -128,7 +128,7 @@ public class TravelerInputData {
 					startDate = sdf.parse(anchorPoint.startTime);
 				} catch (ParseException e) {
 					throw new IllegalArgumentException(
-							"startTime must use the format \"MM/dd HH:mm a yyyy\" error: " + e);
+							"startTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
 				}
 			}
 
@@ -140,7 +140,7 @@ public class TravelerInputData {
 					endDate = sdf.parse(anchorPoint.endTime);
 				} catch (ParseException e) {
 					throw new IllegalArgumentException(
-							"endTime must use the format \"MM/dd HH:mm a yyyy\" error: " + e);
+							"endTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
 				}
 			}
 

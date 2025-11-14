@@ -115,8 +115,8 @@ public class TravelerInputValidationTest {
         @Test
     public void validate_validEndTime() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-         data.anchorPoint.startTime = "05/20/2015 10:56 AM";
-        data.anchorPoint.endTime = "05/21/2015 10:56 AM";
+         data.anchorPoint.startTime = "05/21/2015 10:56 AM";
+        data.anchorPoint.endTime = "05/21/2015 2:56 PM";
         data.validate();
     }
 
