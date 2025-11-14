@@ -29,6 +29,9 @@ public class Circle {
         this.units = units;
     }
 
+    public Circle() {
+    }
+
     public Position3D getCenter() {
         return center;
     }

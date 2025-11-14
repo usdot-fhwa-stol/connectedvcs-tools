@@ -23,7 +23,7 @@ public class GeographicalPath {
     private DescriptiveName name;
     private RoadSegmentReferenceID id;
     private Position3D anchor;
-    private int laneWidth;
+    private LaneWidth laneWidth;
     private DirectionOfUse directionality;
     private boolean closedPath;
     private HeadingSlice direction;
@@ -33,7 +33,7 @@ public class GeographicalPath {
         
     }
 
-    public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, int laneWidth,
+    public GeographicalPath(DescriptiveName name, RoadSegmentReferenceID id, Position3D anchor, LaneWidth laneWidth,
             DirectionOfUse directionality, boolean closedPath, HeadingSlice direction, Description description) {
         this.name = name;
         this.id = id;
@@ -54,7 +54,7 @@ public class GeographicalPath {
     public Position3D getAnchor() {
         return anchor;
     }
-    public int getLaneWidth() {
+    public LaneWidth getLaneWidth() {
         return laneWidth;
     }
     public DirectionOfUse getDirectionality() {
@@ -79,7 +79,7 @@ public class GeographicalPath {
     public void setAnchor(Position3D anchor) {
         this.anchor = anchor;
     }
-    public void setLaneWidth(int laneWidth) {
+    public void setLaneWidth(LaneWidth laneWidth) {
         this.laneWidth = laneWidth;
     }
     public void setDirectionality(DirectionOfUse directionality) {
@@ -134,6 +134,21 @@ public class GeographicalPath {
 
         public ValidRegion getOldRegionChosen() {
             return oldRegion_chosen;
+        }
+
+        public void setPath(OffsetSystem path) {
+            this.choice = Choice.path_chosen;
+            this.path_chosen = path;
+        }
+
+        public void setGeometry(GeometricProjection geometry) {
+            this.choice = Choice.geometry_chosen;
+            this.geometry_chosen = geometry;
+        }
+
+        public void setOldRegion(ValidRegion oldRegion) {
+            this.choice = Choice.oldRegion_chosen;
+            this.oldRegion_chosen = oldRegion;
         }
 
         @Override
