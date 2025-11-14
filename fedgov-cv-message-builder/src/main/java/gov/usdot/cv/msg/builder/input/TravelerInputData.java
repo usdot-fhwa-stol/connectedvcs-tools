@@ -18,6 +18,11 @@ import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
 
 public class TravelerInputData {
 
+	private static final List<Long> validMutcds = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L);
+	private static final List<Long> validInfoTypes = Arrays.asList(0L, 1L, 2L, 3L);
+	private static final List<Long> validTTLs = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L);
+	private static final List<Long> validExtents = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L,13L, 14L, 15L);
+	
 	public enum GenerateType {
 		ASD("ASD"),
 		TIM("TIM"),
@@ -42,7 +47,7 @@ public class TravelerInputData {
 	}
 
 	private static final Logger logger = LogManager.getLogger(TravelerInputData.class);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm a");
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 
 	public Region[] regions;
 	public AnchorPoint anchorPoint;
@@ -66,136 +71,111 @@ public class TravelerInputData {
 		return GenerateType.fromType(messageType);
 	}
 
-	// public void validate() {
-	// if (regions == null || regions.length == 0) {
-	// throw new IllegalArgumentException("regions cannot be null/empty");
-	// } else {
-	// for (Region region: regions) {
-	// if (region.regionType == null) {
-	// throw new IllegalArgumentException("regionType is required");
-	// } else {
-	// if (!region.regionType.equals("lane") && !region.regionType.equals("region")
-	// && !region.regionType.equals("circle")) {
-	// throw new IllegalArgumentException("regionType must be either 'lane',
-	// 'region', or 'circle'");
-	// }
-	// }
-	// if (region.extent != -1) {
-	// List<Long> validExtents =
-	// getValidEnumeratedValues(Extent.forever.getNamedNumbers());
-	// if (!validExtents.contains((long)region.extent)) {
-	// throw new IllegalArgumentException("Invalid extent value: " +
-	// region.extent + " valid values are: " + validExtents);
-	// }
-	// }
+/*
+ * Validates TIM message inputs (region types, coordinates,
+ * MUTCD codes, start/end times, infoType, TTL, etc.).
+ * Throws IllegalArgumentException if any value is invalid.
+ */
+	public void validate() {
+		if (regions == null || regions.length == 0) {
+			throw new IllegalArgumentException("regions cannot be null/empty");
+		} else {
+			for (Region region : regions) {
+				if (region.regionType == null) {
+					throw new IllegalArgumentException("regionType is required");
+				} else {
+					if (!region.regionType.equals("lane") && !region.regionType.equals("region")
+							&& !region.regionType.equals("circle")) {
+						throw new IllegalArgumentException("regionType must be either 'lane','region', or 'circle'");
+					}
+				}
+				if (region.extent != -1) {
+					if (!validExtents.contains((long) region.extent)) {
+						throw new IllegalArgumentException("Invalid extent value: " +
+								region.extent + " valid values are: " + validExtents);
+					}
+				}
 
-	// if (region.laneNodes != null) {
-	// for (LaneNode laneNode: region.laneNodes) {
-	// validateLat("nodeNumber " + laneNode.nodeNumber + " nodeLat",
-	// laneNode.nodeLat);
-	// validateLon("nodeNumber " + laneNode.nodeNumber + " nodeLong",
-	// laneNode.nodeLong);
-	// }
-	// }
-	// }
-	// }
-	// if (anchorPoint == null) {
-	// throw new IllegalArgumentException("anchorPoint cannot be null");
-	// } else {
-	// validateLat("anchorPoint.referenceLat", anchorPoint.referenceLat);
-	// validateLon("anchorPoint.referenceLon", anchorPoint.referenceLon);
+				if (region.laneNodes != null) {
+					for (LaneNode laneNode : region.laneNodes) {
+						validateLat("nodeNumber " + laneNode.nodeNumber + " nodeLat",
+								laneNode.nodeLat);
+						validateLon("nodeNumber " + laneNode.nodeNumber + " nodeLong",
+								laneNode.nodeLong);
+					}
+				}
+			}
+		}
+		if (anchorPoint == null) {
+			throw new IllegalArgumentException("anchorPoint cannot be null");
+		} else {
+			validateLat("anchorPoint.referenceLat", anchorPoint.referenceLat);
+			validateLon("anchorPoint.referenceLon", anchorPoint.referenceLon);
 
-	// if (anchorPoint.content == null || anchorPoint.content.length == 0)
-	// throw new IllegalArgumentException("content cannot be null/empty");
+			if (anchorPoint.content == null || anchorPoint.content.length == 0)
+				throw new IllegalArgumentException("content cannot be null/empty");
 
-	// List<Long> validDirections =
-	// getValidEnumeratedValues(DirectionOfUse.both.getNamedNumbers());
-	// if (!validDirections.contains((long)anchorPoint.direction)) {
-	// throw new IllegalArgumentException("Invalid direction value: " +
-	// anchorPoint.direction + " valid values are: " + validDirections);
-	// }
+			if (!validMutcds.contains((long) anchorPoint.mutcd)) {
+				throw new IllegalArgumentException("Invalid mutcd value: " +
+						anchorPoint.mutcd + " valid values are: " + validMutcds);
+			}
 
-	// List<Long> validMutcds =
-	// getValidEnumeratedValues(MUTCDCode.none.getNamedNumbers());
-	// if (!validMutcds.contains((long)anchorPoint.mutcd)) {
-	// throw new IllegalArgumentException("Invalid mutcd value: " +
-	// anchorPoint.mutcd + " valid values are: " + validMutcds);
-	// }
+			Date startDate = null;
+			if (anchorPoint.startTime == null || anchorPoint.startTime.isEmpty()) {
+				throw new IllegalArgumentException("startTime cannot be null/empty");
+			} else {
+				try {
+					startDate = sdf.parse(anchorPoint.startTime);
+				} catch (ParseException e) {
+					throw new IllegalArgumentException(
+							"startTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
+				}
+			}
 
-	// Date startDate = null;
-	// if (anchorPoint.startTime == null || anchorPoint.startTime.isEmpty()) {
-	// throw new IllegalArgumentException("startTime cannot be null/empty");
-	// } else {
-	// try {
-	// startDate = sdf.parse(anchorPoint.startTime);
-	// } catch (ParseException e) {
-	// throw new IllegalArgumentException("startTime must use the format \"MM/dd
-	// HH:mm a yyyy\" error: " + e);
-	// }
-	// }
+			Date endDate = null;
+			if (anchorPoint.endTime == null || anchorPoint.endTime.isEmpty()) {
+				throw new IllegalArgumentException("endTime cannot be null/empty");
+			} else {
+				try {
+					endDate = sdf.parse(anchorPoint.endTime);
+				} catch (ParseException e) {
+					throw new IllegalArgumentException(
+							"endTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
+				}
+			}
 
-	// Date endDate = null;
-	// if (anchorPoint.endTime == null || anchorPoint.endTime.isEmpty()) {
-	// throw new IllegalArgumentException("endTime cannot be null/empty");
-	// } else {
-	// try {
-	// endDate = sdf.parse(anchorPoint.endTime);
-	// } catch (ParseException e) {
-	// throw new IllegalArgumentException("endTime must use the format \"MM/dd HH:mm
-	// a yyyy\" error: " + e);
-	// }
-	// }
+			if (startDate != null && endDate != null) {
+				if (startDate.after(endDate)) {
+					throw new IllegalArgumentException("startTime must be before endTime");
+				}
+			}
 
-	// if (startDate != null && endDate != null) {
-	// if (startDate.after(endDate)) {
-	// throw new IllegalArgumentException("startTime must be before endTime");
-	// }
-	// }
+			if (!validInfoTypes.contains((long) anchorPoint.infoType)) {
+				throw new IllegalArgumentException("Invalid infoType value: " +
+						anchorPoint.infoType + " valid values are: " + validInfoTypes);
+			}
+		}
+		if (verifiedPoint == null) {
+			throw new IllegalArgumentException("verifiedPoint cannot be null");
+		} else {
+			validateLat("verifiedPoint.verifiedMapLat", verifiedPoint.verifiedMapLat);
+			validateLon("verifiedPoint.verifiedMapLon", verifiedPoint.verifiedMapLon);
+			validateLat("verifiedPoint.verifiedSurveyedLat",
+					verifiedPoint.verifiedSurveyedLat);
+			validateLon("verifiedPoint.verifiedSurveyedLon",
+					verifiedPoint.verifiedSurveyedLon);
+		}
 
-	// List<Long> validInfoTypes =
-	// getValidEnumeratedValues(TravelerInfoType.unknown.getNamedNumbers());
-	// if (!validInfoTypes.contains((long)anchorPoint.infoType)) {
-	// throw new IllegalArgumentException("Invalid infoType value: " +
-	// anchorPoint.infoType + " valid values are: " + validInfoTypes);
-	// }
-	// }
-	// if (verifiedPoint == null) {
-	// throw new IllegalArgumentException("verifiedPoint cannot be null");
-	// } else {
-	// validateLat("verifiedPoint.verifiedMapLat", verifiedPoint.verifiedMapLat);
-	// validateLon("verifiedPoint.verifiedMapLon", verifiedPoint.verifiedMapLon);
-	// validateLat("verifiedPoint.verifiedSurveyedLat",
-	// verifiedPoint.verifiedSurveyedLat);
-	// validateLon("verifiedPoint.verifiedSurveyedLon",
-	// verifiedPoint.verifiedSurveyedLon);
-	// }
+		if (deposit != null) {
 
-	// if (deposit != null) {
-	// //Set<String> systemNames =
-	// WebSocketHelper.getWsClientManager().getSystemNames();
-	// //if (!systemNames.contains(deposit.systemName)) {
-	// // throw new IllegalArgumentException("Invalid systemName value: " +
-	// // deposit.systemName + " valid values are: " + systemNames);
-	// //}
-
-	// if (deposit.timeToLive != -1) {
-	// List<Long> validTTLs =
-	// getValidEnumeratedValues(TimeToLive.halfHour.getNamedNumbers());
-	// if (!validTTLs.contains((long)deposit.timeToLive)) {
-	// throw new IllegalArgumentException("Invalid timeToLive value: " +
-	// deposit.timeToLive + " valid values are: " + validTTLs);
-	// }
-	// }
-	// }
-	// }
-
-	// private List<Long> getValidEnumeratedValues(Enumerated[] enumerated) {
-	// List<Long> values = new ArrayList<Long>();
-	// for (Enumerated e: enumerated) {
-	// values.add(e.longValue());
-	// }
-	// return values;
-	// }
+			if (deposit.timeToLive != -1) {
+				if (!validTTLs.contains((long) deposit.timeToLive)) {
+					throw new IllegalArgumentException("Invalid timeToLive value: " +
+							deposit.timeToLive + " valid values are: " + validTTLs);
+				}
+			}
+		}
+	}
 
 	private void validateLat(String name, double lat) {
 		// 0.0 is invalid for our purposes, catches uninitialized values
