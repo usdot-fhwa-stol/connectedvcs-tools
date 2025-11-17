@@ -202,9 +202,9 @@ public class TIMEncodeTest {
                 when(mockRegion2.getAnchor()).thenReturn(new Position3D(4.23369794E8, -8.40508547E8, 200, true));
                 when(mockRegion3.getAnchor()).thenReturn(new Position3D(4.33369794E8, -8.50508547E8, 300, true));
 
-                when(mockRegion1.getLaneWidth()).thenReturn(new LaneWidth(360));
-                when(mockRegion2.getLaneWidth()).thenReturn(new LaneWidth(361));
-                when(mockRegion3.getLaneWidth()).thenReturn(new LaneWidth(362));
+                when(mockRegion1.getLaneWidth()).thenReturn(360);
+                when(mockRegion2.getLaneWidth()).thenReturn(361);
+                when(mockRegion3.getLaneWidth()).thenReturn(362);
 
                 when(mockRegion1.getDirectionality()).thenReturn(DirectionOfUse.forward);
                 when(mockRegion2.getDirectionality()).thenReturn(DirectionOfUse.reverse);
@@ -229,7 +229,7 @@ public class TIMEncodeTest {
                 HeadingSlice headingSlice4 = new HeadingSlice(0b1111101000000000);
                 when(mockGeometricProjection1.getHeadingSlice()).thenReturn(headingSlice4);
                 when(mockGeometricProjection1.getExtent()).thenReturn(Extent.useFor3meters);
-                when(mockGeometricProjection1.getLaneWidth()).thenReturn(new LaneWidth(370));
+                when(mockGeometricProjection1.getLaneWidth()).thenReturn(370);
                 when(mockCircle1.getCenter()).thenReturn(new Position3D(4.53369794E8, -8.30508547E8, 50, true));
                 when(mockCircle1.getRadius()).thenReturn(new Radius_B12(30));
                 when(mockCircle1.getUnits()).thenReturn(DistanceUnits.meter);
