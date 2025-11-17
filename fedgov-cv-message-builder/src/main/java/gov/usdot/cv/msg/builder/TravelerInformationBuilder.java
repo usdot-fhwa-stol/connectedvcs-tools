@@ -33,10 +33,13 @@ import gov.usdot.cv.msg.builder.input.TravelerInputData.AnchorPoint;
 import gov.usdot.cv.msg.builder.input.TravelerInputData.GenerateType;
 import gov.usdot.cv.msg.builder.input.TravelerInputData.ItisContent;
 import gov.usdot.cv.timencoder.TravelerDataFrame.Content;
+import io.netty.handler.codec.http2.Http2FrameLogger.Direction;
 import gov.usdot.cv.msg.builder.util.ItisNumberEncoder;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.msg.builder.exception.MessageBuildException;
 import gov.usdot.cv.timencoder.*;
+import gov.usdot.cv.timencoder.GeographicalPath.Description;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData;
 import gov.usdot.cv.msg.builder.input.TravelerInputData;
 import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
@@ -418,10 +421,134 @@ public class TravelerInformationBuilder {
 
 	private List<GeographicalPath> buildRegions(TravelerInputData travInputData) {
 		List<GeographicalPath> regionList = new ArrayList<>();
-		GeographicalPath region1 = new GeographicalPath();
-		// TODO: will be implemented in a  later story
-		regionList.add(region1);
+
+		for (TravelerInputData.Region inputRegion: travInputData.regions) {
+			GeographicalPath geoPath = new GeographicalPath();
+			
+			geoPath.setAnchor(getAnchorPointPosition(travInputData));
+			
+			if(travInputData.anchorPoint.direction != 0) {
+				// Our values for direction are off by 1 since the GUI doesn't support
+				// "unavailable" DirectionOfUse
+				int directionOfUse = travInputData.anchorPoint.direction;// + 1;
+				geoPath.setDirectionality(DirectionOfUse.valueOf(directionOfUse));
+			}
+
+			Description description = new Description();
+			if(inputRegion.regionType.equals("circle")) {
+				GeometricProjection geometry = new GeometricProjection();
+				
+				geometry.setHeadingSlice(getHeadingSlice(travInputData));
+				
+				geometry.setExtent(Extent.fromValue(inputRegion.extent));
+				
+				if(travInputData.anchorPoint.masterLaneWidth != 0) {
+					geometry.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
+				}
+				
+				geometry.setCircle(buildCircle(travInputData, inputRegion));
+				
+				description.setGeometry(geometry);
+			}
+			else {
+				if(travInputData.anchorPoint.masterLaneWidth != 0) {
+					geoPath.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
+				}
+				
+				geoPath.setDirection(getHeadingSlice(travInputData));
+				
+				if (inputRegion.regionType.equals("lane")) {
+					geoPath.setClosedPath(false);
+				} else if (inputRegion.regionType.equals("region")) {
+					geoPath.setClosedPath(true);
+				}
+				
+				// OffsetSystem path = new OffsetSystem();
+				// path.setOffset(buildOffset(travInputData, inputRegion, offsetEncoding));
+				// description.setPath(path);
+				
+				geoPath.setDirection(getHeadingSlice(travInputData));
+			}
+			geoPath.setDescription(description);
+			
+			
+			regionList.add(geoPath);
+		}
 		return regionList;
+	}
+
+	private Circle buildCircle(TravelerInputData travInputData, TravelerInputData.Region inputRegion) {
+		Circle circle = new Circle();
+		
+		Position3D center = new Position3D();
+		center.setLatitude(J2735TIMHelper.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLat)); 
+		center.setLongitude(J2735TIMHelper.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
+
+		if(travInputData.enableElevation && 
+		   inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
+			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
+		}
+		circle.setCenter(center);
+		
+		setRadiusAndUnits(circle, inputRegion.radius);
+		
+		return circle;
+	}
+
+	private void setRadiusAndUnits(Circle circle, double radiusInMeters) {
+		double radiusInCentimeters = radiusInMeters * 100;
+		
+		double radius;
+		DistanceUnits distanceUnits;
+		if(0 <= radiusInCentimeters && radiusInCentimeters <= 4094) {
+			radius = radiusInCentimeters;
+			distanceUnits = DistanceUnits.centimeter;
+		}
+		else if(4095 <= radiusInCentimeters && radiusInCentimeters <= 40940) {
+			radius = radiusInCentimeters / 10;
+			distanceUnits = DistanceUnits.decimeter;
+		}
+		else if(40941 <= radiusInCentimeters && radiusInCentimeters <= 409400) {
+			radius = radiusInCentimeters / 100;
+			distanceUnits = DistanceUnits.meter;
+		}
+		else if(409401 <= radiusInCentimeters && radiusInCentimeters <= 409400000) {
+			radius = radiusInCentimeters / 100000;
+			distanceUnits = DistanceUnits.kilometer;
+		}
+		else {
+			// Value of 4095 indicates unknown.
+			radius = 4095;
+			distanceUnits = DistanceUnits.centimeter;
+		}
+		int roundedRadius = (int)Math.ceil(radius);
+		
+		// No need to waste space with trailing 0s, i.e., why have 400 cm when that is 4 m.
+		// Up-convert the distance unit and radius when possible. 
+		if(distanceUnits == DistanceUnits.centimeter) {
+			int decimeterValue = roundedRadius / 10;
+			if(decimeterValue * 10 == roundedRadius) {
+				roundedRadius = decimeterValue;
+				distanceUnits = DistanceUnits.decimeter;
+			}
+		}
+		if(distanceUnits == DistanceUnits.decimeter) {
+			int meterValue = roundedRadius / 10;
+			if(meterValue * 10 == roundedRadius) {
+				roundedRadius = meterValue;
+				distanceUnits = DistanceUnits.meter;
+			}
+		}
+		if(distanceUnits == DistanceUnits.meter) {
+			int kilometerValue = roundedRadius / 1000;
+			if(kilometerValue * 1000 == roundedRadius) {
+				roundedRadius = kilometerValue;
+				distanceUnits = DistanceUnits.kilometer;
+			}
+		}
+		
+		circle.setRadius(new Radius_B12(roundedRadius));
+		circle.setUnits(distanceUnits);
 	}
 
 	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {

@@ -136,6 +136,21 @@ public class GeographicalPath {
             return oldRegion_chosen;
         }
 
+        public void setPath(OffsetSystem path) {
+            this.choice = Choice.path_chosen;
+            this.path_chosen = path;
+        }
+
+        public void setGeometry(GeometricProjection geometry) {
+            this.choice = Choice.geometry_chosen;
+            this.geometry_chosen = geometry;
+        }
+
+        public void setOldRegion(ValidRegion oldRegion) {
+            this.choice = Choice.oldRegion_chosen;
+            this.oldRegion_chosen = oldRegion;
+        }
+
         @Override
         public String toString() {
             return "Description {" +

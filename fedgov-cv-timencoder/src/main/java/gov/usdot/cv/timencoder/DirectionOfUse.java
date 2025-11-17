@@ -33,6 +33,15 @@ public enum DirectionOfUse {
         return value;
     }
 
+    public static DirectionOfUse valueOf(int value) {
+        for (DirectionOfUse direction : DirectionOfUse.values()) {
+            if (direction.getValue() == value) {
+                return direction;
+            }
+        }
+        throw new IllegalArgumentException("Invalid DirectionOfUse value: " + value);
+    }
+
     @Override
     public String toString() {
         return "DirectionOfUse{" +

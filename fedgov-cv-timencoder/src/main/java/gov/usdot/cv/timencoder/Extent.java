@@ -45,6 +45,15 @@ public enum Extent {
         return value;
     }
 
+    public static Extent fromValue(int value) {
+        for (Extent extent : Extent.values()) {
+            if (extent.getValue() == value) {
+                return extent;
+            }
+        }
+        throw new IllegalArgumentException("Invalid Extent value: " + value);
+    }
+
     @Override
     public String toString() {
         return "Extent{" +
