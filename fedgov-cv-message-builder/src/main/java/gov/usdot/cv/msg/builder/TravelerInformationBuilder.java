@@ -445,7 +445,7 @@ public class TravelerInformationBuilder {
 				geometry.setExtent(Extent.fromValue(inputRegion.extent));
 				
 				if(travInputData.anchorPoint.masterLaneWidth != 0) {
-					geometry.setLaneWidth(new LaneWidth(travInputData.anchorPoint.masterLaneWidth));
+					geometry.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
 				}
 				
 				geometry.setCircle(buildCircle(travInputData, inputRegion));
@@ -454,7 +454,7 @@ public class TravelerInformationBuilder {
 			}
 			else {
 				if(travInputData.anchorPoint.masterLaneWidth != 0) {
-					geoPath.setLaneWidth(new LaneWidth(travInputData.anchorPoint.masterLaneWidth));
+					geoPath.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
 				}
 				
 				geoPath.setDirection(getHeadingSlice(travInputData));
