@@ -14,6 +14,7 @@
  * the License.
  */
 package gov.usdot.cv.msg.builder;
+
 import java.text.ParseException;
 import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,6 @@ import gov.usdot.cv.msg.builder.input.IntersectionInputData;
 import gov.usdot.cv.msg.builder.input.TravelerInputData;
 import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
-
 
 @Path("/messages/travelerinfo")
 public class TravelerInformationBuilder {
@@ -87,7 +87,7 @@ public class TravelerInformationBuilder {
 
 			switch (generateType) {
 				case ASD:
-					//TODO: ASD encoding will be implemented in a later story
+					// TODO: ASD encoding will be implemented in a later story
 					break;
 				case TIM:
 					tim = new TravelerInformationMessage();
@@ -158,19 +158,19 @@ public class TravelerInformationBuilder {
 		Content content = new Content();
 		System.out.println("Content Type: " + contentType);
 		if ("Advisory".equals(contentType)) {
-			//takes max 100 itis codes or text with max length of 500 chars
+			// takes max 100 itis codes or text with max length of 500 chars
 			content.setAdvisory(buildAdvisory(codes, 100, 500));
 		} else if ("Work Zone".equals(contentType)) {
-			//takes max 16 itis codes or text with max length of 16 chars
+			// takes max 16 itis codes or text with max length of 16 chars
 			content.setWorkZone(buildWorkZone(codes, 16, 16));
 		} else if ("Speed Limit".equals(contentType)) {
-			//takes max 16 itis codes or text with max length of 16 chars
+			// takes max 16 itis codes or text with max length of 16 chars
 			content.setSpeedLimit(buildSpeedLimit(codes, 16, 16));
 		} else if ("Exit Service".equals(contentType)) {
-			//takes max 16 itis codes or text with max length of 16 chars
+			// takes max 16 itis codes or text with max length of 16 chars
 			content.setExitService(buildExitService(codes, 16, 16));
 		} else {
-			//takes max 16 itis codes or text with max length of 16 chars
+			// takes max 16 itis codes or text with max length of 16 chars
 			content.setGenericSign(buildGenericSignage(codes, 16, 16));
 		}
 		return content;
@@ -199,7 +199,6 @@ public class TravelerInformationBuilder {
 				continue;
 
 			if (code.hasText()) {
-				
 				ITISTextPhrase text = new ITISTextPhrase(code.getText(textLengthLimit));
 				items.add(new ITIScodesAndText.Item(text));
 				if (items.size() >= sizeLimit)
@@ -253,7 +252,6 @@ public class TravelerInformationBuilder {
 		SpeedLimit sl = new SpeedLimit();
 		if (codes == null || sizeLimit <= 0)
 			return sl;
-
 
 		List<SpeedLimit.SpeedLimitItem> items = sl.getItems();
 		if (items == null) {
@@ -383,12 +381,13 @@ public class TravelerInformationBuilder {
 			RoadSignID roadSignID = new RoadSignID();
 			roadSignID.setPosition(getAnchorPointPosition(travInputData));
 			roadSignID.setViewAngle(getHeadingSlice(travInputData));
-			//Todo: 
+			// Todo:
 			// MUTCD code is an optional field will be implement later story
 			// roadSignID.setMutcdCode(MUTCDCode.valueOf(travInputData.anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
 		} else {
-			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as well
+			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as
+			// well
 			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00, 0x00 }));
 		}
 		return msgId;
@@ -422,12 +421,12 @@ public class TravelerInformationBuilder {
 	private List<GeographicalPath> buildRegions(TravelerInputData travInputData) {
 		List<GeographicalPath> regionList = new ArrayList<>();
 
-		for (TravelerInputData.Region inputRegion: travInputData.regions) {
+		for (TravelerInputData.Region inputRegion : travInputData.regions) {
 			GeographicalPath geoPath = new GeographicalPath();
-			
+
 			geoPath.setAnchor(getAnchorPointPosition(travInputData));
-			
-			if(travInputData.anchorPoint.direction != 0) {
+
+			if (travInputData.anchorPoint.direction != 0) {
 				// Our values for direction are off by 1 since the GUI doesn't support
 				// "unavailable" DirectionOfUse
 				int directionOfUse = travInputData.anchorPoint.direction;// + 1;
@@ -435,43 +434,41 @@ public class TravelerInformationBuilder {
 			}
 
 			Description description = new Description();
-			if(inputRegion.regionType.equals("circle")) {
+			if (inputRegion.regionType.equals("circle")) {
 				GeometricProjection geometry = new GeometricProjection();
-				
+
 				geometry.setHeadingSlice(getHeadingSlice(travInputData));
-				
+
 				geometry.setExtent(Extent.fromValue(inputRegion.extent));
-				
-				if(travInputData.anchorPoint.masterLaneWidth != 0) {
-					geometry.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
+
+				if (travInputData.anchorPoint.masterLaneWidth != 0) {
+					geometry.setLaneWidth((int) travInputData.anchorPoint.masterLaneWidth);
 				}
-				
+
 				geometry.setCircle(buildCircle(travInputData, inputRegion));
-				
+
 				description.setGeometry(geometry);
-			}
-			else {
-				if(travInputData.anchorPoint.masterLaneWidth != 0) {
-					geoPath.setLaneWidth((int)travInputData.anchorPoint.masterLaneWidth);
+				geoPath.setDescription(description);
+			} else {
+				if (travInputData.anchorPoint.masterLaneWidth != 0) {
+					geoPath.setLaneWidth((int) travInputData.anchorPoint.masterLaneWidth);
 				}
-				
+
 				geoPath.setDirection(getHeadingSlice(travInputData));
-				
+
 				if (inputRegion.regionType.equals("lane")) {
 					geoPath.setClosedPath(false);
 				} else if (inputRegion.regionType.equals("region")) {
 					geoPath.setClosedPath(true);
 				}
-				
+
 				// OffsetSystem path = new OffsetSystem();
 				// path.setOffset(buildOffset(travInputData, inputRegion, offsetEncoding));
 				// description.setPath(path);
-				
+
 				geoPath.setDirection(getHeadingSlice(travInputData));
 			}
-			geoPath.setDescription(description);
-			
-			
+
 			regionList.add(geoPath);
 		}
 		return regionList;
@@ -479,74 +476,74 @@ public class TravelerInformationBuilder {
 
 	private Circle buildCircle(TravelerInputData travInputData, TravelerInputData.Region inputRegion) {
 		Circle circle = new Circle();
-		
-		Position3D center = new Position3D();
-		center.setLatitude(J2735TIMHelper.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLat)); 
-		center.setLongitude(J2735TIMHelper.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
 
-		if(travInputData.enableElevation && 
-		   inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
-			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
+		Position3D center = new Position3D();
+		center.setLatitude(J2735TIMHelper
+				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLat));
+		center.setLongitude(J2735TIMHelper
+				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
+
+		if (travInputData.enableElevation &&
+				inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
+			center.setElevation(IntersectionInputData
+					.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
 		}
 		circle.setCenter(center);
-		
+
 		setRadiusAndUnits(circle, inputRegion.radius);
-		
+
 		return circle;
 	}
 
 	private void setRadiusAndUnits(Circle circle, double radiusInMeters) {
 		double radiusInCentimeters = radiusInMeters * 100;
-		
+
 		double radius;
 		DistanceUnits distanceUnits;
-		if(0 <= radiusInCentimeters && radiusInCentimeters <= 4094) {
+		if (0 <= radiusInCentimeters && radiusInCentimeters <= 4094) {
 			radius = radiusInCentimeters;
 			distanceUnits = DistanceUnits.centimeter;
-		}
-		else if(4095 <= radiusInCentimeters && radiusInCentimeters <= 40940) {
+		} else if (4095 <= radiusInCentimeters && radiusInCentimeters <= 40940) {
 			radius = radiusInCentimeters / 10;
 			distanceUnits = DistanceUnits.decimeter;
-		}
-		else if(40941 <= radiusInCentimeters && radiusInCentimeters <= 409400) {
+		} else if (40941 <= radiusInCentimeters && radiusInCentimeters <= 409400) {
 			radius = radiusInCentimeters / 100;
 			distanceUnits = DistanceUnits.meter;
-		}
-		else if(409401 <= radiusInCentimeters && radiusInCentimeters <= 409400000) {
+		} else if (409401 <= radiusInCentimeters && radiusInCentimeters <= 409400000) {
 			radius = radiusInCentimeters / 100000;
 			distanceUnits = DistanceUnits.kilometer;
-		}
-		else {
+		} else {
 			// Value of 4095 indicates unknown.
 			radius = 4095;
 			distanceUnits = DistanceUnits.centimeter;
 		}
-		int roundedRadius = (int)Math.ceil(radius);
-		
-		// No need to waste space with trailing 0s, i.e., why have 400 cm when that is 4 m.
-		// Up-convert the distance unit and radius when possible. 
-		if(distanceUnits == DistanceUnits.centimeter) {
+		int roundedRadius = (int) Math.ceil(radius);
+
+		// No need to waste space with trailing 0s, i.e., why have 400 cm when that is 4
+		// m.
+		// Up-convert the distance unit and radius when possible.
+		if (distanceUnits == DistanceUnits.centimeter) {
 			int decimeterValue = roundedRadius / 10;
-			if(decimeterValue * 10 == roundedRadius) {
+			if (decimeterValue * 10 == roundedRadius) {
 				roundedRadius = decimeterValue;
 				distanceUnits = DistanceUnits.decimeter;
 			}
 		}
-		if(distanceUnits == DistanceUnits.decimeter) {
+		if (distanceUnits == DistanceUnits.decimeter) {
 			int meterValue = roundedRadius / 10;
-			if(meterValue * 10 == roundedRadius) {
+			if (meterValue * 10 == roundedRadius) {
 				roundedRadius = meterValue;
 				distanceUnits = DistanceUnits.meter;
 			}
 		}
-		if(distanceUnits == DistanceUnits.meter) {
+		if (distanceUnits == DistanceUnits.meter) {
 			int kilometerValue = roundedRadius / 1000;
-			if(kilometerValue * 1000 == roundedRadius) {
+			if (kilometerValue * 1000 == roundedRadius) {
 				roundedRadius = kilometerValue;
 				distanceUnits = DistanceUnits.kilometer;
 			}
 		}
-		
+
 		circle.setRadius(new Radius_B12(roundedRadius));
 		circle.setUnits(distanceUnits);
 	}
@@ -556,10 +553,10 @@ public class TravelerInformationBuilder {
 		DescriptionOfRoadSurface roadSurface = new DescriptionOfRoadSurface();
 		//
 
-		//ToDo: Inputs of surface condition will be implemented in a later story
-		String surfaceValue = "portland_cement"; 
+		// ToDo: Inputs of surface condition will be implemented in a later story
+		String surfaceValue = "portland_cement";
 
-		int type_value = 1; 
+		int type_value = 1;
 		switch (surfaceValue.toLowerCase()) {
 			case "portland_cement":
 				roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(0)));
@@ -592,8 +589,8 @@ public class TravelerInformationBuilder {
 
 		fInformation.setRoadSurfaceDescription(roadSurface);
 
-		//Todo:will get from travinput in a later story
-		int dry_wet_value = 1; 
+		// Todo:will get from travinput in a later story
+		int dry_wet_value = 1;
 		fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
 
 		return fInformation;

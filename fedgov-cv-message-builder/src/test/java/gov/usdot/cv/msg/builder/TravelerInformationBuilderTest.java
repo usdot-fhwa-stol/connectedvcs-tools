@@ -25,13 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import org.junit.Test;
 
-
 public class TravelerInformationBuilderTest {
 
 	@Test
 	public void testBuildTravelerInformation() throws IOException {
-		//testBuildTravelerInformation("sample_tim.json","0011006099ba1ebc7a9ba5640000ca3162d00800280000000807cd4040880100"); 
-		//testBuildTravelerInformation("sample_timplusframe.json","001f200011006099ba1ebc7a9ba5640000ca3162d00800280000000807cd4040880100");
+		testBuildTravelerInformation("sample_tim.json","0011006099ba1ebc7a9ba5640000ca3162d008006c133743d78f5374ac80b70000000201f35010220040"); 
+		testBuildTravelerInformation("sample_timplusframe.json","001f2a0011006099ba1ebc7a9ba5640000ca3162d008006c133743d78f5374ac80b70000000201f35010220040");
 		testBuildTravelerInformation("tim_Circle.json","001102629dc2385273926240217000006fb102d030406a53b8470a4e724c48042e00000b00000816e0d693a401ad2747ff5640420000430040880100");
 		testBuildTravelerInformation("tim_Circle2.json","001102629dc2385273926240217000006fb102d030406a53b8470a4e724c48042e00000b00000816e0d693a401ad2747fc1f50420000430040880100");
 	}
@@ -42,8 +41,6 @@ public class TravelerInformationBuilderTest {
 		TravelerInformationMessage timMessage = (TravelerInformationMessage) timBuilder.build(json);
 		System.out.println("TIM Message Name: " + timMessage.getMessageName());
 		assertEquals(expectedString, timMessage.getHexString());
-		
-
 	}
 
 }

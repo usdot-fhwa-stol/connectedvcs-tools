@@ -145,6 +145,9 @@ public class TravelerInputData {
 			}
 
 			if (startDate != null && endDate != null) {
+				System.out.println("startDate" + startDate);
+				System.out.println("endDate" + endDate);
+
 				if (startDate.after(endDate)) {
 					throw new IllegalArgumentException("startTime must be before endTime");
 				}
