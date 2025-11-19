@@ -328,9 +328,37 @@ function createMessageJSON() {
                 startTime: attrs.startTime,
                 endTime: attrs.endTime,
                 heading: getHeading(attrs.heading),
-                road_surface: attrs.road_surface?.substring(1, 2),
-                road_condition: attrs.road_condition
+                roadSurfaceDescription: attrs.road_condition,
+                dryOrWet: attrs.road_surface?.substring(1, 2),
             };
+
+            // NEW: Include the specific subtype field based on road_condition
+            switch (attrs.road_condition) {
+                case "Portland Cement":
+                    if (attrs.PortlandCementType !== undefined) {
+                        anchor.PortlandCementType = attrs.PortlandCementType;
+                    }
+                    break;
+                case "Asphalt or Tar":
+                    if (attrs.AsphaltOrTarType !== undefined) {
+                        anchor.AsphaltOrTarType = attrs.AsphaltOrTarType;
+                    }
+                    break;
+                case "Gravel":
+                    if (attrs.GravelType !== undefined) {
+                        anchor.GravelType = attrs.GravelType;
+                    }
+                    break;
+                case "Snow":
+                    if (attrs.SnowType !== undefined) {
+                        anchor.SnowType = attrs.SnowType;
+                    }
+                    break;
+                default:
+                    // For other types, no additional fields
+                    break;
+            }
+
         }
 
         if (marker?.type === "VER") {

@@ -1682,6 +1682,33 @@ $(".btnDone").click(function () {
         selected_marker.set('heading', JSON.parse(JSON.stringify(circles)));
         selected_marker.set('road_condition', road_condition);
         selected_marker.set('road_surface', road_surface);
+
+        switch (road_condition) {
+          case "Portland Cement":
+            const pc_text = $('#PortlandCementType .dropdown-toggle').text().trim();
+            const pc_value = mapSubtypeToValue('PortlandCementType', pc_text);
+            selected_marker.set('PortlandCementType', pc_value);
+            break;
+          case "Asphalt or Tar":
+            const at_text = $('#AsphaltOrTarType .dropdown-toggle').text().trim();
+            const at_value = mapSubtypeToValue('AsphaltOrTarType', at_text);
+            selected_marker.set('AsphaltOrTarType', at_value);
+            break;
+          case "Gravel":
+            const g_text = $('#GravelType .dropdown-toggle').text().trim();
+            const g_value = mapSubtypeToValue('GravelType', g_text);
+            selected_marker.set('GravelType', g_value);
+            break;
+          case "Snow":
+            const s_text = $('#SnowType .dropdown-toggle').text().trim();
+            const s_value = mapSubtypeToValue('SnowType', s_text);
+            selected_marker.set('SnowType', s_value);
+            break;
+          default:
+            // For types without subtypes, do nothing or set defaults if needed
+            break;
+        }
+
       }
     }
 
@@ -1708,6 +1735,32 @@ $(".btnDone").click(function () {
 
   onFeatureAdded();
 });
+
+function mapSubtypeToValue(type, text) {
+  const mappings = {
+    PortlandCementType: {
+      "New Sharp": 0,
+      "Traveled": 1,
+      "Traffic Polished": 2
+    },
+    AsphaltOrTarType: {
+      "New Sharp": 0,
+      "Traveled": 1,
+      "Traffic Polished": 2,
+      "Excess Tar": 3
+    },
+    GravelType: {
+      "Packed and Oiled": 0,
+      "Loose": 1
+    },
+    SnowType: {
+      "Packed": 0,
+      "Loose": 1
+    }
+  };
+
+  return mappings[type]?.[text] ?? null;  // Return null if no match
+}
 
 
 
@@ -1850,6 +1903,34 @@ $(".dropdown-menu li a").click(function () {
 
   if (type == "road_surface") {
     road_surface = selText;
+  }
+
+    if (type === "road_condition") {
+    // Hide all subtype rows
+    $('.subtype-row').hide();
+
+    // Show the relevant subtype row and make its dropdown visible
+    switch (selText) {
+      case "Portland Cement":
+        $('.PortlandCementType').show();
+        $('#PortlandCementType a').css('display', '');  // Remove display:none
+        break;
+      case "Asphalt or Tar":
+        $('.asphalt_type').show();
+        $('#asphalt_type a').css('display', '');
+        break;
+      case "Gravel":
+        $('.GravelType').show();
+        $('#GravelType a').css('display', '');
+        break;
+      case "Snow":
+        $('.SnowType').show();
+        $('#SnowType a').css('display', '');
+        break;
+      default:
+        // For other types (Grass, Cinders, Rock, Ice), keep hidden
+        break;
+    }
   }
 });
 
