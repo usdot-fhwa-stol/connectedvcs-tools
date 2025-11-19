@@ -329,7 +329,11 @@ function createMessageJSON() {
                 endTime: attrs.endTime,
                 heading: getHeading(attrs.heading),
                 road_surface: attrs.road_surface?.substring(1, 2),
-                road_condition: attrs.road_condition
+                road_condition: attrs.road_condition,
+                meanVerticalVariation: attrs.meanVerticalVariation,
+                vertialVariationStdDev: attrs.vertialVariationStdDev,
+                meanHorizontalVariation: attrs.meanHorizontalVariation,
+                horizontalVariationStdDev: attrs.horizontalVariationStdDev
             };
         }
 

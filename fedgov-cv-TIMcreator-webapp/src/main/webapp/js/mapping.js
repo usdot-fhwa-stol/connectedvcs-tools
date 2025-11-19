@@ -512,7 +512,7 @@ function registerMapEvents() {
     $("#selat").prop('readonly', true);
     $("#selong").prop('readonly', true);
 
-    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface").hide();
+    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".nwlat, .nwlong, .selat, .selong").show();
 
     const geom = selected_marker.getGeometry().getCoordinates()[0];
@@ -574,7 +574,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface').hide();
+    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev').hide();
     $('.direction-tab, .content-tab, .itis-tab, .road-condition-tab').hide();
 
     $(".lat, .long, .elev, .lane_width").show();
@@ -666,7 +666,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition").hide();
+    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".direction-tab, .content-tab, .itis-tab, .road-condition-tab").hide();
 
     $(".lat, .long, .elev").show();
@@ -1381,6 +1381,10 @@ function referencePointWindow(feature) {
   $('.ssp_loc_rights').show();
   $(".road_condition").show();
   $(".road_surface").show();
+  $(".meanVerticalVariation").show();
+  $(".vertialVariationStdDev").show();
+  $(".meanHorizontalVariation").show();
+  $(".horizontalVariationStdDev").show();
 
   if (feature.get('marker').name === "Verified Point Marker") {
     $(".selection-panel").text('Verified Point Configuration');
@@ -1447,6 +1451,11 @@ function referencePointWindow(feature) {
 
   const road_surface = selected_marker.get('road_surface');
   $('#road_surface .dropdown-toggle').html((road_surface || "Select A Surface") + " <span class='caret'></span>");
+
+  $('meanVerticalVariation').val(selected_marker.get('meanVerticalVariation') || '');
+  $('vertialVariationStdDev').val(selected_marker.get('vertialVariationStdDev') || '');
+  $('meanHorizontalVariation').val(selected_marker.get('meanHorizontalVariation') || '');
+  $('horizontalVariationStdDev').val(selected_marker.get('horizontalVariationStdDev') || '');
 
   if (selected_marker.get('heading')) {
     drawCircleSlices(selected_marker.get('heading'));
@@ -1682,6 +1691,10 @@ $(".btnDone").click(function () {
         selected_marker.set('heading', JSON.parse(JSON.stringify(circles)));
         selected_marker.set('road_condition', road_condition);
         selected_marker.set('road_surface', road_surface);
+        selected_marker.set('meanVerticalVariation', $('#meanVerticalVariation').val());
+        selected_marker.set('vertialVariationStdDev', $('#vertialVariationStdDev').val());
+        selected_marker.set('meanHorizontalVariation', $('#meanHorizontalVariation').val());
+        selected_marker.set('horizontalVariationStdDev', $('#horizontalVariationStdDev').val());
       }
     }
 
