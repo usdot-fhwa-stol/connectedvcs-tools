@@ -22,6 +22,7 @@ public class OffsetSystem {
     private Zoom scale;
     private Offset offset;
 
+    public OffsetSystem() {}
     public OffsetSystem(Zoom scale, Offset offset) {
         this.scale = scale;
         this.offset = offset;

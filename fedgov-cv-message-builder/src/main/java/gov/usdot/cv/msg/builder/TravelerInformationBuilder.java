@@ -19,6 +19,7 @@ import java.text.ParseException;
 import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -33,17 +34,32 @@ import org.apache.logging.log4j.Logger;
 import gov.usdot.cv.msg.builder.input.TravelerInputData.AnchorPoint;
 import gov.usdot.cv.msg.builder.input.TravelerInputData.GenerateType;
 import gov.usdot.cv.msg.builder.input.TravelerInputData.ItisContent;
+import gov.usdot.cv.msg.builder.input.TravelerInputData.LaneNode;
+import gov.usdot.cv.msg.builder.input.TravelerInputData.Region;
 import gov.usdot.cv.timencoder.TravelerDataFrame.Content;
 import io.netty.handler.codec.http2.Http2FrameLogger.Direction;
+import gov.usdot.cv.msg.builder.util.BitStringHelper;
+import gov.usdot.cv.msg.builder.util.GeoPoint;
 import gov.usdot.cv.msg.builder.util.ItisNumberEncoder;
+import gov.usdot.cv.mapencoder.NodeAttributeSetXY;
+import gov.usdot.cv.mapencoder.NodeListXY;
+import gov.usdot.cv.mapencoder.NodeOffsetPointXY;
+import gov.usdot.cv.mapencoder.NodeSetXY;
+import gov.usdot.cv.mapencoder.NodeXY;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.msg.builder.exception.MessageBuildException;
 import gov.usdot.cv.timencoder.*;
 import gov.usdot.cv.timencoder.GeographicalPath.Description;
+import gov.usdot.cv.timencoder.OffsetSystem.Offset;
+import gov.usdot.cv.timencoder.OffsetSystem.Offset.Choice;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData;
 import gov.usdot.cv.msg.builder.input.TravelerInputData;
 import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
+import gov.usdot.cv.msg.builder.util.ObjectPrinter;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
+import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
 
 @Path("/messages/travelerinfo")
 public class TravelerInformationBuilder {
@@ -51,6 +67,9 @@ public class TravelerInformationBuilder {
 	private static final Logger logger = LogManager.getLogger(TravelerInformationBuilder.class);
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 	private static final int MAX_MINUTES_DURATION = 32000; // DSRC spec
+
+	private static final int LONG_BIT_STRING = 0b0000000000000000; // A 16-bit binary string
+	private static final int LONG_BIT_STRING_LENGTH = 16; // Length of the 16-bit binary string
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -408,12 +427,15 @@ public class TravelerInformationBuilder {
 
 	private HeadingSlice getHeadingSlice(TravelerInputData travInputData) {
 		int[] heading = travInputData.anchorPoint.heading;
-		HeadingSlice headingSlice = new HeadingSlice();
-		if (heading != null && heading.length != 0) {
-			for (int i = 0; i < heading.length; i++) {
-				headingSlice.set(i, heading[i] == 1);
-			}
+
+		// If heading is null or empty, return headingSlide as 0
+		if (heading == null || heading.length == 0) {
+			return new HeadingSlice(0);
 		}
+
+		int headingSliceBitString = LONG_BIT_STRING;
+		int headingBitString = BitStringHelper.getBitString(headingSliceBitString, LONG_BIT_STRING_LENGTH, heading);
+		HeadingSlice headingSlice = new HeadingSlice(headingBitString);
 
 		return headingSlice;
 	}
@@ -421,7 +443,13 @@ public class TravelerInformationBuilder {
 	private List<GeographicalPath> buildRegions(TravelerInputData travInputData) {
 		List<GeographicalPath> regionList = new ArrayList<>();
 
-		for (TravelerInputData.Region inputRegion : travInputData.regions) {
+		OffsetEncoding offsetEncoding = new OffsetEncoding(travInputData.nodeOffsets);
+
+		if (offsetEncoding.type != OffsetEncodingType.Tight) {
+			offsetEncoding.size = getOffsetEncodingSize(offsetEncoding.type, travInputData.regions, travInputData.anchorPoint);
+		}
+
+		for (Region inputRegion : travInputData.regions) {
 			GeographicalPath geoPath = new GeographicalPath();
 
 			geoPath.setAnchor(getAnchorPointPosition(travInputData));
@@ -448,7 +476,6 @@ public class TravelerInformationBuilder {
 				geometry.setCircle(buildCircle(travInputData, inputRegion));
 
 				description.setGeometry(geometry);
-				geoPath.setDescription(description);
 			} else {
 				if (travInputData.anchorPoint.masterLaneWidth != 0) {
 					geoPath.setLaneWidth((int) travInputData.anchorPoint.masterLaneWidth);
@@ -462,16 +489,76 @@ public class TravelerInformationBuilder {
 					geoPath.setClosedPath(true);
 				}
 
-				// OffsetSystem path = new OffsetSystem();
-				// path.setOffset(buildOffset(travInputData, inputRegion, offsetEncoding));
-				// description.setPath(path);
-
-				geoPath.setDirection(getHeadingSlice(travInputData));
+				OffsetSystem path = new OffsetSystem();
+				path.setOffset(buildOffset(travInputData, inputRegion, offsetEncoding));
+				description.setPath(path);
 			}
-
+			geoPath.setDescription(description);
 			regionList.add(geoPath);
 		}
 		return regionList;
+	}
+
+	private OffsetEncodingSize getOffsetEncodingSize(OffsetEncodingType offsetEncodingType, Region[] regions,
+			TravelerInputData.AnchorPoint anchorPoint) {
+		OffsetEncodingSize offsetEncodingSize;
+
+		switch (offsetEncodingType) {
+			case Compact:
+				int longestRegionOffsetInCm = 0;
+				for (Region inputRegion : regions) {
+					int longestLaneOffsetInCm = Math.abs(getLongestOffsetDistanceInCm(anchorPoint, inputRegion.laneNodes));
+					if (longestLaneOffsetInCm > longestRegionOffsetInCm) {
+						longestRegionOffsetInCm = longestLaneOffsetInCm;
+					}
+				}
+
+				offsetEncodingSize = OffsetEncodingSize.getOffsetEncodingSize(longestRegionOffsetInCm);
+				break;
+			case Explicit:
+				offsetEncodingSize = OffsetEncodingSize.Explicit64Bit;
+				break;
+			case Standard:
+			default:
+				offsetEncodingSize = OffsetEncodingSize.Offset32Bit;
+				break;
+		}
+
+		return offsetEncodingSize;
+	}
+
+	private int getLongestOffsetDistanceInCm(TravelerInputData.AnchorPoint anchorPoint, LaneNode[] laneNodes) {
+		int longestDistanceInCm = 0;
+
+		try {
+			// Check the offset from the reference point first
+			GeoPoint gpReference = new GeoPoint(anchorPoint.referenceLat, anchorPoint.referenceLon);
+			GeoPoint gpFirstNode = new GeoPoint(laneNodes[0].nodeLat, laneNodes[0].nodeLong);
+
+			int longerOffset = OffsetEncoding.getLongerOffset(gpReference, gpFirstNode);
+			if (longerOffset > longestDistanceInCm) {
+				longestDistanceInCm = longerOffset;
+			}
+
+			// Work through the rest of the points in the lane
+			for (int i = 0; i < laneNodes.length - 1; i++) {
+				GeoPoint gp1 = new GeoPoint(laneNodes[i].nodeLat, laneNodes[i].nodeLong);
+				GeoPoint gp2 = new GeoPoint(laneNodes[i + 1].nodeLat, laneNodes[i + 1].nodeLong);
+
+				longerOffset = OffsetEncoding.getLongerOffset(gp1, gp2);
+				if (longerOffset > longestDistanceInCm) {
+					longestDistanceInCm = longerOffset;
+				}
+			}
+		} catch (IllegalArgumentException e) {
+			// If we catch this, the length is CM is larger than fits in a short.
+			// Currently the standard only supports up to what fits in a short for
+			// offset distances. An explicit Lat/Lon value will have to be used.
+			// Return a value greater than the short max value
+			longestDistanceInCm = Short.MAX_VALUE + 1;
+		}
+
+		return longestDistanceInCm;
 	}
 
 	private Circle buildCircle(TravelerInputData travInputData, TravelerInputData.Region inputRegion) {
@@ -483,10 +570,8 @@ public class TravelerInformationBuilder {
 		center.setLongitude(J2735TIMHelper
 				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
 
-		if (travInputData.enableElevation &&
-				inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
-			center.setElevation(IntersectionInputData
-					.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
+		if (travInputData.enableElevation && inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
+			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
 		}
 		circle.setCenter(center);
 
@@ -519,8 +604,7 @@ public class TravelerInformationBuilder {
 		}
 		int roundedRadius = (int) Math.ceil(radius);
 
-		// No need to waste space with trailing 0s, i.e., why have 400 cm when that is 4
-		// m.
+		// No need to waste space with trailing 0s, i.e., why have 400 cm when that is 4m.
 		// Up-convert the distance unit and radius when possible.
 		if (distanceUnits == DistanceUnits.centimeter) {
 			int decimeterValue = roundedRadius / 10;
@@ -548,10 +632,81 @@ public class TravelerInformationBuilder {
 		circle.setUnits(distanceUnits);
 	}
 
+	private NodeListXY buildNodeList(TravelerInputData travInputData, Region inputRegion, OffsetEncoding offsetEncoding) {
+		LaneNode[] laneNodes = inputRegion.laneNodes;
+
+		NodeListXY nodeList = new NodeListXY();
+		nodeList.setChoice(NodeListXY.NODE_SET_XY);
+
+		NodeSetXY nodeSetXY = new NodeSetXY();
+		double curElevation = travInputData.anchorPoint.referenceElevation;
+		GeoPoint refPoint = inputRegion.refPoint;
+
+		NodeXY[] nodeXyArray = new NodeXY[laneNodes.length];
+		int nodeIndex = 0;
+
+		for (int i = 0; i < laneNodes.length; i++) {
+			LaneNode laneNode = laneNodes[i];
+
+			GeoPoint nextPoint = new GeoPoint(laneNode.nodeLat, laneNode.nodeLong);
+
+			if (offsetEncoding.type == OffsetEncodingType.Tight) {
+				offsetEncoding.size = offsetEncoding.getOffsetEncodingSize(refPoint, nextPoint);
+			}
+
+			// Get the Node Offset
+			NodeOffsetPointXY delta = offsetEncoding.encodeOffset(refPoint, nextPoint);
+			NodeXY nodeXy = new NodeXY();
+			nodeXy.setDelta(delta);
+
+			// Set Node Attributes
+			NodeAttributeSetXY attributes = new NodeAttributeSetXY();
+			boolean hasAttributes = false;
+
+			// Set dWidth
+			if (laneNode.laneWidth != 0) {
+				attributes.setDWidthExists(true);
+				attributes.setDWidth(laneNode.laneWidth);
+				hasAttributes = true;
+			}
+
+			// Set dElevation
+			if (travInputData.enableElevation) {
+				short elevDelta = IntersectionSituationDataBuilder.getElevationDelta(laneNode.nodeElevation,
+						curElevation);
+				if (elevDelta != 0) {
+					curElevation = laneNode.nodeElevation;
+					attributes.setDElevationExists(true);
+					attributes.setDElevation(elevDelta);
+					hasAttributes = true;
+				}
+			}
+
+			if (hasAttributes) {
+				nodeXy.setAttributesExists(true);
+				nodeXy.setAttributes(attributes);
+			}
+
+			nodeXyArray[nodeIndex] = nodeXy;
+			nodeIndex++;
+			refPoint = nextPoint;
+		}
+		nodeSetXY.setNodeSetXY(nodeXyArray);
+		nodeList.setNodes(nodeSetXY);
+		return nodeList;
+	}
+
+	private Offset buildOffset(TravelerInputData travInputData, Region inputRegion, OffsetEncoding offsetEncoding) {
+		Offset offset = new Offset();
+		offset.setChoice(Choice.xy_chosen);
+		offset.setXy_chosen(buildNodeList(travInputData, inputRegion, offsetEncoding));
+
+		return offset;
+	}
+
 	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {
 		FrictionInformation fInformation = new FrictionInformation();
 		DescriptionOfRoadSurface roadSurface = new DescriptionOfRoadSurface();
-		//
 
 		// ToDo: Inputs of surface condition will be implemented in a later story
 		String surfaceValue = "portland_cement";
