@@ -1683,32 +1683,35 @@ $(".btnDone").click(function () {
         selected_marker.set('road_condition', road_condition);
         selected_marker.set('road_surface', road_surface);
 
-        switch (road_condition) {
+        let road_surface_type = 0;
+        switch (road_surface) {
           case "Portland Cement":
             const pc_text = $('#PortlandCementType .dropdown-toggle').text().trim();
-            const pc_value = mapSubtypeToValue('PortlandCementType', pc_text);
-            selected_marker.set('PortlandCementType', pc_value);
+            road_surface_type = mapSubtypeToValue('PortlandCementType', pc_text) ?? 0;
             break;
           case "Asphalt or Tar":
             const at_text = $('#AsphaltOrTarType .dropdown-toggle').text().trim();
-            const at_value = mapSubtypeToValue('AsphaltOrTarType', at_text);
-            selected_marker.set('AsphaltOrTarType', at_value);
+            road_surface_type = mapSubtypeToValue('AsphaltOrTarType', at_text) ?? 0;
             break;
           case "Gravel":
             const g_text = $('#GravelType .dropdown-toggle').text().trim();
-            const g_value = mapSubtypeToValue('GravelType', g_text);
-            selected_marker.set('GravelType', g_value);
+            road_surface_type = mapSubtypeToValue('GravelType', g_text) ?? 0;
             break;
           case "Snow":
             const s_text = $('#SnowType .dropdown-toggle').text().trim();
-            const s_value = mapSubtypeToValue('SnowType', s_text);
-            selected_marker.set('SnowType', s_value);
+            road_surface_type = mapSubtypeToValue('SnowType', s_text) ?? 0;
+            break;
+          case "Grass":
+          case "Cinders":
+          case "Rock":
+          case "Ice":
+            road_surface_type = 0;  // Explicit default for these
             break;
           default:
-            // For types without subtypes, do nothing or set defaults if needed
+            road_surface_type = 0;  // Default for any other or unselected
             break;
         }
-
+        selected_marker.set('road_surface_type', road_surface_type);
       }
     }
 
@@ -1905,7 +1908,7 @@ $(".dropdown-menu li a").click(function () {
     road_surface = selText;
   }
 
-    if (type === "road_condition") {
+    if (type === "road_surface") {
     // Hide all subtype rows
     $('.subtype-row').hide();
 
@@ -1913,11 +1916,11 @@ $(".dropdown-menu li a").click(function () {
     switch (selText) {
       case "Portland Cement":
         $('.PortlandCementType').show();
-        $('#PortlandCementType a').css('display', '');  // Remove display:none
+        $('#PortlandCementType a').css('display', ''); 
         break;
       case "Asphalt or Tar":
-        $('.asphalt_type').show();
-        $('#asphalt_type a').css('display', '');
+        $('.AsphaltOrTarType').show();
+        $('#AsphaltOrTarType a').css('display', '');
         break;
       case "Gravel":
         $('.GravelType').show();
