@@ -328,8 +328,10 @@ function createMessageJSON() {
                 startTime: attrs.startTime,
                 endTime: attrs.endTime,
                 heading: getHeading(attrs.heading),
-                road_surface: attrs.road_surface?.substring(1, 2),
-                road_condition: attrs.road_condition
+                road_surface: attrs.road_surface,
+                road_condition: attrs.road_condition?.substring(1, 2),
+                road_surface_type: attrs.road_surface_type
+
             };
         }
 
@@ -443,14 +445,6 @@ function errorCheck() {
                     $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <span>Missing mutcd codes.</span>
-                    </div>`);
-                    status = true;
-                }
-
-                if (!road_condition) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>Missing road condition.</span>
                     </div>`);
                     status = true;
                 }

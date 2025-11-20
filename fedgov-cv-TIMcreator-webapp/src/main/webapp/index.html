@@ -430,9 +430,9 @@
 			<div class="panel-body">
 				<div class="panel-body">
 					<div class="form-group">
-						<div class="row road_condition">
-							<div class="col-sm-4"><label for="road_condition">Description of Road Surface:</label></div>
-							<div class="col-sm-7"><div id="road_condition" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Road Surface Type <span class="caret"></span></a>
+						<div class="row road_surface">
+							<div class="col-sm-4"><label for="road_surface">Description of Road Surface:</label></div>
+							<div class="col-sm-7"><div id="road_surface" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Road Surface Type <span class="caret"></span></a>
 								<ul class="dropdown-menu">
 									<li><a href="#">Portland Cement</a></li>
 									<li><a href="#">Asphalt or Tar</a></li>
@@ -444,17 +444,68 @@
 									<li><a href="#">Snow</a></li>
 								</ul>
 							</div></div>
-							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_condition"></i></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_surface"></i></div>
 						</div>
-						<div class="row road_surface">
-							<div class="col-sm-4"><label for="road_surface">Road Surface Type:</label></div>
-							<div class="col-sm-7"><div id="road_surface" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Condition <span class="caret"></span></a>
+						<div class="row subtype-row PortlandCementType" style="display: none;">
+							<div class="col-sm-4"><label for="PortlandCementType">Portland Cement Type:</label></div>
+							<div class="col-sm-7">
+								<div id="PortlandCementType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Portland Cement Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">New Sharp</a></li>
+										<li><a href="#">Traveled</a></li>
+										<li><a href="#">Traffic Polished</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="row subtype-row AsphaltOrTarType" style="display: none;">
+							<div class="col-sm-4"><label for="AsphaltOrTarType">Asphalt or Tar Type:</label></div>
+							<div class="col-sm-7">
+								<div id="AsphaltOrTarType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Asphalt or Tar Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">New Sharp</a></li>
+										<li><a href="#">Traveled</a></li>
+										<li><a href="#">Traffic Polished</a></li>
+										<li><a href="#">Excess Tar</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="row subtype-row GravelType" style="display: none;">
+							<div class="col-sm-4"><label for="GravelType">Gravel Type:</label></div>
+							<div class="col-sm-7">
+								<div id="GravelType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Gravel Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">Packed and Oiled</a></li>
+										<li><a href="#">Loose</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="row subtype-row SnowType" style="display: none;">
+							<div class="col-sm-4"><label for="SnowType">Snow Type:</label></div>
+							<div class="col-sm-7">
+								<div id="SnowType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Snow Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">Packed</a></li>
+										<li><a href="#">Loose</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="row road_condition">
+							<div class="col-sm-4"><label for="road_condition">Road Surface Condition:</label></div>
+							<div class="col-sm-7"><div id="road_condition" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Condition <span class="caret"></span></a>
 									<ul class="dropdown-menu">
 										<li><a href="#">(0) Dry</a></li>
 										<li><a href="#">(1) Wet</a></li>
 									</ul>
 							</div></div>
-							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_surface"></i></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_condition"></i></div>
 						</div>
 						</div>
 					<div class="btn-group">
