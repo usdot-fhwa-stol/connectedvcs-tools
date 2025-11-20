@@ -448,14 +448,6 @@ function errorCheck() {
                     </div>`);
                     status = true;
                 }
-
-                if (!road_condition) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>Missing road condition.</span>
-                    </div>`);
-                    status = true;
-                }
             }
         }
     } catch (err) {
