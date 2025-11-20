@@ -335,8 +335,11 @@ function createMessageJSON() {
                 road_surface: attrs.road_surface,
                 road_condition: attrs.road_condition?.substring(1, 2),
                 road_surface_type: attrs.road_surface_type
-
             };
+            
+            if (attrs.road_surface_type !== undefined) {
+                anchor.road_surface_type = attrs.road_surface_type;
+            }
         }
 
         if (marker?.type === "VER") {

@@ -1696,33 +1696,35 @@ $(".btnDone").click(function () {
         selected_marker.set('meanHorizontalVariation', $('#meanHorizontalVariation').val());
         selected_marker.set('horizontalVariationStdDev', $('#horizontalVariationStdDev').val());
 
-        let road_surface_type = null; //changed from 0 
-        switch (road_surface) {
-          case "Portland Cement":
-            const pc_text = $('#PortlandCementType .dropdown-toggle').text().trim();
-            road_surface_type = mapSubtypeToValue('PortlandCementType', pc_text) ?? 0;
-            break;
-          case "Asphalt or Tar":
-            const at_text = $('#AsphaltOrTarType .dropdown-toggle').text().trim();
-            road_surface_type = mapSubtypeToValue('AsphaltOrTarType', at_text) ?? 0;
-            break;
-          case "Gravel":
-            const g_text = $('#GravelType .dropdown-toggle').text().trim();
-            road_surface_type = mapSubtypeToValue('GravelType', g_text) ?? 0;
-            break;
-          case "Snow":
-            const s_text = $('#SnowType .dropdown-toggle').text().trim();
-            road_surface_type = mapSubtypeToValue('SnowType', s_text) ?? 0;
-            break;
-          case "Grass":
-          case "Cinders":
-          case "Rock":
-          case "Ice":
-            road_surface_type = 0;  // Explicit default for these
-            break;
-          default:
-            road_surface_type = 0;  // Default for any other or unselected
-            break;
+        let road_surface_type = undefined; //changed from 0 
+        if (road_surface) {
+          switch (road_surface) {
+            case "Portland Cement":
+              const pc_text = $('#PortlandCementType .dropdown-toggle').text().trim();
+              road_surface_type = mapSubtypeToValue('PortlandCementType', pc_text) ?? 0;
+              break;
+            case "Asphalt or Tar":
+              const at_text = $('#AsphaltOrTarType .dropdown-toggle').text().trim();
+              road_surface_type = mapSubtypeToValue('AsphaltOrTarType', at_text) ?? 0;
+              break;
+            case "Gravel":
+              const g_text = $('#GravelType .dropdown-toggle').text().trim();
+              road_surface_type = mapSubtypeToValue('GravelType', g_text) ?? 0;
+              break;
+            case "Snow":
+              const s_text = $('#SnowType .dropdown-toggle').text().trim();
+              road_surface_type = mapSubtypeToValue('SnowType', s_text) ?? 0;
+              break;
+            case "Grass":
+            case "Cinders":
+            case "Rock":
+            case "Ice":
+              road_surface_type = 0;  // Explicit default for these
+              break;
+            default:
+              road_surface_type = 0;  // Default for any other or unselected
+              break;
+          }
         }
         selected_marker.set('road_surface_type', road_surface_type);
       }
