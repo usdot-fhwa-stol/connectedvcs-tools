@@ -512,7 +512,7 @@ function registerMapEvents() {
     $("#selat").prop('readonly', true);
     $("#selong").prop('readonly', true);
 
-    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
+    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".nwlat, .nwlong, .selat, .selong").show();
 
     const geom = selected_marker.getGeometry().getCoordinates()[0];
@@ -574,7 +574,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev').hide();
+    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev').hide();
     $('.direction-tab, .content-tab, .itis-tab, .road-condition-tab').hide();
 
     $(".lat, .long, .elev, .lane_width").show();
@@ -666,7 +666,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .vertialVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
+    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".direction-tab, .content-tab, .itis-tab, .road-condition-tab").hide();
 
     $(".lat, .long, .elev").show();
@@ -1382,7 +1382,7 @@ function referencePointWindow(feature) {
   $(".road_condition").show();
   $(".road_surface").show();
   $(".meanVerticalVariation").show();
-  $(".vertialVariationStdDev").show();
+  $(".verticalVariationStdDev").show();
   $(".meanHorizontalVariation").show();
   $(".horizontalVariationStdDev").show();
 
@@ -1453,7 +1453,7 @@ function referencePointWindow(feature) {
   $('#road_surface .dropdown-toggle').html((road_surface || "Select A Surface") + " <span class='caret'></span>");
 
   $('meanVerticalVariation').val(selected_marker.get('meanVerticalVariation') || '');
-  $('vertialVariationStdDev').val(selected_marker.get('vertialVariationStdDev') || '');
+  $('verticalVariationStdDev').val(selected_marker.get('verticalVariationStdDev') || '');
   $('meanHorizontalVariation').val(selected_marker.get('meanHorizontalVariation') || '');
   $('horizontalVariationStdDev').val(selected_marker.get('horizontalVariationStdDev') || '');
 
@@ -1692,9 +1692,39 @@ $(".btnDone").click(function () {
         selected_marker.set('road_condition', road_condition);
         selected_marker.set('road_surface', road_surface);
         selected_marker.set('meanVerticalVariation', $('#meanVerticalVariation').val());
-        selected_marker.set('vertialVariationStdDev', $('#vertialVariationStdDev').val());
+        selected_marker.set('verticalVariationStdDev', $('#verticalVariationStdDev').val());
         selected_marker.set('meanHorizontalVariation', $('#meanHorizontalVariation').val());
         selected_marker.set('horizontalVariationStdDev', $('#horizontalVariationStdDev').val());
+
+        let road_surface_type = null; //changed from 0 
+        switch (road_surface) {
+          case "Portland Cement":
+            const pc_text = $('#PortlandCementType .dropdown-toggle').text().trim();
+            road_surface_type = mapSubtypeToValue('PortlandCementType', pc_text) ?? 0;
+            break;
+          case "Asphalt or Tar":
+            const at_text = $('#AsphaltOrTarType .dropdown-toggle').text().trim();
+            road_surface_type = mapSubtypeToValue('AsphaltOrTarType', at_text) ?? 0;
+            break;
+          case "Gravel":
+            const g_text = $('#GravelType .dropdown-toggle').text().trim();
+            road_surface_type = mapSubtypeToValue('GravelType', g_text) ?? 0;
+            break;
+          case "Snow":
+            const s_text = $('#SnowType .dropdown-toggle').text().trim();
+            road_surface_type = mapSubtypeToValue('SnowType', s_text) ?? 0;
+            break;
+          case "Grass":
+          case "Cinders":
+          case "Rock":
+          case "Ice":
+            road_surface_type = 0;  // Explicit default for these
+            break;
+          default:
+            road_surface_type = 0;  // Default for any other or unselected
+            break;
+        }
+        selected_marker.set('road_surface_type', road_surface_type);
       }
     }
 
@@ -1721,6 +1751,32 @@ $(".btnDone").click(function () {
 
   onFeatureAdded();
 });
+
+function mapSubtypeToValue(type, text) {
+  const mappings = {
+    PortlandCementType: {
+      "New Sharp": 0,
+      "Traveled": 1,
+      "Traffic Polished": 2
+    },
+    AsphaltOrTarType: {
+      "New Sharp": 0,
+      "Traveled": 1,
+      "Traffic Polished": 2,
+      "Excess Tar": 3
+    },
+    GravelType: {
+      "Packed and Oiled": 0,
+      "Loose": 1
+    },
+    SnowType: {
+      "Packed": 0,
+      "Loose": 1
+    }
+  };
+
+  return mappings[type]?.[text] ?? null;  // Return null if no match
+}
 
 
 
@@ -1863,6 +1919,34 @@ $(".dropdown-menu li a").click(function () {
 
   if (type == "road_surface") {
     road_surface = selText;
+  }
+
+    if (type === "road_surface") {
+    // Hide all subtype rows
+    $('.subtype-row').hide();
+
+    // Show the relevant subtype row and make its dropdown visible
+    switch (selText) {
+      case "Portland Cement":
+        $('.PortlandCementType').show();
+        $('#PortlandCementType a').css('display', ''); 
+        break;
+      case "Asphalt or Tar":
+        $('.AsphaltOrTarType').show();
+        $('#AsphaltOrTarType a').css('display', '');
+        break;
+      case "Gravel":
+        $('.GravelType').show();
+        $('#GravelType a').css('display', '');
+        break;
+      case "Snow":
+        $('.SnowType').show();
+        $('#SnowType a').css('display', '');
+        break;
+      default:
+        // For other types (Grass, Cinders, Rock, Ice), keep hidden
+        break;
+    }
   }
 });
 
