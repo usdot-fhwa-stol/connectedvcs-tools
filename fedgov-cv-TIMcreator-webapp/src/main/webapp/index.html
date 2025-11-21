@@ -507,6 +507,27 @@
 							</div></div>
 							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_condition"></i></div>
 						</div>
+						<h4>Road Roughness Fields:</h4>
+						<div class="row meanVerticalVariation" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="meanVerticalVariation">Mean Vertical Variation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="meanVerticalVariation" placeholder="0 to 25000" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 25000]" data-parsley-required="true" data-parsley-range="[0, 25000]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="meanVerticalVariation"></i></div>
+						</div>
+						<div class="row verticalVariationStdDev" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="verticalVariationStdDev">Vertical Variation Standard Deviation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="verticalVariationStdDev" placeholder="0 to 2500" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 2500]" data-parsley-required="false" data-parsley-range="[0, 2500]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="verticalVariationStdDev"></i></div>
+						</div>
+						<div class="row meanHorizontalVariation" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="meanHorizontalVariation">Mean Horizontal Variation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="meanHorizontalVariation" placeholder="0 to 25000" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 25000]" data-parsley-required="false" data-parsley-range="[0, 25000]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="meanHorizontalVariation"></i></div>
+						</div>
+						<div class="row horizontalVariationStdDev" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="horizontalVariationStdDev">Horizontal Variation Standard Deviation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="horizontalVariationStdDev" placeholder="0 to 2500" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 2500]" data-parsley-required="false" data-parsley-range="[0, 2500]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="horizontalVariationStdDev"></i></div>
+						</div>
 						</div>
 					<div class="btn-group">
 							<button type="button" class="btnDone btn btn-primary">Done</button>
