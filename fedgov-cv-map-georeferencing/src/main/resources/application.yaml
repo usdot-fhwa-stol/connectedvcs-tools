@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: fedgov-cv-map-georeferencing
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+server:
+  port: 8080
+  
