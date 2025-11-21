@@ -687,7 +687,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 }
                 else
                 {
-                    fprintf(stderr, "Warning: getDirectionality() method not found on GeographicalPath\n");
+                    gp->directionality = NULL;
                 }
 
                 /* --- isClosedPath() --- */
@@ -752,7 +752,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 }
                 else
                 {
-                    fprintf(stderr, "Warning: getDirection() returned NULL\n");
+                    gp->direction = NULL;
                 }
 
                 /* --- getDescription() --- */

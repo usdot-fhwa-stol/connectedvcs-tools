@@ -100,7 +100,6 @@ public class TravelerInputValidationTest {
         TravelerInputData data = createValidTravelerInput();
         data.anchorPoint.startTime = "05/20/2015 10:56 AM";
         data.anchorPoint.endTime = "05/21/2015 10:56 AM";
-
         data.validate();
     }
 
