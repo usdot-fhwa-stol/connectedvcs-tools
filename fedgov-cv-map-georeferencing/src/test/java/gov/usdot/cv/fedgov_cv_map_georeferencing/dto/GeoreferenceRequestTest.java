@@ -46,7 +46,9 @@ class GeoreferenceRequestTest {
             new GCP("GCP1", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
     }
 
@@ -67,7 +69,7 @@ class GeoreferenceRequestTest {
         
         // Assert
         assertEquals(validGcps, georeferenceRequest.getGcps());
-        assertEquals(4, georeferenceRequest.getGcps().size());
+        assertEquals(6, georeferenceRequest.getGcps().size());
         assertEquals("GCP1", georeferenceRequest.getGcps().get(0).pointId());
     }
 
@@ -123,7 +125,7 @@ class GeoreferenceRequestTest {
         assertNotNull(georeferenceRequest.getImage());
         assertNotNull(georeferenceRequest.getGcps());
         assertEquals("test-image.jpg", georeferenceRequest.getImage().getOriginalFilename());
-        assertEquals(4, georeferenceRequest.getGcps().size());
+        assertEquals(6, georeferenceRequest.getGcps().size());
     }
 
     @Test
@@ -138,7 +140,7 @@ class GeoreferenceRequestTest {
         georeferenceRequest.setGcps(validGcps);
         
         // Assert
-        assertEquals(4, georeferenceRequest.getGcps().size());
+        assertEquals(6, georeferenceRequest.getGcps().size());
         assertNotEquals(initialGcps, georeferenceRequest.getGcps());
     }
 

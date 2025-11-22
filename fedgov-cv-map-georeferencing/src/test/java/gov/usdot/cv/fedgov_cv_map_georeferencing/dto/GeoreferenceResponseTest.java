@@ -96,7 +96,7 @@ class GeoreferenceResponseTest {
         Map<String, Object> details = new HashMap<>();
         details.put("originalImageName", "test.jpg");
         details.put("imageSize", 2048L);
-        details.put("gcpCount", 4);
+        details.put("gcpCount", 6);
         
         Map<String, Double> extent = new HashMap<>();
         extent.put("minLongitude", -77.126);
@@ -117,7 +117,7 @@ class GeoreferenceResponseTest {
         Map<String, Object> responseDetails = (Map<String, Object>) response.details();
         assertEquals("test.jpg", responseDetails.get("originalImageName"));
         assertEquals(2048L, responseDetails.get("imageSize"));
-        assertEquals(4, responseDetails.get("gcpCount"));
+        assertEquals(6, responseDetails.get("gcpCount"));
         
         @SuppressWarnings("unchecked")
         Map<String, Double> responseExtent = (Map<String, Double>) responseDetails.get("extent");

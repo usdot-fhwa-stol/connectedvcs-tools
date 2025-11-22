@@ -59,15 +59,17 @@ class GeoreferenceServiceTest {
             new byte[0]
         );
 
-        // Create valid GCPs (exactly 4)
+        // Create valid GCPs (at least 6 for high precision)
         validGcps = Arrays.asList(
             new GCP("GCP1", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
-        // Create invalid GCPs (only 3)
+        // Create invalid GCPs (only 3 - below minimum of 6)
         invalidGcps = Arrays.asList(
             new GCP("GCP1", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
@@ -89,18 +91,18 @@ class GeoreferenceServiceTest {
         
         assertEquals("test-image.jpg", resultMap.get("originalImageName"));
         assertEquals((long) "test image content".getBytes().length, resultMap.get("imageSize"));
-        assertEquals(4, resultMap.get("gcpCount"));
-        assertEquals("processed", resultMap.get("status"));
-        assertEquals("Image successfully georeferenced using 4 ground control points", resultMap.get("message"));
+        assertEquals(6, resultMap.get("gcpCount"));
+        assertEquals("mock_processed", resultMap.get("status"));
+        assertEquals("Mock response - GDAL not available. Image processing simulated using 6 ground control points", resultMap.get("message"));
         assertNotNull(resultMap.get("extent"));
         
         // Verify extent metadata
         @SuppressWarnings("unchecked")
         Map<String, Double> extent = (Map<String, Double>) resultMap.get("extent");
-        assertEquals(-77.126, extent.get("minLongitude"));
+        assertEquals(-77.128, extent.get("minLongitude"));
         assertEquals(-77.123, extent.get("maxLongitude"));
         assertEquals(38.456, extent.get("minLatitude"));
-        assertEquals(38.459, extent.get("maxLatitude"));
+        assertEquals(38.461, extent.get("maxLatitude"));
     }
 
     @Test
@@ -130,7 +132,7 @@ class GeoreferenceServiceTest {
             georeferenceService.process(validImageFile, null);
         });
         
-        assertEquals("Exactly 4 ground control points are required", exception.getMessage());
+        assertEquals("At least 6 ground control points are required for high precision georeferencing. Provided: 0", exception.getMessage());
     }
 
     @Test
@@ -140,7 +142,7 @@ class GeoreferenceServiceTest {
             georeferenceService.process(validImageFile, invalidGcps);
         });
         
-        assertEquals("Exactly 4 ground control points are required", exception.getMessage());
+        assertEquals("At least 6 ground control points are required for high precision georeferencing. Provided: 3", exception.getMessage());
     }
 
     @Test
@@ -150,7 +152,9 @@ class GeoreferenceServiceTest {
             new GCP(null, 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
         // Act & Assert
@@ -168,7 +172,9 @@ class GeoreferenceServiceTest {
             new GCP("", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
         // Act & Assert
@@ -186,7 +192,9 @@ class GeoreferenceServiceTest {
             new GCP("GCP1", null, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
         // Act & Assert
@@ -204,7 +212,9 @@ class GeoreferenceServiceTest {
             new GCP("GCP1", 100, 200, null, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
             new GCP("GCP3", 500, 600, -77.125, 38.458),
-            new GCP("GCP4", 700, 800, -77.126, 38.459)
+            new GCP("GCP4", 700, 800, -77.126, 38.459),
+            new GCP("GCP5", 200, 300, -77.127, 38.460),
+            new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
         // Act & Assert
@@ -228,10 +238,10 @@ class GeoreferenceServiceTest {
         Map<String, Double> extent = (Map<String, Double>) resultMap.get("extent");
         
         // Verify extent calculations
-        assertEquals(-77.126, extent.get("minLongitude")); // Min of [-77.123, -77.124, -77.125, -77.126]
+        assertEquals(-77.128, extent.get("minLongitude")); // Min of [-77.123, -77.124, -77.125, -77.126]
         assertEquals(-77.123, extent.get("maxLongitude")); // Max of [-77.123, -77.124, -77.125, -77.126]
         assertEquals(38.456, extent.get("minLatitude"));   // Min of [38.456, 38.457, 38.458, 38.459]
-        assertEquals(38.459, extent.get("maxLatitude"));   // Max of [38.456, 38.457, 38.458, 38.459]
+        assertEquals(38.461, extent.get("maxLatitude"));   // Max of [38.456, 38.457, 38.458, 38.459]
     }
 
     @Test
@@ -247,7 +257,7 @@ class GeoreferenceServiceTest {
         assertTrue(resultMap.containsKey("originalImageName"));
         assertTrue(resultMap.containsKey("imageSize"));
         assertTrue(resultMap.containsKey("gcpCount"));
-        assertTrue(resultMap.containsKey("processedImageBase64"));
+        assertTrue(resultMap.containsKey("processedImageBytes"));
         assertTrue(resultMap.containsKey("extent"));
         assertTrue(resultMap.containsKey("status"));
         assertTrue(resultMap.containsKey("message"));

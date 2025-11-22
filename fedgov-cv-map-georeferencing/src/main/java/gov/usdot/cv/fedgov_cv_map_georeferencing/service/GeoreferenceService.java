@@ -18,6 +18,8 @@ package gov.usdot.cv.fedgov_cv_map_georeferencing.service;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -26,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 
 @Service
 public class GeoreferenceService {
@@ -58,14 +59,14 @@ public class GeoreferenceService {
      * @return A map containing the processing results including the georeferenced image data
      * @throws Exception if processing fails
      */
-    public Object process(MultipartFile image, List<GCP> gcps) throws Exception {
+    public Map<String, Object> process(MultipartFile image, List<GCP> gcps) throws Exception {
         // Validate input parameters
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Image file is required and cannot be empty");
         }
         
-        if (gcps == null || gcps.size() != 4) {
-            throw new IllegalArgumentException("Exactly 4 ground control points are required");
+        if (gcps == null || gcps.size() < 6) {
+            throw new IllegalArgumentException("At least 6 ground control points are required for high precision georeferencing. Provided: " + (gcps != null ? gcps.size() : 0));
         }
         
         // Validate each GCP
@@ -98,7 +99,7 @@ public class GeoreferenceService {
     /**
      * Process using GDAL command-line utilities (gdal_translate and gdalwarp)
      */
-    private Object processWithGDALCommandLine(MultipartFile image, List<GCP> gcps) throws Exception {
+    private Map<String, Object> processWithGDALCommandLine(MultipartFile image, List<GCP> gcps) throws Exception {
         Path tempDir = Files.createTempDirectory("georeferencing_");
         
         try {
@@ -111,10 +112,9 @@ public class GeoreferenceService {
             Path inputImagePath = tempDir.resolve("input_image" + fileExtension);
             Files.write(inputImagePath, image.getBytes());
             
-            Path tempImagePath = tempDir.resolve("temp_georef" + fileExtension);
-            Path outputImagePath = tempDir.resolve("output_georef.tif");
+            // Step 1: Use gdal_translate to create VRT with GCPs and explicitly set SRS to EPSG:4326
+            Path vrtPath = tempDir.resolve("temp_georef.vrt");
             
-            // Step 1: Use gdal_translate to add GCPs to the image
             ProcessBuilder translateBuilder = new ProcessBuilder();
             translateBuilder.command().add("gdal_translate");
             
@@ -127,25 +127,30 @@ public class GeoreferenceService {
                 translateBuilder.command().add(String.valueOf(gcp.latitude()));
             }
             
+            // Explicitly set spatial reference system to EPSG:4326
+            translateBuilder.command().add("-a_srs");
+            translateBuilder.command().add("EPSG:4326");
             translateBuilder.command().add(inputImagePath.toString());
-            translateBuilder.command().add(tempImagePath.toString());
+            translateBuilder.command().add(vrtPath.toString());
             
             Process translateProcess = translateBuilder.start();
             int translateExitCode = translateProcess.waitFor();
             
             if (translateExitCode != 0) {
                 String error = readProcessError(translateProcess);
-                throw new RuntimeException("gdal_translate failed with exit code " + translateExitCode + ": " + error);
+                throw new RuntimeException("gdal_translate VRT creation failed with exit code " + translateExitCode + ": " + error);
             }
             
-            // Step 2: Use gdalwarp to actually georeference the image
+            // Step 2: Use gdalwarp to transform VRT to Web Mercator (EPSG:3857) for web display
+            Path georeferencedTiffPath = tempDir.resolve("georef.tif");
+            
             ProcessBuilder warpBuilder = new ProcessBuilder(
                 "gdalwarp",
-                "-t_srs", "EPSG:4326", // Target spatial reference system (WGS84)
+                "-t_srs", "EPSG:3857", // Target spatial reference system (Web Mercator for web maps)
                 "-r", "bilinear", // Resampling method
-                "-of", "GTiff", // Output format
-                tempImagePath.toString(),
-                outputImagePath.toString()
+                "-of", "GTiff", // Output format (temporary GeoTIFF)
+                vrtPath.toString(),
+                georeferencedTiffPath.toString()
             );
             
             Process warpProcess = warpBuilder.start();
@@ -156,12 +161,32 @@ public class GeoreferenceService {
                 throw new RuntimeException("gdalwarp failed with exit code " + warpExitCode + ": " + error);
             }
             
-            // Read the processed image and encode as base64
-            byte[] processedImageBytes = Files.readAllBytes(outputImagePath);
-            String processedImageBase64 = Base64.getEncoder().encodeToString(processedImageBytes);
+            // Step 3: Convert GeoTIFF to PNG for browser display
+            Path finalPngPath = tempDir.resolve("georef_final.png");
             
-            // Get image info using gdalinfo
-            Map<String, Object> imageInfo = getImageInfo(outputImagePath);
+            ProcessBuilder pngBuilder = new ProcessBuilder(
+                "gdal_translate",
+                "-of", "PNG", // Output as PNG
+                "-scale", // Auto-scale pixel values
+                georeferencedTiffPath.toString(),
+                finalPngPath.toString()
+            );
+            
+            Process pngProcess = pngBuilder.start();
+            int pngExitCode = pngProcess.waitFor();
+            
+            if (pngExitCode != 0) {
+                String error = readProcessError(pngProcess);
+                System.err.println("gdal_translate to PNG failed, using original GeoTIFF: " + error);
+                // Fall back to using the GeoTIFF if PNG conversion fails
+                finalPngPath = georeferencedTiffPath;
+            }
+            
+            // Read the processed image bytes
+            byte[] processedImageBytes = Files.readAllBytes(finalPngPath);
+            
+            // Get image info using gdalinfo on the GeoTIFF (which has the spatial reference)
+            Map<String, Object> imageInfo = getImageInfo(georeferencedTiffPath);
             
             // Create result
             Map<String, Object> result = new HashMap<>();
@@ -169,14 +194,14 @@ public class GeoreferenceService {
             result.put("imageSize", image.getSize());
             result.put("processedImageSize", processedImageBytes.length);
             result.put("gcpCount", gcps.size());
-            result.put("processedImageBase64", processedImageBase64);
-            result.put("extent", createExtentMetadata(gcps));
+            result.put("processedImageBytes", processedImageBytes); // Return raw bytes instead of base64
+            result.put("extent", extractActualExtentFromGdalInfo(imageInfo, gcps));
+            result.put("extentProjection", "EPSG:4326"); // Indicate the projection of extent coordinates
             result.put("imageInfo", imageInfo);
-            result.put("coordinateSystem", "EPSG:4326");
+            result.put("coordinateSystem", "EPSG:3857"); // Web Mercator projection
             result.put("processingTimestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            result.put("status", "processed_gdal_cli");
-            result.put("message", "Image successfully georeferenced using GDAL command-line utilities with " + gcps.size() + " ground control points");
-            
+            result.put("status", "processed_gdal_cli_vrt");
+            result.put("message", "Image successfully georeferenced using GDAL VRT and Web Mercator projection with " + gcps.size() + " ground control points");
             return result;
             
         } finally {
@@ -218,8 +243,30 @@ public class GeoreferenceService {
         Map<String, Object> info = new HashMap<>();
         String jsonOutput = output.toString();
         info.put("gdalinfo_json", jsonOutput.trim());
-        info.put("format", "GeoTIFF");
-        info.put("projection", "EPSG:4326");
+        
+        // Also try to get simple extent using gdalinfo text output
+        try {
+            ProcessBuilder extentBuilder = new ProcessBuilder(
+                "gdalinfo", 
+                "-checksum",
+                imagePath.toString()
+            );
+            Process extentProcess = extentBuilder.start();
+            
+            StringBuilder extentOutput = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(extentProcess.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    extentOutput.append(line).append("\n");
+                }
+            }
+            
+            extentProcess.waitFor();
+            info.put("gdalinfo_text", extentOutput.toString());
+            
+        } catch (Exception e) {
+            System.err.println("Failed to get extent info: " + e.getMessage());
+        }
         
         return info;
     }
@@ -241,12 +288,12 @@ public class GeoreferenceService {
     /**
      * Fallback method when GDAL is not available - returns mock response
      */
-    private Object createMockResponse(MultipartFile image, List<GCP> gcps) {
+    private Map<String, Object> createMockResponse(MultipartFile image, List<GCP> gcps) {
         Map<String, Object> result = new HashMap<>();
         result.put("originalImageName", image.getOriginalFilename());
         result.put("imageSize", image.getSize());
         result.put("gcpCount", gcps.size());
-        result.put("processedImageBase64", ""); // Empty - no actual processing
+        result.put("processedImageBytes", new byte[0]); // Empty bytes array - no actual processing
         result.put("extent", createExtentMetadata(gcps));
         result.put("status", "mock_processed");
         result.put("message", "Mock response - GDAL not available. Image processing simulated using " + gcps.size() + " ground control points");
@@ -254,6 +301,115 @@ public class GeoreferenceService {
         return result;
     }
     
+    /**
+     * Extract actual extent from GDAL info JSON output
+     * Returns extent in WGS84 coordinates (EPSG:4326) by properly parsing JSON
+     */
+    private Map<String, Double> extractActualExtentFromGdalInfo(Map<String, Object> imageInfo, List<GCP> gcps) {
+        Map<String, Double> extent = new HashMap<>();
+        
+        try {
+            String gdalJson = (String) imageInfo.get("gdalinfo_json");
+            if (gdalJson != null) {
+                System.out.println("GDAL JSON output (first 500 chars): " + gdalJson.substring(0, Math.min(500, gdalJson.length())));
+                
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode infoNode = mapper.readTree(gdalJson);
+                System.out.println(infoNode.toPrettyString());
+                // First try to get wgs84Extent coordinates (preferred - already in WGS84)
+                JsonNode extentNode = infoNode.path("wgs84Extent").path("coordinates");
+                if (extentNode.isMissingNode() || !extentNode.isArray() || extentNode.size() == 0) {
+                    // Fallback to cornerCoordinates (in Web Mercator, needs conversion)
+                    extentNode = infoNode.path("cornerCoordinates");
+                }
+                
+                double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY;
+                double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
+                boolean foundCoords = false;
+                
+                if (extentNode.isArray() && extentNode.size() > 0 && extentNode.get(0).isArray()) {
+                    // GeoJSON Polygon coordinates (from wgs84Extent)
+                    System.out.println("Processing wgs84Extent GeoJSON coordinates");
+                    for (JsonNode coord : extentNode.get(0)) {
+                        double x = coord.get(0).asDouble();
+                        double y = coord.get(1).asDouble();
+                        minX = Math.min(minX, x);
+                        minY = Math.min(minY, y);
+                        maxX = Math.max(maxX, x);
+                        maxY = Math.max(maxY, y);
+                        foundCoords = true;
+                    }
+                    
+                    // These are already WGS84 coordinates from wgs84Extent
+                    extent.put("minLongitude", minX);
+                    extent.put("maxLongitude", maxX);
+                    extent.put("minLatitude", minY);
+                    extent.put("maxLatitude", maxY);
+                    System.out.println("Extracted WGS84 extent from wgs84Extent: " + extent);
+                    return extent;
+                    
+                } else if (extentNode.has("upperLeft") && extentNode.has("lowerRight")) {
+                    // cornerCoordinates object (Web Mercator coordinates)
+                    System.out.println("Processing cornerCoordinates object");
+                    double ulx = extentNode.path("upperLeft").get(0).asDouble();
+                    double uly = extentNode.path("upperLeft").get(1).asDouble();
+                    double lrx = extentNode.path("lowerRight").get(0).asDouble();
+                    double lry = extentNode.path("lowerRight").get(1).asDouble();
+                    
+                    minX = Math.min(ulx, lrx);
+                    minY = Math.min(uly, lry);
+                    maxX = Math.max(ulx, lrx);
+                    maxY = Math.max(uly, lry);
+                    foundCoords = true;
+                    
+                    System.out.println("Raw cornerCoordinates bounds: minX=" + minX + ", maxX=" + maxX + ", minY=" + minY + ", maxY=" + maxY);
+                    
+                    // Convert Web Mercator to WGS84
+                    double minLon = webMercatorXToLongitude(minX);
+                    double maxLon = webMercatorXToLongitude(maxX);
+                    double minLat = webMercatorYToLatitude(minY);
+                    double maxLat = webMercatorYToLatitude(maxY);
+                    
+                    extent.put("minLongitude", minLon);
+                    extent.put("maxLongitude", maxLon);
+                    extent.put("minLatitude", minLat);
+                    extent.put("maxLatitude", maxLat);
+                    System.out.println("Extracted Web Mercator extent and converted to WGS84: " + extent);
+                    return extent;
+                }
+                
+                if (!foundCoords) {
+                    System.out.println("No valid extent coordinates found in GDAL JSON");
+                }
+            } else {
+                System.out.println("No GDAL JSON output available");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to extract extent from GDAL info: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // Fallback to GCP-based extent in WGS84
+        System.out.println("Using GCP-based extent in WGS84 as fallback");
+        return createExtentMetadata(gcps);
+    }
+
+    /**
+     * Convert Web Mercator X coordinate to longitude
+     */
+    private double webMercatorXToLongitude(double x) {
+        return x / 20037508.34 * 180.0;
+    }
+
+    /**
+     * Convert Web Mercator Y coordinate to latitude
+     */
+    private double webMercatorYToLatitude(double y) {
+        return Math.toDegrees(Math.atan(Math.sinh(y / 20037508.34 * Math.PI)));
+    }
+
+
+
     /**
      * Creates extent metadata from ground control points
      */
