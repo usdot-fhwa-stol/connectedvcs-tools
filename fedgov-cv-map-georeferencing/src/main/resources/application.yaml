@@ -1,9 +1,27 @@
 spring:
   application:
     name: fedgov-cv-map-georeferencing
-  jackson:
-    serialization:
-      FAIL_ON_EMPTY_BEANS: false
+
 server:
   port: 8080
+
+logging:
+  level:
+    root: WARN
+    org.springframework.boot: INFO
+    gov.usdot.cv.fedgov_cv_map_georeferencing.service: INFO
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}:%line){cyan} - %msg%n"
+
+# Georeferencing configuration
+georeference:
+  image:
+    supported-formats:
+      - image/png
+      - image/jpeg
+      - image/jpg
+    max-size: 50MB
+  gcp:
+    min-count: 6
+    max-count: 10
   

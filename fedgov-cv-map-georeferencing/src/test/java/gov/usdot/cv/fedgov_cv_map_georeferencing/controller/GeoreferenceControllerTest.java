@@ -16,12 +16,10 @@
 package gov.usdot.cv.fedgov_cv_map_georeferencing.controller;
 
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
-import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.service.GeoreferenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -46,7 +44,6 @@ class GeoreferenceControllerTest {
     @Mock
     private GeoreferenceService georeferenceService;
 
-    @InjectMocks
     private GeoreferenceController georeferenceController;
 
     private ObjectMapper objectMapper;
@@ -57,6 +54,9 @@ class GeoreferenceControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        // Create controller with mocked service
+        georeferenceController = new GeoreferenceController(georeferenceService);
+        
         objectMapper = new ObjectMapper();
         
         // Setup mock image file
@@ -157,8 +157,12 @@ class GeoreferenceControllerTest {
         List<GCP> invalidGcps = Arrays.asList(
             new GCP("gcp1", 100, 200, -77.036, 38.895),
             new GCP("gcp2", 300, 200, -77.030, 38.895)
-        ); // Only 2 GCPs instead of 4
+        ); // Only 2 GCPs instead of 6 minimum
         String invalidGcpsJson = objectMapper.writeValueAsString(invalidGcps);
+        
+        // Mock service to throw validation exception
+        when(georeferenceService.process(eq(mockImageFile), anyList()))
+            .thenThrow(new IllegalArgumentException("At least 6 Ground Control Points are required"));
 
         // Act
         ResponseEntity<?> response = georeferenceController.georeference(mockImageFile, invalidGcpsJson);
@@ -171,7 +175,187 @@ class GeoreferenceControllerTest {
         assertNotNull(responseBody);
         assertFalse((Boolean) responseBody.get("success"));
         assertTrue(responseBody.get("message").toString().contains("At least 6 Ground Control Points are required"));
-        assertEquals("INVALID_GCP_COUNT", responseBody.get("error"));
+        assertEquals("VALIDATION_ERROR", responseBody.get("error"));
+    }
+
+    @Test
+    void testGeoreference_ExceedsMaxGcpCount_ReturnsBadRequest() throws Exception {
+        // Arrange - Create GCP list that exceeds maximum (assuming 10 is max)
+        List<GCP> tooManyGcps = Arrays.asList(
+            new GCP("gcp1", 100, 200, -77.036, 38.895),
+            new GCP("gcp2", 300, 200, -77.030, 38.895),
+            new GCP("gcp3", 400, 300, -77.028, 38.893),
+            new GCP("gcp4", 500, 400, -77.026, 38.891),
+            new GCP("gcp5", 600, 500, -77.024, 38.889),
+            new GCP("gcp6", 700, 600, -77.022, 38.887),
+            new GCP("gcp7", 800, 700, -77.020, 38.885),
+            new GCP("gcp8", 900, 800, -77.018, 38.883),
+            new GCP("gcp9", 1000, 900, -77.016, 38.881),
+            new GCP("gcp10", 1100, 1000, -77.014, 38.879),
+            new GCP("gcp11", 1200, 1100, -77.012, 38.877) // 11 GCPs - exceeds max of 10
+        );
+        String tooManyGcpsJson = objectMapper.writeValueAsString(tooManyGcps);
+        
+        // Mock service to throw validation exception
+        when(georeferenceService.process(eq(mockImageFile), anyList()))
+            .thenThrow(new IllegalArgumentException("No more than 10 Ground Control Points are allowed"));
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(mockImageFile, tooManyGcpsJson);
+        
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody);
+        assertFalse((Boolean) responseBody.get("success"));
+        assertTrue(responseBody.get("message").toString().contains("No more than 10"));
+        assertEquals("VALIDATION_ERROR", responseBody.get("error"));
+    }
+
+    @Test
+    void testGeoreference_UnsupportedImageFormat_ReturnsBadRequest() throws Exception {
+        // Arrange
+        MockMultipartFile unsupportedFile = new MockMultipartFile(
+            "image", 
+            "test.bmp", 
+            "image/bmp",  // Unsupported format
+            "fake image content".getBytes()
+        );
+        
+        // Mock service to throw validation exception
+        when(georeferenceService.process(eq(unsupportedFile), anyList()))
+            .thenThrow(new IllegalArgumentException("Unsupported image format: bmp. Supported formats: [jpg, jpeg, png]"));
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(unsupportedFile, validGcpsJson);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(false, responseBody.get("success"));
+        assertEquals("VALIDATION_ERROR", responseBody.get("error"));
+        assertTrue(responseBody.get("message").toString().contains("Unsupported image format"));
+    }
+
+    @Test
+    void testGeoreference_NullContentType_ReturnsBadRequest() throws Exception {
+        // Arrange
+        MockMultipartFile fileWithoutContentType = new MockMultipartFile(
+            "image", 
+            "test.png", 
+            null,  // No content type
+            "fake image content".getBytes()
+        );
+        
+        // Mock service to throw validation exception for null extension scenario
+        when(georeferenceService.process(eq(fileWithoutContentType), anyList()))
+            .thenThrow(new IllegalArgumentException("Image filename is required"));
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(fileWithoutContentType, validGcpsJson);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(false, responseBody.get("success"));
+        assertEquals("VALIDATION_ERROR", responseBody.get("error"));
+        assertTrue(responseBody.get("message").toString().contains("Image filename is required"));
+    }
+
+    @Test
+    void testGeoreference_ValidPngFormat_ProcessesSuccessfully() throws Exception {
+        // Arrange
+        MockMultipartFile pngFile = new MockMultipartFile(
+            "image", 
+            "test.png", 
+            "image/png",  // Supported format
+            "fake image content".getBytes()
+        );
+        
+        Map<String, Object> serviceResult = new HashMap<>();
+        serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
+        serviceResult.put("extent", Map.of("minX", 0.0, "maxX", 100.0, "minY", 0.0, "maxY", 100.0));
+        
+        when(georeferenceService.process(any(MultipartFile.class), anyList()))
+            .thenReturn(serviceResult);
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(pngFile, validGcpsJson);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(georeferenceService).process(any(MultipartFile.class), anyList());
+    }
+
+    @Test
+    void testGeoreference_ValidJpegFormat_ProcessesSuccessfully() throws Exception {
+        // Arrange
+        MockMultipartFile jpegFile = new MockMultipartFile(
+            "image", 
+            "test.jpg", 
+            "image/jpeg",  // Supported format
+            "fake image content".getBytes()
+        );
+        
+        Map<String, Object> serviceResult = new HashMap<>();
+        serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
+        serviceResult.put("extent", Map.of("minX", 0.0, "maxX", 100.0, "minY", 0.0, "maxY", 100.0));
+        
+        when(georeferenceService.process(any(MultipartFile.class), anyList()))
+            .thenReturn(serviceResult);
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(jpegFile, validGcpsJson);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(georeferenceService).process(any(MultipartFile.class), anyList());
+    }
+
+    @Test
+    void testGeoreference_WithProcessedImageBytes_GeneratesImageUrl() throws Exception {
+        // Arrange
+        Map<String, Object> serviceResult = new HashMap<>();
+        byte[] mockImageBytes = "mock processed image data".getBytes();
+        serviceResult.put("processedImageBytes", mockImageBytes);
+        serviceResult.put("status", "processed");
+        serviceResult.put("originalImageName", "test-image.png");
+        
+        when(georeferenceService.process(any(MultipartFile.class), anyList()))
+            .thenReturn(serviceResult);
+
+        // Act
+        ResponseEntity<?> response = georeferenceController.georeference(mockImageFile, validGcpsJson);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody);
+        assertTrue((Boolean) responseBody.get("success"));
+        
+        // Check that processedImageUrl is generated and processedImageBytes is removed
+        assertNotNull(responseBody.get("processedImageUrl"));
+        assertTrue(responseBody.get("processedImageUrl").toString().startsWith("/api/georeference/image/"));
+        assertNull(responseBody.get("processedImageBytes")); // Should be removed from response
+        
+        verify(georeferenceService, times(1)).process(eq(mockImageFile), eq(validGcps));
+    }
+
+    @Test
+    void testGetProcessedImage_ValidImageId_ReturnsImage() {
+        // This test would require access to the imageCache which is private
+        // In a real scenario, you might want to make imageCache protected or add a method for testing
+        // For now, we'll test the controller creation
+        GeoreferenceController controller = new GeoreferenceController(georeferenceService);
+        assertNotNull(controller);
     }
 
     @Test

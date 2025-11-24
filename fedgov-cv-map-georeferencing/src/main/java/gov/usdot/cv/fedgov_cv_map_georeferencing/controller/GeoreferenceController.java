@@ -25,8 +25,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +32,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -47,6 +47,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/georeference")
 @Tag(name = "Georeferencing", description = "API for georeferencing images using Ground Control Points")
 public class GeoreferenceController {
+    private static final Logger logger = LoggerFactory.getLogger(GeoreferenceController.class);
+    
     private final GeoreferenceService georeferenceService;
     private final ObjectMapper objectMapper;
     
@@ -74,7 +76,7 @@ public class GeoreferenceController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Bad request - invalid input data or validation errors",
+            description = "Bad request - invalid input data, validation errors, or unsupported image format (only PNG and JPEG are supported)",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
         ),
         @ApiResponse(
@@ -85,9 +87,9 @@ public class GeoreferenceController {
     })
     public ResponseEntity<?> georeference(
         @Parameter(
-            description = "Image file to be georeferenced (PNG, JPEG, etc.)",
+            description = "Image file to be georeferenced (PNG or JPEG format only)",
             required = true,
-            content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            content = @Content(mediaType = "image/*")
         )
         @RequestPart("image") MultipartFile image,
         
@@ -98,15 +100,15 @@ public class GeoreferenceController {
         @RequestPart(value = "gcps", required = true) String gcpsJson
     ) {
         try {
-            System.out.println("Received georeference request with image: " + image.getOriginalFilename());
-            System.out.println("GCPs JSON: " + gcpsJson);
+            logger.info("Received georeference request with image: {}", image.getOriginalFilename());            
+            logger.debug("GCPs JSON: {}", gcpsJson);
             
             // Parse JSON string to List<GCP>
             List<GCP> gcps;
             try {
                 gcps = objectMapper.readValue(gcpsJson, new TypeReference<List<GCP>>() {});
             } catch (Exception e) {
-                System.err.println("Failed to parse GCPs JSON: " + e.getMessage());
+                logger.error("Failed to parse GCPs JSON: {}", e.getMessage());
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("success", false);
                 errorResponse.put("message", "Invalid GCP format: " + e.getMessage());
@@ -114,16 +116,7 @@ public class GeoreferenceController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
             
-            // Validate GCP count
-            if (gcps.size() < 6) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("success", false);
-                errorResponse.put("message", "At least 6 Ground Control Points are required for high precision georeferencing, but received " + gcps.size());
-                errorResponse.put("error", "INVALID_GCP_COUNT");
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-            
-            System.out.println("Parsed GCPs: " + gcps);
+            logger.debug("Parsed GCPs: {}", gcps);
             
             // Process the request
             Map<String, Object> result = georeferenceService.process(image, gcps);
@@ -142,21 +135,20 @@ public class GeoreferenceController {
                 // Replace bytes with URL
                 result.put("processedImageUrl", "/api/georeference/image/" + imageId);
                 result.remove("processedImageBytes");
-                System.out.println("Stored image with ID: " + imageId + ", size: " + ((byte[]) imageBytes).length + " bytes");
+                logger.info("Stored image with ID: {}, size: {} bytes", imageId, ((byte[]) imageBytes).length);
             }
             response.putAll(result);
             return ResponseEntity.ok(response);
             
         } catch (IllegalArgumentException e) {
-            System.err.println("Validation error: " + e.getMessage());
+            logger.error("Validation error: {}", e.getMessage());
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", e.getMessage());
             errorResponse.put("error", "VALIDATION_ERROR");
             return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
-            System.err.println("Internal server error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Internal server error: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Internal server error: " + e.getMessage());
@@ -182,6 +174,7 @@ public class GeoreferenceController {
         )
     })
     public ResponseEntity<Resource> getProcessedImage(@PathVariable String imageId) {
+        logger.info("Fetching processed image with ID: {}", imageId);
         byte[] imageData = imageCache.get(imageId);
         if (imageData == null) {
             return ResponseEntity.notFound().build();
