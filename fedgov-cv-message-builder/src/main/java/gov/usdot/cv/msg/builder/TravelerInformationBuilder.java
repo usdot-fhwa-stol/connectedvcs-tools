@@ -579,11 +579,9 @@ public class TravelerInformationBuilder {
 		center.setLongitude(J2735TIMHelper
 				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
 
-		// System.out.println("inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation" + inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation);
 		if (travInputData.enableElevation && inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
 			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
 		}
-		// System.out.println("center.getElevation()" + center.getElevation());
 		circle.setCenter(center);
 
 		setRadiusAndUnits(circle, inputRegion.radius);
