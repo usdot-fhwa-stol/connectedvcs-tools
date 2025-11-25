@@ -15,7 +15,6 @@ A high-precision georeferencing REST API service built with Spring Boot 3.2 that
     - [Local Development Setup](#local-development-setup)
   - [Docker Deployment](#docker-deployment)
     - [Quick Start with Docker](#quick-start-with-docker)
-    - [Docker Compose (Recommended)](#docker-compose-recommended)
   - [API Documentation](#api-documentation)
     - [Interactive Documentation](#interactive-documentation)
     - [Endpoints](#endpoints)
@@ -100,27 +99,6 @@ docker build -t fedgov-cv-georeferencing .
 
 # Run the container
 docker run -p 8080:8080 fedgov-cv-georeferencing
-```
-
-### Docker Compose (Recommended)
-
-```yaml
-version: '3.8'
-services:
-  georeferencing-api:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=production
-      - JAVA_OPTS=-Xmx1g -Xms512m
-    volumes:
-      - /tmp/georef-temp:/tmp
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 ```
 
 ## API Documentation
