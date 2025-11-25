@@ -72,8 +72,12 @@ class GeoreferenceServiceTest {
         lenient().when(gcpProperties.getMinCount()).thenReturn(6);
         lenient().when(gcpProperties.getMaxCount()).thenReturn(10);
         lenient().when(imageProperties.getSupportedFormatsAsSet()).thenReturn(
-            new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "tif", "tiff"))
+            new HashSet<>(Arrays.asList("image/jpg", "image/jpeg", "image/png", "image/tif", "image/tiff"))
         );
+        lenient().when(imageProperties.getSupportedFormats()).thenReturn(
+            Arrays.asList("image/jpg", "image/jpeg", "image/png", "image/tif", "image/tiff")
+        );
+        lenient().when(imageProperties.getMaxSize()).thenReturn("50MB");
         
         // Create the service with the mocked facade and properties
         georeferenceService = new GeoreferenceService(gdalFacade, georeferenceProperties);

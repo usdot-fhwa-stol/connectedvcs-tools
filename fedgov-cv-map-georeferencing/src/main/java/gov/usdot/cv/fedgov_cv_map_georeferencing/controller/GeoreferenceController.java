@@ -35,12 +35,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/georeference")
@@ -52,7 +53,10 @@ public class GeoreferenceController {
     private final ObjectMapper objectMapper;
     
     // Store processed images temporarily (in production, use a proper cache or file storage)
-    private final Map<String, byte[]> imageCache = new ConcurrentHashMap<>();
+    private final Cache<String, byte[]> imageCache = CacheBuilder.newBuilder()
+            .maximumSize(100)
+            .expireAfterAccess(1, java.util.concurrent.TimeUnit.DAYS)
+            .build();
 
     public GeoreferenceController(GeoreferenceService georeferenceService) {
         this.georeferenceService = georeferenceService;
@@ -134,10 +138,13 @@ public class GeoreferenceController {
                 // Replace bytes with URL
                 result.put("processedImageUrl", "/api/georeference/image/" + imageId);
                 result.remove("processedImageBytes");
+                result.remove("imageInfo"); 
                 logger.info("Stored image with ID: {}, size: {} bytes", imageId, ((byte[]) imageBytes).length);
             }
             response.putAll(result);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(response);
             
         } catch (IllegalArgumentException e) {
             logger.error("Validation error: {}", e.getMessage());
@@ -156,7 +163,7 @@ public class GeoreferenceController {
         }
     }
 
-    @GetMapping("/image/{imageId}")
+    @GetMapping(value = "/image/{imageId}", produces = MediaType.IMAGE_PNG_VALUE)
     @Operation(
         summary = "Get processed image",
         description = "Retrieve a processed georeferenced image by its ID"
@@ -174,8 +181,9 @@ public class GeoreferenceController {
     })
     public ResponseEntity<Resource> getProcessedImage(@PathVariable String imageId) {
         logger.info("Fetching processed image with ID: {}", imageId);
-        byte[] imageData = imageCache.get(imageId);
+        byte[] imageData = imageCache.getIfPresent(imageId);
         if (imageData == null) {
+            logger.warn("Image not found for ID: {}", imageId);
             return ResponseEntity.notFound().build();
         }
         
