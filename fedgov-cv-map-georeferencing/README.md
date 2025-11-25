@@ -1,6 +1,6 @@
 # Fedgov CV Map Georeferencing Service
 
-A high-precision georeferencing REST API service built with Spring Boot 3.2 that provides image georeferencing capabilities using GDAL command-line utilities. This service acts as a bridge between web applications and GDAL, enabling accurate spatial transformation of images using Ground Control Points (GCPs).
+A high-precision georeferencing REST API service built with Spring Boot 2.7.18 that provides image georeferencing capabilities using GDAL command-line utilities. This service acts as a bridge between web applications and GDAL, enabling accurate spatial transformation of images using Ground Control Points (GCPs). Deployed as a WAR in Jetty container for enterprise integration.
 
 ## Table of Contents
 
@@ -13,8 +13,6 @@ A high-precision georeferencing REST API service built with Spring Boot 3.2 that
     - [Development Requirements](#development-requirements)
   - [Installation](#installation)
     - [Local Development Setup](#local-development-setup)
-  - [Docker Deployment](#docker-deployment)
-    - [Quick Start with Docker](#quick-start-with-docker)
   - [API Documentation](#api-documentation)
     - [Interactive Documentation](#interactive-documentation)
     - [Endpoints](#endpoints)
@@ -23,6 +21,7 @@ A high-precision georeferencing REST API service built with Spring Boot 3.2 that
     - [cURL Example](#curl-example)
   - [Configuration](#configuration)
     - [Application Properties](#application-properties)
+    - [Log4j2 Configuration](#log4j2-configuration)
   - [Development](#development)
     - [Building from Source](#building-from-source)
 
@@ -40,15 +39,16 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
   - Output: Configurable extent coordinates
 - **VRT-Based Processing**: Three-stage pipeline (VRT → Transform → PNG)
 - **RESTful API**: OpenAPI 3.0 documented endpoints
-- **Docker Support**: Containerized deployment with optimized GDAL installation
-
+- **Advanced Logging**: Log4j2 with SLF4J facade for comprehensive operation tracking
+- **Enterprise Deployment**: WAR packaging for Jetty/Tomcat deployment
 - **Error Handling**: Detailed validation and error reporting
 - **Binary Image Support**: Efficient byte-array image handling
 
 ## Requirements
 
 ### Runtime Requirements
-- **Java**: OpenJDK 17 or higher
+- **Java**: OpenJDK 8 or higher
+- **Application Server**: Jetty 9.4+ or Tomcat 9+ (for WAR deployment)
 - **GDAL**: Version 3.0+ with command-line utilities
   - `gdal_translate`
   - `gdalwarp` 
@@ -57,7 +57,7 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
 - **Storage**: Temporary directory access for processing
 
 ### Development Requirements
-- **Java JDK**: 17+
+- **Java JDK**: 8
 - **Maven**: 3.6+
 - **GDAL**: Development libraries and CLI tools
 
@@ -86,20 +86,8 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
 4. **Build and Run**
    ```bash
    ./mvnw clean package
-   java -jar target/fedgov-cv-map-georeferencing-0.0.1-SNAPSHOT.jar
+   java -jar target/fedgov-cv-map-georeferencing-0.0.1-SNAPSHOT.war
    ```
-
-## Docker Deployment
-
-### Quick Start with Docker
-
-```bash
-# Build the Docker image
-docker build -t fedgov-cv-georeferencing .
-
-# Run the container
-docker run -p 8080:8080 fedgov-cv-georeferencing
-```
 
 ## API Documentation
 
@@ -107,8 +95,8 @@ docker run -p 8080:8080 fedgov-cv-georeferencing
 
 Once the service is running, access the interactive API documentation:
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+- **Swagger UI**: http://localhost:8080/georef/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/georef/v3/api-docs
 
 ### Endpoints
 
@@ -215,24 +203,65 @@ curl -X POST "http://localhost:8080/georeference" \
 spring:
   application:
     name: fedgov-cv-map-georeferencing
-  jackson:
-    serialization:
-      FAIL_ON_EMPTY_BEANS: false
-  servlet:
-    multipart:
-      max-file-size: 50MB
-      max-request-size: 60MB
 
 server:
   port: 8080
-  
-# Optional: Custom configurations
-georeferencing:
-  temp-dir: /tmp/georef
-  max-gcps: 50
-  timeout-seconds: 300
+
+logging:
+  level:
+    root: WARN
+    org.springframework.boot: INFO
+    gov.usdot.cv.fedgov_cv_map_georeferencing.service: INFO
+
+# Georeferencing configuration
+georeference:
+  image:
+    supported-formats:
+      - image/png
+      - image/jpeg
+      - image/jpg
+    max-size: 50MB
+  gcp:
+    min-count: 6
+    max-count: 10
+```
+
+### Log4j2 Configuration
+
+Advanced logging with daily rotation:
+
+```xml
+<!-- log4j2.xml -->
+<Configuration status="WARN" name="map-georeferencing">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %5p --- %c : %m%n%xwEx</Property>
+    </Properties>
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+        <RollingFile name="FileAppender" 
+                     filePattern="./logs/map-georeferencing-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="gov.usdot.cv" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
 ```
 ## Development
+
 ### Building from Source
 
 ```bash
@@ -243,9 +272,6 @@ cd connectedvcs-tools/fedgov-cv-map-georeferencing
 # Run tests
 ./mvnw test
 
-# Package application
+# Package application (WAR for deployment)
 ./mvnw clean package
-
-# Run locally
-java -jar target/fedgov-cv-map-georeferencing-0.0.1-SNAPSHOT.jar
 ```
