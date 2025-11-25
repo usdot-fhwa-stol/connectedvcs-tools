@@ -15,6 +15,7 @@
  */
 package gov.usdot.cv.msg.builder;
 
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import java.text.SimpleDateFormat;
@@ -23,6 +24,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -65,7 +69,13 @@ import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
 public class TravelerInformationBuilder {
 
 	private static final Logger logger = LogManager.getLogger(TravelerInformationBuilder.class);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+	private static final SimpleDateFormat sdf;
+
+	static {
+		sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC")); 
+	}
+
 	private static final int MAX_MINUTES_DURATION = 32000; // DSRC spec
 
 	private static final int LONG_BIT_STRING = 0b0000000000000000; // A 16-bit binary string
@@ -138,6 +148,8 @@ public class TravelerInformationBuilder {
 		TravelerInformation tim = new TravelerInformation();
 		tim.setDataFrames(buildDataFrames(travInputData));
 		tim.setMsgCnt(tim.getDataFrames().getFrames().size());
+		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(travInputData.anchorPoint.packetID);
+		tim.setPacketID(new UniqueMSGID(buf.array()));
 		return tim;
 	}
 
@@ -150,8 +162,7 @@ public class TravelerInformationBuilder {
 
 		dataFrame.setFrameType(TravelerInfoType.fromValue(travInputData.anchorPoint.infoType));
 		dataFrame.setMsgId(getMessageId(travInputData));
-		// TODO:StartYear is an Optional field will be implemented later
-		// dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
+		dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
 		dataFrame.setStartTime(new MinuteOfTheYear(getStartTime(travInputData)));
 		dataFrame.setDurationTime(new MinutesDuration(getDurationTime(travInputData)));
 		dataFrame.setPriority(new SignPriority(travInputData.anchorPoint.priority));
@@ -400,9 +411,7 @@ public class TravelerInformationBuilder {
 			RoadSignID roadSignID = new RoadSignID();
 			roadSignID.setPosition(getAnchorPointPosition(travInputData));
 			roadSignID.setViewAngle(getHeadingSlice(travInputData));
-			// Todo:
-			// MUTCD code is an optional field will be implement later story
-			// roadSignID.setMutcdCode(MUTCDCode.valueOf(travInputData.anchorPoint.mutcd));
+			roadSignID.setMutcdCode(getMutcdFromInt(travInputData.anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
 		} else {
 			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as
@@ -420,7 +429,7 @@ public class TravelerInformationBuilder {
 		anchorPos.setLatitude(J2735TIMHelper.convertGeoCoordinateToInt(anchorPoint.referenceLat));
 		if (travInputData.enableElevation) {
 			anchorPos.setElevationExists(true);
-			anchorPos.setElevation((float) anchorPoint.referenceElevation);
+			anchorPos.setElevation((float) anchorPoint.getReferenceElevation());
 		}
 		return anchorPos;
 	}
@@ -570,9 +579,11 @@ public class TravelerInformationBuilder {
 		center.setLongitude(J2735TIMHelper
 				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
 
+		// System.out.println("inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation" + inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation);
 		if (travInputData.enableElevation && inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
 			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
 		}
+		// System.out.println("center.getElevation()" + center.getElevation());
 		circle.setCenter(center);
 
 		setRadiusAndUnits(circle, inputRegion.radius);
@@ -750,4 +761,26 @@ public class TravelerInformationBuilder {
 
 		return fInformation;
 	}
+
+	public static MUTCDCode getMutcdFromInt(int value) {
+		switch (value) {
+			case 0:
+				return MUTCDCode.none;
+			case 1:
+				return MUTCDCode.regulatory;
+			case 2:
+				return MUTCDCode.warning;
+			case 3:
+				return MUTCDCode.maintenance;
+			case 4:
+				return MUTCDCode.motoristService;
+			case 5:
+				return MUTCDCode.guide;
+			case 6:
+				return MUTCDCode.rec;
+			default:
+				return MUTCDCode.none;
+		}
+	}
+	
 }
