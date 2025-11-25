@@ -35,11 +35,11 @@ class GCPTest {
 
         // Assert
         assertNotNull(gcp);
-        assertEquals(pointId, gcp.pointId());
-        assertEquals(imageX, gcp.imageX());
-        assertEquals(imageY, gcp.imageY());
-        assertEquals(longitude, gcp.longitude());
-        assertEquals(latitude, gcp.latitude());
+        assertEquals(pointId, gcp.getPointId());
+        assertEquals(imageX, gcp.getImageX());
+        assertEquals(imageY, gcp.getImageY());
+        assertEquals(longitude, gcp.getLongitude());
+        assertEquals(latitude, gcp.getLatitude());
     }
 
     @Test
@@ -49,11 +49,11 @@ class GCPTest {
 
         // Assert
         assertNotNull(gcp);
-        assertNull(gcp.pointId());
-        assertNull(gcp.imageX());
-        assertNull(gcp.imageY());
-        assertNull(gcp.longitude());
-        assertNull(gcp.latitude());
+        assertNull(gcp.getPointId());
+        assertNull(gcp.getImageX());
+        assertNull(gcp.getImageY());
+        assertNull(gcp.getLongitude());
+        assertNull(gcp.getLatitude());
     }
 
     @Test
@@ -100,11 +100,11 @@ class GCPTest {
         GCP gcp = new GCP("TEST_ID", 150, 250, -77.999, 38.999);
 
         // Assert all accessor methods work
-        assertEquals("TEST_ID", gcp.pointId());
-        assertEquals(Integer.valueOf(150), gcp.imageX());
-        assertEquals(Integer.valueOf(250), gcp.imageY());
-        assertEquals(Double.valueOf(-77.999), gcp.longitude());
-        assertEquals(Double.valueOf(38.999), gcp.latitude());
+        assertEquals("TEST_ID", gcp.getPointId());
+        assertEquals(Integer.valueOf(150), gcp.getImageX());
+        assertEquals(Integer.valueOf(250), gcp.getImageY());
+        assertEquals(Double.valueOf(-77.999), gcp.getLongitude());
+        assertEquals(Double.valueOf(38.999), gcp.getLatitude());
     }
 
     @Test
@@ -113,11 +113,11 @@ class GCPTest {
         GCP gcp = new GCP("NEG_TEST", -50, -100, -180.0, -90.0);
 
         // Assert
-        assertEquals("NEG_TEST", gcp.pointId());
-        assertEquals(Integer.valueOf(-50), gcp.imageX());
-        assertEquals(Integer.valueOf(-100), gcp.imageY());
-        assertEquals(Double.valueOf(-180.0), gcp.longitude());
-        assertEquals(Double.valueOf(-90.0), gcp.latitude());
+        assertEquals("NEG_TEST", gcp.getPointId());
+        assertEquals(Integer.valueOf(-50), gcp.getImageX());
+        assertEquals(Integer.valueOf(-100), gcp.getImageY());
+        assertEquals(Double.valueOf(-180.0), gcp.getLongitude());
+        assertEquals(Double.valueOf(-90.0), gcp.getLatitude());
     }
 
     @Test
@@ -126,11 +126,11 @@ class GCPTest {
         GCP gcp = new GCP("ZERO_TEST", 0, 0, 0.0, 0.0);
 
         // Assert
-        assertEquals("ZERO_TEST", gcp.pointId());
-        assertEquals(Integer.valueOf(0), gcp.imageX());
-        assertEquals(Integer.valueOf(0), gcp.imageY());
-        assertEquals(Double.valueOf(0.0), gcp.longitude());
-        assertEquals(Double.valueOf(0.0), gcp.latitude());
+        assertEquals("ZERO_TEST", gcp.getPointId());
+        assertEquals(Integer.valueOf(0), gcp.getImageX());
+        assertEquals(Integer.valueOf(0), gcp.getImageY());
+        assertEquals(Double.valueOf(0.0), gcp.getLongitude());
+        assertEquals(Double.valueOf(0.0), gcp.getLatitude());
     }
 
     @Test
@@ -139,10 +139,10 @@ class GCPTest {
         GCP gcp = new GCP("LARGE_TEST", 99999, 88888, 180.0, 90.0);
 
         // Assert
-        assertEquals("LARGE_TEST", gcp.pointId());
-        assertEquals(Integer.valueOf(99999), gcp.imageX());
-        assertEquals(Integer.valueOf(88888), gcp.imageY());
-        assertEquals(Double.valueOf(180.0), gcp.longitude());
-        assertEquals(Double.valueOf(90.0), gcp.latitude());
+        assertEquals("LARGE_TEST", gcp.getPointId());
+        assertEquals(Integer.valueOf(99999), gcp.getImageX());
+        assertEquals(Integer.valueOf(88888), gcp.getImageY());
+        assertEquals(Double.valueOf(180.0), gcp.getLongitude());
+        assertEquals(Double.valueOf(90.0), gcp.getLatitude());
     }
 }

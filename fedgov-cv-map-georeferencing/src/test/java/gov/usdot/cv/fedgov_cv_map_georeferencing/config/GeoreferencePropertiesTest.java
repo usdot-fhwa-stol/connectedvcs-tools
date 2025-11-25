@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,7 +37,7 @@ class GeoreferencePropertiesTest {
         assertNotNull(properties.getImage());
         
         // Verify supported formats from YAML
-        var supportedFormats = properties.getImage().getSupportedFormats();
+        List<String> supportedFormats = properties.getImage().getSupportedFormats();
         assertNotNull(supportedFormats);
         assertFalse(supportedFormats.isEmpty());
         assertTrue(supportedFormats.contains("image/png"));

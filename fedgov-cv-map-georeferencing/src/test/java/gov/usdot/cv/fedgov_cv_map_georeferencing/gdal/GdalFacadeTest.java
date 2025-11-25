@@ -196,7 +196,7 @@ class GdalFacadeTest {
             
             // VRT file should contain some basic content
             if (Files.exists(outputVrt) && Files.size(outputVrt) > 0) {
-                String vrtContent = Files.readString(outputVrt);
+                String vrtContent = new String(Files.readAllBytes(outputVrt));
                 // Just check that it contains some expected VRT elements
                 assertTrue(vrtContent.contains("VRT") || vrtContent.contains("GCP") || vrtContent.contains("gdal"));
             }

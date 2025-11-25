@@ -16,17 +16,26 @@
 
 package gov.usdot.cv.fedgov_cv_map_georeferencing.dto;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record GCP(
-        //A unique identifier for the ground control point
-        @NotNull String pointId,
-        //The X coordinate (in pixels) of the point in the image
-        @NotNull Integer imageX,
-        @NotNull Integer imageY,
-        //The geographic coordinates of the point
-        @NotNull Double longitude,
-        @NotNull Double latitude
-){
-  
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class GCP {
+    //A unique identifier for the ground control point
+    @NotNull
+    private String pointId;
+    //The X coordinate (in pixels) of the point in the image
+    @NotNull
+    private Integer imageX;
+    @NotNull
+    private Integer imageY;
+    //The geographic coordinates of the point
+    @NotNull
+    private Double longitude;
+    @NotNull
+    private Double latitude;
 }

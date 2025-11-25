@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +72,7 @@ class GeoreferenceServiceTest {
         lenient().when(gcpProperties.getMinCount()).thenReturn(6);
         lenient().when(gcpProperties.getMaxCount()).thenReturn(10);
         lenient().when(imageProperties.getSupportedFormatsAsSet()).thenReturn(
-            Set.of("jpg", "jpeg", "png", "tif", "tiff")
+            new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "tif", "tiff"))
         );
         
         // Create the service with the mocked facade and properties

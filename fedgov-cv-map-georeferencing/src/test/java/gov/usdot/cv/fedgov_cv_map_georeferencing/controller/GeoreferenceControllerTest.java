@@ -280,7 +280,12 @@ class GeoreferenceControllerTest {
         
         Map<String, Object> serviceResult = new HashMap<>();
         serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
-        serviceResult.put("extent", Map.of("minX", 0.0, "maxX", 100.0, "minY", 0.0, "maxY", 100.0));
+        Map<String, Double> extent = new HashMap<>();
+        extent.put("minX", 0.0);
+        extent.put("maxX", 100.0);
+        extent.put("minY", 0.0);
+        extent.put("maxY", 100.0);
+        serviceResult.put("extent", extent);
         
         when(georeferenceService.process(any(MultipartFile.class), anyList()))
             .thenReturn(serviceResult);
@@ -305,7 +310,12 @@ class GeoreferenceControllerTest {
         
         Map<String, Object> serviceResult = new HashMap<>();
         serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
-        serviceResult.put("extent", Map.of("minX", 0.0, "maxX", 100.0, "minY", 0.0, "maxY", 100.0));
+        Map<String, Double> extent2 = new HashMap<>();
+        extent2.put("minX", 0.0);
+        extent2.put("maxX", 100.0);
+        extent2.put("minY", 0.0);
+        extent2.put("maxY", 100.0);
+        serviceResult.put("extent", extent2);
         
         when(georeferenceService.process(any(MultipartFile.class), anyList()))
             .thenReturn(serviceResult);

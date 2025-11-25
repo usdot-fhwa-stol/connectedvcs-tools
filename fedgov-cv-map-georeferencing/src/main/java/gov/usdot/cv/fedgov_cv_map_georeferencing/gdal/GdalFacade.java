@@ -99,10 +99,10 @@ public class GdalFacade {
         // Add all GCPs
         for (GCP gcp : gcps) {
             command.add("-gcp");
-            command.add(String.valueOf(gcp.imageX()));
-            command.add(String.valueOf(gcp.imageY()));
-            command.add(String.valueOf(gcp.longitude()));
-            command.add(String.valueOf(gcp.latitude()));
+            command.add(String.valueOf(gcp.getImageX()));
+            command.add(String.valueOf(gcp.getImageY()));
+            command.add(String.valueOf(gcp.getLongitude()));
+            command.add(String.valueOf(gcp.getLatitude()));
         }
         
         // Set source spatial reference system

@@ -115,13 +115,13 @@ public class GeoreferenceService {
         
         // Validate each GCP
         for (GCP gcp : gcps) {
-            if (gcp.pointId() == null || gcp.pointId().trim().isEmpty()) {
+            if (gcp.getPointId() == null || gcp.getPointId().trim().isEmpty()) {
                 throw new IllegalArgumentException("All ground control points must have valid point IDs");
             }
-            if (gcp.imageX() == null || gcp.imageY() == null) {
+            if (gcp.getImageX() == null || gcp.getImageY() == null) {
                 throw new IllegalArgumentException("All ground control points must have valid image coordinates");
             }
-            if (gcp.longitude() == null || gcp.latitude() == null) {
+            if (gcp.getLongitude() == null || gcp.getLatitude() == null) {
                 throw new IllegalArgumentException("All ground control points must have valid geographic coordinates");
             }
         }
@@ -485,10 +485,10 @@ public class GeoreferenceService {
      * Creates extent metadata from ground control points
      */
     private Map<String, Double> createExtentMetadata(List<GCP> gcps) {
-        double minLon = gcps.stream().mapToDouble(GCP::longitude).min().orElse(0.0);
-        double maxLon = gcps.stream().mapToDouble(GCP::longitude).max().orElse(0.0);
-        double minLat = gcps.stream().mapToDouble(GCP::latitude).min().orElse(0.0);
-        double maxLat = gcps.stream().mapToDouble(GCP::latitude).max().orElse(0.0);
+        double minLon = gcps.stream().mapToDouble(gcp -> gcp.getLongitude()).min().orElse(0.0);
+        double maxLon = gcps.stream().mapToDouble(gcp -> gcp.getLongitude()).max().orElse(0.0);
+        double minLat = gcps.stream().mapToDouble(gcp -> gcp.getLatitude()).min().orElse(0.0);
+        double maxLat = gcps.stream().mapToDouble(gcp -> gcp.getLatitude()).max().orElse(0.0);
         
         Map<String, Double> extent = new HashMap<>();
         extent.put("minLongitude", minLon);

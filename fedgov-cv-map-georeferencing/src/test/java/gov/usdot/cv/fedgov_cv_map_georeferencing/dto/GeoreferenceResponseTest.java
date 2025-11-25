@@ -38,9 +38,9 @@ class GeoreferenceResponseTest {
 
         // Assert
         assertNotNull(response);
-        assertTrue(response.success());
-        assertEquals(message, response.message());
-        assertEquals(details, response.details());
+        assertTrue(response.isSuccess());
+        assertEquals(message, response.getMessage());
+        assertEquals(details, response.getDetails());
     }
 
     @Test
@@ -55,9 +55,9 @@ class GeoreferenceResponseTest {
 
         // Assert
         assertNotNull(response);
-        assertFalse(response.success());
-        assertEquals(message, response.message());
-        assertEquals(errorDetails, response.details());
+        assertFalse(response.isSuccess());
+        assertEquals(message, response.getMessage());
+        assertEquals(errorDetails, response.getDetails());
     }
 
     @Test
@@ -67,9 +67,9 @@ class GeoreferenceResponseTest {
 
         // Assert
         assertNotNull(response);
-        assertFalse(response.success());
-        assertNull(response.message());
-        assertNull(response.details());
+        assertFalse(response.isSuccess());
+        assertNull(response.getMessage());
+        assertNull(response.getDetails());
     }
 
     @Test
@@ -83,9 +83,9 @@ class GeoreferenceResponseTest {
 
         // Assert
         assertNotNull(response);
-        assertTrue(response.success());
-        assertEquals("", response.message());
-        assertEquals(details, response.details());
+        assertTrue(response.isSuccess());
+        assertEquals("", response.getMessage());
+        assertEquals(details, response.getDetails());
     }
 
     @Test
@@ -110,11 +110,11 @@ class GeoreferenceResponseTest {
 
         // Assert
         assertNotNull(response);
-        assertTrue(response.success());
-        assertEquals(message, response.message());
+        assertTrue(response.isSuccess());
+        assertEquals(message, response.getMessage());
         
         @SuppressWarnings("unchecked")
-        Map<String, Object> responseDetails = (Map<String, Object>) response.details();
+        Map<String, Object> responseDetails = (Map<String, Object>) response.getDetails();
         assertEquals("test.jpg", responseDetails.get("originalImageName"));
         assertEquals(2048L, responseDetails.get("imageSize"));
         assertEquals(6, responseDetails.get("gcpCount"));
@@ -179,23 +179,23 @@ class GeoreferenceResponseTest {
         GeoreferenceResponse response = new GeoreferenceResponse(expectedSuccess, expectedMessage, expectedDetails);
 
         // Assert
-        assertEquals(expectedSuccess, response.success());
-        assertEquals(expectedMessage, response.message());
-        assertEquals(expectedDetails, response.details());
+        assertEquals(expectedSuccess, response.isSuccess());
+        assertEquals(expectedMessage, response.getMessage());
+        assertEquals(expectedDetails, response.getDetails());
     }
 
     @Test
     void testGeoreferenceResponse_DifferentDetailTypes_HandlesVariousTypes() {
         // Test with String details
         GeoreferenceResponse stringResponse = new GeoreferenceResponse(false, "Error", "Error message");
-        assertEquals("Error message", stringResponse.details());
+        assertEquals("Error message", stringResponse.getDetails());
 
         // Test with Integer details
         GeoreferenceResponse intResponse = new GeoreferenceResponse(true, "Count", 42);
-        assertEquals(42, intResponse.details());
+        assertEquals(42, intResponse.getDetails());
 
         // Test with Boolean details
         GeoreferenceResponse boolResponse = new GeoreferenceResponse(true, "Flag", Boolean.TRUE);
-        assertEquals(Boolean.TRUE, boolResponse.details());
+        assertEquals(Boolean.TRUE, boolResponse.getDetails());
     }
 }

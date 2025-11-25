@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ public class GeoreferenceProperties {
          * Get supported formats as a Set for efficient lookup.
          */
         public Set<String> getSupportedFormatsAsSet() {
-            return Set.copyOf(supportedFormats);
+            return new HashSet<>(supportedFormats);
         }
     }
 

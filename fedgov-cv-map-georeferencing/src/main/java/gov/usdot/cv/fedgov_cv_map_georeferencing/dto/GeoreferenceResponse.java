@@ -15,9 +15,15 @@
  */
 package gov.usdot.cv.fedgov_cv_map_georeferencing.dto;
 
-public record GeoreferenceResponse(
-    boolean success,
-    String message,
-    // `details` contains both the transformed image (base64) and the extent metadata
-    Object details
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class GeoreferenceResponse {
+    private boolean success;
+    private String message;
+    private Object details;
+}
