@@ -184,7 +184,6 @@ public class GeoreferenceService {
             result.put("processedImageBytes", processedImageBytes); // Return raw bytes instead of base64
             result.put("extent", extractActualExtentFromGdalInfo(imageInfo, gcps));
             result.put("extentProjection", "EPSG:4326"); // Indicate the projection of extent coordinates
-            result.put("imageInfo", imageInfo);
             result.put("coordinateSystem", "EPSG:3857"); // Web Mercator projection
             result.put("processingTimestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             result.put("status", "processed_gdal_facade");

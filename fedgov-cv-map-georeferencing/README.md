@@ -141,7 +141,7 @@ Georeference an image using Ground Control Points.
     "imageSize": 2048576,
     "processedImageSize": 1876543,
     "gcpCount": 6,
-    "processedImageBytes": "base64-encoded-image-data",
+    "processedImageUrl": "Processed image URL",
     "extent": {
       "minLongitude": -77.126789,
       "maxLongitude": -77.120123,

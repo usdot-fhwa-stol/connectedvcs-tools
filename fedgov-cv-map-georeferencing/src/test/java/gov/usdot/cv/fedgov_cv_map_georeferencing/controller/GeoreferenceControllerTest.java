@@ -16,6 +16,7 @@
 package gov.usdot.cv.fedgov_cv_map_georeferencing.controller;
 
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
+import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.service.GeoreferenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +86,19 @@ class GeoreferenceControllerTest {
         mockServiceResult.put("status", "processed");
         mockServiceResult.put("originalImageName", "test-image.png");
         mockServiceResult.put("imageSize", 1024L);
+        mockServiceResult.put("processedImageSize", 2048L);
         mockServiceResult.put("gcpCount", 6);
+        mockServiceResult.put("extentProjection", "EPSG:4326");
+        mockServiceResult.put("coordinateSystem", "WGS84");
+        mockServiceResult.put("processingTimestamp", "2025-11-25T14:50:00Z");
+        
+        // Setup extent
+        Map<String, Double> extent = new HashMap<>();
+        extent.put("minLongitude", -77.036);
+        extent.put("maxLongitude", -77.027);
+        extent.put("minLatitude", 38.887);
+        extent.put("maxLatitude", 38.895);
+        mockServiceResult.put("extent", extent);
     }
 
     @Test
@@ -101,11 +114,14 @@ class GeoreferenceControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        GeoreferenceResponse responseBody = (GeoreferenceResponse) response.getBody();
         assertNotNull(responseBody);
-        assertTrue((Boolean) responseBody.get("success"));
-        assertEquals("Processing completed successfully", responseBody.get("message"));
+        assertTrue(responseBody.isSuccess());
+        assertEquals("Processing completed successfully", responseBody.getMessage());
+        assertNotNull(responseBody.getDetails());
+        assertEquals("test-image.png", responseBody.getDetails().getOriginalImageName());
+        assertEquals(1024L, responseBody.getDetails().getImageSize());
+        assertEquals(6, responseBody.getDetails().getGcpCount());
         
         // Verify service was called with parsed GCPs
         verify(georeferenceService, times(1)).process(eq(mockImageFile), eq(validGcps));
@@ -280,11 +296,20 @@ class GeoreferenceControllerTest {
         
         Map<String, Object> serviceResult = new HashMap<>();
         serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
+        serviceResult.put("status", "processed");
+        serviceResult.put("originalImageName", "test.png");
+        serviceResult.put("imageSize", 1024L);
+        serviceResult.put("processedImageSize", 2048L);
+        serviceResult.put("gcpCount", 6);
+        serviceResult.put("extentProjection", "EPSG:4326");
+        serviceResult.put("coordinateSystem", "WGS84");
+        serviceResult.put("processingTimestamp", "2025-11-25T14:50:00Z");
+        
         Map<String, Double> extent = new HashMap<>();
-        extent.put("minX", 0.0);
-        extent.put("maxX", 100.0);
-        extent.put("minY", 0.0);
-        extent.put("maxY", 100.0);
+        extent.put("minLongitude", -77.036);
+        extent.put("maxLongitude", -77.027);
+        extent.put("minLatitude", 38.887);
+        extent.put("maxLatitude", 38.895);
         serviceResult.put("extent", extent);
         
         when(georeferenceService.process(any(MultipartFile.class), anyList()))
@@ -310,11 +335,20 @@ class GeoreferenceControllerTest {
         
         Map<String, Object> serviceResult = new HashMap<>();
         serviceResult.put("processedImageBytes", "fake processed bytes".getBytes());
+        serviceResult.put("status", "processed");
+        serviceResult.put("originalImageName", "test.jpg");
+        serviceResult.put("imageSize", 1024L);
+        serviceResult.put("processedImageSize", 2048L);
+        serviceResult.put("gcpCount", 6);
+        serviceResult.put("extentProjection", "EPSG:4326");
+        serviceResult.put("coordinateSystem", "WGS84");
+        serviceResult.put("processingTimestamp", "2025-11-25T14:50:00Z");
+        
         Map<String, Double> extent2 = new HashMap<>();
-        extent2.put("minX", 0.0);
-        extent2.put("maxX", 100.0);
-        extent2.put("minY", 0.0);
-        extent2.put("maxY", 100.0);
+        extent2.put("minLongitude", -77.036);
+        extent2.put("maxLongitude", -77.027);
+        extent2.put("minLatitude", 38.887);
+        extent2.put("maxLatitude", 38.895);
         serviceResult.put("extent", extent2);
         
         when(georeferenceService.process(any(MultipartFile.class), anyList()))
@@ -336,6 +370,19 @@ class GeoreferenceControllerTest {
         serviceResult.put("processedImageBytes", mockImageBytes);
         serviceResult.put("status", "processed");
         serviceResult.put("originalImageName", "test-image.png");
+        serviceResult.put("imageSize", 1024L);
+        serviceResult.put("processedImageSize", 2048L);
+        serviceResult.put("gcpCount", 6);
+        serviceResult.put("extentProjection", "EPSG:4326");
+        serviceResult.put("coordinateSystem", "WGS84");
+        serviceResult.put("processingTimestamp", "2025-11-25T14:50:00Z");
+        
+        Map<String, Double> extent = new HashMap<>();
+        extent.put("minLongitude", -77.036);
+        extent.put("maxLongitude", -77.027);
+        extent.put("minLatitude", 38.887);
+        extent.put("maxLatitude", 38.895);
+        serviceResult.put("extent", extent);
         
         when(georeferenceService.process(any(MultipartFile.class), anyList()))
             .thenReturn(serviceResult);
@@ -346,15 +393,14 @@ class GeoreferenceControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        GeoreferenceResponse responseBody = (GeoreferenceResponse) response.getBody();
         assertNotNull(responseBody);
-        assertTrue((Boolean) responseBody.get("success"));
+        assertTrue(responseBody.isSuccess());
         
-        // Check that processedImageUrl is generated and processedImageBytes is removed
-        assertNotNull(responseBody.get("processedImageUrl"));
-        assertTrue(responseBody.get("processedImageUrl").toString().startsWith("/api/georeference/image/"));
-        assertNull(responseBody.get("processedImageBytes")); // Should be removed from response
+        // Check that processedImageUrl is generated
+        assertNotNull(responseBody.getDetails());
+        assertNotNull(responseBody.getDetails().getProcessedImageUrl());
+        assertTrue(responseBody.getDetails().getProcessedImageUrl().startsWith("/api/georeference/image/"));
         
         verify(georeferenceService, times(1)).process(eq(mockImageFile), eq(validGcps));
     }

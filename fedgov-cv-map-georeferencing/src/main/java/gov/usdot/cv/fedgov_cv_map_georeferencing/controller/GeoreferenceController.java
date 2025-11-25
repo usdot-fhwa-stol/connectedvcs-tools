@@ -17,6 +17,8 @@ package gov.usdot.cv.fedgov_cv_map_georeferencing.controller;
 
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse;
+import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse.GeoreferenceDetails;
+import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse.GeoreferenceDetails.Extent;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.service.GeoreferenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -125,23 +127,58 @@ public class GeoreferenceController {
             Map<String, Object> result = georeferenceService.process(image, gcps);
             
             // Return successful response
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Processing completed successfully");           
+            GeoreferenceResponse response = new GeoreferenceResponse();
+            response.setSuccess(true);
+            response.setMessage("Processing completed successfully");           
            
             // Store the binary image data and provide URL instead of base64
             Object imageBytes = result.get("processedImageBytes");
             if (imageBytes instanceof byte[] && ((byte[]) imageBytes).length > 0) {
                 String imageId = java.util.UUID.randomUUID().toString();
                 imageCache.put(imageId, (byte[]) imageBytes);
-                
+
                 // Replace bytes with URL
                 result.put("processedImageUrl", "/api/georeference/image/" + imageId);
                 result.remove("processedImageBytes");
-                result.remove("imageInfo"); 
+                result.remove("imageInfo");
                 logger.info("Stored image with ID: {}, size: {} bytes", imageId, ((byte[]) imageBytes).length);
             }
-            response.putAll(result);
+            GeoreferenceDetails details = new GeoreferenceDetails();
+            details.setOriginalImageName((String) result.get("originalImageName"));
+            
+            // Handle image sizes safely
+            Object imageSize = result.get("imageSize");
+            if (imageSize instanceof Number) {
+                details.setImageSize(((Number) imageSize).longValue());
+            }
+            
+            Object processedImageSize = result.get("processedImageSize");
+            if (processedImageSize instanceof Number) {
+                details.setProcessedImageSize(((Number) processedImageSize).longValue());
+            }
+            
+            Object gcpCount = result.get("gcpCount");
+            if (gcpCount instanceof Number) {
+                details.setGcpCount(((Number) gcpCount).intValue());
+            }
+            // Handle extent safely
+            Object extentObj = result.get("extent");
+            if (extentObj instanceof Map) {
+                Extent extent = new Extent();
+                @SuppressWarnings("unchecked")
+                Map<String, Double> extentMap = (Map<String, Double>) extentObj;
+                extent.setMinLongitude(extentMap.get("minLongitude"));
+                extent.setMaxLongitude(extentMap.get("maxLongitude"));
+                extent.setMinLatitude(extentMap.get("minLatitude"));
+                extent.setMaxLatitude(extentMap.get("maxLatitude"));
+                details.setExtent(extent);
+            }
+            details.setExtentProjection((String) result.get("extentProjection"));
+            details.setCoordinateSystem((String) result.get("coordinateSystem"));
+            details.setProcessingTimestamp((String) result.get("processingTimestamp"));
+            details.setStatus((String) result.get("status"));
+            details.setProcessedImageUrl((String) result.get("processedImageUrl"));
+            response.setDetails(details);
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(response);

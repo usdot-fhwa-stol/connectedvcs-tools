@@ -25,5 +25,30 @@ import lombok.NoArgsConstructor;
 public class GeoreferenceResponse {
     private boolean success;
     private String message;
-    private Object details;
+    private GeoreferenceDetails details;
+
+    @Data
+    public static class GeoreferenceDetails {
+        // Define fields for georeference details as needed
+        private String originalImageName;
+        private long imageSize;
+        private long processedImageSize;
+        private String processedImageUrl;
+        private int gcpCount;
+        private Extent extent;
+        private String extentProjection;
+        private String coordinateSystem;
+        private String processingTimestamp;
+        private String status;
+
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class Extent {
+            private double minLongitude;
+            private double maxLongitude;
+            private double minLatitude;
+            private double maxLatitude;
+        }
+    }
 }
