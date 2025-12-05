@@ -1952,6 +1952,42 @@ $(".dropdown-menu li a").click(function () {
   }
 });
 
+$(document).on('select2:select', '.itis_code_list', function (e) {
+  $(this).next('.select2-container').next('.parsley-errors-list').remove();
+  $(this).closest('.itis_codes').removeClass('has-error');
+
+  const selectedCode = e.params.data.id;
+  let isDuplicate = false;
+
+  $('.itis_code_list').not(this).each(function() {
+    const selectedValues = $(this).val() || [];
+    if (selectedValues.includes(selectedCode)) {
+      isDuplicate = true;
+      return false;
+    }
+  });
+
+  if (isDuplicate) {
+    const currentValues = $(this).val() || [];
+    const updatedValues = currentValues.filter(code => code !== selectedCode);
+    $(this).val(updatedValues).trigger('change');
+
+    const errorMessage = 'This ITIS code has already been selected';
+    const errorList = $('<ul class="parsley-errors-list filled"><li class="parsley-custom-error-message">' + errorMessage + '</li></ul>');
+    
+    $(this).next('.select2-container').after(errorList);
+    
+    $(this).closest('.itis_codes').addClass('has-error');
+  }
+});
+
+// Remove error on unselect or change
+$(document).on('select2:unselect change', '.itis_code_list', function () {
+  // Clear errors
+  $(this).next('.select2-container').next('.parsley-errors-list').remove();
+  $(this).closest('.itis_codes').removeClass('has-error');
+});
+
 
 function changePriority(mutcd) {
 
