@@ -69,8 +69,11 @@ JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
 			case 19:
 				msgTypeStr = "SPAT";
 				break;
+			case 31:
+        		msgTypeStr = "TravelerInformationMessage";
+        		break;
 			case 32:
-				msgTypeStr = "PersonalSafetyMessage ";
+				msgTypeStr = "PersonalSafetyMessage";
 				break;	
 			default:
 				msgTypeStr = "UnknownMessageType";
