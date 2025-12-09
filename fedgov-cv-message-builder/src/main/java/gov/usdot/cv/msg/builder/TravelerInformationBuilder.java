@@ -717,15 +717,14 @@ public class TravelerInformationBuilder {
 		FrictionInformation fInformation = new FrictionInformation();
 		DescriptionOfRoadSurface roadSurface = new DescriptionOfRoadSurface();
 
-		// ToDo: Inputs of surface condition will be implemented in a later story
-		String surfaceValue = "portland_cement";
+		String surfaceValue = travInputData.anchorPoint.road_surface;
+		int type_value = travInputData.anchorPoint.road_surface_type;
 
-		int type_value = 1;
 		switch (surfaceValue.toLowerCase()) {
-			case "portland_cement":
-				roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(0)));
+			case "portland cement":
+				roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(type_value)));
 				break;
-			case "asphalt_or_tar":
+			case "asphalt or tar":
 				roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
 				break;
 			case "gravel":
@@ -753,9 +752,21 @@ public class TravelerInformationBuilder {
 
 		fInformation.setRoadSurfaceDescription(roadSurface);
 
-		// Todo:will get from travinput in a later story
-		int dry_wet_value = 1;
+		int dry_wet_value = travInputData.anchorPoint.road_condition;
 		fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+
+		RoadRoughness roadRoughness = new RoadRoughness();
+		long meanHorizontalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
+		long stdevHorizontalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
+		long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
+		long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
+
+		roadRoughness.setMeanHorizontalVariation(new CommonMeanVariation(meanHorizontalVariationValue));
+		roadRoughness.setHorizontalVariationStdDev(new VariationStdDev(stdevHorizontalVariationValue));
+		roadRoughness.setMeanVerticalVariation(new CommonMeanVariation(meanVerticalVariationValue));
+		roadRoughness.setVerticalVariationStdDev(new VariationStdDev(stdevVerticalVariationValue));
+
+		fInformation.setRoadRoughness(roadRoughness);
 
 		return fInformation;
 	}
