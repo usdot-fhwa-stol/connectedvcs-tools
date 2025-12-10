@@ -6,7 +6,6 @@ on:
       - "develop"
       - "master"
       - "release/*"
-      - "fix_sonar"
 env:
   working-directory: $GITHUB_WORKSPACE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -132,3 +131,4 @@ jobs:
           with:
             sonar-token: ${{ secrets.SONAR_TOKEN }}
             working-dir: ${{ env.CLONED_REPO_PATH }}
+
