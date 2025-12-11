@@ -2696,22 +2696,90 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 jobject roughObj = midGetRough ? (*env)->CallObjectMethod(env, frictionObj, midGetRough) : NULL;
                 if (roughObj)
                 {
-                    // TODO: get Road Roughness information
+                    jclass roughCls = (*env)->GetObjectClass(env, roughObj);
+
+                    // Allocate RoadRoughness_t
+                    fip->roadRoughness = (RoadRoughness_t *)calloc(1, sizeof(RoadRoughness_t));
+                    if (!fip->roadRoughness)
+                    {
+                        fprintf(stderr, "calloc failed for RoadRoughness\n");
+                    }
+                    else
+                    {
+                        // meanVerticalVariation
+                        jmethodID midGetMeanVert = (*env)->GetMethodID(env, roughCls, "getMeanVerticalVariation", "()Lgov/usdot/cv/timencoder/CommonMeanVariation;");
+                        jobject meanVertObj = midGetMeanVert ? (*env)->CallObjectMethod(env, roughObj, midGetMeanVert) : NULL;
+                        if (meanVertObj)
+                        {
+                            long meanVertVal = get_long_from_java_number_like(env, meanVertObj);
+                            fip->roadRoughness->meanVerticalVariation = meanVertVal;
+                            (*env)->DeleteLocalRef(env, meanVertObj);
+                        }
+
+                        // verticalVariationStdDev
+                        jmethodID midGetVertStdDev = (*env)->GetMethodID(env, roughCls, "getVerticalVariationStdDev", "()Lgov/usdot/cv/timencoder/VariationStdDev;");
+                        jobject vertStdDevObj = midGetVertStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetVertStdDev) : NULL;
+                        if (vertStdDevObj)
+                        {
+                            long vertStdDevVal = get_long_from_java_number_like(env, vertStdDevObj);
+                            fip->roadRoughness->verticalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
+                            if (fip->roadRoughness->verticalVariationStdDev)
+                            {
+                                *fip->roadRoughness->verticalVariationStdDev = vertStdDevVal;
+                            }
+                            (*env)->DeleteLocalRef(env, vertStdDevObj);
+                        }
+                        else
+                        {
+                            fip->roadRoughness->verticalVariationStdDev = NULL;
+                        }
+
+                        // meanHorizontalVariation
+                        jmethodID midGetMeanHoriz = (*env)->GetMethodID(env, roughCls, "getMeanHorizontalVariation", "()Lgov/usdot/cv/timencoder/CommonMeanVariation;");
+                        jobject meanHorizObj = midGetMeanHoriz ? (*env)->CallObjectMethod(env, roughObj, midGetMeanHoriz) : NULL;
+                        if (meanHorizObj)
+                        {
+                            long meanHorizVal = get_long_from_java_number_like(env, meanHorizObj);
+                            fip->roadRoughness->meanHorizontalVariation = (CommonMeanVariation_t *)calloc(1, sizeof(CommonMeanVariation_t));
+                            if (fip->roadRoughness->meanHorizontalVariation)
+                            {
+                                *fip->roadRoughness->meanHorizontalVariation = meanHorizVal;
+                            }
+                            (*env)->DeleteLocalRef(env, meanHorizObj);
+                        }
+                        else
+                        {
+                            fip->roadRoughness->meanHorizontalVariation = NULL;
+                        }
+
+                        // horizontalVariationStdDev
+                        jmethodID midGetHorizStdDev = (*env)->GetMethodID(env, roughCls, "getHorizontalVariationStdDev", "()Lgov/usdot/cv/timencoder/VariationStdDev;");
+                        jobject horizStdDevObj = midGetHorizStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetHorizStdDev) : NULL;
+                        if (horizStdDevObj)
+                        {
+                            long horizStdDevVal = get_long_from_java_number_like(env, horizStdDevObj);
+                            fip->roadRoughness->horizontalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
+                            if (fip->roadRoughness->horizontalVariationStdDev)
+                            {
+                                *fip->roadRoughness->horizontalVariationStdDev = horizStdDevVal;
+                            }
+                            (*env)->DeleteLocalRef(env, horizStdDevObj);
+                        }
+                        else
+                        {
+                            fip->roadRoughness->horizontalVariationStdDev = NULL;
+                        }
+                    }
+
+                    (*env)->DeleteLocalRef(env, roughCls);
+                    (*env)->DeleteLocalRef(env, roughObj);
                 }
                 else
                 {
                     printf("Content New: roadRoughness = <absent>\n");
                 }
 
-                (*env)->DeleteLocalRef(env, frictionCls);
-                (*env)->DeleteLocalRef(env, frictionObj);
-            }
-            else
-            {
-                printf("Content New: FrictionInformation is null\n");
-            }
-
-            (*env)->DeleteLocalRef(env, contentNewCls);
+                (*env)->DeleteLocalRef(env, contentNewCls);
         }
         else
         {
