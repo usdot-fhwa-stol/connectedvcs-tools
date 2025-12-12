@@ -88,7 +88,7 @@
     "meanHorizontalVariation": "432",
     "horizontalVariationStdDev": "124",
     "road_surface": "Portland Cement",
-    "road_condition": "1",
+    "road_condition": 1,
     "road_surface_type": 0
   },
   "verifiedPoint": {

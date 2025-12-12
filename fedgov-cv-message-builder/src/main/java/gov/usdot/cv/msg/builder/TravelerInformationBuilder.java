@@ -716,6 +716,7 @@ public class TravelerInformationBuilder {
 	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {
 		FrictionInformation fInformation = new FrictionInformation();
 		DescriptionOfRoadSurface roadSurface = null;
+		boolean hasData = false;
 
 		String surfaceValue = travInputData.anchorPoint.road_surface;
 		int type_value = travInputData.anchorPoint.road_surface_type;
@@ -724,7 +725,8 @@ public class TravelerInformationBuilder {
 
 			switch (surfaceValue.toLowerCase()) {
 				case "portland cement":
-					roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(type_value)));
+					roadSurface = new DescriptionOfRoadSurface(
+							new PortlandCement(PortlandCementType.fromInt(type_value)));
 					break;
 				case "asphalt or tar":
 					roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
@@ -753,33 +755,35 @@ public class TravelerInformationBuilder {
 		}
 		if (roadSurface != null) {
 			fInformation.setRoadSurfaceDescription(roadSurface);
+			hasData = true;
 		}
 
 		int dry_wet_value = travInputData.anchorPoint.road_condition;
-		if (dry_wet_value == 0 || dry_wet_value == 1) {
+		if (dry_wet_value == 1) {
 			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+			hasData = true;
 		}
 
-		if (travInputData.anchorPoint.meanVerticalVariation >= 0 ||
-			travInputData.anchorPoint.verticalVariationStdDev >= 0 ||
-			travInputData.anchorPoint.meanHorizontalVariation >= 0 ||
-			travInputData.anchorPoint.horizontalVariationStdDev >= 0) {
-			
-			RoadRoughness roadRoughness = new RoadRoughness();
-			Long meanHorizontalVariationValue = travInputData.anchorPoint.meanHorizontalVariation;
-			Long stdevHorizontalVariationValue = travInputData.anchorPoint.horizontalVariationStdDev;
-			Long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
-			Long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
+		long meanHorizontalVariationValue = travInputData.anchorPoint.meanHorizontalVariation;
+		long stdevHorizontalVariationValue = travInputData.anchorPoint.horizontalVariationStdDev;
+		long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
+		long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
 
+		boolean hasRoughness = meanHorizontalVariationValue != 0 || stdevHorizontalVariationValue != 0 ||
+				meanVerticalVariationValue != 0 || stdevVerticalVariationValue != 0;
+
+		if (hasRoughness) {
+			RoadRoughness roadRoughness = new RoadRoughness();
 			roadRoughness.setMeanHorizontalVariation(new CommonMeanVariation(meanHorizontalVariationValue));
 			roadRoughness.setHorizontalVariationStdDev(new VariationStdDev(stdevHorizontalVariationValue));
 			roadRoughness.setMeanVerticalVariation(new CommonMeanVariation(meanVerticalVariationValue));
 			roadRoughness.setVerticalVariationStdDev(new VariationStdDev(stdevVerticalVariationValue));
 
 			fInformation.setRoadRoughness(roadRoughness);
+			hasData = true;
 		}
 
-		return fInformation;
+		return hasData ? fInformation : null;
 	}
 
 
