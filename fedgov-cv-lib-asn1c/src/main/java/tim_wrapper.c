@@ -2322,9 +2322,9 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         fprintf(stderr, "OOM: contentNew\n");
                     }
                 }
-                tdf->contentNew->present = TravelerDataFrameNewPartIIIContent_PR_frictionInfo;
+                //tdf->contentNew->present = TravelerDataFrameNewPartIIIContent_PR_frictionInfo;
 
-                FrictionInformation_t *fip = &tdf->contentNew->choice.frictionInfo;
+                FrictionInformation_t *fip = (FrictionInformation_t *)calloc(1, sizeof(FrictionInformation_t));
 
                 // roadSurfaceDescription
                 jmethodID midGetDesc = (*env)->GetMethodID(
@@ -2779,6 +2779,15 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     printf("Content New: roadRoughness = <absent>\n");
                 }
 
+                TravelerDataFrameNewPartIIIContentItem_t *item = (TravelerDataFrameNewPartIIIContentItem_t *)calloc(1, sizeof(TravelerDataFrameNewPartIIIContentItem_t));
+                if (item) {
+                    item->present = TravelerDataFrameNewPartIIIContentItem_PR_frictionInformation;
+                    item->choice.frictionInformation = *fip;
+                    ASN_SEQUENCE_ADD(&tdf->contentNew->list, item);
+                } else {
+                    fprintf(stderr, "calloc failed for TravelerDataFrameNewPartIIIContentItem\n");
+                }
+                
                 (*env)->DeleteLocalRef(env, contentNewCls);
         }
         else
