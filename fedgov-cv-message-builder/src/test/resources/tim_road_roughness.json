@@ -1,0 +1,102 @@
+{
+  "regions": [
+    {
+      "regionType": "lane",
+      "laneNodes": [
+        {
+          "nodeNumber": 0,
+          "nodeLat": 26.933305712767538,
+          "nodeLong": -80.8160864352293,
+          "nodeElevation": "200",
+          "laneWidth": "5"
+        },
+        {
+          "nodeNumber": 1,
+          "nodeLat": 26.933174192206096,
+          "nodeLong": -80.81612398615566,
+          "nodeElevation": "200",
+          "laneWidth": "5"
+        },
+        {
+          "nodeNumber": 2,
+          "nodeLat": 26.933016367328644,
+          "nodeLong": -80.81611862173749,
+          "nodeElevation": "200",
+          "laneWidth": "5"
+        }
+      ],
+      "extent": "1"
+    }
+  ],
+  "anchorPoint": {
+    "name": "Advisory",
+    "referenceLat": 26.933433646258298,
+    "referenceLon": -80.81592818489797,
+    "referenceElevation": "200",
+    "masterLaneWidth": "366",
+    "sspTimRights": "1",
+    "packetID": "355252251",
+    "content": [
+      {
+        "codes": [
+          "13609",
+          "268",
+          "n35"
+        ],
+        "text": ""
+      },
+      {
+         "text": "Speed limit to follow, n30"
+      },
+      {
+        "codes": [
+          "12545"
+        ]
+      },
+      {
+        "codes": [],
+        "text": "st"
+      },
+      {
+        "codes": [
+          "13436"
+        ],
+        "text": ""
+      }
+    ],
+    "sspTypeRights": "4",
+    "sspContentRights": "3",
+    "sspLocationRights": "2",
+    "direction": "0",
+    "mutcd": "1",
+    "infoType": "1",
+    "priority": "3",
+    "startTime": "11/28/2016 12:48 PM",
+    "endTime": "11/29/2016 12:48 PM",
+    "heading": [
+      0,
+      3,
+      4,
+      7,
+      8,
+      11,
+      12,
+      15
+    ],
+    "meanVerticalVariation": "43",
+    "verticalVariationStdDev": "234",
+    "meanHorizontalVariation": "432",
+    "horizontalVariationStdDev": "124",
+    "road_surface": "Portland Cement",
+    "road_condition": "1",
+    "road_surface_type": 0
+  },
+  "verifiedPoint": {
+    "verifiedMapLat": 42.33722521677626,
+    "verifiedMapLon": -83.05051674833989,
+    "verifiedMapElevation": "201",
+    "verifiedSurveyedLat": 42.33722521677626,
+    "verifiedSurveyedLon": -83.05051674833989
+  },
+  "nodeOffsets": "Compact"
+}

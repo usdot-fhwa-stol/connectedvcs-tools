@@ -715,61 +715,73 @@ public class TravelerInformationBuilder {
 
 	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {
 		FrictionInformation fInformation = new FrictionInformation();
-		DescriptionOfRoadSurface roadSurface = new DescriptionOfRoadSurface();
+		DescriptionOfRoadSurface roadSurface = null;
 
 		String surfaceValue = travInputData.anchorPoint.road_surface;
 		int type_value = travInputData.anchorPoint.road_surface_type;
 
-		switch (surfaceValue.toLowerCase()) {
-			case "portland cement":
-				roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(type_value)));
-				break;
-			case "asphalt or tar":
-				roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
-				break;
-			case "gravel":
-				roadSurface = new DescriptionOfRoadSurface(new Gravel(GravelType.fromInt(type_value)));
-				break;
-			case "grass":
-				roadSurface = new DescriptionOfRoadSurface(new Grass(GrassType.fromInt(type_value)));
-				break;
-			case "cinders":
-				roadSurface = new DescriptionOfRoadSurface(new Cinders(CindersType.fromInt(type_value)));
-				break;
-			case "rock":
-				roadSurface = new DescriptionOfRoadSurface(new Rock(RockType.fromInt(type_value)));
-				break;
-			case "ice":
-				roadSurface = new DescriptionOfRoadSurface(new Ice(IceType.fromInt(type_value)));
-				break;
-			case "snow":
-				roadSurface = new DescriptionOfRoadSurface(new Snow(SnowType.fromInt(type_value)));
-				break;
-			default:
+		if (surfaceValue != null) {
 
-				break;
+			switch (surfaceValue.toLowerCase()) {
+				case "portland cement":
+					roadSurface = new DescriptionOfRoadSurface(new PortlandCement(PortlandCementType.fromInt(type_value)));
+					break;
+				case "asphalt or tar":
+					roadSurface = new DescriptionOfRoadSurface(new AsphaltOrTar(AsphaltOrTarType.fromInt(type_value)));
+					break;
+				case "gravel":
+					roadSurface = new DescriptionOfRoadSurface(new Gravel(GravelType.fromInt(type_value)));
+					break;
+				case "grass":
+					roadSurface = new DescriptionOfRoadSurface(new Grass(GrassType.fromInt(type_value)));
+					break;
+				case "cinders":
+					roadSurface = new DescriptionOfRoadSurface(new Cinders(CindersType.fromInt(type_value)));
+					break;
+				case "rock":
+					roadSurface = new DescriptionOfRoadSurface(new Rock(RockType.fromInt(type_value)));
+					break;
+				case "ice":
+					roadSurface = new DescriptionOfRoadSurface(new Ice(IceType.fromInt(type_value)));
+					break;
+				case "snow":
+					roadSurface = new DescriptionOfRoadSurface(new Snow(SnowType.fromInt(type_value)));
+					break;
+				default:
+					break;
+			}
+		}
+		if (roadSurface != null) {
+			fInformation.setRoadSurfaceDescription(roadSurface);
 		}
 
-		fInformation.setRoadSurfaceDescription(roadSurface);
-
 		int dry_wet_value = travInputData.anchorPoint.road_condition;
-		fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+		if (dry_wet_value == 0 || dry_wet_value == 1) {
+			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+		}
 
-		RoadRoughness roadRoughness = new RoadRoughness();
-		long meanHorizontalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
-		long stdevHorizontalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
-		long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
-		long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
+		if (travInputData.anchorPoint.meanVerticalVariation >= 0 ||
+			travInputData.anchorPoint.verticalVariationStdDev >= 0 ||
+			travInputData.anchorPoint.meanHorizontalVariation >= 0 ||
+			travInputData.anchorPoint.horizontalVariationStdDev >= 0) {
+			
+			RoadRoughness roadRoughness = new RoadRoughness();
+			Long meanHorizontalVariationValue = travInputData.anchorPoint.meanHorizontalVariation;
+			Long stdevHorizontalVariationValue = travInputData.anchorPoint.horizontalVariationStdDev;
+			Long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
+			Long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
 
-		roadRoughness.setMeanHorizontalVariation(new CommonMeanVariation(meanHorizontalVariationValue));
-		roadRoughness.setHorizontalVariationStdDev(new VariationStdDev(stdevHorizontalVariationValue));
-		roadRoughness.setMeanVerticalVariation(new CommonMeanVariation(meanVerticalVariationValue));
-		roadRoughness.setVerticalVariationStdDev(new VariationStdDev(stdevVerticalVariationValue));
+			roadRoughness.setMeanHorizontalVariation(new CommonMeanVariation(meanHorizontalVariationValue));
+			roadRoughness.setHorizontalVariationStdDev(new VariationStdDev(stdevHorizontalVariationValue));
+			roadRoughness.setMeanVerticalVariation(new CommonMeanVariation(meanVerticalVariationValue));
+			roadRoughness.setVerticalVariationStdDev(new VariationStdDev(stdevVerticalVariationValue));
 
-		fInformation.setRoadRoughness(roadRoughness);
+			fInformation.setRoadRoughness(roadRoughness);
+		}
 
 		return fInformation;
 	}
+
 
 	public static MUTCDCode getMutcdFromInt(int value) {
 		switch (value) {
