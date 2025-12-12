@@ -2322,7 +2322,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         fprintf(stderr, "OOM: contentNew\n");
                     }
                 }
-                //tdf->contentNew->present = TravelerDataFrameNewPartIIIContent_PR_frictionInfo;
+                tdf->contentNew->present = TravelerDataFrameNewPartIIIContent_PR_frictionInfo;
 
                 FrictionInformation_t *fip = (FrictionInformation_t *)calloc(1, sizeof(FrictionInformation_t));
 
