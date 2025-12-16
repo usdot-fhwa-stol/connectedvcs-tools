@@ -2712,7 +2712,11 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         if (meanVertObj)
                         {
                             long meanVertVal = get_long_from_java_number_like(env, meanVertObj);
-                            fip->roadRoughness->meanVerticalVariation = meanVertVal;
+                            fip->roadRoughness->meanVerticalVariation = (CommonMeanVariation_t *)calloc(1, sizeof(CommonMeanVariation_t));
+                            if (fip->roadRoughness->meanVerticalVariation)
+                            {
+                                *fip->roadRoughness->meanVerticalVariation = meanVertVal;
+                            }
                             (*env)->DeleteLocalRef(env, meanVertObj);
                         }
 
