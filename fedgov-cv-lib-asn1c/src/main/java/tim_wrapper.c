@@ -21,6 +21,7 @@
 #include <jni.h> // JNIEXPORT, JNIEnv
 #include "gov_usdot_cv_timencoder_Encoder.h"
 #include "MessageFrame.h"
+#include "asn_internal.h"  // for asn_enc_rval_t details
 
 static int fill_octet_from_java_string_like(JNIEnv *env, OCTET_STRING_t *dst, jobject obj, int maxLen)
 {
@@ -2324,7 +2325,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 }
                 tdf->contentNew->present = TravelerDataFrameNewPartIIIContent_PR_frictionInfo;
 
-                FrictionInformation_t *fip = (FrictionInformation_t *)calloc(1, sizeof(FrictionInformation_t));
+                FrictionInformation_t *fip = &tdf->contentNew->choice.frictionInfo;
 
                 // roadSurfaceDescription
                 jmethodID midGetDesc = (*env)->GetMethodID(
@@ -2831,9 +2832,10 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                     (*env)->DeleteLocalRef(env, roughCls);
                     (*env)->DeleteLocalRef(env, roughObj);
-                    }
+                }
 
-                else {
+                else
+                {
                     fip->roadRoughness = NULL;
                     printf("Content New: roadRoughness = <absent>\n");
                 }
@@ -2845,7 +2847,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             {
                 printf("Content New: FrictionInformation is null\n");
             }
-                
+
             (*env)->DeleteLocalRef(env, contentNewCls);
         }
         else
@@ -2973,6 +2975,10 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     else
     {
         printf("UPER encode failed\n");
+        if (ec.failed_type)
+        {
+            printf("Failed type: %s\n", ec.failed_type->name);
+        }
         return NULL;
     }
 }
