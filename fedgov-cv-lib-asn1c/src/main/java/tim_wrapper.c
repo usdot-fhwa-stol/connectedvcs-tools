@@ -2711,12 +2711,24 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         jobject meanVertObj = midGetMeanVert ? (*env)->CallObjectMethod(env, roughObj, midGetMeanVert) : NULL;
                         if (meanVertObj)
                         {
-                            long meanVertVal = get_long_from_java_number_like(env, meanVertObj);
-                            fip->roadRoughness->meanVerticalVariation = (CommonMeanVariation_t *)calloc(1, sizeof(CommonMeanVariation_t));
-                            if (fip->roadRoughness->meanVerticalVariation)
+                            jclass meanVertCls = (*env)->GetObjectClass(env, meanVertObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, meanVertCls, "getValue", "()J");
+
+                            if (midGetValue)
                             {
-                                *fip->roadRoughness->meanVerticalVariation = meanVertVal;
+                                jlong meanVertVal = (*env)->CallLongMethod(env, meanVertObj, midGetValue);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                }
+                                else
+                                {
+                                    fip->roadRoughness->meanVerticalVariation = meanVertVal;
+                                }
                             }
+
+                            (*env)->DeleteLocalRef(env, meanVertCls);
                             (*env)->DeleteLocalRef(env, meanVertObj);
                         }
 
@@ -2725,12 +2737,27 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         jobject vertStdDevObj = midGetVertStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetVertStdDev) : NULL;
                         if (vertStdDevObj)
                         {
-                            long vertStdDevVal = get_long_from_java_number_like(env, vertStdDevObj);
-                            fip->roadRoughness->verticalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
-                            if (fip->roadRoughness->verticalVariationStdDev)
+                            jclass vertStdDevCls = (*env)->GetObjectClass(env, vertStdDevObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, vertStdDevCls, "getValue", "()J");
+
+                            if (midGetValue)
                             {
-                                *fip->roadRoughness->verticalVariationStdDev = vertStdDevVal;
+                                jlong vertStdDevVal = (*env)->CallLongMethod(env, vertStdDevObj, midGetValue);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                }
+                                else
+                                {
+                                    if (fip->roadRoughness->verticalVariationStdDev)
+                                    {
+                                        *fip->roadRoughness->verticalVariationStdDev = vertStdDevVal;
+                                    }
+                                }
                             }
+
+                            (*env)->DeleteLocalRef(env, vertStdDevCls);
                             (*env)->DeleteLocalRef(env, vertStdDevObj);
                         }
                         else
@@ -2743,17 +2770,25 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         jobject meanHorizObj = midGetMeanHoriz ? (*env)->CallObjectMethod(env, roughObj, midGetMeanHoriz) : NULL;
                         if (meanHorizObj)
                         {
-                            long meanHorizVal = get_long_from_java_number_like(env, meanHorizObj);
-                            fip->roadRoughness->meanHorizontalVariation = (CommonMeanVariation_t *)calloc(1, sizeof(CommonMeanVariation_t));
-                            if (fip->roadRoughness->meanHorizontalVariation)
+                            jclass meanHorizCls = (*env)->GetObjectClass(env, meanHorizObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, meanHorizCls, "getValue", "()J");
+
+                            if (midGetValue)
                             {
-                                *fip->roadRoughness->meanHorizontalVariation = meanHorizVal;
+                                jlong meanHorizVal = (*env)->CallLongMethod(env, meanHorizObj, midGetValue);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                }
+                                else
+                                {
+                                    fip->roadRoughness->meanHorizontalVariation = meanHorizVal;
+                                }
                             }
+
+                            (*env)->DeleteLocalRef(env, meanHorizCls);
                             (*env)->DeleteLocalRef(env, meanHorizObj);
-                        }
-                        else
-                        {
-                            fip->roadRoughness->meanHorizontalVariation = NULL;
                         }
 
                         // horizontalVariationStdDev
@@ -2761,12 +2796,27 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                         jobject horizStdDevObj = midGetHorizStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetHorizStdDev) : NULL;
                         if (horizStdDevObj)
                         {
-                            long horizStdDevVal = get_long_from_java_number_like(env, horizStdDevObj);
-                            fip->roadRoughness->horizontalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
-                            if (fip->roadRoughness->horizontalVariationStdDev)
+                            jclass horizStdDevCls = (*env)->GetObjectClass(env, horizStdDevObj);
+                            jmethodID midGetValue = (*env)->GetMethodID(env, horizStdDevCls, "getValue", "()J");
+
+                            if (midGetValue)
                             {
-                                *fip->roadRoughness->horizontalVariationStdDev = horizStdDevVal;
+                                jlong horizStdDevVal = (*env)->CallLongMethod(env, horizStdDevObj, midGetValue);
+                                if ((*env)->ExceptionCheck(env))
+                                {
+                                    (*env)->ExceptionDescribe(env);
+                                    (*env)->ExceptionClear(env);
+                                }
+                                else
+                                {
+                                    if (fip->roadRoughness->horizontalVariationStdDev)
+                                    {
+                                        *fip->roadRoughness->horizontalVariationStdDev = horizStdDevVal;
+                                    }
+                                }
                             }
+
+                            (*env)->DeleteLocalRef(env, horizStdDevCls);
                             (*env)->DeleteLocalRef(env, horizStdDevObj);
                         }
                         else
@@ -2777,19 +2827,11 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                     (*env)->DeleteLocalRef(env, roughCls);
                     (*env)->DeleteLocalRef(env, roughObj);
+                    }
                 }
                 else
                 {
                     printf("Content New: roadRoughness = <absent>\n");
-                }
-
-                TravelerDataFrameNewPartIIIContentItem_t *item = (TravelerDataFrameNewPartIIIContentItem_t *)calloc(1, sizeof(TravelerDataFrameNewPartIIIContentItem_t));
-                if (item) {
-                    item->present = TravelerDataFrameNewPartIIIContentItem_PR_frictionInformation;
-                    item->choice.frictionInformation = *fip;
-                    ASN_SEQUENCE_ADD(&tdf->contentNew->list, item);
-                } else {
-                    fprintf(stderr, "calloc failed for TravelerDataFrameNewPartIIIContentItem\n");
                 }
                 
                 (*env)->DeleteLocalRef(env, contentNewCls);
