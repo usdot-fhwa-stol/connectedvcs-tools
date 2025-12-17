@@ -2721,6 +2721,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
+                                    meanVertVal = -1;
                                 }
                                 else
                                 {
@@ -2747,6 +2748,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
+                                    vertStdDevVal = -1;
                                 }
                                 else
                                 {
@@ -2780,6 +2782,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
+                                    meanHorizVal = -1;
                                 }
                                 else
                                 {
@@ -2806,6 +2809,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
+                                    horizStdDevVal = -1;
                                 }
                                 else
                                 {
@@ -2828,13 +2832,21 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     (*env)->DeleteLocalRef(env, roughCls);
                     (*env)->DeleteLocalRef(env, roughObj);
                     }
-                }
-                else
-                {
+
+                else {
+                    fip->roadRoughness = NULL;
                     printf("Content New: roadRoughness = <absent>\n");
                 }
+
+                (*env)->DeleteLocalRef(env, frictionCls);
+                (*env)->DeleteLocalRef(env, frictionObj);
+            }
+            else
+            {
+                printf("Content New: FrictionInformation is null\n");
+            }
                 
-                (*env)->DeleteLocalRef(env, contentNewCls);
+            (*env)->DeleteLocalRef(env, contentNewCls);
         }
         else
         {
