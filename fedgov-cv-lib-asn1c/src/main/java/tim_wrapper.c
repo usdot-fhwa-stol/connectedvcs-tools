@@ -2725,7 +2725,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                     meanVertVal = 0; // Default on error
                                 }
                                 fip->roadRoughness->meanVerticalVariation = (long)meanVertVal;
-                                fprintf("meanVerticalVariation: %ld\n", fip->roadRoughness->meanVerticalVariation);
                             }
                             (*env)->DeleteLocalRef(env, meanVertCls);
                             (*env)->DeleteLocalRef(env, meanVertObj);
@@ -2756,7 +2755,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (fip->roadRoughness->verticalVariationStdDev)
                                 {
                                     *fip->roadRoughness->verticalVariationStdDev = (long)vertStdDevVal;
-                                    fprintf("verticalVariationStdDev: %ld\n", *fip->roadRoughness->verticalVariationStdDev);
                                 }
                                 else
                                 {
@@ -2792,7 +2790,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (fip->roadRoughness->meanHorizontalVariation)
                                 {
                                     *fip->roadRoughness->meanHorizontalVariation = (long)meanHorizVal;
-                                    fprintf("meanHorizontalVariation: %ld\n", *fip->roadRoughness->meanHorizontalVariation);
                                 }
                                 else
                                 {
@@ -2828,7 +2825,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 if (fip->roadRoughness->horizontalVariationStdDev)
                                 {
                                     *fip->roadRoughness->horizontalVariationStdDev = (long)horizStdDevVal;
-                                    fprintf("horizontalVariationStdDev: %ld\n", *fip->roadRoughness->horizontalVariationStdDev);
                                 }
                                 else
                                 {
@@ -2850,7 +2846,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                 else
                 {
-                    //fip->roadRoughness = NULL;
                     printf("Content New: roadRoughness = <absent>\n");
                 }
 

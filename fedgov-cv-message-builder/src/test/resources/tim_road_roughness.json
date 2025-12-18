@@ -67,10 +67,10 @@
       14,
       15
     ],
-    "meanVerticalVariation": "43",
-    "verticalVariationStdDev": "234",
-    "meanHorizontalVariation": "432",
-    "horizontalVariationStdDev": "124",
+    "meanVerticalVariation": 43,
+    "verticalVariationStdDev": 234,
+    "meanHorizontalVariation": 432,
+    "horizontalVariationStdDev": 124,
     "road_surface": "Portland Cement",
     "road_condition": 1,
     "road_surface_type": 1
