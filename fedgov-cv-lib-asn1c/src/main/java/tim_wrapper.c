@@ -2707,7 +2707,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     }
                     else
                     {
-                        // meanVerticalVariation
+                        // meanVerticalVariation (required, set directly)
                         jmethodID midGetMeanVert = (*env)->GetMethodID(env, roughCls, "getMeanVerticalVariation", "()Lgov/usdot/cv/timencoder/CommonMeanVariation;");
                         jobject meanVertObj = midGetMeanVert ? (*env)->CallObjectMethod(env, roughObj, midGetMeanVert) : NULL;
                         if (meanVertObj)
@@ -2722,19 +2722,20 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
-                                    meanVertVal = -1;
+                                    meanVertVal = 0; // Default on error
                                 }
-                                else
-                                {
-                                    fip->roadRoughness->meanVerticalVariation = meanVertVal;
-                                }
+                                fip->roadRoughness->meanVerticalVariation = (long)meanVertVal;
+                                fprintf("meanVerticalVariation: %ld\n", fip->roadRoughness->meanVerticalVariation);
                             }
-
                             (*env)->DeleteLocalRef(env, meanVertCls);
                             (*env)->DeleteLocalRef(env, meanVertObj);
                         }
+                        else
+                        {
+                            fip->roadRoughness->meanVerticalVariation = 0; // Default if absent (though required)
+                        }
 
-                        // verticalVariationStdDev
+                        // verticalVariationStdDev (optional)
                         jmethodID midGetVertStdDev = (*env)->GetMethodID(env, roughCls, "getVerticalVariationStdDev", "()Lgov/usdot/cv/timencoder/VariationStdDev;");
                         jobject vertStdDevObj = midGetVertStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetVertStdDev) : NULL;
                         if (vertStdDevObj)
@@ -2749,17 +2750,19 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
-                                    vertStdDevVal = -1;
+                                    vertStdDevVal = 0; // Default on error
+                                }
+                                fip->roadRoughness->verticalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
+                                if (fip->roadRoughness->verticalVariationStdDev)
+                                {
+                                    *fip->roadRoughness->verticalVariationStdDev = (long)vertStdDevVal;
+                                    fprintf("verticalVariationStdDev: %ld\n", *fip->roadRoughness->verticalVariationStdDev);
                                 }
                                 else
                                 {
-                                    if (fip->roadRoughness->verticalVariationStdDev)
-                                    {
-                                        *fip->roadRoughness->verticalVariationStdDev = vertStdDevVal;
-                                    }
+                                    fprintf(stderr, "calloc failed for verticalVariationStdDev\n");
                                 }
                             }
-
                             (*env)->DeleteLocalRef(env, vertStdDevCls);
                             (*env)->DeleteLocalRef(env, vertStdDevObj);
                         }
@@ -2768,7 +2771,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                             fip->roadRoughness->verticalVariationStdDev = NULL;
                         }
 
-                        // meanHorizontalVariation
+                        // meanHorizontalVariation (optional)
                         jmethodID midGetMeanHoriz = (*env)->GetMethodID(env, roughCls, "getMeanHorizontalVariation", "()Lgov/usdot/cv/timencoder/CommonMeanVariation;");
                         jobject meanHorizObj = midGetMeanHoriz ? (*env)->CallObjectMethod(env, roughObj, midGetMeanHoriz) : NULL;
                         if (meanHorizObj)
@@ -2783,19 +2786,28 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
-                                    meanHorizVal = -1;
+                                    meanHorizVal = 0; // Default on error
+                                }
+                                fip->roadRoughness->meanHorizontalVariation = (Common_MeanVariation_t *)calloc(1, sizeof(Common_MeanVariation_t));
+                                if (fip->roadRoughness->meanHorizontalVariation)
+                                {
+                                    *fip->roadRoughness->meanHorizontalVariation = (long)meanHorizVal;
+                                    fprintf("meanHorizontalVariation: %ld\n", *fip->roadRoughness->meanHorizontalVariation);
                                 }
                                 else
                                 {
-                                    fip->roadRoughness->meanHorizontalVariation = meanHorizVal;
+                                    fprintf(stderr, "calloc failed for meanHorizontalVariation\n");
                                 }
                             }
-
                             (*env)->DeleteLocalRef(env, meanHorizCls);
                             (*env)->DeleteLocalRef(env, meanHorizObj);
                         }
+                        else
+                        {
+                            fip->roadRoughness->meanHorizontalVariation = NULL;
+                        }
 
-                        // horizontalVariationStdDev
+                        // horizontalVariationStdDev (optional)
                         jmethodID midGetHorizStdDev = (*env)->GetMethodID(env, roughCls, "getHorizontalVariationStdDev", "()Lgov/usdot/cv/timencoder/VariationStdDev;");
                         jobject horizStdDevObj = midGetHorizStdDev ? (*env)->CallObjectMethod(env, roughObj, midGetHorizStdDev) : NULL;
                         if (horizStdDevObj)
@@ -2810,17 +2822,19 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                                 {
                                     (*env)->ExceptionDescribe(env);
                                     (*env)->ExceptionClear(env);
-                                    horizStdDevVal = -1;
+                                    horizStdDevVal = 0; // Default on error
+                                }
+                                fip->roadRoughness->horizontalVariationStdDev = (VariationStdDev_t *)calloc(1, sizeof(VariationStdDev_t));
+                                if (fip->roadRoughness->horizontalVariationStdDev)
+                                {
+                                    *fip->roadRoughness->horizontalVariationStdDev = (long)horizStdDevVal;
+                                    fprintf("horizontalVariationStdDev: %ld\n", *fip->roadRoughness->horizontalVariationStdDev);
                                 }
                                 else
                                 {
-                                    if (fip->roadRoughness->horizontalVariationStdDev)
-                                    {
-                                        *fip->roadRoughness->horizontalVariationStdDev = horizStdDevVal;
-                                    }
+                                    fprintf(stderr, "calloc failed for horizontalVariationStdDev\n");
                                 }
                             }
-
                             (*env)->DeleteLocalRef(env, horizStdDevCls);
                             (*env)->DeleteLocalRef(env, horizStdDevObj);
                         }
@@ -2836,7 +2850,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                 else
                 {
-                    fip->roadRoughness = NULL;
+                    //fip->roadRoughness = NULL;
                     printf("Content New: roadRoughness = <absent>\n");
                 }
 
