@@ -22,7 +22,7 @@ import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main
 var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
-var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit,vectorSelect,laneMarkerSelect,polyMarkerSelect,selectLane,polygonSelect,areaSelect ;
+var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit, vectorSelect,laneMarkerSelect, polyMarkerSelect, selectLane, polygonSelect, areaSelect ;
 var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_condition;
 var circle_bounds;
 let box, laneConnections, errors;
@@ -2152,11 +2152,11 @@ function clearAllSelections() {
   try { polyMarkerSelect?.getFeatures().clear(); } catch (e) {}
   try { vectorSelect?.getFeatures().clear(); } catch (e) {}
 
- //Clearing  your elect interactions stored in `controls`
+ //Clearing select interactions stored in `controls`
   try { controls?.del?.getFeatures().clear(); } catch (e) {}
   try { controls?.none?.getFeatures().clear(); } catch (e) {}
 
-  // 3) Clear app-level selection state + UI
+ //Clearing app-level selection state + UI
   selected_marker = null;
   selected_layer = null;
   selected_marker_limit = null;
