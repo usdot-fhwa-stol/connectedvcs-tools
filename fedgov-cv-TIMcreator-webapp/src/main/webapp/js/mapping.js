@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, measureStyle,vectorStyle, pointStyle } from "./style.js";
+import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, measureStyle, pointStyle } from "./style.js";
 import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
@@ -22,7 +22,7 @@ import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main
 var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
-var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit, vectorSelect,laneMarkerSelect, polyMarkerSelect, selectLane, polygonSelect, areaSelect ;
+var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit;
 var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_condition;
 var circle_bounds;
 let box, laneConnections, errors;
@@ -154,6 +154,21 @@ const polyStyle2 = new ol.style.Style({
   })
 });
 
+// VECTOR STYLE
+const vectorStyle = new ol.style.Style({
+  stroke: new ol.style.Stroke({
+    color: 'rgba(255, 153, 0, 1)',
+    width: 1
+  }),
+  fill: new ol.style.Fill({
+    color: 'rgba(255, 153, 0, 0)'  // Transparent fill
+  }),
+  image: new ol.style.Circle({
+    radius: 1,
+    fill: new ol.style.Fill({ color: 'rgba(255, 153, 0, 0)' }),
+    stroke: new ol.style.Stroke({ color: 'rgba(255, 153, 0, 1)', width: 1 })
+  })
+});
 
 // WIDTH STYLE
 const widthStyle = new ol.style.Style({
@@ -378,7 +393,7 @@ function registerMapEvents() {
   });
 
   // Simulate 'featureselected' via interaction
-   selectLane = new ol.interaction.Select({
+  const selectLane = new ol.interaction.Select({
     layers: [lanes],
     condition: ol.events.condition.click
   });
@@ -430,7 +445,7 @@ function registerMapEvents() {
     $('#editLanes').prop('disabled', true);
   });
 
-  polygonSelect = new ol.interaction.Select({
+  const polygonSelect = new ol.interaction.Select({
     layers: [polygons],
     condition: ol.events.condition.click
   });
@@ -465,7 +480,8 @@ function registerMapEvents() {
       return;
     }
   });
- areaSelect = new ol.interaction.Select({
+
+  const areaSelect = new ol.interaction.Select({
     layers: [area],
     condition: ol.events.condition.click
   });
@@ -531,7 +547,7 @@ function registerMapEvents() {
     }
   });
 
-   laneMarkerSelect = new ol.interaction.Select({
+  const laneMarkerSelect = new ol.interaction.Select({
     layers: [laneMarkers],
     condition: ol.events.condition.click
   });
@@ -616,7 +632,7 @@ function registerMapEvents() {
     }
   });
 
-  polyMarkerSelect = new ol.interaction.Select({
+  const polyMarkerSelect = new ol.interaction.Select({
     layers: [polyMarkers],
     condition: ol.events.condition.click
   });
@@ -681,8 +697,6 @@ function registerMapEvents() {
   vectors = new ol.layer.Vector({
     source: vectorSource,
     style: vectorStyle,
-    visible: true,
-    zIndex: 5,
     properties: {
       name: "Vector Layer"
     }
@@ -693,10 +707,9 @@ function registerMapEvents() {
     updateFeatureLocation(evt.feature);
   });
 
-  vectorSelect = new ol.interaction.Select({
+  const vectorSelect = new ol.interaction.Select({
     layers: [vectors],
-    condition: ol.events.condition.click,
-    style:null
+    condition: ol.events.condition.click
   });
 
   vectorSelect.on('select', function (evt) {
@@ -832,14 +845,12 @@ function registerDrawInteractions() {
 
     del: new ol.interaction.Select({
       layers: [lanes, vectors, area, polygons],
-      toggleCondition: ol.events.condition.never,
-      style:null
+      toggleCondition: ol.events.condition.never
     }),
 
     none: new ol.interaction.Select({
       layers: [laneMarkers, polyMarkers, vectors, area],
-      toggleCondition: ol.events.condition.always,
-      style:null
+      toggleCondition: ol.events.condition.always
     }),
 
     measure: new ol.interaction.Draw({
@@ -1169,7 +1180,7 @@ function onFeatureAdded() {
 
     if (!polyFeature.get('elevation')) polyFeature.set('elevation', []);
     var elevation = polyFeature.get('elevation');
-    var nodeElevations = elevation.slice();
+    var nodeElevations = Array.isArray(elevation) ? elevation.slice() : [];
 
     if (polyFeature.get('title') === 'circle'){
       var extent = geom.getExtent();
@@ -1290,8 +1301,7 @@ function dragHandler() {
   // Create a select interaction
   var select = new ol.interaction.Select({
     layers: [vectors],
-    toggleCondition: ol.events.condition.singleClick,
-    style:null
+    toggleCondition: ol.events.condition.singleClick
   });
 
   // Create a translate (drag) interaction
@@ -1722,7 +1732,6 @@ $(".btnDone").click(function () {
 
     $('#attributes').parsley().reset();
     unselectFeature(selected_marker);
-    clearAllSelections();
   } else {
     if ($("#marker-info-tab .row:not([style='display: none;']) .parsley-errors-list li").length > 0) {
       $('#marker-info-tab').addClass('active');
@@ -1804,7 +1813,6 @@ $(".btnClose").click(function () {
   nodeLaneWidth = [];
 
   $('#attributes').parsley().reset();
-  clearAllSelections();
   unselectFeature(selected_marker);
 
 });
@@ -1942,6 +1950,42 @@ $(".dropdown-menu li a").click(function () {
         break;
     }
   }
+});
+
+$(document).on('select2:select', '.itis_code_list', function (e) {
+  $(this).next('.select2-container').next('.parsley-errors-list').remove();
+  $(this).closest('.itis_codes').removeClass('has-error');
+
+  const selectedCode = e.params.data.id;
+  let isDuplicate = false;
+
+  $('.itis_code_list').not(this).each(function() {
+    const selectedValues = $(this).val() || [];
+    if (selectedValues.includes(selectedCode)) {
+      isDuplicate = true;
+      return false;
+    }
+  });
+
+  if (isDuplicate) {
+    const currentValues = $(this).val() || [];
+    const updatedValues = currentValues.filter(code => code !== selectedCode);
+    $(this).val(updatedValues).trigger('change');
+
+    const errorMessage = 'This ITIS code has already been selected';
+    const errorList = $('<ul class="parsley-errors-list filled"><li class="parsley-custom-error-message">' + errorMessage + '</li></ul>');
+    
+    $(this).next('.select2-container').after(errorList);
+    
+    $(this).closest('.itis_codes').addClass('has-error');
+  }
+});
+
+// Remove error on unselect or change
+$(document).on('select2:unselect change', '.itis_code_list', function () {
+  // Clear errors
+  $(this).next('.select2-container').next('.parsley-errors-list').remove();
+  $(this).closest('.itis_codes').removeClass('has-error');
 });
 
 
@@ -2141,27 +2185,6 @@ function showMarkers(laneFeature, laneMarkers) {
     pointFeature.setStyle(laneStyle);
     laneMarkers.getSource().addFeature(pointFeature);
   }
-}
-
-function clearAllSelections() {
-  //Clearing OL Select interactions 
-  try { selectLane?.getFeatures().clear(); } catch (e) {}
-  try { polygonSelect?.getFeatures().clear(); } catch (e) {}
-  try { areaSelect?.getFeatures().clear(); } catch (e) {}
-  try { laneMarkerSelect?.getFeatures().clear(); } catch (e) {}
-  try { polyMarkerSelect?.getFeatures().clear(); } catch (e) {}
-  try { vectorSelect?.getFeatures().clear(); } catch (e) {}
-
- //Clearing select interactions stored in `controls`
-  try { controls?.del?.getFeatures().clear(); } catch (e) {}
-  try { controls?.none?.getFeatures().clear(); } catch (e) {}
-
- //Clearing app-level selection state + UI
-  selected_marker = null;
-  selected_layer = null;
-  selected_marker_limit = null;
-
-  $("#attributes").hide();
 }
 $(document).ready(() => {
   
