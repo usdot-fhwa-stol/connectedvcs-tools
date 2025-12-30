@@ -30,6 +30,17 @@ RUN ./build.sh
 
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
+
+# Install GDAL for georeferencing service (run as root)
+USER root
+RUN apt-get update && \
+    apt-get install -y gdal-bin libgdal28  \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
+
 # Install the generated WAR files
 COPY --from=mvn-build /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
@@ -37,11 +48,13 @@ COPY --from=mvn-build /root/fedgov-cv-message-validator-webapp/target/validator.
 COPY --from=mvn-build /root/private-resources.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/root.war /var/lib/jetty/webapps
 COPY --from=mvn-build /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
+COPY --from=mvn-build /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
 # Create third_party_lib directory and copy the shared libraries to jetty directory
 RUN mkdir -p /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib

@@ -27,3 +27,5 @@ target/
 .vscode/
 root.war
 private-resources.war
+*.log
+

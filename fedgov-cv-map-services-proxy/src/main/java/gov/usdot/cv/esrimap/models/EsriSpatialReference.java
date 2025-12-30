@@ -15,31 +15,46 @@
  */
 package gov.usdot.cv.esrimap.models;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EsriSpatialReference {
     @JsonProperty("wkid")
     @JsonAlias("wkid")
     private double wkid;
 
+    @JsonProperty("vcsWkid")
+    @JsonAlias("vcsWkid")
+    private double vcsWkid;
+
     public EsriSpatialReference() {}
 
-    public EsriSpatialReference(double wkid) {
+    public EsriSpatialReference(double wkid, double vcsWkid) {
         this.wkid = wkid;
+        this.vcsWkid = vcsWkid;
     }
 
     public double getWkid() {
         return this.wkid;
+
+    }public double getVcsWkid() {
+        return this.vcsWkid;
     }
 
     public void setWkid(double wkid) {
         this.wkid = wkid;
     }
 
+    public void setVcsWkid(double vcsWkid) {
+        this.vcsWkid= vcsWkid;
+    }
+
     @Override
     public String toString() {
         return "{" +
             " wkid='" + getWkid() + "'" +
+            " wkid='" + getVcsWkid() + "'" +
             "}";
     }
 }

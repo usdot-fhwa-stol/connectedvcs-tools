@@ -1,11 +1,94 @@
 Map Tool Release Notes
 ----------------------------
+Version 2.3.1, released Oct 27th, 2025
+----------------------------------------
+
+### **Summary**  
+Maptool release version 2.3.1 is a hotfix release for 2.3.0.
+
+**HELPDESK-105: Hotfix for Mapp Tool Lane Width Delta Bug**  
+
+### **<ins>Fixes in Release:</ins>**
+ - Fixed a bug that caused MAP Tool to set the Lane Width Delta to 0 for all other nodes in the lane.
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/202/
+
+Version 2.3.0, released Sep 19th, 2025
+----------------------------------------
+
+### **Summary**  
+This release focuses on enhancements for the RGA message, addressing reported issues for the existing MAP Tool, and laying the groundwork for future feature development. The key updates include completing integration for the RGA Movements Container, RGA Way Use Container, and resolving critical bugs found in the production environment. This release also includes improvements to the security of the tool.
+
+As of this update, the tool now fully supports SAE J2945/A RGA message creation and conversion of J2735 MAP to J2945/A RGA, and maintains support for SAE J2735 MAP message creation.
+
+### **<ins>Enhancements in Release:</ins>** 
+
+**Epic MAP-246: Add Movements Container to RGA Message**  
+**Summary:**
+  - **RGA Movements Container:** Integration for the RGA Movements Container functionality has been completed.   
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/145 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/146 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/147 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/152 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/150 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/148 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/142 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/144 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/139 ,  https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/149 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/137 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/141 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/143 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/156
+
+**Epic MAP-247: Add Way use Container to RGA Message**  
+**Summary:**
+  - **Way Use Container:** Integration for the RGA Way Use Container functionality has been completed. 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/158 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/161 , (https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/153 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/135 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/157 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/151 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/154 , (https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/155 , https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/175
+
+**Epic MAP-289: Production Bug Fixes**  
+**Summary:** This epic captured general bugs found in the production environment as follows: 
+ - Fixed Null Pointer Exception when RAID is missing (MAP-331). 
+ - Addressed a right U-turn maneuver not providing warnings when creating a MAP message (MAP-329). 
+ - Corrected a display issue where the configuration panel extended beyond the screen (MAP-335). 
+ - Addressed an error loading old MAP files without RGA data (MAP-337). 
+ - Investigated a missing approach for sidewalks (MAP-332). 
+ - Resolved a problem with duplicate lane IDs (MAP-346). 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/132, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/165, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/168
+
+### **<ins>Fixes in Release:</ins>**
+**Epic MAP-139: General Security Improvements** 
+**Summary:** This Epic captured general bugs found in the production environment as below: 
+ - Implement caches and zoom control to reduce tile set API calls to Azure Map service 
+ - Add Cross Site Request Forgery and Referrer headers protection to tileset API 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/167, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/171
+
+Version 2.2.3, released Sep 2nd, 2025
+----------------------------------------
+
+### **Summary**  
+Maptool release version 2.2.3 is a hotfix release for 2.2.0.
+
+**MAP-349: Hotfix for ESRI Elevation API errors**  
+
+### **<ins>Fixes in Release:</ins>**
+ - Fixed a bug that caused MAP Tool to return -9999 for elevation due to the changes in ESRI API interface. 
+
+**<ins>Pull Requests:</ins>**  
+- https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/172
+
+Version 2.2.2, released Aug 8th, 2025
+----------------------------------------
+
+### **Summary**  
+Maptool release version 2.2.2 is a hotfix release for 2.2.0.
+ 
+### **<ins>Fixes in Release:</ins>**
+ - Fixed a bug that caused MAP Tool to freeze and lose the unsaved changes when deleting maneuvers from the Lane Attributes or Lane Connections table.
+ - Addressed an issue where already saved maneuvers in the Lane Connections table could not be deleted.
+
 Version 2.2.1, released May 16th, 2025
 ----------------------------------------
 
 ### **Summary**  
 Maptool release version 2.2.1 is a hotfix release for 2.2.0.
- 
+  
 ### **<ins>Fixes in Release:</ins>**
   - Fixed release version of the MAP tool UI when clicked on About button under the Help Menu.
     
@@ -60,36 +143,7 @@ Note: Since we updated Openlayers library from v2 to v10, a mismatch is introduc
 - https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/109, https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/110
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Version 2.1.0, released 31st, 2024
+Version 2.1.0, released Dec 31st, 2024
 ----------------------------------------
 
 ### **Summary**  
@@ -149,7 +203,7 @@ This Hotfix 2.0.2 focuses on addressing tileAge data displayed on the MAPTool IS
 **<ins>Fixes:</ins>** 
 - Removed tileAge API calls to bing maps. NOTE: tile age will no longer be available to users of the current MAP Tool.
 
-Version 2.0.1, released Nov 1st, 2024
+Version 2.0.1, released Nov 8th, 2024
 ----------------------------------------
 
 ### **Summary**
@@ -184,34 +238,35 @@ In addition to the security fixes above, we have implemented AWS security featur
    - webappopen.connectedvcs.com 
    - webapptest.connectedvcs.com (test site) 
 
-Version 2.0.0, released April 25th, 2024
+Version 2.0.0, released April 30th, 2024
 ----------------------------------------
 
 ### **Summary**
 
-In this release, the MAP (also known as ISD) tool packages have been updated to use the open-source ASN1C compiler. These updates are validated with new and enhanced unit tests. UI updates include the removal of TIM and Message Validator buttons from the landing page, along with updated text in the ASN.1 text box of the MAP tool. After removing all traces of the proprietary tool, a public GitHub repository was created to release the code. All code has been added to this new repo, the README has been updated with build instructions, and the CI/CD pipeline has been revised. Lastly, a production environment has been established, and the code is now live at https://webappopen.connectedvcs.com. 
+In this release, the MAP (formerly ISD) tool packages have been updated to use the open-source ASN1c compiler. These updates are validated with new and enhanced unit tests. UI updates include the removal of TIM and Message Validator buttons, along with updated text in the ASN.1 text box of the MAP tool. After removing all traces of the proprietary compiler, a public GitHub repository was created to release the code. All code has been added to this new repo, the README has been updated with build instructions, and the CI/CD pipeline has been revised. Lastly, a production environment has been established, and the code is now live at https://webappopen.connectedvcs.com.
 
-This release of the Map Tool introduces several significant updates:
+This release includes the several features related to the Map tool:
 
-- **<ins> Integration of Open-Source ASN1C Compiler:</ins>** After integrating the open-source ASN1c compiler, the message-builder and map-encoder packages have been updated to support all mandatory and selected optional intersection fields used in the existing MAP tool.
+- After integrating the opensource [ASN1c compiler](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-lib-asn1c), [message-builder](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-message-builder) and [map-encoder](https://github.com/usdot-fhwa-stol/connectedvcs-tools/tree/master/fedgov-cv-mapencoder) code is updated to support all the mandatory intersection fields along with the optional fields used in existing MAP tool. 
+- Added and updated unit tests in message-builder and map-encoder to test the new code.
+- The message builder package is updated to record the generated MAP message and its encoded hex string in a log file that will be saved on the server for verification purposes. 
+- In the UI, removed buttons to [TIM](https://webappopen.connectedvcs.com/#:~:text=the%20SDW%20warehouse.-,This%20version%20is%20disabled.%20Please%20try%20the%20legacy%20version%20here.,-Message%20Validator) and [message validator](https://webappopen.connectedvcs.com/#:~:text=into%20a%20warehouse.-,This%20version%20is%20disabled.%20Please%20try%20the%20legacy%20version%20here.) on landing page since those are not implemented in this version of the open-source tool; updated the ASN.1 text box of the ISD tool that it will not be populated in this version of the Tool.
+- Removed all traces of the proprietary MAP tool. 
+- Created the connectedvcs-tools GitHub repo to prepare for the public release. 
+- Updated the README file with build instruction to build the packages from docker command line. 
+- Updated GitHub actions CI/CD workflows to build and run sonar scanner to source code. 
+- Created production environment based off connectedvcs-tools (Map tool) GitHub repository. The Production environment has been deployed with a new domain name as https://webappopen.connectedvcs.com.
 
-- **<ins> Enhanced Testing:</ins>** Added and updated unit tests for message-builder and map-encoder to cover the new functionalities.
+Known issues in this release related to Map tool: 
 
-- **<ins> Server Logs:</ins>** The message builder package now logs the generated MAP message and its encoded hex string to a server-side file for further verification purposes.
+- The open-source ASN1C compiler is partially replaced in the Map Tool for this release. ASN1C is only implemented within the ISD tool, while TIM and Message Validator are disabled. 
 
-- **<ins> UI Adjustments:</ins>**
-    - Removed buttons for TIM and message validator from the landing page as these features are not implemented in this version.
-    - Updated the ASN.1 text box in the MAP tool to reflect that it will not be populated in this release.
+NOTE: Production URL has the master code
 
-- **<ins> Removal of Proprietay Components:</ins>** All components of the proprietary tool have been removed.
+Production website : https://webappopen.connectedvcs.com 
 
-- **<ins> Repository and CI/CD Updates:</ins>**
-    - Created the connectedvcs-tools GitHub repository in preparation for public release.
-    - Updated the README file with command line build instructions.
-    - Enhanced GitHub Actions CI/CD workflows to include a sonar scanner for source code analysis.
+GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
 
-- **<ins> Production Environment:</ins>** Established a production environment based on the connectedvcs-tools (MAP tool, etc.) GitHub repository. The production site is now live at https://webappopen.connectedvcs.com.
 
-Known Issues related to this release:
 
-- **<ins>Partial Implementation of ASN1C:</ins>** The open-source ASN1C compiler has been integrated only within the  MAP tool. Features such as TIM and Message Validator remain disabled pending further updates. The original implementation of the CVCS Tools is still available and accessible at https://www.webapp.connectedvcs.com.
+

@@ -31,7 +31,8 @@ public class RGATimeRestrictions {
         this.otherDataSetItemCtrl = null;
     }
 
-    public RGATimeRestrictions(int choice, TimeWindowItemControlInfo fixedTimeWindowItemCtrl, OtherDSItemControlInfo otherDataSetItemCtrl) {
+    public RGATimeRestrictions(int choice, TimeWindowItemControlInfo fixedTimeWindowItemCtrl,
+            OtherDSItemControlInfo otherDataSetItemCtrl) {
         this.choice = choice;
         this.fixedTimeWindowItemCtrl = fixedTimeWindowItemCtrl;
         this.otherDataSetItemCtrl = otherDataSetItemCtrl;
@@ -40,7 +41,7 @@ public class RGATimeRestrictions {
     public int getChoice() {
         return choice;
     }
-    
+
     public void setChoice(int choice) {
         this.choice = choice;
     }
@@ -63,11 +64,7 @@ public class RGATimeRestrictions {
 
     @Override
     public String toString() {
-        return "RGATimeRestrictions [fixedTimeWindowItemCtrl=" + fixedTimeWindowItemCtrl + " , otherDataSetItemCtrl= " + otherDataSetItemCtrl + "]";
-    }
-
-
-
-
-    
+        return "RGATimeRestrictions [fixedTimeWindowItemCtrl=" + fixedTimeWindowItemCtrl + " , otherDataSetItemCtrl= "
+                + otherDataSetItemCtrl + "]";
+    }  
 }

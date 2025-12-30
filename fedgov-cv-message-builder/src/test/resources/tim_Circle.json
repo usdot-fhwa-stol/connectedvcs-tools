@@ -3,6 +3,7 @@
     {
       "regionType": "circle",
       "radius": "34.166",
+      "extent": 1,
       "laneNodes": [
         {
           "nodeLat": -6.701965087450262e-9,
@@ -38,7 +39,7 @@
     "mutcd": "1",
     "infoType": "1",
     "priority": 6,
-    "startTime": "06/09/2017 9:24 PM",
+    "startTime": "06/07/2017 9:24 PM",
     "endTime": "06/09/2017 9:24 PM",
     "heading": []
   },

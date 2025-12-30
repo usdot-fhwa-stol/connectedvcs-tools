@@ -18,7 +18,6 @@ public class J2945Helper {
 	
 	public static String getHexString(RGAData message) 
 	{
-
 		byte[] bytes = getBytes(message);
 		return Hex.encodeHexString(bytes);
 	}
