@@ -15,8 +15,11 @@
  */
 package gov.usdot.cv.msg.builder.util;
 import gov.usdot.cv.timencoder.Encoder;
+import gov.usdot.cv.asn1decoder.Decoder;
 import gov.usdot.cv.timencoder.TravelerInformation;
 import gov.usdot.cv.timencoder.ByteArrayObject;
+import gov.usdot.cv.libasn1decoder.DecodedResult;
+
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -38,7 +41,40 @@ public class J2735TIMHelper {
 
 		byte[] bytes = getBytes(message);
 		return Hex.encodeHexString(bytes);
+		
 	}
+
+		public static String getReadbaleTIMplusFrame(TravelerInformation message) 
+	{
+
+		byte[] bytes = getBytes(message);
+		Decoder decoder = new Decoder();
+		DecodedResult decodedResult = decoder.decodeMsg(bytes);
+		return decodedResult.decodedMessage;
+	}
+
+	public static String getReadableTIM(TravelerInformation message) {
+
+    String decoded = getReadbaleTIMplusFrame(message);
+
+    // Finding the location TIM payload begins
+    final String TIM_START = "TravelerInformation ::= {";
+    int start = decoded.indexOf(TIM_START);
+    if (start < 0) {
+        return decoded; 
+    }
+
+    // trim,imh the final outer '}' (MessageFrame close)
+    String tim = decoded.substring(start).trim();
+
+    int lastOuterBrace = tim.lastIndexOf('}');
+    if (lastOuterBrace >= 0) {
+        tim = tim.substring(0, lastOuterBrace).trim();
+    }
+
+    return tim;
+}
+
 
 	public static byte[] getBytes(TravelerInformation message) {
 		Encoder encoder = new Encoder();
