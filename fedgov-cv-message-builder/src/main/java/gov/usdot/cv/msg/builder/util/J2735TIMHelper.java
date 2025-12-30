@@ -44,7 +44,7 @@ public class J2735TIMHelper {
 		
 	}
 
-		public static String getReadbaleTIMplusFrame(TravelerInformation message) 
+	public static String getReadbaleTIMplusFrame(TravelerInformation message) 
 	{
 
 		byte[] bytes = getBytes(message);
