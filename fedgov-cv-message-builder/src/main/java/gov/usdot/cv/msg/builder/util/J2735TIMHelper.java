@@ -61,8 +61,8 @@ public class J2735TIMHelper {
         URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
-        conn.setConnectTimeout(5000);
-        conn.setReadTimeout(30000);
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(5000);
         conn.setRequestProperty("Accept", "application/json");
 
         InputStream is = (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300)
