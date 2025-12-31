@@ -1169,7 +1169,8 @@ function onFeatureAdded() {
 
     if (!polyFeature.get('elevation')) polyFeature.set('elevation', []);
     var elevation = polyFeature.get('elevation');
-    var nodeElevations = elevation.slice();
+    var nodeElevations = Array.isArray(elevation) ? elevation.slice() : [];
+
 
     if (polyFeature.get('title') === 'circle'){
       var extent = geom.getExtent();
