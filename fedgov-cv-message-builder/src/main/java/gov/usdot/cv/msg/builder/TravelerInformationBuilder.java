@@ -64,6 +64,7 @@ import gov.usdot.cv.msg.builder.util.ObjectPrinter;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingSize;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding.OffsetEncodingType;
+import gov.usdot.cv.msg.builder.message.SemiMessage;
 
 @Path("/messages/travelerinfo")
 public class TravelerInformationBuilder {
@@ -84,9 +85,10 @@ public class TravelerInformationBuilder {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.TEXT_PLAIN)
-	public TravelerInformationMessage build(String timData) {
+	public SemiMessage  build(String timData) {
 		logger.debug("Building TIM/ADV with input data : " + timData);
 		TravelerInformationMessage tim = new TravelerInformationMessage();
+		SemiMessage semiMsg = null;
 		TravelerInputData travInputData = null;
 		boolean deposit = false;
 		TravelerInformation ti = null;
@@ -119,28 +121,28 @@ public class TravelerInformationBuilder {
 					// TODO: ASD encoding will be implemented in a later story
 					break;
 				case TIM:
-					tim = new TravelerInformationMessage();
+					semiMsg = new TravelerInformationMessage();
 					ti = buildTravelerInformation(travInputData);
 					hexString = J2735TIMHelper.getHexString(ti).substring(6);
-					readableString = ti.toString();
+					readableString = J2735TIMHelper.getReadableTIM(ti);
 					break;
 				case FramePlusTIM:
-					tim = new TravelerInformationMessage();
+					semiMsg = new TravelerInformationMessage();
 					ti = buildTravelerInformation(travInputData);
 					hexString = J2735TIMHelper.getHexString(ti);
-					readableString = ti.toString();
+					readableString = J2735TIMHelper.getReadbaleTIMplusFrame(ti);
 					break;
 			}
 
-			tim.setHexString(hexString);
+			semiMsg.setHexString(hexString);
 			System.out.println("TIM/ADV Hex: " + hexString);
-			tim.setReadableString(readableString);
+			semiMsg.setReadableString(readableString);
 		} catch (Exception e) {
 			logger.error("Error encoding TravelerInformation ", e);
 			throw new MessageEncodeException(e.toString());
 		}
 
-		return tim;
+		return semiMsg;
 
 	}
 

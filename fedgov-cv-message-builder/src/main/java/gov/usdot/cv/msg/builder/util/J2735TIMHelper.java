@@ -17,6 +17,8 @@ package gov.usdot.cv.msg.builder.util;
 import gov.usdot.cv.timencoder.Encoder;
 import gov.usdot.cv.timencoder.TravelerInformation;
 import gov.usdot.cv.timencoder.ByteArrayObject;
+import gov.usdot.cv.libasn1decoder.DecodedResult;
+
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -24,6 +26,14 @@ import java.nio.ByteOrder;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 
 
 public class J2735TIMHelper {
@@ -33,12 +43,120 @@ public class J2735TIMHelper {
 	// This constant is used to convert the given LAT/LON to J2735 format
 	private static final int LAT_LONG_CONVERSION_FACTOR = 10000000;
 
+
+	public static String decodeHexViaValidatorRaw(String hexString) {
+
+    // validator rest API URL
+    final String VALIDATOR_URL =
+        "http://localhost:8080/validator/message/decode";
+
+    try {
+        String urlStr =
+            VALIDATOR_URL
+            + "?messageVersion=J2735_2024"
+            + "&encodeType=UPER"
+            + "&messageType=TIM"
+            + "&encodedMsg=" + URLEncoder.encode(hexString, "UTF-8");
+
+        URL url = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(5000);
+        conn.setRequestProperty("Accept", "application/json");
+
+        InputStream is = (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300)
+                ? conn.getInputStream()
+                : conn.getErrorStream();
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br =
+                new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        }
+
+        conn.disconnect();
+
+		logger.debug("Validator response: " + sb.toString());
+        // RETURN EXACT RESPONSE — no changes
+        return sb.toString();
+
+    } catch (Exception e) {
+        logger.error("Validator REST call failed", e);
+        throw new RuntimeException("decodeHexViaValidatorRaw failed", e);
+    }
+}
+
+
+public static String extractDecodedMessageFromValidatorResponse(String validatorResponse) {
+
+    String outerKey = "\"message\":\"";
+    int outerStart = validatorResponse.indexOf(outerKey);
+    if (outerStart < 0) return validatorResponse;
+
+    outerStart += outerKey.length();
+
+    int outerEnd = validatorResponse.lastIndexOf("\"}");
+    if (outerEnd < outerStart) return validatorResponse;
+
+    String innerJson = validatorResponse.substring(outerStart, outerEnd);
+
+    String decodedKey = "\\\"decodedMessage\\\":\\\"";
+    int decodedStart = innerJson.indexOf(decodedKey);
+    if (decodedStart < 0) return validatorResponse;
+
+    decodedStart += decodedKey.length();
+    int decodedEnd = innerJson.indexOf("\\\"", decodedStart);
+    if (decodedEnd < decodedStart) return validatorResponse;
+
+    String decodedEscaped = innerJson.substring(decodedStart, decodedEnd);
+
+    return decodedEscaped
+            .replace("\\n", "\n")
+            .replace("\\", "");
+}
+
+
+
 	public static String getHexString(TravelerInformation message) 
 	{
 
 		byte[] bytes = getBytes(message);
 		return Hex.encodeHexString(bytes);
+		
 	}
+
+	public static String getReadbaleTIMplusFrame(TravelerInformation message) 
+	{
+		    String raw = decodeHexViaValidatorRaw(getHexString(message));
+    		return extractDecodedMessageFromValidatorResponse(raw);
+	}
+
+	public static String getReadableTIM(TravelerInformation message) {
+
+    String decoded = getReadbaleTIMplusFrame(message);
+
+    // Finding the location TIM payload begins
+    final String TIM_START = "TravelerInformation ::= {";
+    int start = decoded.indexOf(TIM_START);
+    if (start < 0) {
+        return decoded; 
+    }
+
+    // trim,imh the final outer '}' (MessageFrame close)
+    String tim = decoded.substring(start).trim();
+
+    int lastOuterBrace = tim.lastIndexOf('}');
+    if (lastOuterBrace >= 0) {
+        tim = tim.substring(0, lastOuterBrace).trim();
+    }
+
+    return tim;
+}
+
 
 	public static byte[] getBytes(TravelerInformation message) {
 		Encoder encoder = new Encoder();
