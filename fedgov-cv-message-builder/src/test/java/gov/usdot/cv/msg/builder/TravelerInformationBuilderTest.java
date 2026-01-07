@@ -48,5 +48,4 @@ public class TravelerInformationBuilderTest {
 		System.out.println("TIM Message Name: " + timMessage.getMessageName());
 		assertEquals(expectedString, timMessage.getHexString());
 	}
-
 }

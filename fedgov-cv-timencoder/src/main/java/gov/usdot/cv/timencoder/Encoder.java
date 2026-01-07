@@ -21,6 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import gov.usdot.cv.asn1decoder.ByteArrayObject;
 
 public class Encoder {
     private static final Logger logger = LogManager.getLogger(Encoder.class);

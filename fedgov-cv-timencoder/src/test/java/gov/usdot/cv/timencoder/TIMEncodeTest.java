@@ -26,6 +26,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import gov.usdot.cv.asn1decoder.ByteArrayObject;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.timencoder.GeographicalPath.Description;
 import gov.usdot.cv.timencoder.GeographicalPath.Description.Choice;

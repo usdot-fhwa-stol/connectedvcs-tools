@@ -92,11 +92,11 @@ jobs:
             version: 5.0.1.3006
         - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
           run: |
-            cat <<EOF > /tmp/sonar-scanner.properties
+            cd $GITHUB_WORKSPACE
+            cat <<EOF > sonar-project.properties
             sonar.host.url=https://sonarcloud.io
             sonar.organization=usdot-fhwa-stol
             sonar.scanner.force-deprecated-java-version=true
-            sonar.projectBaseDir=$GITHUB_WORKSPACE
             sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
             sonar.projectName=connectedvcs-tools
             sonar.exclusions=**/target/**
@@ -123,9 +123,12 @@ jobs:
             sonar.cpp.file.suffixes=-
             sonar.objc.file.suffixes=-
             EOF
+        - name: Set CLONED_REPO_PATH
+          run: echo "CLONED_REPO_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
         - name: Run SonarScanner # This action is used to run sonar scan with above properties and upload results to sonar cloud project
           uses: usdot-fhwa-stol/actions/sonar-scanner@main
           with:
-            sonar-properties-path: /tmp/sonar-scanner.properties
             sonar-token: ${{ secrets.SONAR_TOKEN }}
-            working-dir: $GITHUB_WORKSPACE
+            working-dir: ${{ env.CLONED_REPO_PATH }}
+

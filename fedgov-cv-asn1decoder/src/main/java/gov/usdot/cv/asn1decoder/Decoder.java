@@ -15,6 +15,7 @@
  */
 
 package gov.usdot.cv.asn1decoder;
+
 import gov.usdot.cv.libasn1decoder.DecodedResult;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -50,7 +51,6 @@ public class Decoder {
 
 	public DecodedResult decode(ByteArrayObject binaryMessage) {
 		logger.debug("Decoding the binary message...");
-
 		DecodedResult result = decodeMsg(binaryMessage.getMessage());
 
 		if (result == null || !result.success) {
@@ -62,10 +62,9 @@ public class Decoder {
 				result.messageType = "";
 				result.success = false;
 			}
-		} else{
-
-		logger.info("Decoded Message Type: {}", result.messageType);
-		logger.debug("Decoded Message: {}", result.decodedMessage);
+		} else {
+			logger.info("Decoded Message Type: {}", result.messageType);
+			logger.debug("Decoded Message: {}", result.decodedMessage);
 		}
 
 		return result;
