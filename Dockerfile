@@ -27,7 +27,6 @@ COPY ./build.sh /root
 WORKDIR /root
 RUN ./build.sh
 
-
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
 
@@ -43,8 +42,9 @@ RUN apt-get update && \
     && rm -rf /tmp/* \
     && rm -rf /var/tmp/*
 
-# Create third_party_lib directory
-RUN mkdir -p /var/lib/jetty/webapps/third_party_lib
+# Create third_party_lib directory and set permissions early
+RUN mkdir -p /var/lib/jetty/webapps/third_party_lib && \
+    chown jetty:jetty /var/lib/jetty/webapps
 
 # Install the generated WAR files with chown to jetty user
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
@@ -66,6 +66,13 @@ COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_
 # Set library path env and update ldconfig
 ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/third_party_lib
 RUN ldconfig
+
+# Pre-create and chown Jetty directories for config/SSL to allow non-root operations
+RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    chown -R jetty:jetty /var/lib/jetty/etc /var/lib/jetty/start.d
+
+# Switch to non-root jetty user early for remaining file creations
+USER jetty
 
 # Configure Jetty
 WORKDIR /var/lib/jetty
@@ -89,9 +96,3 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     else \
         java -jar "$JETTY_HOME"/start.jar --add-to-start=http; \
     fi
-
-# Fix ownership of all files in /var/lib/jetty to jetty user
-RUN chown -R jetty:jetty /var/lib/jetty
-
-# Switch to non-root jetty user for runtime
-USER jetty
