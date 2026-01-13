@@ -27,12 +27,13 @@ COPY ./build.sh /root
 WORKDIR /root
 RUN ./build.sh
 
-
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
 
-# Install GDAL for georeferencing service (run as root)
+# Switch to root for installations and configurations
 USER root
+
+# Install GDAL for georeferencing service
 RUN apt-get update && \
     apt-get install -y gdal-bin libgdal28  \
     && apt-get autoremove -y \
@@ -41,36 +42,46 @@ RUN apt-get update && \
     && rm -rf /tmp/* \
     && rm -rf /var/tmp/*
 
-# Install the generated WAR files
-COPY --from=mvn-build /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
-COPY --from=mvn-build /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
-COPY --from=mvn-build /root/fedgov-cv-message-validator-webapp/target/validator.war /var/lib/jetty/webapps
-COPY --from=mvn-build /root/private-resources.war /var/lib/jetty/webapps
-COPY --from=mvn-build /root/root.war /var/lib/jetty/webapps
-COPY --from=mvn-build /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
-COPY --from=mvn-build /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
+# Create third_party_lib directory and set permissions early
+RUN mkdir -p /var/lib/jetty/webapps/third_party_lib && \
+    chown jetty:jetty /var/lib/jetty/webapps
 
-# Create third_party_lib directory and copy the shared libraries to jetty directory
-RUN mkdir -p /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
+# Install the generated WAR files with chown to jetty user
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-message-validator-webapp/target/validator.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=jetty:jetty /root/private-resources.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=jetty:jetty /root/root.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
-# Create library path env
-USER root
+# Copy the shared libraries with chown to jetty user
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
+
+# Set library path env and update ldconfig
 ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/third_party_lib
 RUN ldconfig
 
+# Pre-create and chown Jetty directories for config/SSL to allow non-root operations
+RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    chown -R jetty:jetty /var/lib/jetty/etc /var/lib/jetty/start.d
+
+# Switch to non-root jetty user early for remaining file creations
+USER jetty
+
+# Configure Jetty
 WORKDIR /var/lib/jetty
 RUN echo 'log4j2.version=2.23.1' >> start.d/logging-log4j2.ini && \
     java -jar "$JETTY_HOME"/start.jar --create-files
 
-# Prepare files for SSL
-COPY keystore* /tmp/
-COPY ssl.ini /tmp/
+# Prepare files for SSL with chown
+COPY --chown=jetty:jetty keystore* /tmp/
+COPY --chown=jetty:jetty ssl.ini /tmp/
 
 # Conditionally add SSL or non-SSL based on the USE_SSL environment variable
 RUN if [ "$USE_SSL" = "true" ]; then \
