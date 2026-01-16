@@ -24,20 +24,19 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class TIMDecoder {
-    private static final Logger logger = LogManager.getLogger(TIMDecoder.class);
+	private static final Logger logger = LogManager.getLogger(TIMDecoder.class);
 
-    static {
-        try {
-            System.loadLibrary("asn1c_timdecoder");
-        } catch (Exception e) {
-            logger.error("Exception trapped while trying to load the asn1c library" + e.toString());
-            e.printStackTrace();
-        }
-    }
+	static {
+		try {
+			System.loadLibrary("asn1c_timdecoder");
+		} catch (UnsatisfiedLinkError e) {
+			logger.error("Failed to load native library asn1c_timdecoder");
+			throw e;
+		}
+	}
 
-    /**
+	/**
 	 * This is the declaration for native method. It will take a decoded message
 	 * object in form of binary array and return an json string with decoded information.
 	 *
@@ -50,7 +49,7 @@ public class TIMDecoder {
 		DecodedResult result = decodeTimMsg(binaryMessage.getMessage());
 		if (result == null || !result.success) {
 			logger.error("Decoding failed or returned null.");
-			//If a null object is returned assigning a object with empty decoded message and messagetype
+			// If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();
 				result.decodedMessage = "";
@@ -65,5 +64,3 @@ public class TIMDecoder {
 		return result;
 	}
 }
-
-
