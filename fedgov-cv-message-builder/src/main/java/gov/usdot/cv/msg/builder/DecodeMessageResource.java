@@ -42,7 +42,7 @@ public class DecodeMessageResource {
 	@Context
 	UriInfo uriInfo;
 
-	private static SemiValidator validator;
+	// private static SemiValidator validator;
 	private static final Logger log = LogManager.getLogger(DecodeMessageResource.class);
 
 	@GET
@@ -105,7 +105,7 @@ public class DecodeMessageResource {
 	private DecodeMessageResult decode(byte[] bytes, String messageType) {
 		DecodeMessageResult result = new DecodeMessageResult();
 		try {
-			validator = new SemiValidator();
+			SemiValidator validator = new SemiValidator();
 			// calling SemiValidator method to decode the encoded Message
 			String resultMessage = validator.validate(bytes);
 			result.setMessage(resultMessage);

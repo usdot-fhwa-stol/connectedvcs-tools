@@ -79,9 +79,9 @@ public class J2735TIMHelper {
 
     public static String getReadbaleTIMplusFrame(TravelerInformation message) {
         try {
-            SemiValidator validator = new SemiValidator();
-            String raw = validator.validate(getBytes(message));
-            return extractDecodedMessageFromValidatorResponse(raw);
+            TIMValidator validator = new TIMValidator();
+            String decodedMessage = validator.validateTIM(getBytes(message));
+            return decodedMessage;
         } catch (SemiValidatorException e) {
             throw new RuntimeException("Failed to decode TIM message: " + e.getMessage(), e);
         }
