@@ -62,7 +62,7 @@ public class SemiValidator {
         String decodedMessage = null;
         try {
 
-            /* need to rewrite native C decoder to decode with given message type */
+            // TODO: need to rewrite native C decoder to decode with given message type
             // decodedMessage = name != null ? messageDecoder.decodeMsg( bytes, name ) :
             // messageDecoder.decodeMsg( bytes )
             if (decodedMessage == null || decodedMessage.isEmpty()) {
