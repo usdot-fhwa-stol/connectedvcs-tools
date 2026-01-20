@@ -5,6 +5,9 @@ mvn install -DskipTests=true
 cd ../fedgov-cv-lib-asn1c/
 mvn install -DskipTests=true
 
+cd ../fedgov-cv-asn1decoder/
+mvn install -DskipTests=true
+
 cd ../fedgov-cv-mapencoder/
 mvn install -DskipTests=true
 
@@ -12,9 +15,6 @@ cd ../fedgov-cv-timencoder/
 mvn install -DskipTests=true
 
 cd ../fedgov-cv-rgaencoder/
-mvn install -DskipTests=true
-
-cd ../fedgov-cv-asn1decoder/
 mvn install -DskipTests=true
 
 cd ../fedgov-cv-message-builder/

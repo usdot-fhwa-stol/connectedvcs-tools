@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,6 +26,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import gov.usdot.cv.asn1decoder.ByteArrayObject;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.timencoder.GeographicalPath.Description;
 import gov.usdot.cv.timencoder.GeographicalPath.Description.Choice;

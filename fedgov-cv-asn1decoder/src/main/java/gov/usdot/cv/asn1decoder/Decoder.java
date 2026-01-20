@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,7 @@
  */
 
 package gov.usdot.cv.asn1decoder;
+
 import gov.usdot.cv.libasn1decoder.DecodedResult;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -50,7 +51,6 @@ public class Decoder {
 
 	public DecodedResult decode(ByteArrayObject binaryMessage) {
 		logger.debug("Decoding the binary message...");
-
 		DecodedResult result = decodeMsg(binaryMessage.getMessage());
 
 		if (result == null || !result.success) {
@@ -62,10 +62,9 @@ public class Decoder {
 				result.messageType = "";
 				result.success = false;
 			}
-		} else{
-
-		logger.info("Decoded Message Type: {}", result.messageType);
-		logger.debug("Decoded Message: {}", result.decodedMessage);
+		} else {
+			logger.info("Decoded Message Type: {}", result.messageType);
+			logger.debug("Decoded Message: {}", result.decodedMessage);
 		}
 
 		return result;

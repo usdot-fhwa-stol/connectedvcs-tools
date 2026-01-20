@@ -58,6 +58,7 @@ COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-map-georeferencing/tar
 # Copy the shared libraries with chown to jetty user
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
 COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib

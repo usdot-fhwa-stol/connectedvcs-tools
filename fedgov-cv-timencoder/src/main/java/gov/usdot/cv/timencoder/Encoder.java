@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import gov.usdot.cv.asn1decoder.ByteArrayObject;
 
 public class Encoder {
     private static final Logger logger = LogManager.getLogger(Encoder.class);
