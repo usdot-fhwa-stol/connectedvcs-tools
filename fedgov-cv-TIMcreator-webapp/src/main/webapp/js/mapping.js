@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, measureStyle,vectorStyle, pointStyle } from "./style.js";
+import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, measureStyle, vectorStyle, pointStyle } from "./style.js";
 import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
@@ -22,8 +22,8 @@ import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main
 var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
-var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit, vectorSelect,laneMarkerSelect, polyMarkerSelect, selectLane, polygonSelect, areaSelect ;
-var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_condition;
+var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit, vectorSelect, laneMarkerSelect, polyMarkerSelect, selectLane, polygonSelect, areaSelect;
+var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_surface_type, road_condition;
 var circle_bounds;
 let box, laneConnections, errors;
 let overlayLayersGroup, baseLayersGroup;
@@ -177,7 +177,7 @@ const getCSRFToken = () => {
   // Fetch CSRF token from the server and return the token string, or null if unavailable
   return fetch(tokenURL)
     .then(response => {
-      if(response.status !== 200) {
+      if (response.status !== 200) {
         console.error("Failed to fetch CSRF token");
         return null;
       }
@@ -200,15 +200,15 @@ const customTileLoadFunction = (imageTile, src) => {
   if (csrfToken) {
     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
   }
-  xhr.onload = function() {
+  xhr.onload = function () {
     if (xhr.status === 200) {
       const url = URL.createObjectURL(xhr.response);
       imageTile.getImage().src = url;
-    }else {
+    } else {
       imageTile.getImage().src = transparentTile;
     }
   };
-  xhr.onerror = function() {
+  xhr.onerror = function () {
     imageTile.getImage().src = transparentTile;
   };
   xhr.send();
@@ -378,7 +378,7 @@ function registerMapEvents() {
   });
 
   // Simulate 'featureselected' via interaction
-   selectLane = new ol.interaction.Select({
+  selectLane = new ol.interaction.Select({
     layers: [lanes],
     condition: ol.events.condition.click
   });
@@ -465,7 +465,7 @@ function registerMapEvents() {
       return;
     }
   });
- areaSelect = new ol.interaction.Select({
+  areaSelect = new ol.interaction.Select({
     layers: [area],
     condition: ol.events.condition.click
   });
@@ -531,7 +531,7 @@ function registerMapEvents() {
     }
   });
 
-   laneMarkerSelect = new ol.interaction.Select({
+  laneMarkerSelect = new ol.interaction.Select({
     layers: [laneMarkers],
     condition: ol.events.condition.click
   });
@@ -553,7 +553,7 @@ function registerMapEvents() {
     }
 
     $('#attribute-tabs li').removeClass('active');
-    $('#itis-tab, #direction-tab, #content-tab', '#road-condition-tab').removeClass('active');
+    $('#itis-tab, #direction-tab, #content-tab, #road-condition-tab').removeClass('active');
     $('#marker-info-tab').addClass('active');
 
     $("#lat, #long, #elev").prop('readonly', false);
@@ -696,7 +696,7 @@ function registerMapEvents() {
   vectorSelect = new ol.interaction.Select({
     layers: [vectors],
     condition: ol.events.condition.click,
-    style:null
+    style: null
   });
 
   vectorSelect.on('select', function (evt) {
@@ -798,7 +798,7 @@ function registerDrawInteractions() {
     }),
 
     drag: new ol.interaction.Translate({
-      features: new ol.Collection()  
+      features: new ol.Collection()
 
     }),
 
@@ -813,9 +813,9 @@ function registerDrawInteractions() {
       type: 'Polygon'
     }),
     circle: new ol.interaction.Draw({
-    source: polygons.getSource(),          // same target layer
-    type: 'Circle',                        // circle interaction
-    geometryFunction: ol.interaction.Draw.createRegularPolygon(32) 
+      source: polygons.getSource(),          // same target layer
+      type: 'Circle',                        // circle interaction
+      geometryFunction: ol.interaction.Draw.createRegularPolygon(32)
     }),
 
     dragPoly: new ol.interaction.Translate({
@@ -833,13 +833,13 @@ function registerDrawInteractions() {
     del: new ol.interaction.Select({
       layers: [lanes, vectors, area, polygons],
       toggleCondition: ol.events.condition.never,
-      style:null
+      style: null
     }),
 
     none: new ol.interaction.Select({
       layers: [laneMarkers, polyMarkers, vectors, area],
       toggleCondition: ol.events.condition.always,
-      style:null
+      style: null
     }),
 
     measure: new ol.interaction.Draw({
@@ -1021,7 +1021,7 @@ function deleteMarker(layer, feature) {
     temporaryLaneMarkers.getSource().clear();  // Example
   }
   if (feature.getGeometry() instanceof ol.geom.Polygon && layer === polygons) {
-    polyMarkers.getSource().clear();  
+    polyMarkers.getSource().clear();
   }
 
   layer.getSource().removeFeature(feature);
@@ -1172,7 +1172,7 @@ function onFeatureAdded() {
     var nodeElevations = Array.isArray(elevation) ? elevation.slice() : [];
 
 
-    if (polyFeature.get('title') === 'circle'){
+    if (polyFeature.get('title') === 'circle') {
       var extent = geom.getExtent();
       var startX = (extent[0] + extent[2]) / 2;
       var startY = (extent[1] + extent[3]) / 2;
@@ -1292,7 +1292,7 @@ function dragHandler() {
   var select = new ol.interaction.Select({
     layers: [vectors],
     toggleCondition: ol.events.condition.singleClick,
-    style:null
+    style: null
   });
 
   // Create a translate (drag) interaction
@@ -1443,10 +1443,50 @@ function referencePointWindow(feature) {
   const road_surface = selected_marker.get('road_surface');
   $('#road_surface .dropdown-toggle').html((road_surface || "Select A Surface") + " <span class='caret'></span>");
 
-  $('meanVerticalVariation').val(selected_marker.get('meanVerticalVariation') || '');
-  $('verticalVariationStdDev').val(selected_marker.get('verticalVariationStdDev') || '');
-  $('meanHorizontalVariation').val(selected_marker.get('meanHorizontalVariation') || '');
-  $('horizontalVariationStdDev').val(selected_marker.get('horizontalVariationStdDev') || '');
+  const road_surface_type = selected_marker.get('road_surface_type');
+
+  // Hide all subtype rows first
+  $('.subtype-row').hide();
+
+  switch (road_surface) {
+    case "Portland Cement":
+      $(".PortlandCementType").show();
+      if (road_surface_type !== undefined && road_surface_type !== null) {
+        const text = mapValueToSubtype('PortlandCementType', road_surface_type);
+        $('#PortlandCementType .dropdown-toggle').html(`${text} <span class='caret'></span>`);
+      }
+      break;
+    case "Asphalt or Tar":
+      $(".AsphaltOrTarType").show();
+      if (road_surface_type !== undefined && road_surface_type !== null) {
+        const text = mapValueToSubtype('AsphaltOrTarType', road_surface_type);
+        $('#AsphaltOrTarType .dropdown-toggle').html(`${text} <span class='caret'></span>`);
+      }
+      break;
+    case "Gravel":
+      $(".GravelType").show();
+      if (road_surface_type !== undefined && road_surface_type !== null) {
+        const text = mapValueToSubtype('GravelType', road_surface_type);
+        $('#GravelType .dropdown-toggle').html(`${text} <span class='caret'></span>`);
+      }
+      break;
+    case "Snow":
+      $(".SnowType").show();
+      if (road_surface_type !== undefined && road_surface_type !== null) {
+        const text = mapValueToSubtype('SnowType', road_surface_type);
+        $('#SnowType .dropdown-toggle').html(`${text} <span class='caret'></span>`);
+      }
+      break;
+    default:
+      // Grass, Cinders, Rock, Ice → no subtype
+      break;
+  }
+
+  $('#meanVerticalVariation').val(selected_marker.get('meanVerticalVariation') ?? '');
+  $('#verticalVariationStdDev').val(selected_marker.get('verticalVariationStdDev') ?? '');
+  $('#meanHorizontalVariation').val(selected_marker.get('meanHorizontalVariation') ?? '');
+  $('#horizontalVariationStdDev').val(selected_marker.get('horizontalVariationStdDev') ?? '');
+
 
   if (selected_marker.get('heading')) {
     drawCircleSlices(selected_marker.get('heading'));
@@ -1504,9 +1544,9 @@ function updateNonReferenceFeatureLocation(feature) {
 //  * @event loads the appropriate data - elevation is doen through ajax
 //  */
 
-function populateAttributeWindow(temp_lat, temp_lon){
-	$('#lat').val(temp_lat);
-	$('#long').val(temp_lon);
+function populateAttributeWindow(temp_lat, temp_lon) {
+  $('#lat').val(temp_lat);
+  $('#long').val(temp_lon);
 }
 
 async function populateRefWindow(feature, lat, lon) {
@@ -1574,7 +1614,7 @@ $(".btnDone").click(function () {
         + $("#content-tab .parsley-errors-list li").length
         + $("#direction-tab .parsley-errors-list li").length
         + $("#itis-tab .parsley-errors-list li").length;
-        + $("#road-condition-tab .parsley-errors-list li").length;
+      + $("#road-condition-tab .parsley-errors-list li").length;
     } else {
       error_count += $(".parsley-errors-list li:visible").length;
     }
@@ -1772,6 +1812,33 @@ function mapSubtypeToValue(type, text) {
   return mappings[type]?.[text] ?? null;  // Return null if no match
 }
 
+// Convert numeric road_surface_type back to display text
+function mapValueToSubtype(type, value) {
+  const inverseMappings = {
+    PortlandCementType: {
+      0: "New Sharp",
+      1: "Traveled",
+      2: "Traffic Polished"
+    },
+    AsphaltOrTarType: {
+      0: "New Sharp",
+      1: "Traveled",
+      2: "Traffic Polished",
+      3: "Excess Tar"
+    },
+    GravelType: {
+      0: "Packed and Oiled",
+      1: "Loose"
+    },
+    SnowType: {
+      0: "Packed",
+      1: "Loose"
+    }
+  };
+  return inverseMappings[type]?.[value] ?? null;
+}
+
+
 
 
 // /*********************************************************************************************************************/
@@ -1916,27 +1983,24 @@ $(".dropdown-menu li a").click(function () {
     road_surface = selText;
   }
 
-    if (type === "road_surface") {
+  if (type === "road_surface") {
     // Hide all subtype rows
     $('.subtype-row').hide();
+    resetRoadSurfaceSubtypes();
 
     // Show the relevant subtype row and make its dropdown visible
     switch (selText) {
       case "Portland Cement":
         $('.PortlandCementType').show();
-        $('#PortlandCementType a').css('display', ''); 
         break;
       case "Asphalt or Tar":
         $('.AsphaltOrTarType').show();
-        $('#AsphaltOrTarType a').css('display', '');
         break;
       case "Gravel":
         $('.GravelType').show();
-        $('#GravelType a').css('display', '');
         break;
       case "Snow":
         $('.SnowType').show();
-        $('#SnowType a').css('display', '');
         break;
       default:
         // For other types (Grass, Cinders, Rock, Ice), keep hidden
@@ -1944,6 +2008,17 @@ $(".dropdown-menu li a").click(function () {
     }
   }
 });
+
+function resetRoadSurfaceSubtypes() {
+  $('#PortlandCementType .btn-select')
+    .html('Select Portland Cement Type <span class="caret"></span>');
+  $('#AsphaltOrTarType .btn-select')
+    .html('Select Asphalt or Tar Type <span class="caret"></span>');
+  $('#GravelType .btn-select')
+    .html('Select Gravel Type <span class="caret"></span>');
+  $('#SnowType .btn-select')
+    .html('Select Snow Type <span class="caret"></span>');
+}
 
 
 function changePriority(mutcd) {
@@ -1987,7 +2062,7 @@ export function toggleWidthArray() {
   const laneFeatures = lanes.getSource().getFeatures();
   const vectorFeatures = vectors.getSource().getFeatures();
   const laneWidthSource = laneWidths.getSource();
-   var isNegative = { value: false, node: "", lane: "" };
+  var isNegative = { value: false, node: "", lane: "" };
 
   if (laneWidthSource.getFeatures().length === 0) {
     let masterWidth;
@@ -1999,7 +2074,7 @@ export function toggleWidthArray() {
       }
     }
 
-   
+
 
     for (let i = 0; i < laneFeatures.length; i++) {
       const lane = laneFeatures[i];
@@ -2086,7 +2161,7 @@ export function toggleWidthArray() {
   }
 }
 
-function isOdd(num) { return (num % 2) == 1;}
+function isOdd(num) { return (num % 2) == 1; }
 
 
 function measureCallback(event) {
@@ -2131,6 +2206,7 @@ export function setFeatureAttributes(feature) {
   content = feature.get('content');
   road_condition = feature.get('road_condition');
   road_surface = feature.get('road_surface');
+  road_surface_type = feature.get('road_surface_type');
 }
 
 function showMarkers(laneFeature, laneMarkers) {
@@ -2146,18 +2222,18 @@ function showMarkers(laneFeature, laneMarkers) {
 
 function clearAllSelections() {
   //Clearing OL Select interactions 
-  try { selectLane?.getFeatures().clear(); } catch (e) {}
-  try { polygonSelect?.getFeatures().clear(); } catch (e) {}
-  try { areaSelect?.getFeatures().clear(); } catch (e) {}
-  try { laneMarkerSelect?.getFeatures().clear(); } catch (e) {}
-  try { polyMarkerSelect?.getFeatures().clear(); } catch (e) {}
-  try { vectorSelect?.getFeatures().clear(); } catch (e) {}
+  try { selectLane?.getFeatures().clear(); } catch (e) { }
+  try { polygonSelect?.getFeatures().clear(); } catch (e) { }
+  try { areaSelect?.getFeatures().clear(); } catch (e) { }
+  try { laneMarkerSelect?.getFeatures().clear(); } catch (e) { }
+  try { polyMarkerSelect?.getFeatures().clear(); } catch (e) { }
+  try { vectorSelect?.getFeatures().clear(); } catch (e) { }
 
- //Clearing select interactions stored in `controls`
-  try { controls?.del?.getFeatures().clear(); } catch (e) {}
-  try { controls?.none?.getFeatures().clear(); } catch (e) {}
+  //Clearing select interactions stored in `controls`
+  try { controls?.del?.getFeatures().clear(); } catch (e) { }
+  try { controls?.none?.getFeatures().clear(); } catch (e) { }
 
- //Clearing app-level selection state + UI
+  //Clearing app-level selection state + UI
   selected_marker = null;
   selected_layer = null;
   selected_marker_limit = null;
@@ -2165,7 +2241,7 @@ function clearAllSelections() {
   $("#attributes").hide();
 }
 $(document).ready(() => {
-  
+
   getCSRFToken().then(token => {
     init();
     registerMapEvents();
