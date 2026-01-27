@@ -1992,19 +1992,15 @@ $(".dropdown-menu li a").click(function () {
     switch (selText) {
       case "Portland Cement":
         $('.PortlandCementType').show();
-        // $('#PortlandCementType a').css('display', '');
         break;
       case "Asphalt or Tar":
         $('.AsphaltOrTarType').show();
-        // $('#AsphaltOrTarType a').css('display', '');
         break;
       case "Gravel":
         $('.GravelType').show();
-        // $('#GravelType a').css('display', '');
         break;
       case "Snow":
         $('.SnowType').show();
-        // $('#SnowType a').css('display', '');
         break;
       default:
         // For other types (Grass, Cinders, Rock, Ice), keep hidden
