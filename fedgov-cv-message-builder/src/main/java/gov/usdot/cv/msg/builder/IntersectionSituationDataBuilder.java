@@ -224,7 +224,6 @@ public class IntersectionSituationDataBuilder {
 					isdInputData.validate();
 					md = buildMapData(isdInputData);
 					logger.debug("in MAP: ");
-					// ObjectPrinter.printObject(md);
 					// Removing the first 8 characters from the MessageFrame provides the MAP message
 					// This was tested manually by removing the characters from MessageFrame and testing using the decoder
 					hexString = (J2735Helper.getHexString(md)).substring(8);
