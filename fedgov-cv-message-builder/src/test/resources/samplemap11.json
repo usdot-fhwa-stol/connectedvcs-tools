@@ -1,0 +1,1001 @@
+{
+    "mapData": {
+        "minuteOfTheYear": 496310,
+        "layerType": "intersectionData",
+        "intersectionGeometry": {
+            "referencePoint": {
+                "descriptiveIntersctionName": "LINCOLN & CENTRAL",
+                "intersectionID": "260",
+                "msgCount": "0",
+                "masterLaneWidth": "360",
+                "referenceLat": 33.44217999999998,
+                "referenceLon": -112.07371699999958,
+                "referenceElevation": "100"
+            },
+            "referencePointChild": {
+                "speedLimitType": []
+            },
+            "verifiedPoint": {
+                "verifiedMapLat": 33.44217999999998,
+                "verifiedMapLon": -112.07371699999958,
+                "verifiedMapElevation": "100",
+                "verifiedSurveyedLat": "33.44218",
+                "verifiedSurveyedLon": "-112.073717",
+                "verifiedSurveyedElevation": "100"
+            },
+            "laneList": {
+                "approach": [
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "3",
+                        "drivingLanes": [
+                            {
+                                "laneID": "50",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "50",
+                                        "toLane": "116",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44223299999997,
+                                        "nodeLong": -112.07357999999992,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442218999999994,
+                                        "nodeLong": -112.07308400000021,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 2,
+                                        "nodeLat": 33.442217000000056,
+                                        "nodeLong": -112.07235299999995,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 3,
+                                        "nodeLat": 33.44221500000003,
+                                        "nodeLong": -112.07020600000024,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-10",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "3",
+                        "drivingLanes": [
+                            {
+                                "laneID": "49",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "49",
+                                        "toLane": "20",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "2",
+                                            "5"
+                                        ]
+                                    },
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "49",
+                                        "toLane": "19",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "2",
+                                            "5"
+                                        ]
+                                    },
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "49",
+                                        "toLane": "17",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "2"
+                                        ]
+                                    },
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "49",
+                                        "toLane": "117",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0,
+                                    2,
+                                    5
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442261,
+                                        "nodeLong": -112.07358300000016,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-30",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44224799999998,
+                                        "nodeLong": -112.07308400000021,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-20",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 2,
+                                        "nodeLat": 33.44224699999995,
+                                        "nodeLong": -112.07235400000002,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 3,
+                                        "nodeLat": 33.44224400000002,
+                                        "nodeLong": -112.07020700000032,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-10",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "8",
+                        "drivingLanes": [
+                            {
+                                "laneID": "116",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442234,
+                                        "nodeLong": -112.07398400000011,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442234,
+                                        "nodeLong": -112.07415100000043,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "8",
+                        "drivingLanes": [
+                            {
+                                "laneID": "117",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "9"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44226400000001,
+                                        "nodeLong": -112.07398500000018,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-70",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442263000000025,
+                                        "nodeLong": -112.07415100000043,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "2",
+                        "drivingLanes": [
+                            {
+                                "laneID": "17",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44237600000004,
+                                        "nodeLong": -112.07387099999971,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "90",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44249800000003,
+                                        "nodeLong": -112.07387199999981,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "2",
+                        "drivingLanes": [
+                            {
+                                "laneID": "18",
+                                "descriptiveName": "",
+                                "laneType": "Track",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "9"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44237699999999,
+                                        "nodeLong": -112.07381699999975,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-25",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44249800000003,
+                                        "nodeLong": -112.07381899999992,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "2",
+                        "drivingLanes": [
+                            {
+                                "laneID": "20",
+                                "descriptiveName": "",
+                                "laneType": "Bicycle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442379,
+                                        "nodeLong": -112.07371200000006,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-210",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44250099999999,
+                                        "nodeLong": -112.07371200000006,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "2",
+                        "drivingLanes": [
+                            {
+                                "laneID": "19",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44237800000002,
+                                        "nodeLong": -112.07373999999967,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "40",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44250000000005,
+                                        "nodeLong": -112.07374299999994,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "5",
+                        "drivingLanes": [
+                            {
+                                "laneID": "81",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "81",
+                                        "toLane": "52",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "2",
+                                            "5"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    2,
+                                    5
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44202500000003,
+                                        "nodeLong": -112.07370699999963,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44144000000006,
+                                        "nodeLong": -112.07370599999955,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "10",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 2,
+                                        "nodeLat": 33.441356,
+                                        "nodeLong": -112.07370599999955,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "5",
+                        "drivingLanes": [
+                            {
+                                "laneID": "82",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "82",
+                                        "toLane": "19",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442031,
+                                        "nodeLong": -112.07374299999994,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44143900000002,
+                                        "nodeLong": -112.07374199999983,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "10",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 2,
+                                        "nodeLat": 33.441356999999996,
+                                        "nodeLong": -112.07374099999974,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "7",
+                        "drivingLanes": [
+                            {
+                                "laneID": "113",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "113",
+                                        "toLane": "52",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44212399999999,
+                                        "nodeLong": -112.07397500000025,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-50",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44212599999997,
+                                        "nodeLong": -112.07478399999977,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-10",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "5",
+                        "drivingLanes": [
+                            {
+                                "laneID": "84",
+                                "descriptiveName": "",
+                                "laneType": "Track",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "9"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "84",
+                                        "toLane": "18",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442036999999985,
+                                        "nodeLong": -112.07381499999957,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-25",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.441355000000044,
+                                        "nodeLong": -112.07381400000043,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "5",
+                        "drivingLanes": [
+                            {
+                                "laneID": "83",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "83",
+                                        "toLane": "17",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "1"
+                                        ]
+                                    },
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "83",
+                                        "toLane": "116",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "1"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    1
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44203500000005,
+                                        "nodeLong": -112.07377800000012,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44143900000002,
+                                        "nodeLong": -112.07377700000004,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "4",
+                        "drivingLanes": [
+                            {
+                                "laneID": "52",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442124999999976,
+                                        "nodeLong": -112.07357200000014,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-30",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442128000000025,
+                                        "nodeLong": -112.07344400000034,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "7",
+                        "drivingLanes": [
+                            {
+                                "laneID": "114",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "114",
+                                        "toLane": "51",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "0"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    0
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44215300000002,
+                                        "nodeLong": -112.07397700000041,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-70",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442154,
+                                        "nodeLong": -112.07478399999977,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Egress",
+                        "approachID": "4",
+                        "drivingLanes": [
+                            {
+                                "laneID": "51",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442154,
+                                        "nodeLong": -112.0735740000003,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-60",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44215699999998,
+                                        "nodeLong": -112.07344599999959,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Ingress",
+                        "approachID": "7",
+                        "drivingLanes": [
+                            {
+                                "laneID": "115",
+                                "descriptiveName": "",
+                                "laneType": "Vehicle",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8"
+                                ],
+                                "connections": [
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "115",
+                                        "toLane": "17",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "1"
+                                        ]
+                                    },
+                                    {
+                                        "remoteID": "",
+                                        "fromLane": "115",
+                                        "toLane": "19",
+                                        "signal_id": "1",
+                                        "maneuvers": [
+                                            "1"
+                                        ]
+                                    }
+                                ],
+                                "laneManeuvers": [
+                                    1
+                                ],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44217999999998,
+                                        "nodeLong": -112.07397999999976,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "-110",
+                                        "speedLimitType": []
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44218200000003,
+                                        "nodeLong": -112.0747829999997,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0",
+                                        "speedLimitType": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "approachType": "Crosswalk",
+                        "approachID": -1,
+                        "crosswalkLanes": [
+                            {
+                                "laneID": "54",
+                                "descriptiveName": "",
+                                "laneType": "Crosswalk",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "7",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44227700000003,
+                                        "nodeLong": -112.07361099999979,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "40"
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44210800000003,
+                                        "nodeLong": -112.07359600000034,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0"
+                                    }
+                                ]
+                            },
+                            {
+                                "laneID": "22",
+                                "descriptiveName": "",
+                                "laneType": "Crosswalk",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "7",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442353999999995,
+                                        "nodeLong": -112.07389900000025,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "40"
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44235600000002,
+                                        "nodeLong": -112.07370100000003,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0"
+                                    }
+                                ]
+                            },
+                            {
+                                "laneID": "86",
+                                "descriptiveName": "",
+                                "laneType": "Crosswalk",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "7",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.442045999999976,
+                                        "nodeLong": -112.0736869999998,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "40"
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.44206300000003,
+                                        "nodeLong": -112.07383699999961,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0"
+                                    }
+                                ]
+                            },
+                            {
+                                "laneID": "119",
+                                "descriptiveName": "",
+                                "laneType": "Crosswalk",
+                                "typeAttributes": [],
+                                "sharedWith": [
+                                    "7",
+                                    "8"
+                                ],
+                                "connections": [],
+                                "laneManeuvers": [],
+                                "laneNodes": [
+                                    {
+                                        "nodeNumber": 0,
+                                        "nodeLat": 33.44211100000004,
+                                        "nodeLong": -112.07394799999979,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "40"
+                                    },
+                                    {
+                                        "nodeNumber": 1,
+                                        "nodeLat": 33.442283000000046,
+                                        "nodeLong": -112.0739599999999,
+                                        "nodeElev": 299,
+                                        "laneWidthDelta": "0"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "spatData": {
+            "intersections": {
+                "status": "00",
+                "states": []
+            }
+        }
+    },
+    "messageType": "Map",
+    "nodeOffsets": "Tight",
+    "enableElevation": true,
+    "message": "Map"
+}
