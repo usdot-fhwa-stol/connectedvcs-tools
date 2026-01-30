@@ -123,7 +123,11 @@ public class TravelerInformationBuilder {
 				case TIM:
 					semiMsg = new TravelerInformationMessage();
 					ti = buildTravelerInformation(travInputData);
-					hexString = J2735TIMHelper.getHexString(ti).substring(6);
+					String hexStringFull = J2735TIMHelper.getHexString(ti);
+					// Determine correct substring offset
+					int firstLenByte = Integer.parseInt(hexStringFull.substring(4, 6), 16);
+					int offset = (firstLenByte < 0x80) ? 6 : 8;
+					hexString = hexStringFull.substring(offset);
 					readableString = J2735TIMHelper.getReadableTIM(ti);
 					break;
 				case FramePlusTIM:
@@ -761,7 +765,7 @@ public class TravelerInformationBuilder {
 		}
 
 		int dry_wet_value = travInputData.anchorPoint.road_condition;
-		if (dry_wet_value == 1 || dry_wet_value == 0) {
+		if (dry_wet_value == 1) {
 			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
 			hasData = true;
 		}
