@@ -767,9 +767,10 @@ public class TravelerInformationBuilder {
 			hasData = true;
 		}
 
-		int dry_wet_value = travInputData.anchorPoint.road_condition;
-		if (dry_wet_value == 1 || dry_wet_value == 0) {
-			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet_value));
+		String dry_wet_value = travInputData.anchorPoint.road_condition;
+		if (dry_wet_value!= null) {
+			int dry_wet= Integer.parseInt(dry_wet_value);
+			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet));
 			hasData = true;
 		}
 
