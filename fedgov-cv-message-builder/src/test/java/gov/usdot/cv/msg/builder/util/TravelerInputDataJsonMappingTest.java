@@ -33,7 +33,7 @@ public class TravelerInputDataJsonMappingTest {
         // road-surface fields
         assertEquals("ASPHALT_OR_TAR", data.anchorPoint.road_surface);
         assertEquals(1, data.anchorPoint.road_surface_type);
-        assertEquals(0, data.anchorPoint.road_condition);
+        assertEquals("0", data.anchorPoint.road_condition);
         assertEquals(6L, data.anchorPoint.meanVerticalVariation);
         assertEquals(3L, data.anchorPoint.verticalVariationStdDev);
         assertEquals(10L, data.anchorPoint.meanHorizontalVariation);
