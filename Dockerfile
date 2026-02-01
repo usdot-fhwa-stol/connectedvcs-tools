@@ -44,51 +44,54 @@ RUN apt-get update && \
 
 # Create third_party_lib directory and set permissions early
 RUN mkdir -p /var/lib/jetty/webapps/third_party_lib && \
-    chown jetty:jetty /var/lib/jetty/webapps
+    chown root:jetty /var/lib/jetty/webapps && \
+    chmod 755 /var/lib/jetty/webapps
 
 # Install the generated WAR files with chown to jetty user
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-message-validator-webapp/target/validator.war /var/lib/jetty/webapps
-COPY --from=mvn-build --chown=jetty:jetty /root/private-resources.war /var/lib/jetty/webapps
-COPY --from=mvn-build --chown=jetty:jetty /root/root.war /var/lib/jetty/webapps
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-ISDcreator-webapp/target/isd.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-TIMcreator-webapp/target/tim.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-message-validator-webapp/target/validator.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/private-resources.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/root.war /var/lib/jetty/webapps
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
 # Copy the shared libraries with chown to jetty user
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=jetty:jetty /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
 
 # Set library path env and update ldconfig
 ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/third_party_lib
 RUN ldconfig
 
-# Pre-create and chown Jetty directories for config/SSL to allow non-root operations
-RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d && \
-    chown -R jetty:jetty /var/lib/jetty/etc /var/lib/jetty/start.d
-
-# Switch to non-root jetty user early for remaining file creations
-USER jetty
-
-# Configure Jetty
+# Prepare Jetty base and restrict write access to config
 WORKDIR /var/lib/jetty
-RUN echo 'log4j2.version=2.23.1' >> start.d/logging-log4j2.ini && \
-    java -jar "$JETTY_HOME"/start.jar --create-files
+RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
+    # Ensure config dirs are owned by root and not writable by jetty
+    chown -R root:root /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    chmod -R 755 /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    # Allow runtime writes only to these dirs
+    chown -R jetty:jetty /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
+    chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
 
-# Prepare files for SSL with chown
-COPY --chown=jetty:jetty keystore* /tmp/
-COPY --chown=jetty:jetty ssl.ini /tmp/
+# Prepare files for SSL (restrict write; allow jetty read of keystore only)
+COPY --chown=root:jetty --chmod=640 keystore /tmp/
+COPY --chown=root:root  --chmod=644 ssl.ini /tmp/
+
+# Create Jetty base structure and modules as root, then lock down
+RUN echo 'log4j2.version=2.23.1' >> /var/lib/jetty/start.d/logging-log4j2.ini && \
+    java -jar "$JETTY_HOME"/start.jar --create-files
 
 # Conditionally add SSL or non-SSL based on the USE_SSL environment variable
 RUN if [ "$USE_SSL" = "true" ]; then \
         if [ -f /tmp/ssl.ini ]; then \
             java -jar "$JETTY_HOME"/start.jar --add-to-start=https; \
-            cp /tmp/keystore* /var/lib/jetty/etc/; \
+            cp /tmp/keystore /var/lib/jetty/etc/; \
             cp /tmp/ssl.ini /var/lib/jetty/start.d/; \
         else \
             echo "SSL is enabled, but keystore or ssl.ini files are missing."; \
@@ -96,4 +99,12 @@ RUN if [ "$USE_SSL" = "true" ]; then \
         fi; \
     else \
         java -jar "$JETTY_HOME"/start.jar --add-to-start=http; \
-    fi
+    fi && \
+    # After creating config, ensure config remains read-only and runtime dirs writable
+    chown -R root:root /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    chmod -R 755 /var/lib/jetty/etc /var/lib/jetty/start.d && \
+    chown -R jetty:jetty /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
+    chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
+
+# Drop privileges for runtime
+USER jetty
