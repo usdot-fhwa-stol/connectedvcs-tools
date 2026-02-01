@@ -47,7 +47,7 @@ public class TravelerInputData {
 	}
 
 	private static final Logger logger = LogManager.getLogger(TravelerInputData.class);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+	SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 
 	public Region[] regions;
 	public AnchorPoint anchorPoint;
@@ -314,7 +314,7 @@ public class TravelerInputData {
 		public String road_surface; // material of the road surface
 		public int road_surface_type;
 		/* RoadSurfaceCondition */
-		public int road_condition; // dry or wet
+		public String road_condition; // dry or wet
 		/* RoadRoughness Values */
 		public long meanVerticalVariation;
 		public long verticalVariationStdDev;
