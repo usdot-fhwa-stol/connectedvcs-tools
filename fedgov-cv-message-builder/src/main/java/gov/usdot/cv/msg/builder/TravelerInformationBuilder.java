@@ -587,7 +587,8 @@ public class TravelerInformationBuilder {
 		center.setLongitude(J2735TIMHelper
 				.convertGeoCoordinateToInt(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeLong));
 
-		if (travInputData.enableElevation && inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation != 0) {
+		if (travInputData.enableElevation) {
+			center.setElevationExists(true);
 			center.setElevation(IntersectionInputData.convertElevation(inputRegion.laneNodes[TravelerInputData.LaneNode.circleCenter].nodeElevation));
 		}
 		circle.setCenter(center);
