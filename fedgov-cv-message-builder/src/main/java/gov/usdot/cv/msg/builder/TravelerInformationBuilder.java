@@ -123,7 +123,13 @@ public class TravelerInformationBuilder {
 				case TIM:
 					semiMsg = new TravelerInformationMessage();
 					ti = buildTravelerInformation(travInputData);
-					hexString = J2735TIMHelper.getHexString(ti).substring(6);
+					String hexStringFull = J2735TIMHelper.getHexString(ti);
+					// Strip MessageFrame header to extract TIM payload as the Header length varies due to ASN.1 length encoding:
+					// short-form (≤127 bytes or < 0x80) uses 3 bytes → offset 6 hex chars, 
+					// long-form (≥128 bytes or > 0x80) uses an extra length byte → offset 8.
+					int firstLenByte = Integer.parseInt(hexStringFull.substring(4, 6), 16);
+					int offset = (firstLenByte < 0x80) ? 6 : 8;
+					hexString = hexStringFull.substring(offset);
 					readableString = J2735TIMHelper.getReadableTIM(ti);
 					break;
 				case FramePlusTIM:
