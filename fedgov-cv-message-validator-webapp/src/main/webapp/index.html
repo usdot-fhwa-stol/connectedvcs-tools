@@ -83,7 +83,7 @@
 	
 	<p>SEMI ASN.1 Specification Version:
 	<select id="message-version-options">
-		<option value="2.3">2.3</option>
+		<option value="2024-rel-v1.1">2024-rel-v1.1</option>
 	</select></p>
 
 	
@@ -94,12 +94,14 @@
 	</select></p>
 	<p>Message Type:
 	<select id="message-type">
-    <option value="MessageFrame">MessageFrame (Frame+MAP, Frame+ SPAT, Frame+BSM, Frame+PSM, Frame+TIM)</option>
-    <option value="BSM">BSM</option>
-    <option value="PSM">PSM</option>
-    <option value="TIM">TIM</option>
-    <option value="SPAT">SPaT</option>
-    <option value="MAP">MAP</option>
+    <option value="MessageFrame">MessageFrame (Frame+MAP, Frame+SPaT, Frame+TIM, Frame+BSM, Frame+PSM)</option>
+	<option value="MAP">MAPData</option>
+	<option value="SPAT">Signal Phase and Timing (SPaT) </option>
+	<option value="TIM">Traveler Information Message (TIM) </option>
+    <option value="BSM">Basic Safety Message (BSM) </option>
+    <option value="PSM">Personal Safety Message (PSM)  </option>
+    
+    
 </select>
 	</p>
 
@@ -107,13 +109,13 @@
 
 	<div>
 		<!--<label for="fileselect">File to upload:</label>-->
-		File to upload:
+		Binary file to upload:
 		<input type="file" id="fileselect" name="fileselect" />
 		<div id="filedrag">
-			or drop files here
+			or drop binary file here
 		</div>
 		<div>
-			or paste the contents of your file here
+			Paste the Hex values here
 			<br />
 			<textarea id="encoded-msg-textarea" class="encoded-msg-textarea" placeholder="Enter your ASN.1 message to validate."></textarea>
 		</div>
