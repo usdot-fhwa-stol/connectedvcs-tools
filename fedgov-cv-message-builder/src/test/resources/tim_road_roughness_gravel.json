@@ -71,8 +71,9 @@
     "verticalVariationStdDev": 234,
     "meanHorizontalVariation": 432,
     "horizontalVariationStdDev": 124,
-    "road_surface": "Grass",
-    "road_condition": 1
+    "road_surface": "Gravel",
+    "road_condition": "0",
+    "road_surface_type": 1
   },
   "verifiedPoint": {
     "verifiedMapLat": 38.955588540498525,
