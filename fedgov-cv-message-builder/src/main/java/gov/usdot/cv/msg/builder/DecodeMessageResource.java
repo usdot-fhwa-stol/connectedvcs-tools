@@ -107,7 +107,7 @@ public class DecodeMessageResource {
 		try {
 			SemiValidator validator = new SemiValidator();
 			// calling SemiValidator method to decode the encoded Message
-			String resultMessage = validator.validate(bytes);
+			String resultMessage = validator.validate(bytes,messageType);
 			result.setMessage(resultMessage);
 			result.setStatus(Status.Success);
 		} catch (SemiValidatorException ex) {

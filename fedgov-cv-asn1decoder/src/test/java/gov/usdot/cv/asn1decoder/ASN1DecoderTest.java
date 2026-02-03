@@ -42,6 +42,7 @@ public class ASN1DecoderTest {
     private ByteArrayObject psmMsg2;
     private ByteArrayObject travelerInfoMsg1;
     private ByteArrayObject travelerInfoMsg2;
+    private ByteArrayObject onlyTIM;
     private ByteArrayObject emptyMsg;
 
     
@@ -135,6 +136,14 @@ public class ASN1DecoderTest {
                         "001f482010000000000114d3bc20807299b9efbc7a9b8e02260400060fd2eea2b0e008006e53373df78f5371c044c080b74000c004a51fc12021c04da26084c7e5da414307450000002838"
                 )
         );
+        onlyTIM = mock(ByteArrayObject.class);
+        when(onlyTIM.getType()).thenReturn("TravelerInformationMessage");
+        when(onlyTIM.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "20100000000001c2defa8180b29dc1fafc73929a323749c00e6fd400fe1f4020007e53b83f5f8e72534646e900b72e00700298e7252be677080c898e7253da67707d4218e7253f227707cf438e7254b167707a7b813ec639c954df9dc1e300639c957bd9dc1da2e639c9594f9dc1d55800100f9b80849800e004004400900980"
+                )
+        );      
+
         // Empty Message
         emptyMsg = mock(ByteArrayObject.class);
         when(emptyMsg.getMessage()).thenReturn(new byte[]{}); 
@@ -142,7 +151,7 @@ public class ASN1DecoderTest {
 
     @Test
     public void testDecodeBsm() {
-        DecodedResult r1 = decoder.decode(bsmMsg1);
+        DecodedResult r1 = decoder.decode(bsmMsg1,"MessageFrame");
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -151,7 +160,7 @@ public class ASN1DecoderTest {
             r1.messageType
         );
 
-        DecodedResult r2 = decoder.decode(bsmMsg2);
+        DecodedResult r2 = decoder.decode(bsmMsg2,"MessageFrame");
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -163,7 +172,7 @@ public class ASN1DecoderTest {
 
     @Test
     public void testDecodePsm() {
-        DecodedResult r1 = decoder.decode(psmMsg1);
+        DecodedResult r1 = decoder.decode(psmMsg1,"MessageFrame");
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
          Assert.assertEquals(
@@ -172,7 +181,7 @@ public class ASN1DecoderTest {
             r1.messageType
         );
 
-        DecodedResult r2 = decoder.decode(psmMsg2);
+        DecodedResult r2 = decoder.decode(psmMsg2,"MessageFrame");
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
          Assert.assertEquals(
@@ -184,7 +193,7 @@ public class ASN1DecoderTest {
 
     @Test
     public void testDecodeSpat() {
-        DecodedResult r1 = decoder.decode(spatMsg1);
+        DecodedResult r1 = decoder.decode(spatMsg1,"MessageFrame");
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -193,7 +202,7 @@ public class ASN1DecoderTest {
             r1.messageType
         );
 
-        DecodedResult r2 = decoder.decode(spatMsg2);
+        DecodedResult r2 = decoder.decode(spatMsg2,"MessageFrame");
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -205,7 +214,7 @@ public class ASN1DecoderTest {
 
     @Test
     public void testDecodeMapData() {
-        DecodedResult r1 = decoder.decode(mapMsg1);
+        DecodedResult r1 = decoder.decode(mapMsg1,"MessageFrame");
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -214,7 +223,7 @@ public class ASN1DecoderTest {
             r1.messageType
         );
 
-        DecodedResult r2 = decoder.decode(mapMsg2);
+        DecodedResult r2 = decoder.decode(mapMsg2,"MessageFrame");
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
@@ -226,7 +235,7 @@ public class ASN1DecoderTest {
 
     @Test
     public void testDecodeTravelerInformation() {
-        DecodedResult r1 = decoder.decode(travelerInfoMsg1);
+        DecodedResult r1 = decoder.decode(travelerInfoMsg1,"MessageFrame");
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
          Assert.assertEquals(
@@ -235,7 +244,7 @@ public class ASN1DecoderTest {
             r1.messageType
         );
 
-        DecodedResult r2 = decoder.decode(travelerInfoMsg2);
+        DecodedResult r2 = decoder.decode(travelerInfoMsg2,"MessageFrame");
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
          Assert.assertEquals(
@@ -246,7 +255,20 @@ public class ASN1DecoderTest {
     }
      @Test
     public void ASN1DecoderTestEmpty() {
-        DecodedResult decodedMessage = decoder.decode(emptyMsg);
+        DecodedResult decodedMessage = decoder.decode(emptyMsg,"empty");
         Assert.assertFalse("Decoding result should be False", decodedMessage.success);
     }
+    @Test
+        public void testDecodeOnlyTIM() {       
+        
+                DecodedResult r = decoder.decode( onlyTIM, "TIM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'TravelerInformationMessage'",
+                        "TravelerInformationMessage",
+                        r.messageType
+                );
+                System.out.println("Decoded TIM Message: " + r.decodedMessage);
+        }
 }

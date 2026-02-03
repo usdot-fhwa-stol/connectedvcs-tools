@@ -94,8 +94,14 @@
 	</select></p>
 	<p>Message Type:
 	<select id="message-type">
-		<option class="dummyoption" value=''>Auto-detect message type</option>
-	</select></p>
+    <option value="MessageFrame">MessageFrame (Frame+MAP, Frame+ SPAT, Frame+BSM, Frame+PSM, Frame+TIM)</option>
+    <option value="BSM">BSM</option>
+    <option value="PSM">PSM</option>
+    <option value="TIM">TIM</option>
+    <option value="SPAT">SPaT</option>
+    <option value="MAP">MAP</option>
+</select>
+	</p>
 
 	<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
 

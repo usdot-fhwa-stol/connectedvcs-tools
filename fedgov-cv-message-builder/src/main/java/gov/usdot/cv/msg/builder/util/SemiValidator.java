@@ -28,7 +28,7 @@ public class SemiValidator {
         messageDecoder = new Decoder(); // Initialize the Decoder object
     }
 
-    public synchronized String validate(byte[] bytes) throws SemiValidatorException {
+    public synchronized String validate(byte[] bytes, String messageType) throws SemiValidatorException {
         /*
          * variable to hold decoded message and message name
          */
@@ -38,7 +38,7 @@ public class SemiValidator {
         try {
             // Using Decoder class to decode the message directly using byte[]
             ByteArrayObject byteArrayObject = new ByteArrayObject("" , bytes);
-            decodedResult = messageDecoder.decode(byteArrayObject);
+            decodedResult = messageDecoder.decode(byteArrayObject, messageType);
 
             // Getting message name from decoder
             messageName = decodedResult.messageType;
@@ -57,24 +57,24 @@ public class SemiValidator {
      * when native C decoder will be able to decode bytes given message type
      */
 
-    public synchronized String validate(byte[] bytes, String name) throws SemiValidatorException {
-        String messageName = null;
-        String decodedMessage = null;
-        try {
+    // public synchronized String validate(byte[] bytes, String name) throws SemiValidatorException {
+    //     String messageName = null;
+    //     String decodedMessage = null;
+    //     try {
 
-            // TODO: need to rewrite native C decoder to decode with given message type
-            // decodedMessage = name != null ? messageDecoder.decodeMsg( bytes, name ) :
-            // messageDecoder.decodeMsg( bytes )
-            if (decodedMessage == null || decodedMessage.isEmpty()) {
-                throw new SemiValidatorException(
-                        "Couldn't decode message using the given message type");
-            }
-            return formatResult(messageName, decodedMessage);
+    //         // TODO: need to rewrite native C decoder to decode with given message type
+    //         // decodedMessage = name != null ? messageDecoder.decodeMsg( bytes, name ) :
+    //         // messageDecoder.decodeMsg( bytes )
+    //         if (decodedMessage == null || decodedMessage.isEmpty()) {
+    //             throw new SemiValidatorException(
+    //                     "Couldn't decode message using the given message type");
+    //         }
+    //         return formatResult(messageName, decodedMessage);
 
-        } catch (Exception ex) {
-            throw new SemiValidatorException(formatResult("Unknown", ex.getMessage()));
-        }
-    }
+    //     } catch (Exception ex) {
+    //         throw new SemiValidatorException(formatResult("Unknown", ex.getMessage()));
+    //     }
+    // }
 
     /* function to format */
     private String formatResult(String messageName, String decodedMessage) {
