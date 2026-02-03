@@ -2431,7 +2431,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                             jmethodID midGetGravel = (*env)->GetMethodID(
                                 env, descCls, "getGravel",
                                 "()Lgov/usdot/cv/timencoder/Gravel;");
-                            jobject gravelObj = midGetGravel ? (*env)->CallObjectMethod(env, gravelObj, midGetGravel) : NULL;
+                            jobject gravelObj = midGetGravel ? (*env)->CallObjectMethod(env, descObj, midGetGravel) : NULL;
                             fip->roadSurfaceDescription.present = DescriptionOfRoadSurface_PR_gravel;
                             if (gravelObj)
                             {
