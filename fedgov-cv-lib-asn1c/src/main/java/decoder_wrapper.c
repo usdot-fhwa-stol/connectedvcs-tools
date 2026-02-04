@@ -27,12 +27,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*Takes ASN Descriptor for message and decodes it into msgTypeStrOut*/
+/*Takes ASN Descriptor and message and decodes it into decodedStrOut*/
 static jboolean decode_message_only(
     const asn_TYPE_descriptor_t *asn_def,
     const void *buf,
     int len,
-    const char *successTypeName,
+    const char *messageType,
     const char **msgTypeStrOut,
     const char **decodedStrOut)
 {
@@ -56,20 +56,19 @@ static jboolean decode_message_only(
             if (heapStr)
             {
                 *decodedStrOut = heapStr; 
-                *msgTypeStrOut = successTypeName ? successTypeName : "DecodedMessage";
+                *msgTypeStrOut = messageType;
                 ASN_STRUCT_FREE(*asn_def, msg);
                 return JNI_TRUE;
             }
             else
             {
                 *decodedStrOut = "Failed to allocate decoded output string";
-                *msgTypeStrOut = successTypeName ? successTypeName : "DecodedMessage";
+                *msgTypeStrOut = messageType;
             }
         }
         else
         {
             *decodedStrOut = "Failed to allocate memory for output";
-            *msgTypeStrOut = successTypeName ? successTypeName : "DecodedMessage";
         }
 
         ASN_STRUCT_FREE(*asn_def, msg);
@@ -187,7 +186,7 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
         else if (type && (strcmp(type, "SPAT") == 0 || strcmp(type, "SPaT") == 0))
         {
             asn_def = &asn_DEF_SPAT;
-            messageType = "SPAT";
+            messageType = "SPaT";
         }
         else if (type && strcmp(type, "MAP") == 0)
         {
@@ -205,20 +204,19 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
       
         if (asn_def != NULL)
         {
-            const char *localDecoded = NULL;
-            const char *localType = NULL;
+            const char *msgDecoded = NULL;
+            const char *msgType = NULL;
 
             success = decode_message_only(
                 asn_def,
                 buf,
                 len,
                 messageType,
-                &localType,
-                &localDecoded);
+                &msgType,
+                &msgDecoded);
 
-            decodedStr = localDecoded;
-            msgTypeStr = localType;
-
+            decodedStr = msgDecoded;
+            msgTypeStr = msgType;   
 
         }
     }
@@ -246,9 +244,6 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
     // Converting the message type to a Java UTF string (jstring)
     jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
 
-    free((void *)decodedStr);
-    free((void *)type);
-    
     // Set the corresponding fields in the DecodedResult Java object
     (*env)->SetObjectField(env, resultObj, decodedField, jDecodedStr);
     (*env)->SetObjectField(env, resultObj, typeField, jMsgTypeStr);

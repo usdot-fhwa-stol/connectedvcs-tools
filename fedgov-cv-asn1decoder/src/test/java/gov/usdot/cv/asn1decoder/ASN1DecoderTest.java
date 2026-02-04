@@ -44,6 +44,10 @@ public class ASN1DecoderTest {
     private ByteArrayObject travelerInfoMsg2;
     private ByteArrayObject onlyTIM;
     private ByteArrayObject emptyMsg;
+    private ByteArrayObject onlybsmMsg;
+    private ByteArrayObject onlypsmMsg;
+    private ByteArrayObject onlymapMsg;
+    private ByteArrayObject onlyspatMsg;
 
     
 
@@ -71,7 +75,7 @@ public class ASN1DecoderTest {
 
         // SPAT
         spatMsg1 = mock(ByteArrayObject.class);
-        when(spatMsg1.getType()).thenReturn("SPAT");
+        when(spatMsg1.getType()).thenReturn("SPaT");
         when(spatMsg1.getMessage()).thenReturn(
                 DatatypeConverter.parseHexBinary(
                         "00131900100b5a81000021a6100007047f8000001400140014780000"
@@ -79,7 +83,7 @@ public class ASN1DecoderTest {
         );
 
         spatMsg2 = mock(ByteArrayObject.class);
-        when(spatMsg2.getType()).thenReturn("SPAT");
+        when(spatMsg2.getType()).thenReturn("SPaT");
         when(spatMsg2.getMessage()).thenReturn(
                 DatatypeConverter.parseHexBinary(
                         "00136400382E4EEE997973CB8FA69DFB800020402015528407742C00410C0753800408683AAE3AAE01604301D4E00182180EA7001010D0755C755C03008603A9C00504301D4E003021A0EAB8EAB806810C0753800E08603A9C00804341D571D5700E02180EA700"
@@ -142,7 +146,38 @@ public class ASN1DecoderTest {
                 DatatypeConverter.parseHexBinary(
                         "20100000000001c2defa8180b29dc1fafc73929a323749c00e6fd400fe1f4020007e53b83f5f8e72534646e900b72e00700298e7252be677080c898e7253da67707d4218e7253f227707cf438e7254b167707a7b813ec639c954df9dc1e300639c957bd9dc1da2e639c9594f9dc1d55800100f9b80849800e004004400900980"
                 )
-        );      
+        );
+        
+        onlybsmMsg = mock(ByteArrayObject.class);
+        when(onlybsmMsg.getType()).thenReturn("BasicSafetyMessage");
+        when(onlybsmMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "45A6EEC002ADC4266E9C501EA6E42588CC0404000020A96DCC197966D600780405404F89D000E0C0A101653FFE100000E410A4AC1241000073810BCBC0EF0FEE08A010EFB3E83EFE00D3C11331BB96EFDC11D81182737EACFE417F07ED7510"
+                )
+        );
+        onlypsmMsg = mock(ByteArrayObject.class);
+        when(onlypsmMsg.getType()).thenReturn("PersonalSafetyMessage");
+        when(onlypsmMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "000002a5158048d159e14cdd338f3d4da420101effffffff00000000"
+                )
+        );
+
+        onlyspatMsg = mock(ByteArrayObject.class);
+        when(onlyspatMsg.getType()).thenReturn("SPaT");
+        when(onlyspatMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "00100b5a81000021a6100007047f8000001400140014780000"
+                )
+        );
+
+        onlymapMsg = mock(ByteArrayObject.class);
+        when(onlymapMsg.getType()).thenReturn("MapData");
+        when(onlymapMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "38033020204bda0d4cdcf8143d4dc48811860224164802280008002297d4bc80a0a0a9825825923a90b2f2e418986f41b7006480602403812020084015480010004521d9f001414160c7c42a1879858619502a42a060e927100662000400105be6bf41c8aded5816ebc050507dcb860ec57aead5079e02828900890001000417223a50728b750f9c6ea9e8ae480a0a0f68746ad447c002828900a0880704404020803b9000200062b68d5305d1f9269a725027d8352f72867d6c82403340004000c53f5b761abbb7d35d3c0813ec1a3baac16bfc048050240301202008402208001000310fe55f849acd608d8ace136b440000dfe4808880008002086365c0017d1612eb34026067404895390907bd848050440302201c100024000200000090026180a0a0f2852600140001000000169fc1585bd1da000b00008000000a3bb2f439459a80060000400000046d55c416c67f40"
+                )
+        );
 
         // Empty Message
         emptyMsg = mock(ByteArrayObject.class);
@@ -198,7 +233,7 @@ public class ASN1DecoderTest {
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
             "Expected decoded message type to be 'SPAT'",
-            "SPAT",
+            "SPaT",
             r1.messageType
         );
 
@@ -207,7 +242,7 @@ public class ASN1DecoderTest {
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
             "Expected decoded message type to be 'SPAT'",
-            "SPAT",
+            "SPaT",
             r2.messageType
         );
     }
@@ -253,13 +288,13 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-     @Test
+    @Test
     public void ASN1DecoderTestEmpty() {
         DecodedResult decodedMessage = decoder.decode(emptyMsg,"empty");
         Assert.assertFalse("Decoding result should be False", decodedMessage.success);
     }
     @Test
-        public void testDecodeOnlyTIM() {       
+    public void testDecodeOnlyTIM() {       
         
                 DecodedResult r = decoder.decode( onlyTIM, "TIM");
                 Assert.assertTrue(r.success);
@@ -271,4 +306,55 @@ public class ASN1DecoderTest {
                 );
                 System.out.println("Decoded TIM Message: " + r.decodedMessage);
         }
+
+      @Test
+      public void testDecodeOnlyBSM() {       
+        
+                DecodedResult r = decoder.decode( onlybsmMsg, "BSM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'BasicSafetyMessage'",
+                        "BasicSafetyMessage",
+                        r.messageType
+                );
+               
+        }
+        @Test
+        public void testDecodeOnlyPSM() {       
+        
+                DecodedResult r = decoder.decode( onlypsmMsg, "PSM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'PersonalSafetyMessage'",
+                        "PersonalSafetyMessage",
+                        r.messageType
+                );    
+        }
+        @Test  
+        public void testDecodeOnlySPAT() {       
+        
+                DecodedResult r = decoder.decode( onlyspatMsg, "SPAT");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SPaT'",
+                        "SPaT",
+                        r.messageType
+                );    
+        }
+        @Test  
+        public void testDecodeOnlyMAP() {    
+        
+                DecodedResult r = decoder.decode( onlymapMsg, "MAP");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'MapData'",
+                        "MapData",
+                        r.messageType
+                );    
+        }  
+
 }
