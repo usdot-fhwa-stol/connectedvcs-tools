@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,7 +27,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*Takes ASN Descriptor and message and decodes it into decodedStrOut*/
+/* 
+ * Decodes an ASN.1 message using the provided ASN descriptor and UPER encoding.
+ * On success:
+ *   - decodedStrOut is set to human-readable ASN printout of the decoded message
+ *   - msgTypeStrOut is set to the provided messageType
+ * Returns JNI_TRUE on successful decode , otherwise JNI_FALSE.
+ */
 static jboolean decode_message_only(
     const asn_TYPE_descriptor_t *asn_def,
     const void *buf,
@@ -112,7 +118,6 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
         if (rval.code == RC_OK)
         {
 
-            printf("Message ID: %ld\n", message->messageId);
 
             char outputBuffer[65536];
             FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");

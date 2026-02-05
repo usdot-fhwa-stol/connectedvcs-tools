@@ -1,4 +1,15 @@
-
+<!-- 
+ Copyright (C) 2026 LEIDOS.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +47,6 @@
         </div>
         <div class="modal-body" style="text-align: left; font-size: small;">
           <p align="left">This application provides validation for SAE J2735-2024 messages encoded as ASN.1 Unaligned PER (UPER) bytes. 
-          <!-- It supports one or more versions of the CVCS SEMI messages as specified in the SEMI ASN.1 Specification Version list. </p> -->
           <p>A message for validation can be provided as a binary file via file browse or file drag and drop, or by pasting the message bytes encoded as HEX or String.</p>
           <p>Please note that decoding UPER encoded messages per specification requires the decoder to know the ASN.1 definition of the message. 
           Since messages that arrive at the SDC/SDW warehouses do not explicitly provide that information, the warehouses attempt to derive the information 
@@ -55,12 +65,7 @@
 			<li style="list-style-type: lower-alpha;">If the message type does not match, please report them to CAV support services at  <a href="mailto:CAVSupportServices@dot.gov">CAVSupportServices@dot.gov</a> providing the message file or 
 		string, expected message type, and detected message type from the validator. This message can’t be deposited until the problem is resolved.</li>
 		</ol>
-		<!-- <li>If the message failed validation, specify intended message type in the Message Type combo-box. If desired type is not listed, the messages of that type can’t be validated with this application and can’t be deposited to the CVCS warehouses.</li> -->
-		<!-- <li>Click Validate. Now that the validator has a hint regarding the intended message type, it will be able to provide more accurate error reporting. Use the information provided to correct errors.</li> -->
-		<!-- <li>Continue correcting errors and re-validating the updated message with the intended type selected in the Message Type combo-box until the message validates and the message type reported matches the intended message type.</li> -->
-		<!-- <li>When the message correctly validates with the intended message type provided, it needs to be re-validated without the message type hint to make sure that the warehouses that will not have the hint will be able to correctly decode it as well. For this, perform the validation again starting with no. 3 above.</li> -->
 		</ol>
-		<!-- <p>Please do not attempt depositing any messages that did not completely pass the validation without the message type hint to the warehouses as they are guarantee to be dropped.</p> -->
 		<p>The application is compatible with most modern browsers including Internet Explorer, Firefox, and Chrome. If you experience any problems using the application, please report them to CAV support services at  <a href="mailto:CAVSupportServices@dot.gov">CAVSupportServices@dot.gov</a>
 		<div id="version" style="color: grey; font-size: small;">Connected Vehicles Message Validator Version </div>
 		<div id="release" style="color: grey; font-size: small;">Released on </div>
@@ -74,9 +79,6 @@
   </div>
 <div class="validation-container">
 <div class="validation-input-container">
-
-<!--<form id="upload" action="index.html" method="POST" enctype="multipart/form-data">-->
-
 
 <fieldset class="fields">
 	<legend style="text-align:center;" id="subtitle">SAE J2735-2024 Message Set Dictionary </legend>
@@ -140,7 +142,7 @@
 </div>
 
 </div>
-<div id="copyright">©Leidos </div>
+<div id="copyright"></div>
 </div>
 
 
