@@ -47,11 +47,11 @@ public class Decoder {
 	 *
 	 * @return JSON string decoded message
 	 */
-	public native DecodedResult decodeMsg(byte[] message);
+	public native DecodedResult decodeMsg(byte[] message, String messageType);
 
-	public DecodedResult decode(ByteArrayObject binaryMessage) {
+	public DecodedResult decode(ByteArrayObject binaryMessage, String messageType) {
 		logger.debug("Decoding the binary message...");
-		DecodedResult result = decodeMsg(binaryMessage.getMessage());
+		DecodedResult result = decodeMsg(binaryMessage.getMessage(), messageType);
 
 		if (result == null || !result.success) {
 			logger.error("Decoding failed or returned null.");
