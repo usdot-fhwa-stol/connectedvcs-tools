@@ -9,6 +9,8 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations under
 the License.
+
+
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -65,6 +67,15 @@ the License.
 			<li style="list-style-type: lower-alpha;">If the message type does not match, please report them to CAV support services at  <a href="mailto:CAVSupportServices@dot.gov">CAVSupportServices@dot.gov</a> providing the message file or 
 		string, expected message type, and detected message type from the validator. This message can’t be deposited until the problem is resolved.</li>
 		</ol>
+
+		<!--TODO: Will Update the commented out texts  once Error logging is implemented-->
+		<!-- <li>If the message failed validation, specify intended message type in the Message Type combo-box. If desired type is not listed, the messages of that type can’t be validated with this application and can’t be deposited to the CVCS warehouses.</li> -->
+		<!-- <li>Click Validate. Now that the validator has a hint regarding the intended message type, it will be able to provide more accurate error reporting. Use the information provided to correct errors.</li> -->
+		<!-- <li>Continue correcting errors and re-validating the updated message with the intended type selected in the Message Type combo-box until the message validates and the message type reported matches the intended message type.</li> -->
+		<!-- <li>When the message correctly validates with the intended message type provided, it needs to be re-validated without the message type hint to make sure that the warehouses that will not have the hint will be able to correctly decode it as well. For this, perform the validation again starting with no. 3 above.</li> -->
+		<!-- <p>Please do not attempt depositing any messages that did not completely pass the validation without the message type hint to the warehouses as they are guarantee to be dropped.</p> -->
+
+		<li>If the message fails validation, the message type will be marked as “Unknown” in red. Decoding failures may result from unsupported message types or incomplete messages. </li>
 		</ol>
 		<p>The application is compatible with most modern browsers including Internet Explorer, Firefox, and Chrome. If you experience any problems using the application, please report them to CAV support services at  <a href="mailto:CAVSupportServices@dot.gov">CAVSupportServices@dot.gov</a>
 		<div id="version" style="color: grey; font-size: small;">Connected Vehicles Message Validator Version </div>
