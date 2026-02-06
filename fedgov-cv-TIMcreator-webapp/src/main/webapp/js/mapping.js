@@ -428,6 +428,14 @@ function registerMapEvents() {
 
     $('#drawLanes').prop('disabled', true);
     $('#editLanes').prop('disabled', true);
+
+    // Check if the newly added feature is a circle
+    const feature = evt.feature;
+    if (feature.get('title') === 'circle') {
+        $('#editPoly').prop('disabled', true);   // Disable editing for circle
+    } else {
+        $('#editPoly').prop('disabled', false);  // Enable editing for normal polygon
+    }
   });
 
   polygonSelect = new ol.interaction.Select({
