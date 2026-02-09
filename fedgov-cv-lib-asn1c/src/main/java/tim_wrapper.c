@@ -630,29 +630,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     }
                 }
 
-                /* --- getLaneWidth() --- */
-                jmethodID midGetLaneWidth = (*env)->GetMethodID(env, geoPathCls, "getLaneWidth", "()I");
-                if (midGetLaneWidth)
-                {
-                    jint lwVal = (*env)->CallIntMethod(env, geoPathObj, midGetLaneWidth);
-                    // allocate and store into gp->laneWidth (optional ASN.1 field)
-                    gp->laneWidth = (LaneWidth_t *)calloc(1, sizeof(*gp->laneWidth));
-                    if (gp->laneWidth)
-                    {
-                        *gp->laneWidth = (LaneWidth_t)lwVal;
-                    }
-                    else
-                    {
-                        fprintf(stderr, "calloc LaneWidth failed\n");
-                    }
-                }
-                else
-                {
-                    {
-                        fprintf(stderr, "Warning: getLaneWidth() method not found on GeographicalPath\n");
-                    }
-                }
-
                 /* --- getDirectionality() --- */
                 jmethodID midGetDirectionality = (*env)->GetMethodID(env, geoPathCls, "getDirectionality", "()Lgov/usdot/cv/timencoder/DirectionOfUse;");
                 if (midGetDirectionality)
@@ -689,27 +666,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 else
                 {
                     gp->directionality = NULL;
-                }
-
-                /* --- isClosedPath() --- */
-                jmethodID midIsClosedPath = (*env)->GetMethodID(env, geoPathCls, "isClosedPath", "()Z");
-                if (midIsClosedPath)
-                {
-                    jboolean closedVal = (*env)->CallBooleanMethod(env, geoPathObj, midIsClosedPath);
-
-                    gp->closedPath = (BOOLEAN_t *)calloc(1, sizeof(*gp->closedPath));
-                    if (gp->closedPath)
-                    {
-                        *gp->closedPath = closedVal ? 1 : 0;
-                    }
-                    else
-                    {
-                        fprintf(stderr, "calloc closedPath failed\n");
-                    }
-                }
-                else
-                {
-                    fprintf(stderr, "Warning: isClosedPath() method not found on GeographicalPath\n");
                 }
 
                 /* --- getDirection() --- */
@@ -784,6 +740,50 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                     case 0: /* path_chosen */
                     {
                         gp->description->present = GeographicalPath__description_PR_path;
+
+                        /* --- isClosedPath() applies only for path_chosen --- */ 
+                        jmethodID midIsClosedPath = (*env)->GetMethodID(env, geoPathCls, "isClosedPath", "()Z");
+                        if (midIsClosedPath)
+                        {
+                            jboolean closedVal = (*env)->CallBooleanMethod(env, geoPathObj, midIsClosedPath);
+
+                            gp->closedPath = (BOOLEAN_t *)calloc(1, sizeof(*gp->closedPath));
+                            if (gp->closedPath)
+                            {
+                                *gp->closedPath = closedVal ? 1 : 0;
+                            }
+                            else
+                            {
+                                fprintf(stderr, "calloc closedPath failed\n");
+                            }
+                        }
+                        else
+                        {
+                            fprintf(stderr, "Warning: isClosedPath() method not found on GeographicalPath\n");
+                        }
+
+                        /* --- getLaneWidth() applies only for path_chosen --- */
+                        jmethodID midGetLaneWidth = (*env)->GetMethodID(env, geoPathCls, "getLaneWidth", "()I");
+                        if (midGetLaneWidth)
+                        {
+                            jint lwVal = (*env)->CallIntMethod(env, geoPathObj, midGetLaneWidth);
+                            // allocate and store into gp->laneWidth (optional ASN.1 field)
+                            gp->laneWidth = (LaneWidth_t *)calloc(1, sizeof(*gp->laneWidth));
+                            if (gp->laneWidth)
+                            {
+                                *gp->laneWidth = (LaneWidth_t)lwVal;
+                            }
+                            else
+                            {
+                                fprintf(stderr, "calloc LaneWidth failed\n");
+                            }
+                        }
+                        else
+                        {
+                            {
+                                fprintf(stderr, "Warning: getLaneWidth() method not found on GeographicalPath\n");
+                            }
+                        }
 
                         // get OffsetSystem from Description.getPathChosen()
                         jmethodID midGetPath = (*env)->GetMethodID(env, descCls, "getPathChosen", "()Lgov/usdot/cv/timencoder/OffsetSystem;");
