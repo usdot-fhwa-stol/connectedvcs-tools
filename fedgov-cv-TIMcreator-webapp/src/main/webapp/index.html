@@ -579,44 +579,22 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<div class="row">
-						<div class="col-sm-2">
-							<label for="deposit_check"><span>Deposit? &nbsp;</span>&nbsp;&nbsp;</label>
-							<input type="checkbox" id="deposit_check" value="yes">
-						</div>
-						<div class="col-sm-3">
 							<label for="message_type" class="pull-left">Message Type: &nbsp;&nbsp;</label>
 							<select id="message_type" class="pull-left">
-								<option value="ASD">ASD</option>
 								<option value="TIM">TIM</option>
 								<option value="Frame+TIM">Frame+TIM</option>
 							</select>
-							<label for="node_offsets" class="pull-left">Node Offsets: &nbsp;&nbsp;</label>
+							<label for="node_offsets" class="pull-left">&nbsp;&nbsp;Node Offsets: &nbsp;&nbsp;</label>
 							<select id="node_offsets" class="pull-left">
 								<option value="Explicit">Explicit (64 bit)</option>
 								<option value="Standard">Standard (32 bit)</option>
 								<option value="Compact">Compact</option>
 								<option value="Tight">Tight</option>
 							</select>
-							<label for="enable_elevation" class="pull-left" style="margin-top: 8px;">Enable Elevation?: &nbsp;&nbsp;</label>
-							<input id="enable_elevation" type="checkbox" class="pull-left" style="margin-top: 12px;">
-						</div>
-						<div class="col-sm-3" id="ttl">
-							<label for="time" class="pull-left">Time To Live (optional):  &nbsp;</label>
-							<select id="time" class="pull-left">
-								<option value="0">(0) Minute</option>
-								<option value="1">(1) Half Hour</option>
-								<option value="2">(2) Day</option>
-								<option value="3">(3) Week</option>
-								<option value="4">(4) Month</option>
-								<option value="5">(5) Year</option>
-							</select>
-						</div>
-						<div class="col-sm-4" style="right: 0; position: absolute; margin-top: -15px;">
+							<label for="enable_elevation" class="pull-left"> &nbsp;&nbsp; Enable Elevation?: &nbsp;&nbsp;</label>
+							<input id="enable_elevation" type="checkbox" class="pull-left">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 							<button type="button" id="message_deposit" class="btn btn-primary">Encode</button>
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -894,9 +872,9 @@
 				<button class="btn btn-info btn-end-right" name="layerControl" id="help" value="help" data-toggle="tooltip" data-placement="top" title="Help"><i class="fa fa-question"></i></button>
 				<button class="btn btn-primary btn-end-right" name="layerControl" id="builder" value="builder" onclick="toggle(); return false;" data-placement="top" title="Builder"><i class="fa fa-list"></i></button>
 
-                <button type="button" class="btn btn-primary" disabled>Applicable Region</button>
+                <!-- <button type="button" class="btn btn-primary" disabled>Applicable Region</button>
                 <button class="btn btn-default" name="layerControl" id="drawDepositArea" value="area" data-toggle="tooltip" data-placement="top" title="Draw Applicable Region"><i class="fa fa-pencil-square-o"></i></button>
-                <button class="btn btn-default btn-end-right" name="layerControl" id="editDepositArea" value="edit" data-toggle="tooltip" data-placement="top" title="Edit Applicable Region"><i class="fa fa-crop"></i></button>
+                <button class="btn btn-default btn-end-right" name="layerControl" id="editDepositArea" value="edit" data-toggle="tooltip" data-placement="top" title="Edit Applicable Region"><i class="fa fa-crop"></i></button> -->
 			
 				<button type="button" class="btn btn-primary" disabled>Lane Regions</button>
 				<button class="btn btn-default" name="layerControl" id="drawLanes" value="line" data-toggle="tooltip" data-placement="top" title="Draw Regions"><i class="fa fa-pencil-square-o"></i></button>
