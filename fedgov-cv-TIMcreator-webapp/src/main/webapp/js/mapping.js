@@ -221,8 +221,6 @@ function init() {
   $('#packet_id').val(t.slice(-9));
 
   $('option:selected').prop("selected", false);
-  // $('#deposit_check').prop('checked', false);
-  $('#ttl').hide();
 
   $('#drawPoly').prop('disabled', false);
   $('#editPoly').prop('disabled', false);
