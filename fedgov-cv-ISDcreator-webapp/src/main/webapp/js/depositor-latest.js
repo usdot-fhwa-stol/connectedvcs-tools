@@ -21,7 +21,6 @@ let message_status_div;
 
 $(document).ready(function()
 {
-
     proj_name = window.location.pathname.split( '/' )[1];
     host = window.location.host;
 
@@ -30,6 +29,11 @@ $(document).ready(function()
     message_text_input = $('#message_text');
     message_status_div = $('#message_status');
 
+    // Restricting JSON input to readonly to prevent user error - message is generated from map and not user input
+    message_json_input.prop("readonly", true);
+    message_json_input.on("paste keydown drop", function(e) {
+        e.preventDefault();
+    });
 
     /**
      * Purpose: checks for errors in message
@@ -76,7 +80,7 @@ $(document).ready(function()
      */
 
     $('#message_deposit').click( function() {
-        let message =  JSON.parse(message_json_input.val());
+        let message =  createMessageJSON();
         let type = $("#message_type").val();
         message["message"] = type;
         message = JSON.stringify(message);
@@ -87,7 +91,7 @@ $(document).ready(function()
             contentType: "text/plain",
             data : message,
             success : function(result) {
-                console.log( "success: ", result );
+                // console.log( "success: ", result );
                 setMessageResult( true, result.hexString, "hex" );
 
                 // TODO: Temporarily changing this until decoder is implemented using ASN1c
