@@ -57,6 +57,11 @@ $(document).ready(function () {
     message_text_input = $('#message_text');
     message_status_div = $('#message_status');
 
+    // Restricting JSON input to readonly to prevent user error - message is generated from map and not user input
+    message_json_input.prop("readonly", true);
+    message_json_input.on("paste keydown drop", function(e) {
+        e.preventDefault();
+    });
 
     /**
      * Purpose: change deposit state
@@ -74,29 +79,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#message_deposit_modal :checkbox').click(function () {
-        var $this = $(this);
-
-        if ($this.is(':checked')) {
-            $("#ttl").show();
-            $("#message_deposit").html('Encode & Deposit')
-        } else {
-            $("#ttl").hide();
-            $("#message_deposit").html('Encode')
-        }
-    });
-
     $('#message_type').on("change", function () {
-        var msg_type = $('#message_type').val();
-        $('#deposit_check').prop('checked', false);
-        $("#ttl").hide();
-        $("#message_deposit").html('Encode')
-
-        if (msg_type !== "ASD") {
-            $('#deposit_check').prop('disabled', true);
-        } else {
-            $('#deposit_check').prop('disabled', false);
-        }
         resetMessageForm();
         message_json_input.val(JSON.stringify(createMessageJSON(), null, 2));
     });
@@ -121,29 +104,8 @@ $(document).ready(function () {
      */
 
     $('#message_deposit').click(function () {
-    var message_json = message_json_input.val();
+        var message_json = JSON.stringify(createMessageJSON(), null, 2);
 
-    if (document.getElementById('deposit_check').checked) {
-            // OpenLayers 10 (global) way to get features from the area layer
-            var areaFeatures = area.getSource().getFeatures();
-
-            if (areaFeatures.length === 0) {
-                document.getElementById('alert_placeholder').innerHTML =
-                    '<div class="alert alert-danger alert-dismissable">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
-                    '<span>Cannot deposit without an applicable region defined.</span>' +
-                    '</div>';
-            } else {
-                var time = document.getElementById('time').value;
-
-                var spatHeader = {
-                    "timeToLive": time
-                };
-
-            message.deposit = spatHeader;
-            message_json = JSON.stringify(message, null, 2);
-        }
-    }
         // Send via AJAX
         $.ajax({
             type: "POST",
@@ -151,7 +113,7 @@ $(document).ready(function () {
             contentType: "text/plain",
             data: message_json,
             success: function (result) {
-                console.log("success: ", result);
+                // console.log("success: ", result);
                 setMessageResult(true, result.hexString, "hex");
                 setMessageResult(true, result.readableString, "text");
             },
@@ -162,6 +124,7 @@ $(document).ready(function () {
         });
     });
 });
+
 function setMessageResult(success, message, type) {
 
     if (success) {
