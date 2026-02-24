@@ -82,7 +82,7 @@
 					<li class="dropdown">
 			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tools <span class="caret"></span></a>
 			          <ul class="dropdown-menu" role="menu">
-						  <li><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encode/Deposit</a></li>
+						  <li><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encoder</a></li>
 						  <li><a href="#" onclick="Clear();">Clear Map</a></li>
 			          </ul>
 			        </li>
@@ -549,8 +549,8 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" id="message_deposit_modal_label">Message Deposit</h4>
-					<p class="help-block">"Generate" the json message, then "Deposit" it to the warehouse</p>
+					<h4 class="modal-title" id="message_deposit_modal_label">Message Encoder</h4>
+					<p class="help-block">"Generate" the json message, then "Encode" it as TIM message.</p> 
 				</div>
 				<div class="modal-body">
 					<div class="container-fluid">
@@ -664,15 +664,14 @@
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title" id="instructions_modal_label">Instructions</h4>
-					<p class="help-block">Guide on how to map a traveler information message and deposit it to the warehouse</p>
+					<p class="help-block">Guide on how to map a traveler information message and encode it</p>
 				</div>
 				<div class="modal-body">
 					<!-- Nav tabs -->
 					<ul class="nav nav-tabs" role="tablist">
 						<li role="presentation" class="active"><a href="#instructions_tab_1" aria-controls="getting_started" role="tab" data-toggle="tab">Getting Started</a></li>
                         <li role="presentation"><a href="#instructions_tab_3" aria-controls="lanes" role="tab" data-toggle="tab">Regions</a></li>
-                        <li role="presentation"><a href="#instructions_tab_2" aria-controls="approaches" role="tab" data-toggle="tab">Applicable Region</a></li>
-						<li role="presentation"><a href="#instructions_tab_5" aria-controls="deposit" role="tab" data-toggle="tab">Encode/Deposit</a></li>
+						<li role="presentation"><a href="#instructions_tab_5" aria-controls="deposit" role="tab" data-toggle="tab">Encode</a></li>
 						<li role="presentation"><a href="#instructions_tab_6" aria-controls="save_load" role="tab" data-toggle="tab">Save/Load</a></li>
 						<li role="presentation"><a href="#instructions_tab_7" aria-controls="stencil" role="tab" data-toggle="tab">Stencil</a></li>
 					</ul>
@@ -705,33 +704,7 @@
 								</ol>
 							</div>
 						</div>
-						<div role="tabpanel" class="tab-pane" id="instructions_tab_2">
-							<div class="container-fluid">
-								<h4>Defining the Applicable Region</h4>
-								<ol>
-									<li>Toggle ON the <strong>Draw Applicable Region</strong> Control from the bottom Control Panel.</li>
-									<li>Drawing the Region</li>
-									<ul>
-										<li>Click and drag the mouse to create a rectangular box, symbolizing the area which will allow deposits.
-										<li>Do not worry about the exact size/shape/position of the box as it can be modified.</li>
-                                        <li>You can only draw one applicable region at a time.</li>
-									</ul>
-									<li>Modifying a Region</li>
-									<ul>
-										<li>Toggle ON the <strong>Edit Applicable Region</strong> Control on the bottom Control Panel.</li>
-										<li>Click the box you wish to modify.</li>
-										<li>Click and drag from the center dot to move the box around.</li>
-										<li>Click and drag from the outside dot to resize the box.</li>
-									</ul>
-									<li>Removing a Region</li>
-									<ul>
-										<li>Toggle <strong>ON</strong> the <strong>Delete</strong> Control on the bottom panel.</li>
-										<li>Click the feature (area) you wish to delete.</li>
-										<li>Toggle <strong>OFF</strong> the <strong>Delete</strong> Control.</li>
-									</ul>
-								</ol>
-							</div>
-						</div>
+
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_3">
 							<div class="container-fluid">
 								<h4>Defining the Region</h4>
@@ -778,18 +751,17 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_5">
 							<div class="container-fluid">
-								<h4>Finish and Encode or Deposit</h4>
-								<p class="help-block">Encode and/or deposit your TIM message to the warehouse once you are finished building it.</p>
+								<h4>Finish and Encode</h4>
+								<p class="help-block">Encode your TIM message once you are finished building it.</p>
 								<ol>
-									<li>Open Encode/Deposit dialog</li>
+									<li>Open Encode dialog</li>
 									<ol type="a">
-										<li>Click on <strong>Tools</strong><i class="fa fa-arrow-right"></i> <strong>Encode/Deposit</strong> to load the deposit window. Unless there are errors, a JSON message should already be generated from the map data.
+										<li>Click on <strong>Tools</strong><i class="fa fa-arrow-right"></i> <strong>Encoder</strong> to load the encode window. Unless there are errors, a JSON message should already be generated from the map data.
 											Its contents will appear in the <strong>Message</strong> textarea box.</li>
 										<li>Verify the contents of the message.</li>
 									</ol>
 									<li>Select desired Message Type</li>
 									<ul>
-										<li><b>ASD</b> – ASD Safety Message</li>
 										<li><b>TIM</b> – SAE J2735 TIM message</li>
 										<li><b>Frame+TIM</b> – SAE J2735 MessageFrame message with TIM contents</li>
 									</ul>
@@ -809,12 +781,6 @@
                                         Note that although the cursor in all textareas is the prohibition sign <strong style="color: red;">&#x20E0;</strong> because the textareas are read-only, you can select the content of any textarea and copy it via stardard shortcut keys or a context menu available on the right click. The easiest way to copy all content from a textarea is to click in the textarea and then type Ctrl-A to select all lines and Ctrl-C to copy to clipboard.
                                         </li>
 									</ol>
-                                    <li>Deposit the Message</li>
-                                    <ol type="a">
-                                        <li>Click the <strong>Deposit?</strong> checkbox to permit deposit. The button title will change and a <strong>Time To Live</strong> dropdown will appear.</li>
-                                        <li>The <strong>Time To Live</strong> variable is optional.</li>
-                                        <li>Once complete, press the <strong>Encode/Deposit</strong> button and the encoded messages will appear in the appropriate boxes and the message will be deposited into the SDW.</li>
-                                    </ol>
 								</ol>
 							</div>
 						</div>
