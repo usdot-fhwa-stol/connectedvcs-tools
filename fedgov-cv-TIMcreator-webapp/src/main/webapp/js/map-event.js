@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-const minZoom = 1;
+const minZoom = 14;
 const maxZoom = 21;
 //Set cookie anytime map is moved
 function onMoveEnd(event, map) {
