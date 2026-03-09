@@ -261,6 +261,9 @@ public class IntersectionSituationDataBuilder {
 			im.setReadableString(readableString);
 			logger.debug("readableString output: " + readableString);
 			logger.debug("Encoded hexString output: " + hexString);
+		} catch (MessageBuildException mbe) {
+			logger.error("Message Building failed: {}", mbe);
+			throw mbe;
 		} catch (Exception e) {
 			logger.error("Error encoding MapData ", e);
 			throw new MessageEncodeException(e.toString());
@@ -1488,6 +1491,11 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	private LaneTypeAttributes toLaneTypeAttributes(String type, int[] typeAttributes) {
+		if (type == null || type.isEmpty()) {
+			logger.error("Lane type is null or empty");
+			throw new MessageBuildException("Lane type is null or empty");
+		}
+
 		LaneTypeAttributes laneTypeAttributes = new LaneTypeAttributes();
 		type = type.toLowerCase();
 		if (type.equals("vehicle")) {
@@ -1538,6 +1546,12 @@ public class IntersectionSituationDataBuilder {
 			laneAttributesParking.setLaneAttributesParking((short) parkingBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.PARKING);
 			laneTypeAttributes.setParking(laneAttributesParking);
+		} else {
+			/* unsupported lane type */
+			logger.error("Unsupported Lane Type: " + type);	
+            throw new MessageBuildException(
+                "Unsupported lane type encountered: " + type
+            );
 		}
 		return laneTypeAttributes;
 	}

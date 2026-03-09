@@ -1,0 +1,55 @@
+{
+  "regions": [
+    {
+      "regionType": "circle",
+      "radius": "12.5",
+      "extent": 1,
+      "laneNodes": [
+        {
+          "nodeLat": -7.701965087450262e-9,
+          "nodeLong": 3.41646278324970286e-9
+        },
+        {
+          "nodeLat": -6.70192662114204465e-9,
+          "nodeLong": 3.41646213832970286e-9
+        }
+      ]
+    }
+  ],
+  "anchorPoint": {
+    "name": "Advisory",
+    "referenceLat": 42.33756573976226,
+    "referenceLon": -83.05133750429971,
+    "referenceElevation": "184",
+    "masterLaneWidth": "366",
+    "sspTimRights": "1",
+    "packetID": "057857701",
+    "content": [
+      {
+        "codes": [
+          "268"
+        ],
+        "text": ""
+      }
+    ],
+    "sspTypeRights": "1",
+    "sspContentRights": "1",
+    "sspLocationRights": "1",
+    "direction": "",
+    "mutcd": "1",
+    "infoType": "1",
+    "priority": 6,
+    "startTime": "06/07/2017 9:24 PM",
+    "endTime": "06/09/2017 9:24 PM",
+    "heading": []
+  },
+  "verifiedPoint": {
+    "verifiedMapLat": 42.3374011786662,
+    "verifiedMapLon": -83.05067231646348,
+    "verifiedMapElevation": "",
+    "verifiedSurveyedLat": 42.3374011786662,
+    "verifiedSurveyedLon": -83.05067231646348
+  },
+  "messageType": "TIM",
+  "nodeOffsets": "Explicit"
+}

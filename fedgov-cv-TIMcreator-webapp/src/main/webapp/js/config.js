@@ -282,7 +282,87 @@ var help_notes = [
         min: "0",
         units: "Meters",
         description: "Denotes the size of a circle region."
-    }
+    },
+    {
+        value: "road_surface",
+        title: "Description Of Road Surface",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the composition of the surface of the roadway for use in estimation of friction."
+    },
+    {
+        value: "portland_cement_type",
+        title: "Portland Cement Type",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the type of portland cement."
+    },
+    {   
+        value: "asphalt_or_tar_type",
+        title: "Asphalt or Tar Type",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the type of asphalt or tar."
+    },
+     {   
+        value: "gravel_type",
+        title: "Gravel Type",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the type of gravel."
+    },
+    {   
+        value: "snow_type",
+        title: "Snow Type",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the type of snow."
+    },
+    {
+        value: "road_condition",
+        title: "Road Surface Condition",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "Indicates the surface of the road surface condition for use in friction estimation."
+    },
+    {
+        value: "meanVerticalVariation",
+        title: "Mean Vertical Variation",
+        max: "25000",
+        min: "0",
+        units: "Microns",
+        description: "The mean variation in measured vertical road roughness."
+    },
+    {
+        value: "verticalVariationStdDev",
+        title: "Vertical Variation Standard Deviation",
+        max: "2500",
+        min: "0",
+        units: "Microns",
+        description: "The standard deviation of variation of measured mean of the vertical road roughness."
+    },
+    {
+        value: "meanHorizontalVariation",
+        title: "Mean Horizontal Variation",
+        max: "25000",
+        min: "0",
+        units: "Microns",
+        description: "The mean variation in measured horizontal road roughness."
+    },
+    {
+        value: "horizontalVariationStdDev",
+        title: "Horizontal Variation Standard Deviation",
+        max: "2500",
+        min: "0",
+        units: "Microns",
+        description: "The standard deviation of variation of measured mean of the horizontal road roughness."
+    },
 ];
 
 var itis_list = [

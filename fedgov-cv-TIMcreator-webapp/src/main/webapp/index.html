@@ -13,9 +13,10 @@
 	<link rel="stylesheet" href="external/font-awesome-4.3.0/css/font-awesome.css">
 	
 	<!-- FROM OPENLAYERS 2 -->
-	<link rel="stylesheet" href="external/openlayers2/theme/default/style.css" type="text/css">
-	<link rel="stylesheet" href="external/openlayers2/theme/default/google.css" type="text/css">
-	<link rel="stylesheet" href="external/openlayers2/examples/style.css" type="text/css">
+	<link rel="stylesheet" href="external/openlayers10/ol.css">
+
+	<link rel="stylesheet" href="external/openlayers10/ol.css">
+
 	
 	<!-- BOOTSTRAP -->
 	<link rel="stylesheet" href="external/bootstrap/css/bootstrap.css">
@@ -35,7 +36,7 @@
 	
 </head>
 
-<body onload="init()">
+<body>
 
     <!-- Navigation -->
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -48,7 +49,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/"><img id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
+                <a class="navbar-brand" href="/"><img style="display: none;" id="logoimg" src="img/usdot.png">&nbsp;Connected Vehicles</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -59,6 +60,7 @@
 							<div class="input-group-btn">
 								<button id="address-search-btn" type='button' class="btn btn-default" disabled><i class="fa fa-search"></i></button>
 							</div>
+							<ul class="dropdown-menu" id="dropdown-menu-search"></ul>
 						</div>
 					</form>
 				</div>
@@ -67,7 +69,7 @@
 			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">File <span class="caret"></span></a>
 			          <ul class="dropdown-menu" role="menu">
 			            <li><a href="#" onclick="saveMap();">Save</a></li>
-			            <li><a href="#" onclick="loadFile();">Open</a></li>
+			            <li><a href="#" id="openFile">Open</a></li>
 			            <li><input type="file" id="fileToLoad"></li>
 						  <li class="divider"></li>
 						  <li><a href="#" onclick="loadKMLTrace();">Open KML Stencil</a></li>
@@ -80,7 +82,7 @@
 					<li class="dropdown">
 			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Tools <span class="caret"></span></a>
 			          <ul class="dropdown-menu" role="menu">
-						  <li><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encode/Deposit</a></li>
+						  <li><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encoder</a></li>
 						  <li><a href="#" onclick="Clear();">Clear Map</a></li>
 			          </ul>
 			        </li>
@@ -101,7 +103,7 @@
 							<li><a href="#instructions_modal" data-toggle="modal" data-target="#instructions_modal">Instructions</a></li>
 							<li class="divider"></li>
 							<li><a href="#" onclick="alert('To request support or report problems please email\nthe CAV Support Services at: CAVSupportServices@dot.gov.');">Support</a></li>
-							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('TIM Builder Tool for J2735 9/2024 (UPER encoding)\n\n\t  Version 4.0.0, Released on 4/25/2024');">About</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('TIM Builder Tool for J2735 3/2016 (UPER encoding)\n\n\t  Version 2.4.0, Released on 03/09/2026');">About</a></li>
 						</ul>
 					</li>
                 </ul>
@@ -113,9 +115,6 @@
 
 	<!-- MAP -->
 	<div id="map" class="smallmap">
-		<div id="tileAge">Tile Age:
-			<span class="start"></span> - <span class="end"></span>
-		</div>
 		<div id="zoomLevel">Zoom Level:
 			<span class="zoom"></span>
 		</div>
@@ -155,12 +154,12 @@
 			<li class="content-tab"><a href="#content-tab" onclick="$('#attribute-tabs a[href=\'#content-tab\']').tab('show'); return false;">Content</a></li>
 			<li class="direction-tab"><a href="#direction-tab" onclick="$('#attribute-tabs a[href=\'#direction-tab\']').tab('show'); return false;">Directionality</a></li>
 			<li class="itis-tab"><a href="#itis-tab" onclick="$('#attribute-tabs a[href=\'#itis-tab\']').tab('show'); return false;">ITIS Codes</a></li>
+			<li class="road-condition-tab"><a href="#road-condition-tab" onclick="$('#attribute-tabs a[href=\'#road-condition-tab\']').tab('show'); return false;">Road Condition</a></li>
 		</ul>
 		<div class="tab-content">
 			<div class="tab-pane active" id="marker-info-tab">
 				<div class="panel-body">
-					<div class="panel-body">
-				
+					<div class="panel-body">				
 					<div class="row start_time">
 						<div class="col-sm-4"><label for="start_time">Start Time:</label></div>
 			            <div class="col-sm-7">
@@ -421,10 +420,123 @@
 						<br/><br/>
 					</div>
 				</div>
-
 				<div class="btn-group">
 					<button type="button" class="btnDone btn btn-primary">Done</button>
 					<button type="button" class="btnClose btn btn-primary">Cancel</button>
+				</div>
+			</div>
+		</div>
+		<div class="tab-pane" id="road-condition-tab">
+			<div class="panel-body">
+				<div class="panel-body">
+					<div class="form-group">
+						<div class="row road_surface">
+							<div class="col-sm-4"><label for="road_surface">Description of Road Surface:</label></div>
+							<div class="col-sm-7"><div id="road_surface" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Road Surface Type <span class="caret"></span></a>
+								<ul class="dropdown-menu">
+									<li><a href="#">Portland Cement</a></li>
+									<li><a href="#">Asphalt or Tar</a></li>
+									<li><a href="#">Gravel</a></li>
+									<li><a href="#">Grass</a></li>
+									<li><a href="#">Cinders</a></li>
+									<li><a href="#">Rock</a></li>
+									<li><a href="#">Ice</a></li>
+									<li><a href="#">Snow</a></li>
+								</ul>
+							</div></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_surface"></i></div>
+						</div>
+						<div class="row subtype-row PortlandCementType" style="display: none;">
+							<div class="col-sm-4"><label for="PortlandCementType">Portland Cement Type:</label></div>
+							<div class="col-sm-7">
+								<div id="PortlandCementType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Portland Cement Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">New Sharp</a></li>
+										<li><a href="#">Traveled</a></li>
+										<li><a href="#">Traffic Polished</a></li>
+									</ul>
+								</div>
+							</div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="portland_cement_type"></i></div>
+						</div>
+						<div class="row subtype-row AsphaltOrTarType" style="display: none;">
+							<div class="col-sm-4"><label for="AsphaltOrTarType">Asphalt or Tar Type:</label></div>
+							<div class="col-sm-7">
+								<div id="AsphaltOrTarType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Asphalt or Tar Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">New Sharp</a></li>
+										<li><a href="#">Traveled</a></li>
+										<li><a href="#">Traffic Polished</a></li>
+										<li><a href="#">Excess Tar</a></li>
+									</ul>
+								</div>
+							</div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="asphalt_or_tar_type"></i></div>
+						</div>
+						<div class="row subtype-row GravelType" style="display: none;">
+							<div class="col-sm-4"><label for="GravelType">Gravel Type:</label></div>
+							<div class="col-sm-7">
+								<div id="GravelType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Gravel Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">Packed and Oiled</a></li>
+										<li><a href="#">Loose</a></li>
+									</ul>
+								</div>
+							</div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="gravel_type"></i></div>
+						</div>
+						<div class="row subtype-row SnowType" style="display: none;">
+							<div class="col-sm-4"><label for="SnowType">Snow Type:</label></div>
+							<div class="col-sm-7">
+								<div id="SnowType" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select"
+										data-toggle="dropdown" href="#">Select Snow Type <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">Packed</a></li>
+										<li><a href="#">Loose</a></li>
+									</ul>
+								</div>
+							</div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="snow_type"></i></div>
+						</div>
+						<div class="row road_condition">
+							<div class="col-sm-4"><label for="road_condition">Road Surface Condition:</label></div>
+							<div class="col-sm-7"><div id="road_condition" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Condition <span class="caret"></span></a>
+									<ul class="dropdown-menu">
+										<li><a href="#">(0) Dry</a></li>
+										<li><a href="#">(1) Wet</a></li>
+									</ul>
+							</div></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="road_condition"></i></div>
+						</div>
+						<h4>Road Roughness Fields:</h4>
+						<div class="row meanVerticalVariation" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="meanVerticalVariation">Mean Vertical Variation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="meanVerticalVariation" placeholder="0 to 25000" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 25000]" data-parsley-required="true" data-parsley-range="[0, 25000]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="meanVerticalVariation"></i></div>
+						</div>
+						<div class="row verticalVariationStdDev" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="verticalVariationStdDev">Vertical Variation Standard Deviation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="verticalVariationStdDev" placeholder="0 to 2500" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 2500]" data-parsley-required="false" data-parsley-range="[0, 2500]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="verticalVariationStdDev"></i></div>
+						</div>
+						<div class="row meanHorizontalVariation" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="meanHorizontalVariation">Mean Horizontal Variation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="meanHorizontalVariation" placeholder="0 to 25000" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 25000]" data-parsley-required="false" data-parsley-range="[0, 25000]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="meanHorizontalVariation"></i></div>
+						</div>
+						<div class="row horizontalVariationStdDev" data-toggle="tooltip" title="in microns">
+							<div class="col-sm-4"><label for="horizontalVariationStdDev">Horizontal Variation Standard Deviation:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="horizontalVariationStdDev" placeholder="0 to 2500" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 2500]" data-parsley-required="false" data-parsley-range="[0, 2500]" data-parsley-pattern-message="This value must be an integer."></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="horizontalVariationStdDev"></i></div>
+						</div>
+						</div>
+					<div class="btn-group">
+							<button type="button" class="btnDone btn btn-primary">Done</button>
+						 <button type="button" class="btnClose btn btn-primary">Cancel</button>
+					 </div>
 				</div>
 			</div>
 		</div>
@@ -437,8 +549,8 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" id="message_deposit_modal_label">Message Deposit</h4>
-					<p class="help-block">"Generate" the json message, then "Deposit" it to the warehouse</p>
+					<h4 class="modal-title" id="message_deposit_modal_label">Message Encoder</h4>
+					<p class="help-block">"Generate" the json message, then "Encode" it as TIM message.</p> 
 				</div>
 				<div class="modal-body">
 					<div class="container-fluid">
@@ -467,44 +579,22 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<div class="row">
-						<div class="col-sm-2">
-							<label for="deposit_check"><span>Deposit? &nbsp;</span>&nbsp;&nbsp;</label>
-							<input type="checkbox" id="deposit_check" value="yes">
-						</div>
-						<div class="col-sm-3">
 							<label for="message_type" class="pull-left">Message Type: &nbsp;&nbsp;</label>
 							<select id="message_type" class="pull-left">
-								<option value="ASD">ASD</option>
 								<option value="TIM">TIM</option>
 								<option value="Frame+TIM">Frame+TIM</option>
 							</select>
-							<label for="node_offsets" class="pull-left">Node Offsets: &nbsp;&nbsp;</label>
+							<label for="node_offsets" class="pull-left">&nbsp;&nbsp;Node Offsets: &nbsp;&nbsp;</label>
 							<select id="node_offsets" class="pull-left">
 								<option value="Explicit">Explicit (64 bit)</option>
 								<option value="Standard">Standard (32 bit)</option>
 								<option value="Compact">Compact</option>
 								<option value="Tight">Tight</option>
 							</select>
-							<label for="enable_elevation" class="pull-left" style="margin-top: 8px;">Enable Elevation?: &nbsp;&nbsp;</label>
-							<input id="enable_elevation" type="checkbox" class="pull-left" style="margin-top: 12px;">
-						</div>
-						<div class="col-sm-3" id="ttl">
-							<label for="time" class="pull-left">Time To Live (optional):  &nbsp;</label>
-							<select id="time" class="pull-left">
-								<option value="0">(0) Minute</option>
-								<option value="1">(1) Half Hour</option>
-								<option value="2">(2) Day</option>
-								<option value="3">(3) Week</option>
-								<option value="4">(4) Month</option>
-								<option value="5">(5) Year</option>
-							</select>
-						</div>
-						<div class="col-sm-4" style="right: 0; position: absolute; margin-top: -15px;">
+							<label for="enable_elevation" class="pull-left"> &nbsp;&nbsp; Enable Elevation?: &nbsp;&nbsp;</label>
+							<input id="enable_elevation" type="checkbox" class="pull-left">
 							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 							<button type="button" id="message_deposit" class="btn btn-primary">Encode</button>
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -574,15 +664,14 @@
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title" id="instructions_modal_label">Instructions</h4>
-					<p class="help-block">Guide on how to map a traveler information message and deposit it to the warehouse</p>
+					<p class="help-block">Guide on how to map a traveler information message and encode it</p>
 				</div>
 				<div class="modal-body">
 					<!-- Nav tabs -->
 					<ul class="nav nav-tabs" role="tablist">
 						<li role="presentation" class="active"><a href="#instructions_tab_1" aria-controls="getting_started" role="tab" data-toggle="tab">Getting Started</a></li>
                         <li role="presentation"><a href="#instructions_tab_3" aria-controls="lanes" role="tab" data-toggle="tab">Regions</a></li>
-                        <li role="presentation"><a href="#instructions_tab_2" aria-controls="approaches" role="tab" data-toggle="tab">Applicable Region</a></li>
-						<li role="presentation"><a href="#instructions_tab_5" aria-controls="deposit" role="tab" data-toggle="tab">Encode/Deposit</a></li>
+						<li role="presentation"><a href="#instructions_tab_5" aria-controls="deposit" role="tab" data-toggle="tab">Encode</a></li>
 						<li role="presentation"><a href="#instructions_tab_6" aria-controls="save_load" role="tab" data-toggle="tab">Save/Load</a></li>
 						<li role="presentation"><a href="#instructions_tab_7" aria-controls="stencil" role="tab" data-toggle="tab">Stencil</a></li>
 					</ul>
@@ -615,33 +704,7 @@
 								</ol>
 							</div>
 						</div>
-						<div role="tabpanel" class="tab-pane" id="instructions_tab_2">
-							<div class="container-fluid">
-								<h4>Defining the Applicable Region</h4>
-								<ol>
-									<li>Toggle ON the <strong>Draw Applicable Region</strong> Control from the bottom Control Panel.</li>
-									<li>Drawing the Region</li>
-									<ul>
-										<li>Click and drag the mouse to create a rectangular box, symbolizing the area which will allow deposits.
-										<li>Do not worry about the exact size/shape/position of the box as it can be modified.</li>
-                                        <li>You can only draw one applicable region at a time.</li>
-									</ul>
-									<li>Modifying a Region</li>
-									<ul>
-										<li>Toggle ON the <strong>Edit Applicable Region</strong> Control on the bottom Control Panel.</li>
-										<li>Click the box you wish to modify.</li>
-										<li>Click and drag from the center dot to move the box around.</li>
-										<li>Click and drag from the outside dot to resize the box.</li>
-									</ul>
-									<li>Removing a Region</li>
-									<ul>
-										<li>Toggle <strong>ON</strong> the <strong>Delete</strong> Control on the bottom panel.</li>
-										<li>Click the feature (area) you wish to delete.</li>
-										<li>Toggle <strong>OFF</strong> the <strong>Delete</strong> Control.</li>
-									</ul>
-								</ol>
-							</div>
-						</div>
+
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_3">
 							<div class="container-fluid">
 								<h4>Defining the Region</h4>
@@ -688,18 +751,17 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_5">
 							<div class="container-fluid">
-								<h4>Finish and Encode or Deposit</h4>
-								<p class="help-block">Encode and/or deposit your TIM message to the warehouse once you are finished building it.</p>
+								<h4>Finish and Encode</h4>
+								<p class="help-block">Encode your TIM message once you are finished building it.</p>
 								<ol>
-									<li>Open Encode/Deposit dialog</li>
+									<li>Open Encode dialog</li>
 									<ol type="a">
-										<li>Click on <strong>Tools</strong><i class="fa fa-arrow-right"></i> <strong>Encode/Deposit</strong> to load the deposit window. Unless there are errors, a JSON message should already be generated from the map data.
+										<li>Click on <strong>Tools</strong><i class="fa fa-arrow-right"></i> <strong>Encoder</strong> to load the encode window. Unless there are errors, a JSON message should already be generated from the map data.
 											Its contents will appear in the <strong>Message</strong> textarea box.</li>
 										<li>Verify the contents of the message.</li>
 									</ol>
 									<li>Select desired Message Type</li>
 									<ul>
-										<li><b>ASD</b> – ASD Safety Message</li>
 										<li><b>TIM</b> – SAE J2735 TIM message</li>
 										<li><b>Frame+TIM</b> – SAE J2735 MessageFrame message with TIM contents</li>
 									</ul>
@@ -719,12 +781,6 @@
                                         Note that although the cursor in all textareas is the prohibition sign <strong style="color: red;">&#x20E0;</strong> because the textareas are read-only, you can select the content of any textarea and copy it via stardard shortcut keys or a context menu available on the right click. The easiest way to copy all content from a textarea is to click in the textarea and then type Ctrl-A to select all lines and Ctrl-C to copy to clipboard.
                                         </li>
 									</ol>
-                                    <li>Deposit the Message</li>
-                                    <ol type="a">
-                                        <li>Click the <strong>Deposit?</strong> checkbox to permit deposit. The button title will change and a <strong>Time To Live</strong> dropdown will appear.</li>
-                                        <li>The <strong>Time To Live</strong> variable is optional.</li>
-                                        <li>Once complete, press the <strong>Encode/Deposit</strong> button and the encoded messages will appear in the appropriate boxes and the message will be deposited into the SDW.</li>
-                                    </ol>
 								</ol>
 							</div>
 						</div>
@@ -782,9 +838,9 @@
 				<button class="btn btn-info btn-end-right" name="layerControl" id="help" value="help" data-toggle="tooltip" data-placement="top" title="Help"><i class="fa fa-question"></i></button>
 				<button class="btn btn-primary btn-end-right" name="layerControl" id="builder" value="builder" onclick="toggle(); return false;" data-placement="top" title="Builder"><i class="fa fa-list"></i></button>
 
-                <button type="button" class="btn btn-primary" disabled>Applicable Region</button>
+                <!-- <button type="button" class="btn btn-primary" disabled>Applicable Region</button>
                 <button class="btn btn-default" name="layerControl" id="drawDepositArea" value="area" data-toggle="tooltip" data-placement="top" title="Draw Applicable Region"><i class="fa fa-pencil-square-o"></i></button>
-                <button class="btn btn-default btn-end-right" name="layerControl" id="editDepositArea" value="edit" data-toggle="tooltip" data-placement="top" title="Edit Applicable Region"><i class="fa fa-crop"></i></button>
+                <button class="btn btn-default btn-end-right" name="layerControl" id="editDepositArea" value="edit" data-toggle="tooltip" data-placement="top" title="Edit Applicable Region"><i class="fa fa-crop"></i></button> -->
 			
 				<button type="button" class="btn btn-primary" disabled>Lane Regions</button>
 				<button class="btn btn-default" name="layerControl" id="drawLanes" value="line" data-toggle="tooltip" data-placement="top" title="Draw Regions"><i class="fa fa-pencil-square-o"></i></button>
@@ -807,6 +863,8 @@
 	
 
 	<!--******************************************* SCRIPTS *******************************************-->
+
+	<!-- <script src="/private-resources/js/TIMcreator-webapp-keys.js"></script> -->
 	
 	<script src="external/jquery.min.js"></script>
 	<script src="external/jquery-ui.min.js"></script>
@@ -815,7 +873,9 @@
 	<script src="external/modernizr-2.6.2.min.js"></script>
 	
 	<!-- FROM OPENLAYERS 2 -->
-	<script src="external/openlayers2/OpenLayers.js"></script>
+	<script src="external/openlayers10/dist/ol.js"></script>
+	  <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ol-ext/dist/ol-ext.min.js"></script>
 	
 	<!-- BOOTSTRAP -->
 	<script src="external/bootstrap/js/bootstrap.min.js"></script>
@@ -832,22 +892,38 @@
 	<script type="text/javascript" src="external/jquery.sheepItPlugin.js"></script>
 
 	<!--Geocomplete -->
-	<script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=YOUR_API_KEY"></script>
 	<script type="text/javascript" src="external/jquery.geocomplete.min.js"></script>
 	
 	<!-- CUSTOM MAP CODE -->
-	<script src="js/mapping.js"></script>
-	
+	<script type="module">
+		import {Clear,toggleWidthArray} from './js/mapping.js'
+		window.Clear=Clear;
+		window.toggleWidthArray=toggleWidthArray;
+	</script>
 	<!-- OTHER -->
-	<script src="js/config.js"></script>
-	<script src="js/mapTools.js"></script>
+	 <script type="module">
+  		import { saveMap,loadKMLTrace,deleteTrace,loadRSMTrace} from './js/mapTools.js'
+ 		window.saveMap = saveMap;
+		window.loadKMLTrace= loadKMLTrace;
+		window.deleteTrace= deleteTrace;
+		window.loadRSMTrace=loadRSMTrace;
+
+	</script>
 	<script src="js/sidebar.js"></script>
-	<script src="js/main.js"></script>
-	<script src="js/navbar.js"></script>
-	<script src="js/depositor.js"></script>
+	<script src="js/config.js"></script>
+	<script type="module" src="js/main.js"></script>
+	<script type="module">
+	import {ToggleLanes,TogglePoints} from './js/navbar.js'
+	window.ToggleLanes=ToggleLanes;
+	window.TogglePoints=TogglePoints;
+	</script>
+
+	<script type="module" src="js/depositor.js"></script>
 	<script src="js/circle.js"></script>
 	<script src="js/bing.js"></script>
 	<script src="js/latlon-vincenty.js"></script>
+	<script src="js/bing.js"></script>
+	<script type="module" src="js/api.js"></script>
 	
 
 </body>

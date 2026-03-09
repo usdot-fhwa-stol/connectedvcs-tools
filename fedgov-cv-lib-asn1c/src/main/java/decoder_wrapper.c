@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,102 +18,241 @@
 #include <sys/types.h>
 #include "gov_usdot_cv_asn1decoder_Decoder.h"
 #include "MessageFrame.h"
+#include "TravelerInformation.h" 
+#include "BasicSafetyMessage.h"
+#include "PersonalSafetyMessage.h"
+#include "SPAT.h"
+#include "MapData.h"
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
-JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg)
+/* 
+ * Decodes an ASN.1 message using the provided ASN descriptor and UPER encoding.
+ * On success:
+ *   - decodedStrOut is set to human-readable ASN printout of the decoded message
+ *   - msgTypeStrOut is set to the provided messageType
+ * Returns JNI_TRUE on successful decode , otherwise JNI_FALSE.
+ */
+static jboolean decode_message_only(
+    const asn_TYPE_descriptor_t *asn_def,
+    const void *buf,
+    int len,
+    const char *messageType,
+    const char **msgTypeStrOut,
+    const char **decodedStrOut)
 {
-	
-	const char *decodedStr = "";
-	const char *msgTypeStr = "";
-	jboolean success = JNI_FALSE;
+    void *msg = NULL;
+    *msgTypeStrOut = "UnknownMessageType";
+    *decodedStrOut = "Decoding failed.";
 
-	asn_dec_rval_t rval; /* Decoder return value */
-	MessageFrame_t *message = 0; /* Type to decode */
-	
-	int len = (*env) -> GetArrayLength(env, encoded_msg); /* Number of bytes in encoded_message */
-	jbyte *inCArray = (*env) -> GetByteArrayElements(env, encoded_msg, 0); /* Get Java byte array content */
-	char buf[len]; /* Buffer for decoder function */
-	for(int i = 0; i < len; i++) {
-		buf[i] = inCArray[i];
-	} /* Copy into buffer */
+    asn_dec_rval_t rval = uper_decode(0, asn_def, (void **)&msg, buf, len, 0, 0);
+   
 
-	rval = uper_decode(0, &asn_DEF_MessageFrame, (void **) &message, buf, len, 0, 0);
+    if (rval.code == RC_OK && msg != NULL)
+    {
+        char outputBuffer[65536];
+        FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+        if (stream)
+        {
+            asn_fprint(stream, asn_def, msg);
+            fclose(stream);
 
-	if(rval.code == RC_OK) {
+            char *heapStr = strdup(outputBuffer);
+            if (heapStr)
+            {
+                *decodedStrOut = heapStr; 
+                *msgTypeStrOut = messageType;
+                ASN_STRUCT_FREE(*asn_def, msg);
+                return JNI_TRUE;
+            }
+            else
+            {
+                *decodedStrOut = "Failed to allocate decoded output string";
+                *msgTypeStrOut = messageType;
+            }
+        }
+        else
+        {
+            *decodedStrOut = "Failed to allocate memory for output";
+        }
 
-		// If message decoding is sucessful print the message id
-		printf("Message ID: %ld\n", message->messageId);
-	
-		//copying decoded message to char  outputBuffer
+        ASN_STRUCT_FREE(*asn_def, msg);
+        return JNI_FALSE;
+    }
 
-		char outputBuffer[65536]; //Output buffer of size 64 KB
-		//Open memory stream outputBuffer to write into outputBuffer
- 		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
-		if (stream) {
-			/*if stream is sucessfully created by fmemopen*/				
-			asn_fprint(stream, &asn_DEF_MessageFrame, message); // Write the ASN.1 encoded message ('message') to the memory stream ('stream').
-			fclose(stream); //closing the memory stream
-			decodedStr  = strdup(outputBuffer); // Copy the content of 'outputBuffer' to 'resultStr' using 'strdup()'.
-			success = JNI_TRUE;   
-		} else {
-			   // If 'fmemopen()' failed to create the memory stream ('stream' is NULL)
-			   decodedStr = "Failed to allocate memory for output";
-		}
-		switch (message->messageId) {
-			case 20:
-				msgTypeStr = "BasicSafetyMessage";
-				break;
-			case 18:
-				msgTypeStr = "MapData";
-				break;
-			case 19:
-				msgTypeStr = "SPAT";
-				break;
-			case 32:
-				msgTypeStr = "PersonalSafetyMessage ";
-				break;	
-			default:
-				msgTypeStr = "UnknownMessageType";
-				break;
-		}
+    if (msg)
+    {
+        ASN_STRUCT_FREE(*asn_def, msg);
+    }
+    return JNI_FALSE;
+}
 
-	}
-	else if(rval.code == RC_WMORE) {
-		// Checks if decoding requires more data ('RC_WMORE') indicating incomplete parsing needing additional bytes.
+JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv *env, jobject obj, jbyteArray encoded_msg, jstring msg_type)
+{
+    const char *decodedStr = "";
+    const char *msgTypeStr = "";
+    const char *type = (*env)->GetStringUTFChars(env, msg_type, NULL);
 
-		printf("Additional bytes  required for decoding");
-		
-	}
-	else
-	{
-		//Decoding failed due to invalid data
-		printf("Decoding Failed");
+    jboolean success = JNI_FALSE;
 
-	}
-	//getting the class of the DecodedResult
-	jclass resultClass = (*env)->FindClass(env, "gov/usdot/cv/libasn1decoder/DecodedResult");
+    asn_dec_rval_t rval;
+    MessageFrame_t *message = 0;
 
-	// getting the id of the DecodedResult() constructor
-	jmethodID ctor = (*env)->GetMethodID(env, resultClass, "<init>", "()V");
-	if (ctor == NULL) return NULL;
-	// creating an object of DecodedResult class to return
-	jobject resultObj = (*env)->NewObject(env, resultClass, ctor);
-	if (resultObj == NULL) return NULL;
+    int len = (*env)->GetArrayLength(env, encoded_msg);
+    jbyte *inCArray = (*env)->GetByteArrayElements(env, encoded_msg, 0);
 
-	//Retrieving the field of DecodedResult class
-	jfieldID decodedField = (*env)->GetFieldID(env, resultClass, "decodedMessage", "Ljava/lang/String;");
-	jfieldID typeField = (*env)->GetFieldID(env, resultClass, "messageType", "Ljava/lang/String;");
-	jfieldID successField = (*env)->GetFieldID(env, resultClass, "success", "Z");
+    char buf[len];
+    for (int i = 0; i < len; i++)
+    {
+        buf[i] = inCArray[i];
+    }
 
-	// Converting the 'decodedStr' to a Java UTF string (jstring)
-	jstring jDecodedStr = (*env)->NewStringUTF(env, decodedStr);
-	//Converting the message type to a Java UTF string (jstring)
-	jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
 
-	// Set the corresponding fields in the DecodedResult Java object
-	(*env)->SetObjectField(env, resultObj, decodedField, jDecodedStr);
-	(*env)->SetObjectField(env, resultObj, typeField, jMsgTypeStr);
-	(*env)->SetBooleanField(env, resultObj, successField, success);
+    (*env)->ReleaseByteArrayElements(env, encoded_msg, inCArray, JNI_ABORT);
 
-	return resultObj;
+    if (strcmp(type, "MessageFrame") == 0)
+    {
+        rval = uper_decode(0, &asn_DEF_MessageFrame, (void **)&message, buf, len, 0, 0);
+
+        if (rval.code == RC_OK)
+        {
+
+
+            char outputBuffer[65536];
+            FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+            if (stream)
+            {
+                asn_fprint(stream, &asn_DEF_MessageFrame, message);
+                fclose(stream);
+                decodedStr = strdup(outputBuffer);
+                success = JNI_TRUE;
+            }
+            else
+            {
+                decodedStr = "Failed to allocate memory for output";
+            }
+
+            switch (message->messageId)
+            {
+            case 20:
+                msgTypeStr = "BasicSafetyMessage";
+                break;
+            case 18:
+                msgTypeStr = "MapData";
+                break;
+            case 19:
+                msgTypeStr = "SPaT";
+                break;
+            case 31:
+                msgTypeStr = "TravelerInformationMessage";
+                break;
+            case 32:
+                msgTypeStr = "PersonalSafetyMessage";
+                break;
+            default:
+                msgTypeStr = "UnknownMessageType";
+                break;
+            }
+        }
+        else if (rval.code == RC_WMORE)
+        {
+            printf("Additional bytes required for decoding");
+        }
+        else
+        {
+            printf("Decoding MessageFrame Failed\n");
+        }
+    }
+
+    else
+    {
+        // Decoding for Message Types other than MessageFrame
+
+        const asn_TYPE_descriptor_t *asn_def = NULL;
+        const char *messageType = "UnknownMessageType";
+
+       
+        if (type && strcmp(type, "BSM") == 0)
+        {
+            asn_def = &asn_DEF_BasicSafetyMessage;
+            messageType = "BasicSafetyMessage";
+        }
+        else if (type && strcmp(type, "PSM") == 0)
+        {
+            asn_def = &asn_DEF_PersonalSafetyMessage;
+            messageType = "PersonalSafetyMessage";
+        }
+        else if (type && strcmp(type, "TIM") == 0)
+        {
+            asn_def = &asn_DEF_TravelerInformation;
+            messageType = "TravelerInformationMessage";
+        }
+        else if (type && (strcmp(type, "SPAT") == 0 || strcmp(type, "SPaT") == 0))
+        {
+            asn_def = &asn_DEF_SPAT;
+            messageType = "SPaT";
+        }
+        else if (type && strcmp(type, "MAP") == 0)
+        {
+            asn_def = &asn_DEF_MapData;
+            messageType = "MapData";
+        }
+        else
+        {
+            
+            decodedStr = "Unknown message type requested.";
+            msgTypeStr = "UnknownMessageType";
+            success = JNI_FALSE;
+        }
+
+      
+        if (asn_def != NULL)
+        {
+            const char *msgDecoded = NULL;
+            const char *msgType = NULL;
+
+            success = decode_message_only(
+                asn_def,
+                buf,
+                len,
+                messageType,
+                &msgType,
+                &msgDecoded);
+
+            decodedStr = msgDecoded;
+            msgTypeStr = msgType;   
+
+        }
+    }
+
+    // getting the class of the DecodedResult
+    jclass resultClass = (*env)->FindClass(env, "gov/usdot/cv/libasn1decoder/DecodedResult");
+
+    // getting the id of the DecodedResult() constructor
+    jmethodID ctor = (*env)->GetMethodID(env, resultClass, "<init>", "()V");
+    if (ctor == NULL)
+        return NULL;
+
+    // creating an object of DecodedResult class to return
+    jobject resultObj = (*env)->NewObject(env, resultClass, ctor);
+    if (resultObj == NULL)
+        return NULL;
+
+    // Retrieving the field of DecodedResult class
+    jfieldID decodedField = (*env)->GetFieldID(env, resultClass, "decodedMessage", "Ljava/lang/String;");
+    jfieldID typeField = (*env)->GetFieldID(env, resultClass, "messageType", "Ljava/lang/String;");
+    jfieldID successField = (*env)->GetFieldID(env, resultClass, "success", "Z");
+
+    // Converting the 'decodedStr' to a Java UTF string (jstring)
+    jstring jDecodedStr = (*env)->NewStringUTF(env, decodedStr);
+    // Converting the message type to a Java UTF string (jstring)
+    jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
+
+    // Set the corresponding fields in the DecodedResult Java object
+    (*env)->SetObjectField(env, resultObj, decodedField, jDecodedStr);
+    (*env)->SetObjectField(env, resultObj, typeField, jMsgTypeStr);
+    (*env)->SetBooleanField(env, resultObj, successField, success);
+
+    return resultObj;
 }

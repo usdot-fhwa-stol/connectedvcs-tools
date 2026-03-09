@@ -1,0 +1,70 @@
+{
+    "applicableRegion": {
+      "nwLat": 32.9045115452966,
+      "nwLon": -117.19096142207894,
+      "seLat": 32.90444961744073,
+      "seLon": -117.1908863202263
+    },
+    "regions": [
+      {
+        "regionType": "lane",
+        "laneNodes": [
+          {
+            "nodeNumber": 0,
+            "nodeLat": 32.90448001839344,
+            "nodeLong": -117.19091582452042,
+            "nodeElevation": 66,
+            "laneWidth": 0
+          },
+          {
+            "nodeNumber": 1,
+            "nodeLat": 32.90449015204179,
+            "nodeLong": -117.1902680710454,
+            "nodeElevation": 68,
+            "laneWidth": 0
+          }
+        ],
+        "extent": ""
+      }
+    ],
+    "anchorPoint": {
+      "name": "Advisory",
+      "referenceLat": 32.90448114435486,
+      "referenceLon": -117.1909144834183,
+      "referenceElevation": "62",
+      "masterLaneWidth": "366",
+      "sspTimRights": "",
+      "packetID": "904680404",
+      "content": [
+        {
+          "codes": [
+            "7990"
+          ],
+          "text": ""
+        }
+      ],
+      "sspTypeRights": "",
+      "sspContentRights": "",
+      "sspLocationRights": "",
+      "direction": "1",
+      "mutcd": "3",
+      "infoType": "2",
+      "priority": 4,
+      "startTime": "08/24/2023 12:01 PM",
+      "endTime": "12/31/2023 12:04 PM",
+      "heading": [
+        3,
+        4
+      ]
+    },
+    "verifiedPoint": {
+      "verifiedMapLat": 32.904573473109295,
+      "verifiedMapLon": -117.19108212148289,
+      "verifiedMapElevation": 68,
+      "verifiedSurveyedLat": 32.90460500405529,
+      "verifiedSurveyedLon": -117.19085146782079
+    },
+    "messageType": "Frame+TIM",
+    "nodeOffsets": "Explicit",
+    "enableElevation": true
+  }

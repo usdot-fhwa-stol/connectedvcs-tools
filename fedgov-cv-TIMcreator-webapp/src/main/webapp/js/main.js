@@ -1,19 +1,47 @@
-/**
- * Created by lewisstet on 2/25/2015.
- * Updated 2/2017 by martzth
+/*
+ * Copyright (C) 2025 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
+import {
+    map,
+    lanes,
+    vectors,
+    laneMarkers,
+    laneWidths,
+    box,
+    area,
+    setContent,
+    polyMarkers,
+    polygons,
+    selected_marker_limit,
+    fromProjection,
+    toProjection,
+    toggleControlsOn
 
-/**
- * DEFINE GLOBAL VARIABLES
- */
-    var hidden_drag, intersection_sidebar, deleteMode, currentControl, $imgs, itisForm, search_latlon;
+} from './mapping.js';
+
+var hidden_drag, intersection_sidebar, deleteMode, currentControl, $imgs, itisForm, search_latlon;
+
+let dragInteraction = null;  // ← place this near your globals
+
 
 
 /**
  * Define functions that must bind on load
  */
 
-$(document).ready(function() {
+$(document).ready(function () {
 
     hidden_drag = $('#hidden-drag');
     intersection_sidebar = $('#sidebar');
@@ -23,33 +51,12 @@ $(document).ready(function() {
      * @params  address input box
      * @event uses geocomplete from google -> set cookie and move map to location
      */
-
-    $('#address-search').geocomplete().bind("geocode:result", function(event, result){
-
-        var search_lat = result.geometry.location.lat();
-        var search_lon = result.geometry.location.lng();
-
-        setCookie("tim_latitude", search_lat, 365);
-        setCookie("tim_longitude", search_lon, 365);
-        setCookie("tim_zoom", map.getZoom(), 365);
-
-        try {
-            var location = new OpenLayers.LonLat(search_lon, search_lat);
-            location.transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-            map.setCenter(location, 18);
-        }
-        catch (err) {
-            console.log("No vectors to reset view");
-        }
-    });
-
-
     //--- Create Intersection markers
     var intersection_contents = $('#intersection-tab-contents');
     var arrayLength = intersection_features.length;
     for (var i = 0; i < arrayLength; i++) {
         var html = '<div class="col-lg-6">';
-        html += '<img id="intersection_img_'+ intersection_features[i].type + intersection_features[i].id +'" class="drag-intersection-img" src="'+ intersection_features[i].img_src +'">';
+        html += '<img id="intersection_img_' + intersection_features[i].type + intersection_features[i].id + '" class="drag-intersection-img" src="' + intersection_features[i].img_src + '">';
         html += '<p>' + intersection_features[i].name + '</p>';
         html += '</div>';
         intersection_contents.append(html);
@@ -64,52 +71,53 @@ $(document).ready(function() {
      */
 
     $imgs = intersection_sidebar.find('.drag-intersection-img');
+
     $imgs.draggable({
-        appendTo: 'body', containment: 'body', zIndex: 150000, cursorAt: {left:25, top:50},
-        helper: function() {
+        appendTo: 'body',
+        containment: 'body',
+        zIndex: 150000,
+        cursorAt: { left: 25, top: 50 },
+
+        helper: function () {
             var container = $('<div/>');
             var dragged = $(this).clone();
             dragged.attr('class', 'dragged-img');
             container.append(dragged);
             return container;
         },
-        start: function(e, ui) {
+
+        start: function (e, ui) {
             hidden_drag.removeClass('hidden');
         },
-        stop: function(e) {
+
+        stop: function (e) {
             hidden_drag.addClass('hidden');
 
-            // check to see if intersection markers have already been placed
-            var id = this.id.substring(this.id.indexOf("TIM"),20);
-            var num_features = vectors.features.length;
-            for( var i=0; i < num_features; i++) {
-                if( id == vectors.features[i].attributes.marker.type ) {
+            var id = this.id.includes("TIM")
+                ? this.id.substring(this.id.indexOf("TIM"), 20)
+                : this.id.substring(this.id.indexOf("VER"), 20);
+
+            var features = vectors.getSource().getFeatures();
+            for (var i = 0; i < features.length; i++) {
+                var marker = features[i].get('marker');
+                if (marker && marker.type === id) {
                     console.log("marker already placed");
                     return;
                 }
-             
             }
 
-            // check to see if intersection markers have already been placed
-            var id = this.id.substring(this.id.indexOf("VER"),20);
-            var num_features = vectors.features.length;
-            for( var i=0; i < num_features; i++) {
-                if( id == vectors.features[i].attributes.marker.type ) {
-                    console.log("marker already placed");
-                    return;
+            if ($(this).hasClass('drag-intersection-img')) {
+                if (currentControl !== 'drag') {
+                    $('#dragSigns').click();
                 }
 
-            }
-
-            if( $(this).hasClass('drag-intersection-img') ) {
-            	if (currentControl != 'drag'){
-            		$('#dragSigns').click();
-            	}
-                var point = new OpenLayers.Geometry.Point(e.pageX, e.pageY - 50); // subtract 50px because of navbar
-                clone(this, point);
+                var pixel = [e.pageX, e.pageY - 50];
+                clone(this, pixel);
             }
         }
+
     });
+
     //--- end drag
 
 
@@ -118,36 +126,26 @@ $(document).ready(function() {
      * @params  object, point
      * @event places clone of marker image onto map post drag
      */
+    function clone(object, pixel) {
+        let coordinate = map.getCoordinateFromPixel(pixel);
+        let clonedFeature = new ol.Feature(new ol.geom.Point(coordinate));
+        let IconInfo = { src: object.src, height: 50, width: 50, anchor: [0.5, 1], anchorXUnits: 'fraction', anchorYUnits: 'fraction' };
+        clonedFeature.setStyle(
+            new ol.style.Style({
+                image: new ol.style.Icon(IconInfo),
+            })
+        );
+        let lonLat = ol.proj.toLonLat(coordinate);
+        let lonLatObj = { lon: lonLat[0], lat: lonLat[1] };
+        clonedFeature.set("LonLat", lonLatObj);
+        clonedFeature.set("verifiedLat", clonedFeature.get("LonLat").lat);
+        clonedFeature.set("verifiedLon", clonedFeature.get("LonLat").lon);
 
-    function clone(object, point) {
-        var lonlat = map.getLonLatFromPixel(point);
-
-        var cloned_feature = new OpenLayers.Feature.Vector(
-            new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat),
-            {some:'data'},
-            {externalGraphic: object.src, graphicHeight: 50, graphicWidth: 50, graphicYOffset: -50});
-
-
-        cloned_feature.attributes = {"LonLat": lonlat.transform(toProjection, fromProjection)};
-        cloned_feature.attributes.verifiedLat = cloned_feature.attributes.LonLat.lat;
-        cloned_feature.attributes.verifiedLon = cloned_feature.attributes.LonLat.lon;
-        cloned_feature.attributes.endTime = '';
-        cloned_feature.attributes.startTime = '';
-        cloned_feature.attributes.packetID = '';
-        cloned_feature.attributes.content = '';
-        cloned_feature.attributes.speedLimit = '';
-        cloned_feature.attributes.elevation = '';
-        cloned_feature.attributes.mutcd = '';
-        cloned_feature.attributes.infoType = '';
-        cloned_feature.attributes.priority = '';
-        cloned_feature.attributes.direction = '';
-        cloned_feature.attributes.heading = '';
-
-        var intersection_id = parseInt(object.id.match(/(\d+)$/)[0], 10);
-        cloned_feature.attributes['marker'] = intersection_features[intersection_id];
-
-        vectors.addFeatures(cloned_feature);
+        let intersection_id = parseInt(object.id.match(/(\d+)$/)[0], 10);
+        clonedFeature.set("marker", intersection_features[intersection_id]);
+        vectors.getSource().addFeature(clonedFeature);
     }
+
 
 
     /**
@@ -166,7 +164,7 @@ $(document).ready(function() {
         maxFormsCount: 13,
         minFormsCount: 0,
         iniFormsCount: 1,
-        afterAdd: function(source, newForm) {
+        afterAdd: function (source, newForm) {
             $('.itis_code_list').select2({
                 placeholder: 'Select Options, Type Codes or Value (e.g. n30)',
                 templateSelection: templateSelection,
@@ -218,17 +216,17 @@ $(document).ready(function() {
  * Not used - may need to be @deprecated
  */
 
-function makeDraggable( selector ) {
+function makeDraggable(selector) {
     selector.draggable({
-        appendTo: 'body', containment: 'body', zIndex: 150000, cursorAt: {left:25, top:25},
-        revert: function() {
+        appendTo: 'body', containment: 'body', zIndex: 150000, cursorAt: { left: 25, top: 25 },
+        revert: function () {
             return 'invalid';
         },
-        start: function(e, ui) {
+        start: function (e, ui) {
             hidden_drag.removeClass('hidden');
             $('#trash_droppable').toggleClass("hidden");
         },
-        stop: function(e) {
+        stop: function (e) {
             hidden_drag.addClass('hidden');
             $('#trash_droppable').toggleClass("hidden");
         }
@@ -242,24 +240,44 @@ function makeDraggable( selector ) {
  * @event toggle marker lock
  */
 
-$("button[name='layerControl']").click(function(e) {
-	deleteMode = false;
-	$("#dragSigns i").removeClass('fa-unlock').addClass('fa-lock')
-	$(this).addClass('current').siblings().removeClass('active');
-	currentControl = this.value;
-	if(!$(this).hasClass('active')){
-		if(currentControl === 'drag'){
-			$("#dragSigns i").removeClass('fa-lock').addClass('fa-unlock')
-		}
-		if(currentControl === 'del'){
-			deleteMode = true;
-		}
-		toggleControlsOn(currentControl);
-	} else {
-		deleteMode = false;
-		toggleControlsOn('none');
-	}
+$("button[name='layerControl']").click(function (e) {
+    deleteMode = false;
+    $("#dragSigns i").removeClass('fa-unlock').addClass('fa-lock');
+    $(this).addClass('current').siblings().removeClass('active');
+    currentControl = this.value;
+
+    if (!$(this).hasClass('active')) {
+        if (currentControl === 'drag') {
+            $("#dragSigns i").removeClass('fa-lock').addClass('fa-unlock');
+
+            if (dragInteraction) map.removeInteraction(dragInteraction);
+            dragInteraction = new ol.interaction.Translate({
+                layers: [vectors]  // ← layer holding your markers
+            });
+            map.addInteraction(dragInteraction);
+
+        } else if (currentControl === 'del') {
+            deleteMode = true;
+
+            if (dragInteraction) {
+                map.removeInteraction(dragInteraction);
+                dragInteraction = null;
+            }
+        }
+        toggleControlsOn(currentControl);
+
+    } else {
+        deleteMode = false;
+        toggleControlsOn('none');
+
+        if (dragInteraction) {
+            map.removeInteraction(dragInteraction);
+            dragInteraction = null;
+        }
+    }
+
 });
+
 
 
 /**
@@ -268,15 +286,15 @@ $("button[name='layerControl']").click(function(e) {
  * @event load appropriate help window for a field
  */
 
-$('.fa-question-circle').click(function(){
-	var tag = $(this).attr('tag');
-	var obj = $.grep(help_notes, function(e){ return e.value === tag; });
-	$('#help_modal').modal('show');
-	$('#min').html(obj[0].min)
-	$('#max').html(obj[0].max)
-	$('#units').html(obj[0].units)
-	$('#description').html(obj[0].description)
-	$('#help_modal h4').html(obj[0].title)
+$('.fa-question-circle').click(function () {
+    var tag = $(this).attr('tag');
+    var obj = $.grep(help_notes, function (e) { return e.value === tag; });
+    $('#help_modal').modal('show');
+    $('#min').html(obj[0].min)
+    $('#max').html(obj[0].max)
+    $('#units').html(obj[0].units)
+    $('#description').html(obj[0].description)
+    $('#help_modal h4').html(obj[0].title)
 });
 
 
@@ -304,12 +322,12 @@ function loadCodes() {
  * @event disables non-selected option and clears the data
  */
 
-$(document).on('change', '#itisForm input[type=radio]', function() {
+$(document).on('change', '#itisForm input[type=radio]', function () {
     var itisFormSelection = (this.value).split("_");
     clearForm(itisFormSelection[0], itisFormSelection[1]);
 });
 
-function clearForm(name, index){
+function clearForm(name, index) {
     if (name === "code") {
         console.log("removing text")
         $('#itisForm_' + index + '_itis_text').prop('disabled', true);
@@ -344,7 +362,7 @@ function rebuildITISForm(contentArray) {
     var results = contentArray.length;
     for (var i = 0; i < results; i++) {
         itisForm.addForm();
-        if(contentArray[i].text === ''){
+        if (contentArray[i].text === '') {
             $('#text_' + i).prop("checked", false);
             $('#code_' + i).prop("checked", true);
             clearForm("code", i)
@@ -353,22 +371,29 @@ function rebuildITISForm(contentArray) {
             $('#text_' + i).prop("checked", true);
             clearForm("text", i)
         }
-        $.each(contentArray[i].codes, function(j,obj){
+        $.each(contentArray[i].codes, function (j, obj) {
             var found = false;
-            itis_list.some(function(el){
+            itis_list.some(function (el) {
                 if (el.value == obj) {
                     var str = (el.text).split(")")
                     $(".itis_code_list option[value=" + el.value + "]").remove();
-                    $('.itis_code_list').append(new Option("(" + el.value + ")" + str[1] , obj));
+                    $('.itis_code_list').append(new Option("(" + el.value + ")" + str[1], obj));
                     found = true;
                 }
             })
             if (!found) {
-                $('.itis_code_list').append(new Option("(" + obj + ") Custom Tag" , obj));
+                $('.itis_code_list').append(new Option("(" + obj + ") Custom Tag", obj));
             }
         });
-        $("#itisForm_"+ i + "_itis_text").val(contentArray[i].text);
-        $("#itisForm_"+ i + "_itis_codes").val(contentArray[i].codes).trigger("change");
+        $("#itisForm_" + i + "_itis_text").val(contentArray[i].text);
+        $("#itisForm_" + i + "_itis_codes").val(contentArray[i].codes).trigger("change");
     }
-    content = [];
+    setContent([]);
+}
+
+export {
+    deleteMode,
+    addITISForm,
+    removeITISForm,
+    rebuildITISForm
 }

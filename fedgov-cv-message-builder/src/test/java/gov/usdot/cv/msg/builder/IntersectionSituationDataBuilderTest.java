@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,11 +20,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import gov.usdot.cv.msg.builder.message.IntersectionMessage;
+import gov.usdot.cv.msg.builder.exception.MessageBuildException;
+
 public class IntersectionSituationDataBuilderTest {
 
     // Encoder encoder;
@@ -170,6 +172,47 @@ public class IntersectionSituationDataBuilderTest {
     }
 
     @Test
+    public void mapMessageWithIncorrectLaneType() throws IOException {
+        String filePath = "src/test/resources/samplemap11.json";
+        String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
+        
+        try {
+            builder.build(jsonContent);
+            fail("Expected MessageBuildException due to unsupported lane type");
+        } catch (MessageBuildException e) {
+            // Print the exception for debugging
+            System.out.println("Caught expected exception: " + e);
+
+            // Safely assert if message exists
+            if (e.getMessage() != null) {
+                assertTrue("Exception message should mention unsupported lane type",
+                    e.getMessage().toLowerCase().contains("unsupported"));
+            }
+        }
+    }
+
+    @Test
+    public void mapMessageWithEmptyLaneType() throws IOException {
+        String filePath = "src/test/resources/samplemap12.json";
+        String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
+        
+        try {
+            builder.build(jsonContent);
+            fail("Expected MessageBuildException due to null or empty lane type");
+        } catch (MessageBuildException e) {
+            // Print the exception for debugging
+            System.out.println("Caught expected exception: " + e);
+
+            // Safely assert if message exists
+            if (e.getMessage() != null) {
+                assertTrue("Exception message should mention null or empty lane type",
+                    e.getMessage().toLowerCase().contains("unsupported"));
+            }
+        }
+    }
+
+
+    @Test
     public void rgaBaseLayerMessageWithFramePlusRGATypeTest() {
         String filePath = "src/test/resources/samplerga.json";
         String expectedHexString = "00404a66d9b231ea6b5f708e13f4105024aa19221bdc340404141202060c020a0a0e060201fdfa082d080081a400";
@@ -299,7 +342,7 @@ public class IntersectionSituationDataBuilderTest {
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
             res = builder.build(jsonContent);
-           assertEquals(expectedHexString, res.getHexString());
+            assertEquals(expectedHexString, res.getHexString());
         } catch (IOException e) {
             e.printStackTrace();
         }
