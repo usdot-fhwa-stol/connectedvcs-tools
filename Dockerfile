@@ -80,7 +80,7 @@ RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d /var/lib/jetty/logs /var/
     chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
 
 # Prepare files for SSL (restrict write; allow jetty read of keystore only)
-COPY --chown=root:jetty --chmod=640 keystore /tmp/
+COPY --chown=root:jetty --chmod=640 keystore* /tmp/
 COPY --chown=root:root  --chmod=644 ssl.ini /tmp/
 
 # Create Jetty base structure and modules as root, then lock down
@@ -91,7 +91,7 @@ RUN echo 'log4j2.version=2.23.1' >> /var/lib/jetty/start.d/logging-log4j2.ini &&
 RUN if [ "$USE_SSL" = "true" ]; then \
         if [ -f /tmp/ssl.ini ]; then \
             java -jar "$JETTY_HOME"/start.jar --add-to-start=https; \
-            cp /tmp/keystore /var/lib/jetty/etc/; \
+            cp /tmp/keystore* /var/lib/jetty/etc/; \
             cp /tmp/ssl.ini /var/lib/jetty/start.d/; \
         else \
             echo "SSL is enabled, but keystore or ssl.ini files are missing."; \

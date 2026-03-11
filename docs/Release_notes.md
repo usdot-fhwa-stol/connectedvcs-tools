@@ -1,5 +1,87 @@
 Map Tool Release Notes
 ----------------------------
+
+Version 2.4.0, released Mar 9th, 2026
+----------------------------------------
+
+### **Summary**  
+Version 2.4.0 delivers a major architectural update to the ConnectedVCS Tools. The TIM and Message Validator Tools now support the 2024 version of SAE J2735. In addition, migration of both the TIM Creator Tool and Message Validator Tool to an open-source ASN1C compiler framework is complete. In a previous release, the MAP/RGA Tool’s proprietary ASN1C compiler was replaced with an open-source compiler. With this release, the entire suite of CVCS Tools (MAP/RGA, TIM and Message Validator) are 100% open-source code, including their compilers. This release includes: 
+ - Open-source ASN1C-based encoding for the TIM Creator Tool.
+ - Support for J2735_2024 standard fields in TIM creation.
+ - Open-source ASN1C-based decoding for the Message Validator.
+ - Support for J2735_2024 standard decoding in the Message Validator.
+ - Updated tool instructions for both the TIM Creator and Message Validator (found in each tool by clicking the “Help” button).
+ - Bug fixes to the MAP Creator Tool.
+ - UI improvements for the TIM Creator and Message Validator.
+ - Security, stability, and build improvements.
+ - Resolution of anomalies identified during verification and integration testing. 
+
+### **<ins>Enhancements in Release:</ins>** 
+
+**Epic CVCS-117 and CVCS-118: Implementation of CVCS TIM Creator Tool Compiler Updates**  
+**Summary:**
+The TIM Creator Tool has been fully migrated to the open-source ASN1C compiler framework within the ConnectedVCS repository. Key updates include:  
+
+- UI migration and creation of the new TIM encoder package. 
+- JNI-based encoding implementation for mandatory and optional TIM fields. 
+- Support for J2735-2024 standard fields, including road roughness, road surface subtypes, and friction information.  
+- API security improvements and resolution of encoding issues.   
+A formal integration test plan was developed and executed, addressing identified anomalies to ensure reliable encoding and decoding of TIM messages, including support for larger payloads.  
+
+Additional improvements include resolved build errors, ASN.1/TIM formatting enhancements, and updated TIM help instructions. 
+
+**<ins>Pull Requests:</ins>**  
+
+- [connectedvcs-tools PR #223](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/223), [connectedvcs-tools PR #238](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/238), [connectedvcs-tools PR #217](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/217), [connectedvcs-tools PR #214](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/214), [connectedvcs-tools PR #226](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/226), [connectedvcs-tools PR #212](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/212), [connectedvcs-tools PR #222](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/222), [connectedvcs-tools PR #210](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/210), [connectedvcs-tools PR #216](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/216), [connectedvcs-tools PR #221](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/221), [connectedvcs-tools PR #194](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/194), [connectedvcs-tools PR #213](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/213), [connectedvcs-tools PR #209](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/209), [connectedvcs-tools PR #220](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/220), [connectedvcs-tools PR #227](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/227), [connectedvcs-tools PR #235](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/235), [connectedvcs-tools PR #232](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/232), [connectedvcs-tools PR #229](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/229), [connectedvcs-tools PR #230](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/230), [connectedvcs-tools PR #231](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/231), [connectedvcs-tools PR #233](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/233), [connectedvcs-tools PR #236](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/236), [connectedvcs-tools PR #240](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/240)
+
+**Epic CVCS-7: Implementation of CVCS Message Validator Tool Compiler Updates**  
+**Summary:**
+Message Validator was updated to use the ASN1C open-source compiler. Key improvements include:  
+
+- JNI-based decoding for MAP, SPaT, BSM, PSM, and TIM messages.  
+- JNI-based decoding for Message Frame containing above messages. 
+- Expanded unit tests for all supported message types. 
+
+**<ins>Pull Requests:</ins>**  
+- [connectedvcs-tools PR #218](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/218)
+
+**Epic CVCS-125: CVCS Message Validator Tool Compiler Update- Integration testing **  
+**Summary:** 
+The Message Validator Tool was updated to allow individual message-type selection in the UI. Decoder and JNI logic now accept messageType to decode both the message and its MessageFrame. Help menu content was also updated to reflect these changes.  
+
+**<ins>Pull Requests:</ins>**  
+- [connectedvcs-tools PR #234](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/234)
+
+**Epic CVCS-72: General Enhancements**  
+**Summary:** 
+Enhancements added to improve the CVCS tools: 
+
+- Updated Dockerfile build behavior to reduce security risk (build with elevated privileges, then drop to non-root). 
+- Added test cases in Message Builder to test regions. 
+
+**<ins>Pull Requests:</ins>**  
+- [connectedvcs-tools PR #211](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/211), [connectedvcs-tools PR #211](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/211), [connectedvcs-tools PR #215](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/215), [connectedvcs-tools PR #225](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/225)
+
+### **<ins>Fixes in Release:</ins>**
+**HELPDESK-142: Update Azure API rate limit for MAP/RGA Tool** 
+**Summary:** 
+Update the Azure API limits for the MAP/RGA tool and monitor that the MAP/RGA Tool does not crash anymore. 
+
+**<ins>Pull Requests:</ins>**  
+- [connectedvcs-tools PR #228](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/228)
+
+**HELPDESK-162: Investigate MAP Tool API calls with Unsupported Lane Types** 
+**Summary:** 
+This spike is a follow on from a case where a user sent unsupported lane types to the API and crashed the MAP tool. Investigate whether a POST API call to the MAP Tool backend is possible. If yes, propose a solution and apply it to fix the issue.
+
+**<ins>Pull Requests:</ins>**  
+- [connectedvcs-tools PR #339](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/339)
+
+**<ins>Other Fixes:</ins>**
+
+- [connectedvcs-tools PR #219](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/219) : Fixed Sonar workflow path and deprecation warning. 
+- [connectedvcs-tools PR #237](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/237) : Fixed an issue with circle encoding message. 
+
 Version 2.3.1, released Oct 27th, 2025
 ----------------------------------------
 
@@ -266,6 +348,8 @@ NOTE: Production URL has the master code
 Production website : https://webappopen.connectedvcs.com 
 
 GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
+
+
 
 
 
