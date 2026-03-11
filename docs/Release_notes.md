@@ -1,22 +1,20 @@
 Map Tool Release Notes
 ----------------------------
 
-Version 2.4.0, released Mar 6th, 2026
+Version 2.4.0, released Mar 9th, 2026
 ----------------------------------------
 
 ### **Summary**  
-Version 2.4.0 delivers a major architectural update to the ConnectedVCS Tools by completing migration of both the TIM Creator Tool and Message Validator Tool to the open-source ASN1C compiler framework. This release includes:  
- - Open-source ASN1C-based encoding for the TIM Creator Tool.  
- - Support for J2735-2024 standard fields in TIM creation.  
- - Open-source ASN1C-based decoding for the Message Validator.  
- - Support for J2735-2024 standard decoding in the Message Validator. 
- - Bug fixes to the MAP Creator Tool. 
- - UI improvements for TIM Creator and Message Validator.  
- - Updated tool instructions both TIM Creator and Message Validator. 
- - Security, stability, and build improvements. 
+Version 2.4.0 delivers a major architectural update to the ConnectedVCS Tools. The TIM and Message Validator Tools now support the 2024 version of SAE J2735. In addition, migration of both the TIM Creator Tool and Message Validator Tool to an open-source ASN1C compiler framework is complete. In a previous release, the MAP/RGA Tool’s proprietary ASN1C compiler was replaced with an open-source compiler. With this release, the entire suite of CVCS Tools (MAP/RGA, TIM and Message Validator) are 100% open-source code, including their compilers. This release includes: 
+ - Open-source ASN1C-based encoding for the TIM Creator Tool.
+ - Support for J2735_2024 standard fields in TIM creation.
+ - Open-source ASN1C-based decoding for the Message Validator.
+ - Support for J2735_2024 standard decoding in the Message Validator.
+ - Updated tool instructions for both the TIM Creator and Message Validator (found in each tool by clicking the “Help” button).
+ - Bug fixes to the MAP Creator Tool.
+ - UI improvements for the TIM Creator and Message Validator.
+ - Security, stability, and build improvements.
  - Resolution of anomalies identified during verification and integration testing. 
-
-The source code for both the TIM Creation Tool and the Message Validator Tool is available in the ConnectedVCS GitHub repository. 
 
 ### **<ins>Enhancements in Release:</ins>** 
 
@@ -350,6 +348,7 @@ NOTE: Production URL has the master code
 Production website : https://webappopen.connectedvcs.com 
 
 GitHub: https://github.com/usdot-fhwa-stol/connectedvcs-tools 
+
 
 
 
