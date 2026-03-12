@@ -18,14 +18,14 @@ package gov.usdot.cv.rgaencoder;
 
 public class IndividualSpeedLimitSettings {
     private long speedLimit;
-    private SpeedLimitTypeRGA speedLimitType;
+    private RoadGeometryAndAttributes_SpeedLimitType speedLimitType;
     private SpeedLimitVehicleType vehicleTypes;
     private RGATimeRestrictions timeRestrictions;
 
     public IndividualSpeedLimitSettings() {
     }
 
-    public IndividualSpeedLimitSettings(long speedLimit, SpeedLimitTypeRGA speedLimitType,
+    public IndividualSpeedLimitSettings(long speedLimit, RoadGeometryAndAttributes_SpeedLimitType speedLimitType,
             SpeedLimitVehicleType vehicleTypes, RGATimeRestrictions timeRestrictions) {
         this.speedLimit = speedLimit;
         this.speedLimitType = speedLimitType;
@@ -41,11 +41,11 @@ public class IndividualSpeedLimitSettings {
         this.speedLimit = speedLimit;
     }
 
-    public SpeedLimitTypeRGA getSpeedLimitType() {
+    public RoadGeometryAndAttributes_SpeedLimitType getSpeedLimitType() {
         return speedLimitType;
     }
 
-    public void setSpeedLimitType(SpeedLimitTypeRGA speedLimitType) {
+    public void setSpeedLimitType(RoadGeometryAndAttributes_SpeedLimitType speedLimitType) {
         this.speedLimitType = speedLimitType;
     }
 
