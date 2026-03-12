@@ -124,4 +124,4 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
 
 # # Drop privileges for runtime
-# USER jetty
+USER jetty
