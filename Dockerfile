@@ -2,12 +2,23 @@ FROM gradle:7.4.2-jdk8 AS gradle-build
 ARG USE_SSL
 RUN ls -la && pwd
 FROM maven:3.8.5-jdk-8-slim AS mvn-build
+
+# Install build tools, JNI headers, and stol-j2735
+COPY --from=eclipse-temurin:8-jdk /opt/java/openjdk/include /usr/local/openjdk-8/include
+RUN apt-get update && apt-get install -y gettext-base cmake gcc && \
+    echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" \
+        > /etc/apt/sources.list.d/stol-apt-repository.list && \
+    apt-get update && \
+    apt-get install -y stol-j2735-2024-1 && \
+    apt-get clean
+
 COPY . /root
 
-# Install gettext to use envsubst
-RUN apt-get update && \
-    apt-get install -y gettext-base && \
-    apt-get clean
+# Build JNI shared library
+RUN cd /root/fedgov-cv-lib-asn1c && \
+    mkdir -p build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build . --parallel "$(nproc)"
 
 # Update the web.xml based on SSL selection
 RUN if [ "$USE_SSL" = "true" ]; then \
@@ -64,12 +75,6 @@ COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-georefe
 
 # Copy the shared libraries with chown to jetty user
 COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_jni.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
-# COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
 
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_jni.so /var/lib/jetty/webapps/third_party_lib/libasn1c.so
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_jni.so /var/lib/jetty/webapps/third_party_lib/libasn1c_decoder.so

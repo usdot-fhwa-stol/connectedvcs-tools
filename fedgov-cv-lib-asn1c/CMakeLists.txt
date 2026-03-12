@@ -78,9 +78,6 @@ set_target_properties(${OUTPUT_LIB_NAME} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party_lib"
 )
 
-# ---------------------------------------------------------------------------
-# Install (optional — for system-wide install or Docker COPY)
-# ---------------------------------------------------------------------------
 install(TARGETS ${OUTPUT_LIB_NAME}
     LIBRARY DESTINATION lib
 )
