@@ -54,9 +54,9 @@ cmake --build . --parallel "$(nproc)"
 
 echo ""
 echo "Build complete. Output:"
-ls -la "${SCRIPT_DIR}/third_party_lib/libasn1c_jni.so"
+ls -la "${SCRIPT_DIR}/lib/libasn1c_jni.so"
 
 # Copy the combined .so under all the original library names
 for name in libasn1c.so libasn1c_decoder.so libasn1c_timdecoder.so libasn1c_timencoder.so libasn1c_rga.so; do
-    cp "${SCRIPT_DIR}/third_party_lib/libasn1c_jni.so" "${SCRIPT_DIR}/third_party_lib/${name}"
+    cp "${SCRIPT_DIR}/lib/libasn1c_jni.so" "${SCRIPT_DIR}/lib/${name}"
 done

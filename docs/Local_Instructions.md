@@ -30,9 +30,9 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 
 1. Set up LD_LIBRARY_PATH by running:
 ```
-echo export LD_LIBRARY_PATH="[path_to_connectedvcs-tools]/fedgov-cv-lib-asn1c/third_party_lib" >> ~/.bashrc
+echo export LD_LIBRARY_PATH="[path_to_connectedvcs-tools]/fedgov-cv-lib-asn1c/lib" >> ~/.bashrc
 ```
-   - **NOTE**: Change the above path to point to the correct [third_party_lib path](/fedgov-cv-lib-asn1c/third_party_lib).
+   - **NOTE**: Change the above path to point to the correct [lib path](/fedgov-cv-lib-asn1c/lib).
 
 ## Update web.xml files for use with or without SSL
 

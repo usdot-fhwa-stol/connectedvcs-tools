@@ -1,5 +1,5 @@
 # Set up path
-LD_LIBRARY_PATH="/workspaces/connectedvcs-tools/fedgov-cv-lib-asn1c/third_party_lib"
+LD_LIBRARY_PATH="/workspaces/connectedvcs-tools/fedgov-cv-lib-asn1c/lib"
 export LD_LIBRARY_PATH
 
 # Maven run parent 

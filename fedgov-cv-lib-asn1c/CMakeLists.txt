@@ -49,11 +49,6 @@ add_library(${OUTPUT_LIB_NAME} SHARED
     ${JNI_WRAPPER_HEADERS}
 )
 
-# The MessageFrame PDU define — matches the original gcc -DPDU=MessageFrame flag
-# target_compile_definitions(${OUTPUT_LIB_NAME} PRIVATE
-#     PDU=MessageFrame
-# )
-
 target_include_directories(${OUTPUT_LIB_NAME} PRIVATE
     # JNI wrapper headers (gov_usdot_cv_*.h files)
     ${JNI_WRAPPER_DIR}
@@ -70,8 +65,8 @@ target_link_libraries(${OUTPUT_LIB_NAME} PRIVATE
 # Position-independent code (required for shared libraries, matches -fPIC)
 set_target_properties(${OUTPUT_LIB_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
-    # Output directly to third_party_lib/ for easy integration
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party_lib"
+    # Output directly to lib/ for easy integration
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
 )
 
 install(TARGETS ${OUTPUT_LIB_NAME}
