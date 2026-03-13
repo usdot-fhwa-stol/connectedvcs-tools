@@ -1,13 +1,18 @@
-FROM gradle:7.4.2-jdk8 AS gradle-build
+FROM maven:3.8.5-jdk-8-slim AS dev
 ARG USE_SSL
-RUN ls -la && pwd
-FROM maven:3.8.5-jdk-8-slim AS mvn-build
-COPY . /root
-
-# Install gettext to use envsubst
-RUN apt-get update && \
-    apt-get install -y gettext-base && \
+RUN apt-get update && apt-get install -y gettext-base cmake gcc && \
+    echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" \
+        > /etc/apt/sources.list.d/stol-apt-repository.list && \
+    apt-get update && \
+    apt-get install -y stol-j2735-2024-1 && \
     apt-get clean
+
+FROM dev AS mvn-build
+COPY . /root
+WORKDIR /root/fedgov-cv-lib-asn1c
+RUN ./build_jni.sh --clean --skip-deps
+WORKDIR /root
+RUN ./build.sh
 
 # Update the web.xml based on SSL selection
 RUN if [ "$USE_SSL" = "true" ]; then \
@@ -22,11 +27,6 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     envsubst '$SECURITY_CONSTRAINT' < /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml > /tmp/web.xml.tmp && \
     mv /tmp/web.xml.tmp /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
 
-# Run the Maven build
-COPY ./build.sh /root
-WORKDIR /root
-RUN ./build.sh
-
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
 
@@ -35,15 +35,21 @@ USER root
 
 # Install GDAL for georeferencing service
 RUN apt-get update && \
-    apt-get install -y gdal-bin libgdal28  \
+    apt-get install -y gdal-bin libgdal28 cmake curl ca-certificates gnupg\
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/* \
     && rm -rf /var/tmp/*
 
-# Create third_party_lib directory and set permissions early
-RUN mkdir -p /var/lib/jetty/webapps/third_party_lib && \
+RUN echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" \
+    > /etc/apt/sources.list.d/stol-apt-repository.list && \
+    apt-get update && \
+    apt-get install -y stol-j2735-2024-1 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create lib directory and set permissions early
+RUN mkdir -p /var/lib/jetty/webapps/lib && \
     chown root:jetty /var/lib/jetty/webapps && \
     chmod 755 /var/lib/jetty/webapps
 
@@ -57,16 +63,16 @@ COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-service
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
 # Copy the shared libraries with chown to jetty user
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
+COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib
+
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/libasn1c.so
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/libasn1c_decoder.so
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/libasn1c_timdecoder.so
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/libasn1c_timencoder.so
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/libasn1c_rga.so
 
 # Set library path env and update ldconfig
-ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/third_party_lib
+ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/lib:/opt/carma/lib
 RUN ldconfig
 
 # Prepare Jetty base and restrict write access to config

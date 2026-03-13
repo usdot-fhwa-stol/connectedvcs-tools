@@ -6,3 +6,4 @@ target/
 **/.settings
 .project
 .classpath
+fedgov-cv-lib-asn1c/build

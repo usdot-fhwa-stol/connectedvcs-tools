@@ -296,7 +296,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 					jdouble speed = (*env)->CallDoubleMethod(env, regulatorySpeedLimitObj, getSpeed);
 
 					// Get SpeedType from each RegulatorySpeedLimit
-					jmethodID getType = (*env)->GetMethodID(env, regulatorySpeedLimitClass, "getType", "()Lgov/usdot/cv/mapencoder/SpeedLimitType;");
+					jmethodID getType = (*env)->GetMethodID(env, regulatorySpeedLimitClass, "getType", "()Lgov/usdot/cv/mapencoder/CommonSpeedLimitType;");
 					jobject speedLimitTypeObj = (*env)->CallObjectMethod(env, regulatorySpeedLimitObj, getType);
 					jclass speedLimitTypeClass = (*env)->GetObjectClass(env, speedLimitTypeObj);
 
@@ -305,7 +305,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 					jbyte speedLimitType = (*env)->CallByteMethod(env, speedLimitTypeObj, getSpeedLimitType);
 
 					regulatorySpeedLimit->speed = (Velocity_t)((long)speed);
-					regulatorySpeedLimit->type = (SpeedLimitType_t)((long)speedLimitType);
+					regulatorySpeedLimit->type = (Common_SpeedLimitType_t)((long)speedLimitType);
 
 					ASN_SEQUENCE_ADD(&speedLimitList->list, regulatorySpeedLimit);
 				}
@@ -907,7 +907,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 											jdouble speed = (*env)->CallDoubleMethod(env, nodeRegulatorySpeedLimitObj, getNodeSpeed);
 
 											// Get SpeedType from each RegulatorySpeedLimit
-											jmethodID getNodeSpeedType = (*env)->GetMethodID(env, nodeRegulatorySpeedLimitClass, "getType", "()Lgov/usdot/cv/mapencoder/SpeedLimitType;");
+											jmethodID getNodeSpeedType = (*env)->GetMethodID(env, nodeRegulatorySpeedLimitClass, "getType", "()Lgov/usdot/cv/mapencoder/CommonSpeedLimitType;");
 											jobject nodeSpeedLimitTypeObj = (*env)->CallObjectMethod(env, nodeRegulatorySpeedLimitObj, getNodeSpeedType);
 											jclass nodeSpeedLimitTypeClass = (*env)->GetObjectClass(env, nodeSpeedLimitTypeObj);
 
@@ -916,7 +916,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_mapencoder_Encoder_encodeMap(JNIE
 											jbyte speedLimitType = (*env)->CallByteMethod(env, nodeSpeedLimitTypeObj, getNodeSpeedLimitType);
 
 											nodeRegulatorySpeedLimit->speed = (Velocity_t)((long)speed);
-											nodeRegulatorySpeedLimit->type = (SpeedLimitType_t)((long)speedLimitType);
+											nodeRegulatorySpeedLimit->type = (Common_SpeedLimitType_t)((long)speedLimitType);
 
 											ASN_SEQUENCE_ADD(&nodeSpeedLimitList->list, nodeRegulatorySpeedLimit);
 										}
