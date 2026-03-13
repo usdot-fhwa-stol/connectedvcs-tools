@@ -1,10 +1,5 @@
-FROM gradle:7.4.2-jdk8 AS gradle-build
+FROM maven:3.8.5-jdk-8-slim AS dev
 ARG USE_SSL
-RUN ls -la && pwd
-FROM maven:3.8.5-jdk-8-slim AS mvn-build
-
-# Install build tools, JNI headers, and stol-j2735
-COPY --from=eclipse-temurin:8-jdk /opt/java/openjdk/include /usr/local/openjdk-8/include
 RUN apt-get update && apt-get install -y gettext-base cmake gcc && \
     echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" \
         > /etc/apt/sources.list.d/stol-apt-repository.list && \
@@ -12,13 +7,12 @@ RUN apt-get update && apt-get install -y gettext-base cmake gcc && \
     apt-get install -y stol-j2735-2024-1 && \
     apt-get clean
 
+FROM dev AS mvn-build
 COPY . /root
-
-# Build JNI shared library
-RUN cd /root/fedgov-cv-lib-asn1c && \
-    mkdir -p build && cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build . --parallel "$(nproc)"
+WORKDIR /root/fedgov-cv-lib-asn1c
+RUN ./build_jni.sh --clean --skip-deps
+WORKDIR /root
+RUN ./build.sh
 
 # Update the web.xml based on SSL selection
 RUN if [ "$USE_SSL" = "true" ]; then \
@@ -33,10 +27,10 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     envsubst '$SECURITY_CONSTRAINT' < /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml > /tmp/web.xml.tmp && \
     mv /tmp/web.xml.tmp /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
 
-# Run the Maven build
-COPY ./build.sh /root
-WORKDIR /root
-RUN ./build.sh
+# # Run the Maven build
+# COPY ./build.sh /root
+# WORKDIR /root
+# RUN ./build.sh
 
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL

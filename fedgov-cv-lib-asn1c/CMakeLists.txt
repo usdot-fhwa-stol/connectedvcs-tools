@@ -21,10 +21,6 @@ list(APPEND CMAKE_MODULE_PATH "/opt/carma/lib")
 
 find_package(${STOL_J2735_PACKAGE_NAME} REQUIRED)
 
-# JNI — needed for jni.h
-#set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include" CACHE PATH "")
-#find_package(JNI REQUIRED)
-
 if(DEFINED ENV{JAVA_HOME})
     set(JAVA_HOME $ENV{JAVA_HOME})
 endif()
@@ -54,9 +50,9 @@ add_library(${OUTPUT_LIB_NAME} SHARED
 )
 
 # The MessageFrame PDU define — matches the original gcc -DPDU=MessageFrame flag
-target_compile_definitions(${OUTPUT_LIB_NAME} PRIVATE
-    PDU=MessageFrame
-)
+# target_compile_definitions(${OUTPUT_LIB_NAME} PRIVATE
+#     PDU=MessageFrame
+# )
 
 target_include_directories(${OUTPUT_LIB_NAME} PRIVATE
     # JNI wrapper headers (gov_usdot_cv_*.h files)
