@@ -41,9 +41,8 @@ if [[ "$SKIP_DEPS" = false ]]; then
     echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" > /etc/apt/sources.list.d/stol-apt-repository.list
     apt-get clean
     apt-get update --fix-missing
-    apt-get install -y cmake stol-j2735-2024-1
+    apt-get install -y cmake gcc gettext-base stol-j2735-${J2735_VERSION}-1
 fi
-
 echo "Configuring CMake (J2735 version: ${J2735_VERSION})..."
 cmake .. \
     -DSAEJ2735_SPEC_VERSION="${J2735_VERSION}" \
