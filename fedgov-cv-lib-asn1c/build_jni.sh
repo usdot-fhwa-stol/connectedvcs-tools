@@ -38,7 +38,7 @@ mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 if [[ "$SKIP_DEPS" = false ]]; then
-    echo "deb [trusted=yes] http://s3.amazonaws.com/stol-apt-repository develop focal" > /etc/apt/sources.list.d/stol-apt-repository.list
+    echo "deb [trusted=yes] https://s3.amazonaws.com/stol-apt-repository develop focal" > /etc/apt/sources.list.d/stol-apt-repository.list
     apt-get clean
     apt-get update --fix-missing
     apt-get install -y cmake gcc gettext-base stol-j2735-${J2735_VERSION}-1
