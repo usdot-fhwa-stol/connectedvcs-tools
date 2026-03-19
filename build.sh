@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ "$SKIP_TESTS" = "true" ]; then
+if [[ "$SKIP_TESTS" = "true" ]]; then
     MVN_ARGS="-DskipTests=true"
     echo "Building without tests..."
 else
