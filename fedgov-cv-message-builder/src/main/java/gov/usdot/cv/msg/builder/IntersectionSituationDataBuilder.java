@@ -63,7 +63,7 @@ import gov.usdot.cv.mapencoder.OffsetYaxis;
 import gov.usdot.cv.mapencoder.Position3D;
 import gov.usdot.cv.mapencoder.RegulatorySpeedLimit;
 import gov.usdot.cv.mapencoder.SpeedLimitList;
-import gov.usdot.cv.mapencoder.SpeedLimitType;
+import gov.usdot.cv.mapencoder.CommonSpeedLimitType;
 import gov.usdot.cv.msg.builder.exception.MessageBuildException;
 import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import gov.usdot.cv.msg.builder.input.IntersectionInputData;
@@ -131,7 +131,7 @@ import gov.usdot.cv.rgaencoder.PhysicalXYZNodeInfo;
 import gov.usdot.cv.rgaencoder.RGAData;
 import gov.usdot.cv.rgaencoder.RGATimeRestrictions;
 import gov.usdot.cv.rgaencoder.SpeedLimitInfo;
-import gov.usdot.cv.rgaencoder.SpeedLimitTypeRGA;
+import gov.usdot.cv.rgaencoder.RoadGeometryAndAttributes_SpeedLimitType;
 import gov.usdot.cv.rgaencoder.SpeedLimitVehicleType;
 import gov.usdot.cv.rgaencoder.TimeWindowInformation;
 import gov.usdot.cv.rgaencoder.TimeWindowItemControlInfo;
@@ -533,13 +533,13 @@ public class IntersectionSituationDataBuilder {
 		return indSpeedLimitSettingsSet;
 	}
 
-	public SpeedLimitTypeRGA buiSpeedLimitTypeRGA(String currentSpeedLimitChoice) {
-		SpeedLimitTypeRGA speedLimitTypeRGA = new SpeedLimitTypeRGA();
+	public RoadGeometryAndAttributes_SpeedLimitType buiSpeedLimitTypeRGA(String currentSpeedLimitChoice) {
+		RoadGeometryAndAttributes_SpeedLimitType speedLimitTypeRGA = new RoadGeometryAndAttributes_SpeedLimitType();
 		if (currentSpeedLimitChoice != null) {
 			if ((currentSpeedLimitChoice.toLowerCase()).equals("regulatory")) {
-				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.REGULATORY);
+				speedLimitTypeRGA.setSpeedLimitTypeValue(RoadGeometryAndAttributes_SpeedLimitType.REGULATORY);
 			} else if ((currentSpeedLimitChoice.toLowerCase()).equals("advisory")) {
-				speedLimitTypeRGA.setSpeedLimitTypeValue(SpeedLimitTypeRGA.ADVISORY);
+				speedLimitTypeRGA.setSpeedLimitTypeValue(RoadGeometryAndAttributes_SpeedLimitType.ADVISORY);
 			}
 		}
 		return speedLimitTypeRGA;
@@ -1750,47 +1750,47 @@ public class IntersectionSituationDataBuilder {
 	}
 
 	// This function returns the SpeedLimit Type
-	private SpeedLimitType getSpeedLimitType(String speedLimitTypeString) {
-		SpeedLimitType byteSpeedLimitType = new SpeedLimitType();
+	private CommonSpeedLimitType getSpeedLimitType(String speedLimitTypeString) {
+		CommonSpeedLimitType byteSpeedLimitType = new CommonSpeedLimitType();
 		switch (speedLimitTypeString) {
 			case "Unknown":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.UNKNOWN);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.UNKNOWN);
 				break;
 			case "Max Speed in School Zone":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.MAXSPEEDINSCHOOLZONE);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.MAXSPEEDINSCHOOLZONE);
 				break;
 			case "Max Speed in School Zone w/ Children":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.MAXSPEEDINSCHOOLZONEWHENCHILDRENAREPRESENT);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.MAXSPEEDINSCHOOLZONEWHENCHILDRENAREPRESENT);
 				break;
 			case "Max Speed in Construction Zone":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.MAXSPEEDINCONSTRUCTIONZONE);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.MAXSPEEDINCONSTRUCTIONZONE);
 				break;
 			case "Vehicle Min Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLEMINSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLEMINSPEED);
 				break;
 			case "Vehicle Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLEMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLEMAXSPEED);
 				break;
 			case "Vehicle Night Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLENIGHTMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLENIGHTMAXSPEED);
 				break;
 			case "Truck Min Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.TRUCKMINSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.TRUCKMINSPEED);
 				break;
 			case "Truck Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.TRUCKMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.TRUCKMAXSPEED);
 				break;
 			case "Truck Night Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.TRUCKNIGHTMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.TRUCKNIGHTMAXSPEED);
 				break;
 			case "Vehicles w/ Trailers Min Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLESWITHTRAILERSMINSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLESWITHTRAILERSMINSPEED);
 				break;
 			case "Vehicles w/ Trailers Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLESWITHTRAILERSMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLESWITHTRAILERSMAXSPEED);
 				break;
 			case "Vehicles w/ Trailers Night Max Speed":
-				byteSpeedLimitType.setSpeedLimitType(SpeedLimitType.VEHICLESWITHTRAILERSNIGHTMAXSPEED);
+				byteSpeedLimitType.setSpeedLimitType(CommonSpeedLimitType.VEHICLESWITHTRAILERSNIGHTMAXSPEED);
 				break;
 			default:
 				logger.warn("Unexpected speed limit type: " + speedLimitTypeString);

@@ -296,7 +296,7 @@ public class RGAEncodeTest {
     IndividualSpeedLimitSettings mockMinIndividualSpeedLimitSettings1;
     List<IndividualSpeedLimitSettings> mockMaxIndividualSpeedLimitSettingsList1;
     List<IndividualSpeedLimitSettings> mockMinIndividualSpeedLimitSettingsList1;
-    SpeedLimitTypeRGA mockSpeedLimitTypeRGA1;
+    RoadGeometryAndAttributes_SpeedLimitType mockSpeedLimitTypeRGA1;
     SpeedLimitVehicleType mockSpeedLimitVehicleType1;
     GeneralPeriod mockGeneralPeriod9;
     TimeWindowInformation mockTimeWindowInformation9;
@@ -320,7 +320,7 @@ public class RGAEncodeTest {
     IndividualSpeedLimitSettings mockMinIndividualSpeedLimitSettings2;
     List<IndividualSpeedLimitSettings> mockMaxIndividualSpeedLimitSettingsList2;
     List<IndividualSpeedLimitSettings> mockMinIndividualSpeedLimitSettingsList2;
-    SpeedLimitTypeRGA mockSpeedLimitTypeRGA2;
+    RoadGeometryAndAttributes_SpeedLimitType mockSpeedLimitTypeRGA2;
     SpeedLimitVehicleType mockSpeedLimitVehicleType2;
     GeneralPeriod mockGeneralPeriod10;
     TimeWindowInformation mockTimeWindowInformation10;
@@ -542,7 +542,7 @@ public class RGAEncodeTest {
         mockSpeedLimitInfo1 = mock(SpeedLimitInfo.class);
         mockMaxIndividualSpeedLimitSettings1 = mock(IndividualSpeedLimitSettings.class);
         mockMinIndividualSpeedLimitSettings1 = mock(IndividualSpeedLimitSettings.class);
-        mockSpeedLimitTypeRGA1 = mock(SpeedLimitTypeRGA.class);
+        mockSpeedLimitTypeRGA1 = mock(RoadGeometryAndAttributes_SpeedLimitType.class);
         mockSpeedLimitVehicleType1 = mock(SpeedLimitVehicleType.class);
         mockGeneralPeriod9 = mock(GeneralPeriod.class);
         mockTimeWindowInformation9 = mock(TimeWindowInformation.class);
@@ -561,7 +561,7 @@ public class RGAEncodeTest {
         mockSpeedLimitInfo2 = mock(SpeedLimitInfo.class);
         mockMaxIndividualSpeedLimitSettings2 = mock(IndividualSpeedLimitSettings.class);
         mockMinIndividualSpeedLimitSettings2 = mock(IndividualSpeedLimitSettings.class);
-        mockSpeedLimitTypeRGA2 = mock(SpeedLimitTypeRGA.class);
+        mockSpeedLimitTypeRGA2 = mock(RoadGeometryAndAttributes_SpeedLimitType.class);
         mockSpeedLimitVehicleType2 = mock(SpeedLimitVehicleType.class);
         mockGeneralPeriod10 = mock(GeneralPeriod.class);
         mockTimeWindowInformation10 = mock(TimeWindowInformation.class);
@@ -1054,7 +1054,7 @@ public class RGAEncodeTest {
         when(mockTimeRestrictions9.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
         when(mockTimeRestrictions9.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl9);
         
-        when(mockSpeedLimitTypeRGA1.getSpeedLimitTypeValue()).thenReturn(SpeedLimitTypeRGA.REGULATORY);
+        when(mockSpeedLimitTypeRGA1.getSpeedLimitTypeValue()).thenReturn(RoadGeometryAndAttributes_SpeedLimitType.REGULATORY);
         when(mockSpeedLimitVehicleType1.getSpeedLimitVehicleTypeValue()).thenReturn((short) SpeedLimitVehicleType.ALL_VEHICLES);
         when(mockMaxIndividualSpeedLimitSettings1.getSpeedLimit()).thenReturn(55L);
         when(mockMaxIndividualSpeedLimitSettings1.getSpeedLimitType()).thenReturn(mockSpeedLimitTypeRGA1);
@@ -1105,7 +1105,7 @@ public class RGAEncodeTest {
         when(mockTimeRestrictions10.getChoice()).thenReturn((int) RGATimeRestrictions.TIME_WINDOW_ITEM_CONTROL);
         when(mockTimeRestrictions10.getFixedTimeWindowCtrl()).thenReturn(mockFixedTimeWindowCtrl10);
 
-        when(mockSpeedLimitTypeRGA2.getSpeedLimitTypeValue()).thenReturn(SpeedLimitTypeRGA.ADVISORY);
+        when(mockSpeedLimitTypeRGA2.getSpeedLimitTypeValue()).thenReturn(RoadGeometryAndAttributes_SpeedLimitType.ADVISORY);
         when(mockSpeedLimitVehicleType2.getSpeedLimitVehicleTypeValue())
                         .thenReturn((short) SpeedLimitVehicleType.PASSENGER_VEHICLES);
         when(mockMaxIndividualSpeedLimitSettings2.getSpeedLimit()).thenReturn(45L);

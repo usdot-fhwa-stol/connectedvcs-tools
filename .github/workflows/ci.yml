@@ -22,7 +22,7 @@ jobs:
         - name: Install # This action is to install and build subfolders in project
           run: |
             cd $GITHUB_WORKSPACE
-            export LD_LIBRARY_PATH=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/third_party_lib
+            export LD_LIBRARY_PATH=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/lib
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
             cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
