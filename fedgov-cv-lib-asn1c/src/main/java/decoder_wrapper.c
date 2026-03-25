@@ -150,6 +150,9 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
             case 32:
                 msgTypeStr = "PersonalSafetyMessage";
                 break;
+            case 41:
+                msgTypeStr = "SensorDataSharingMessage";
+                break;
             default:
                 msgTypeStr = "UnknownMessageType";
                 break;

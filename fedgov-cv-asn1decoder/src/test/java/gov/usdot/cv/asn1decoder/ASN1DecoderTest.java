@@ -48,6 +48,9 @@ public class ASN1DecoderTest {
     private ByteArrayObject onlypsmMsg;
     private ByteArrayObject onlymapMsg;
     private ByteArrayObject onlyspatMsg;
+    private ByteArrayObject onlySDSMMsgFrame;
+    private ByteArrayObject onlySDSMMsg;
+
 
     
 
@@ -179,6 +182,22 @@ public class ASN1DecoderTest {
                 )
         );
 
+        onlySDSMMsgFrame = mock(ByteArrayObject.class);
+        when(onlySDSMMsgFrame.getType()).thenReturn("SensorDataSharingMessage");
+        when(onlySDSMMsgFrame.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "002980840a303030303fdfa7234b5b9eda409510574470ea4793fffffffe09003942d39900940543f2b807ffc2aec0012324748020072c98ab20127f4681b700fff8b60000246f10d00400e58ce4640250240fac001fff09c4c0048fe28100801cac4fec804a0309f86403ffe0000000918a38a010059428519009404d4000007ffc43bf0f9230155001900002765c639eda0814e2a5b8cd2cf514070381010100030180c620fb90caad3b9c508208c6aa68e0f00ede4b396921000329467f5a8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825c9223e759fe71a740c6819635fa595611888b45e760f51c5cc469b39b428f3f808240b97a393a333e06c5353fb6ade829870c35ce858af665778375136547ac932871da55b7823b45ddb589edbb24940be13918de8a9c90d04464be7df5cf0a4362"
+                )
+        );
+
+        onlySDSMMsg = mock(ByteArrayObject.class);
+        when(onlySDSMMsg.getType()).thenReturn("SensorDataSharingMessage");
+        when(onlySDSMMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "0a303030303fdfa7234b5b9eda409510574470ea4793fffffffe09003942d39900940543f2b807ffc2aec0012324748020072c98ab20127f4681b700fff8b60000246f10d00400e58ce4640250240fac001fff09c4c0048fe28100801cac4fec804a0309f86403ffe0000000918a38a010059428519009404d4000007ffc43bf0f9230155001900002765c639eda0814e2a5b8cd2cf514070381010100030180c620fb90caad3b9c508208c6aa68e0f00ede4b396921000329467f5a8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825c9223e759fe71a740c6819635fa595611888b45e760f51c5cc469b39b428f3f808240b97a393a333e06c5353fb6ade829870c35ce858af665778375136547ac932871da55b7823b45ddb589edbb24940be13918de8a9c90d04464be7df5cf0a4362"
+                )
+        );
+
         // Empty Message
         emptyMsg = mock(ByteArrayObject.class);
         when(emptyMsg.getMessage()).thenReturn(new byte[]{}); 
@@ -288,6 +307,19 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
+
+    @Test
+    public void testDecodeSDSMFrame() {
+        DecodedResult r = decoder.decode(onlySDSMMsgFrame, "MessageFrame");
+        Assert.assertTrue(r.success);
+        Assert.assertFalse(r.decodedMessage.isEmpty());
+        Assert.assertEquals(
+            "Expected decoded message type to be 'SensorDataSharingMessage'",
+            "SensorDataSharingMessage",
+            r.messageType
+        );
+    }
+    
     @Test
     public void ASN1DecoderTestEmpty() {
         DecodedResult decodedMessage = decoder.decode(emptyMsg,"empty");
@@ -355,5 +387,17 @@ public class ASN1DecoderTest {
                         r.messageType
                 );    
         }  
+        @Test
+        public void testDecodeOnlySDSM() {    
+        
+                DecodedResult r = decoder.decode( onlySDSMMsg, "SDSM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SensorDataSharingMessage'",
+                        "SensorDataSharingMessage",
+                        r.messageType
+                );    
+        }
 
 }
