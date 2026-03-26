@@ -18,17 +18,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$BASE_DIR"
+
 if [[ "$SKIP_TESTS" = "true" ]]; then
     MVN_ARGS="-DskipTests=true"
     echo "Building without tests..."
 else
     MVN_ARGS=""
-    export LD_LIBRARY_PATH="./fedgov-cv-lib-asn1c/lib"
+    export LD_LIBRARY_PATH="${BASE_DIR}/fedgov-cv-lib-asn1c/lib"
     echo "Building with tests..."
 fi
-
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$BASE_DIR"
 
 cd fedgov-cv-parent
 mvn clean install $MVN_ARGS
