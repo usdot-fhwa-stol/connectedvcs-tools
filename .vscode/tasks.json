@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "debug",
+            "type": "shell",
+            "command": "./build.sh --run-tests",
+            "group": "test",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "docker ps -q --filter ancestor=usdotfhwastol/connectedvcs-tools | xargs -r docker rm -f 2>/dev/null; docker build -t usdotfhwastol/connectedvcs-tools --build-arg USE_SSL=false /workspaces/connectedvcs-tools && docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools && echo 'UI available at http://localhost:8080'",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

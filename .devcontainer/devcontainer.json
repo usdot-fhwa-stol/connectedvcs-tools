@@ -13,8 +13,6 @@
 		}
 	},
 	"postCreateCommand": "cd fedgov-cv-lib-asn1c && ./build_jni.sh --clean",
-	"postStartCommand": "docker ps -q --filter ancestor=usdotfhwastol/connectedvcs-tools | xargs -r docker rm -f 2>/dev/null; docker build -t usdotfhwastol/connectedvcs-tools --build-arg USE_SSL=false /workspaces/connectedvcs-tools && docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools",
-	"forwardPorts": [],
 
 	// Configure tool-specific properties
 	"customizations": {
