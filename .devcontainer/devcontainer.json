@@ -1,5 +1,5 @@
 {
-	"name": "Existing Dockerfile",
+	"name": "connectedvcs-tools",
 	"build": {
 		// Sets the run context to one level up instead of the .devcontainer folder.
 		"context": "..",
@@ -12,5 +12,16 @@
 			"version": "latest"
 		}
 	},
-	"postCreateCommand": "cd fedgov-cv-lib-asn1c && ./build_jni.sh --clean"
+	"postCreateCommand": "cd fedgov-cv-lib-asn1c && ./build_jni.sh --clean",
+	"postStartCommand": "docker ps -q --filter ancestor=usdotfhwastol/connectedvcs-tools | xargs -r docker rm -f 2>/dev/null; docker build -t usdotfhwastol/connectedvcs-tools --build-arg USE_SSL=false /workspaces/connectedvcs-tools && docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools",
+	"forwardPorts": [],
+
+	// Configure tool-specific properties
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"SonarSource.sonarlint-vscode"
+			]
+		}
+	}
 }

@@ -30,6 +30,8 @@ public class ASN1DecoderTest {
 
     private static final Logger logger = LogManager.getLogger(ASN1DecoderTest.class);
     private static final String SDSM = "SensorDataSharingMessage";
+    private static final String SRM = "SignalRequestMessage";
+    private static final String SSM = "SignalStatusMessage";
 
     private Decoder decoder;
 
@@ -51,6 +53,10 @@ public class ASN1DecoderTest {
     private ByteArrayObject onlyspatMsg;
     private ByteArrayObject onlySDSMMsgFrame;
     private ByteArrayObject onlySDSMMsg;
+    private ByteArrayObject onlySSMMsgFrame;
+    private ByteArrayObject onlySSMMsg;
+    private ByteArrayObject onlySRMMsgFrame;
+    private ByteArrayObject onlySRMMsg;
 
 
 
@@ -197,6 +203,38 @@ public class ASN1DecoderTest {
         when(onlySDSMMsg.getMessage()).thenReturn(
                 DatatypeConverter.parseHexBinary(
                         "0a303030303fdfa7234b5b9eda409510574470ea4793fffffffe09003942d39900940543f2b807ffc2aec0012324748020072c98ab20127f4681b700fff8b60000246f10d00400e58ce4640250240fac001fff09c4c0048fe28100801cac4fec804a0309f86403ffe0000000918a38a010059428519009404d4000007ffc43bf0f9230155001900002765c639eda0814e2a5b8cd2cf514070381010100030180c620fb90caad3b9c508208c6aa68e0f00ede4b396921000329467f5a8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825c9223e759fe71a740c6819635fa595611888b45e760f51c5cc469b39b428f3f808240b97a393a333e06c5353fb6ade829870c35ce858af665778375136547ac932871da55b7823b45ddb589edbb24940be13918de8a9c90d04464be7df5cf0a4362"
+                )
+        );
+
+        onlySSMMsgFrame = mock(ByteArrayObject.class);
+        when(onlySSMMsgFrame.getType()).thenReturn(SSM);
+        when(onlySSMMsgFrame.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "001e1b607f4d7d00d20328019c0b94a8f1a0240c3a00441fd36bfc09c414500320409500027940025574a014e3b89fcd2a0ea906fe81010100030180c620fb90caad3b9c5082087cde3301f3d1ac0f3969210003297dda2b8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825fd2e610a6c95dfc6669f6edf619c6debea37f48482d02d84a83d93c3324fa048082f3e76e81440fc120f8330d1b4d92e00f2ae5acb4bc54b49e24c523dfa79a29479e03d33a299dcb6e2e66509a5a96effa501c2dfdccf16a53ec57d28b5fb9b968"
+                )
+        );
+
+        onlySSMMsg = mock(ByteArrayObject.class);
+        when(onlySSMMsg.getType()).thenReturn(SSM);
+        when(onlySSMMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "607f4d7d00d20328019c0b94a8f1a0240c3a00441fd36bfc09c414500320409500027940025574a014e3b89fcd2a0ea906fe81010100030180c620fb90caad3b9c5082087cde3301f3d1ac0f3969210003297dda2b8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825fd2e610a6c95dfc6669f6edf619c6debea37f48482d02d84a83d93c3324fa048082f3e76e81440fc120f8330d1b4d92e00f2ae5acb4bc54b49e24c523dfa79a29479e03d33a299dcb6e2e66509a5a96effa501c2dfdccf16a53ec57d28b5fb9b968"
+                )
+        );
+
+        onlySRMMsgFrame = mock(ByteArrayObject.class);
+        when(onlySRMMsgFrame.getType()).thenReturn(SRM);
+        when(onlySRMMsgFrame.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "001d2a703a85e1fa2b0390019c1500c0280ea17a5504e20c0951e3404808352a22a2c4e1cf44a45b5121bf03f050032040960002791b5415096014e3bfb2cd29ff2906d481010100030180c620fb90caad3b9c50808002400d8832b73b90f3a972000000000d8832b73b90f3a9723969210001297be1158400a9830101800348010600012000012600012780032040968106053040000000000184000320409981821e3519be59f398fa05612cb4b11703514dab1a054e123bfddafeb10b4803cc808082cdffdb10fbd2c0cf1da46f92f0c897fbd9aebdf00adb5067f2ef780fca1ef069d784f11f640364c878a2dd8ef417a7e45100cd60926ecde57d0286ed18072c8f"
+                )
+        );
+
+        onlySRMMsg = mock(ByteArrayObject.class);
+        when(onlySRMMsg.getType()).thenReturn(SRM);
+        when(onlySRMMsg.getMessage()).thenReturn(
+                DatatypeConverter.parseHexBinary(
+                        "607f4d7d00d20328019c0b94a8f1a0240c3a00441fd36bfc09c414500320409500027940025574a014e3b89fcd2a0ea906fe81010100030180c620fb90caad3b9c5082087cde3301f3d1ac0f3969210003297dda2b8400a98301018003480108800182800500800130408001838005008001f04000018780032040958005000001e040800320409780050080012040000320409900012700019081825fd2e610a6c95dfc6669f6edf619c6debea37f48482d02d84a83d93c3324fa048082f3e76e81440fc120f8330d1b4d92e00f2ae5acb4bc54b49e24c523dfa79a29479e03d33a299dcb6e2e66509a5a96effa501c2dfdccf16a53ec57d28b5fb9b968"
                 )
         );
 
@@ -401,5 +439,51 @@ public class ASN1DecoderTest {
                         r.messageType
                 );    
         }
+                @Test
+        public void testDecodeOnlySSM() {
+                DecodedResult r = decoder.decode( onlySSMMsg, "SSM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SignalStatusMessage'",
+                        SSM,
+                        r.messageType
+                );    
+        }
+        @Test
+        public void testDecodeOnlySRM() {
+                DecodedResult r = decoder.decode( onlySRMMsg, "SRM");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SignalRequestMessage'",
+                        SRM,
+                        r.messageType
+                );
+        }
+
+        @Test
+        public void testDecodeOnlySSMFrame() {
+                DecodedResult r = decoder.decode( onlySSMMsgFrame, "MessageFrame");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SignalStatusMessage'",
+                        SSM,
+                        r.messageType
+                );
+        }
+
+        @Test
+        public void testDecodeOnlySRMFrame() {
+                DecodedResult r = decoder.decode( onlySRMMsgFrame, "MessageFrame");
+                Assert.assertTrue(r.success);
+               Assert.assertFalse(r.decodedMessage.isEmpty());
+                 Assert.assertEquals(
+                        "Expected decoded message type to be 'SignalRequestMessage'",
+                        SRM,
+                        r.messageType
+                );
+        }    
 
 }
