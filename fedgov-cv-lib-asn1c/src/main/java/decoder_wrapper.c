@@ -153,6 +153,12 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
             case 41:
                 msgTypeStr = "SensorDataSharingMessage";
                 break;
+            case 29:
+                msgTypeStr = "SignalRequestMessage";
+                break;
+            case 30:
+                msgTypeStr = "SignalStatusMessage";
+                break;
             default:
                 msgTypeStr = "UnknownMessageType";
                 break;
@@ -205,6 +211,16 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
         {
             asn_def = &asn_DEF_SensorDataSharingMessage;
             messageType = "SensorDataSharingMessage";
+        }
+        else if (type && strcmp(type, "SRM") == 0)
+        {
+            asn_def = &asn_DEF_SignalRequestMessage;
+            messageType = "SignalRequestMessage";
+        }
+        else if (type && strcmp(type, "SSM") == 0)
+        {
+            asn_def = &asn_DEF_SignalStatusMessage;
+            messageType = "SignalStatusMessage";
         }
         else
         {

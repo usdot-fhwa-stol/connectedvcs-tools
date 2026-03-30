@@ -24,7 +24,6 @@ target/
 **/.settings
 .project
 .classpath
-.vscode/
 root.war
 private-resources.war
 *.log
