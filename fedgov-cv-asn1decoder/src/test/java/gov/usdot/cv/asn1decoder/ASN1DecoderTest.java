@@ -58,10 +58,6 @@ public class ASN1DecoderTest {
     private ByteArrayObject onlySRMMsgFrame;
     private ByteArrayObject onlySRMMsg;
 
-
-
-    
-
     @Before
     public void setup() {
 
@@ -242,7 +238,6 @@ public class ASN1DecoderTest {
         emptyMsg = mock(ByteArrayObject.class);
         when(emptyMsg.getMessage()).thenReturn(new byte[]{}); 
     }
-
     @Test
     public void testDecodeBsm() {
         DecodedResult r1 = decoder.decode(bsmMsg1,"MessageFrame");
@@ -263,7 +258,6 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-
     @Test
     public void testDecodePsm() {
         DecodedResult r1 = decoder.decode(psmMsg1,"MessageFrame");
@@ -284,7 +278,6 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-
     @Test
     public void testDecodeSpat() {
         DecodedResult r1 = decoder.decode(spatMsg1,"MessageFrame");
@@ -305,7 +298,6 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-
     @Test
     public void testDecodeMapData() {
         DecodedResult r1 = decoder.decode(mapMsg1,"MessageFrame");
@@ -326,7 +318,6 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-
     @Test
     public void testDecodeTravelerInformation() {
         DecodedResult r1 = decoder.decode(travelerInfoMsg1,"MessageFrame");
@@ -347,7 +338,6 @@ public class ASN1DecoderTest {
             r2.messageType
         );
     }
-
     @Test
     public void testDecodeSDSMFrame() {
         DecodedResult r = decoder.decode(onlySDSMMsgFrame, "MessageFrame");
@@ -359,7 +349,6 @@ public class ASN1DecoderTest {
             r.messageType
         );
     }
-    
     @Test
     public void ASN1DecoderTestEmpty() {
         DecodedResult decodedMessage = decoder.decode(emptyMsg,"empty");
@@ -439,7 +428,7 @@ public class ASN1DecoderTest {
                         r.messageType
                 );    
         }
-                @Test
+        @Test
         public void testDecodeOnlySSM() {
                 DecodedResult r = decoder.decode( onlySSMMsg, "SSM");
                 Assert.assertTrue(r.success);
@@ -461,26 +450,24 @@ public class ASN1DecoderTest {
                         r.messageType
                 );
         }
-
         @Test
         public void testDecodeOnlySSMFrame() {
                 DecodedResult r = decoder.decode( onlySSMMsgFrame, "MessageFrame");
                 Assert.assertTrue(r.success);
                Assert.assertFalse(r.decodedMessage.isEmpty());
                  Assert.assertEquals(
-                        "Expected decoded message type to be 'SignalStatusMessage'",
+                        "Expected decoded message type to be 'SignalStatusMessage' with Message Frame",
                         SSM,
                         r.messageType
                 );
         }
-
         @Test
         public void testDecodeOnlySRMFrame() {
                 DecodedResult r = decoder.decode( onlySRMMsgFrame, "MessageFrame");
                 Assert.assertTrue(r.success);
                Assert.assertFalse(r.decodedMessage.isEmpty());
                  Assert.assertEquals(
-                        "Expected decoded message type to be 'SignalRequestMessage'",
+                        "Expected decoded message type to be 'SignalRequestMessage' with Message Frame",
                         SRM,
                         r.messageType
                 );
