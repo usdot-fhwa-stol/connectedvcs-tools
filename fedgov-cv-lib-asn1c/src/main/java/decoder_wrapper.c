@@ -132,37 +132,7 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
             {
                 decodedStr = "Failed to allocate memory for output";
             }
-
-            switch (message->messageId)
-            {
-            case 20:
-                msgTypeStr = "BasicSafetyMessage";
-                break;
-            case 18:
-                msgTypeStr = "MapData";
-                break;
-            case 19:
-                msgTypeStr = "SPaT";
-                break;
-            case 31:
-                msgTypeStr = "TravelerInformationMessage";
-                break;
-            case 32:
-                msgTypeStr = "PersonalSafetyMessage";
-                break;
-            case 41:
-                msgTypeStr = "SensorDataSharingMessage";
-                break;
-            case 29:
-                msgTypeStr = "SignalRequestMessage";
-                break;
-            case 30:
-                msgTypeStr = "SignalStatusMessage";
-                break;
-            default:
-                msgTypeStr = "UnknownMessageType";
-                break;
-            }
+            msgTypeStr = "MessageFrame";
         }
         else if (rval.code == RC_WMORE)
         {

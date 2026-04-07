@@ -58,7 +58,7 @@ the License.
 		<h3>Recommended message validation steps:</h3>
 		<ol><li>Select desired ASN.1 Specification Version. (Currently only supported version is J2735-2024 but messages should be backward compatible to previous versions)</li>
 		<li>Specify Data Encoding if message bytes are provided as an encoded string. (Currently only supported encoding is HEX) but binary file can be imported using file browse or drag and drop.</li>
-		<li>Select the message type <i>MessageFrame (Frame+MAP, Frame+SPaT, Frame+TIM, Frame+BSM, Frame+PSM, Frame+SDSM, Frame+SSM, Frame+SRM)</i> or any other provided Message Type (MAP, SPaT, TIM, BSM, PSM, SDSM, SSM, SRM)</li>
+		<li>Select the message type <i>MessageFrame</i> or any other provided Message Type (MAP, SPaT, TIM, BSM, PSM, SDSM, SSM, SRM)</li>
 		<li>Provide the binary message by browsing for a bin file, or using file drag and drop, or pasting the message bytes encoded as HEX String.</li>
 		<li>Click Validate.</li>
 		<li>If the message is validated correctly (message type and validation results are green)
@@ -107,8 +107,8 @@ the License.
 	</select></p>
 	<p>Message Type:
 	<select id="message-type">
-    <option value="MessageFrame">MessageFrame (Frame+MAP, Frame+SPaT, Frame+TIM, Frame+BSM, Frame+PSM, Frame+SDSM, Frame+SSM, Frame+SRM)</option>
-	<option value="MAP">MAPData</option>
+    <option value="MessageFrame">MessageFrame</option>
+	<option value="MAP">MAPData (MAP) </option>
 	<option value="SPAT">Signal Phase and Timing (SPaT) </option>
 	<option value="TIM">Traveler Information Message (TIM) </option>
     <option value="BSM">Basic Safety Message (BSM) </option>
