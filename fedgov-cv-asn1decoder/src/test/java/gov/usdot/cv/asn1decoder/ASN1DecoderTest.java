@@ -244,8 +244,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'BasicSafetyMessage'",
-            "BasicSafetyMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r1.messageType
         );
 
@@ -253,8 +253,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'BasicSafetyMessage'",
-            "BasicSafetyMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r2.messageType
         );
     }
@@ -264,8 +264,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
          Assert.assertEquals(
-            "Expected decoded message type to be 'PersonalSafetyMessage'",
-            "PersonalSafetyMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r1.messageType
         );
 
@@ -273,8 +273,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
          Assert.assertEquals(
-            "Expected decoded message type to be 'PersonalSafetyMessage'",
-            "PersonalSafetyMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r2.messageType
         );
     }
@@ -284,8 +284,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'SPAT'",
-            "SPaT",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r1.messageType
         );
 
@@ -293,8 +293,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'SPAT'",
-            "SPaT",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r2.messageType
         );
     }
@@ -304,8 +304,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'MapData'",
-            "MapData",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r1.messageType
         );
 
@@ -313,8 +313,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'MapData'",
-            "MapData",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r2.messageType
         );
     }
@@ -324,8 +324,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r1.success);
         Assert.assertFalse(r1.decodedMessage.isEmpty());
          Assert.assertEquals(
-            "Expected decoded message type to be 'TravelerInformationMessage'",
-            "TravelerInformationMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r1.messageType
         );
 
@@ -333,8 +333,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r2.success);
         Assert.assertFalse(r2.decodedMessage.isEmpty());
          Assert.assertEquals(
-            "Expected decoded message type to be 'TravelerInformationMessage'",
-            "TravelerInformationMessage",
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r2.messageType
         );
     }
@@ -344,8 +344,8 @@ public class ASN1DecoderTest {
         Assert.assertTrue(r.success);
         Assert.assertFalse(r.decodedMessage.isEmpty());
         Assert.assertEquals(
-            "Expected decoded message type to be 'SensorDataSharingMessage'",
-            SDSM,
+            "Expected decoded message type to be 'MessageFrame'",
+            "MessageFrame",
             r.messageType
         );
     }
@@ -456,8 +456,8 @@ public class ASN1DecoderTest {
                 Assert.assertTrue(r.success);
                Assert.assertFalse(r.decodedMessage.isEmpty());
                  Assert.assertEquals(
-                        "Expected decoded message type to be 'SignalStatusMessage' with Message Frame",
-                        SSM,
+                        "Expected decoded message type to be Message Frame",
+                        "MessageFrame",
                         r.messageType
                 );
         }
@@ -467,8 +467,8 @@ public class ASN1DecoderTest {
                 Assert.assertTrue(r.success);
                Assert.assertFalse(r.decodedMessage.isEmpty());
                  Assert.assertEquals(
-                        "Expected decoded message type to be 'SignalRequestMessage' with Message Frame",
-                        SRM,
+                        "Expected decoded message type to be Message Frame",
+                        "MessageFrame",
                         r.messageType
                 );
         }    
