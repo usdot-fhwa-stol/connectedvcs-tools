@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -41,11 +41,13 @@ public class TileProxyService {
     private AzureConfig azureConfig;
 
     private final Logger logger = LogManager.getLogger(TileProxyService.class);
+    private final Executor s3Executor;
 
-    public TileProxyService(RestTemplateBuilder restTemplateBuilder, S3Adapter s3Depositor, AzureConfig azureConfig) {
-        this.restTemplate = restTemplateBuilder.build();
+    public TileProxyService(RestTemplateBuilder restTemplateBuilder, S3Adapter s3Depositor, AzureConfig azureConfig, @Qualifier("s3Executor") Executor s3Executor) {
+        this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(10)).build();
         this.s3Adapter = s3Depositor;
         this.azureConfig = azureConfig;
+        this.s3Executor = s3Executor;
     }
 
     /**
@@ -67,14 +69,14 @@ public class TileProxyService {
         //Save to S3
         if (azureTileBytes != null && azureTileBytes.length > 0) {
             logger.info("Tile set fetched from Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-            new Thread(() -> {
+            s3Executor.execute(() -> {
                 try {
                     s3Adapter.saveToS3(tilesetId, z, x, y, azureTileBytes);
                     logger.info("Successfully saved tile set to S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
-                } catch (S3Exception e) {
+                } catch (Exception e) {
                     logger.error("Failed to save tile set to S3 for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y, e);
                 }
-            }, "s3-save-thread").start();
+            });
             return azureTileBytes;
         } else {
             logger.warn("Tile set not found in Azure Maps for tilesetId: {}, z: {}, x: {}, y: {}", tilesetId, z, x, y);
