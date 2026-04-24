@@ -17,6 +17,8 @@
 package gov.usdot.cv.asn1decoder;
 
 import gov.usdot.cv.libasn1decoder.DecodedResult;
+import gov.usdot.cv.asn1decoder.util.BitStringProcessor;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -64,7 +66,19 @@ public class Decoder {
 			}
 		} else {
 			logger.info("Decoded Message Type: {}", result.messageType);
-			logger.debug("Decoded Message: {}", result.decodedMessage);
+			// logger.debug("Decoded Message: {}", result.decodedMessage);
+
+
+			if (result.decodedMessage != null &&
+				result.decodedMessage.contains("MapData ::=")) {
+
+				logger.info("Applying BIT STRING decoding for MAP (Java layer)");
+
+				result.decodedMessage =
+					BitStringProcessor.processMapBitStrings(result.decodedMessage);
+			}
+
+
 		}
 
 		return result;
