@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package gov.usdot.cv.asn1decoder.util;
 
 import java.util.regex.Matcher;
@@ -131,6 +147,7 @@ public class BitStringProcessor {
     private static final Map<String, String[]> FIELD_TO_NAMES = new HashMap<>();
     static {
         FIELD_TO_NAMES.put("maneuvers",      MANEUVER_NAMES);
+        FIELD_TO_NAMES.put("maneuver",       MANEUVER_NAMES);
         FIELD_TO_NAMES.put("directionalUse", LANE_DIRECTION_NAMES);
         FIELD_TO_NAMES.put("sharedWith",     LANE_SHARING_NAMES);
         FIELD_TO_NAMES.put("vehicle",        VEHICLE_NAMES);
@@ -144,14 +161,13 @@ public class BitStringProcessor {
     };
 
     private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
-              "\\b(maneuvers|directionalUse|sharedWith|vehicle|crosswalk|bikeLane|" +
+        "\\b(maneuvers|maneuver|directionalUse|sharedWith|vehicle|crosswalk|bikeLane|" +
         "sidewalk|median|striping|trackedVehicle|parking)" +
         ":\\s*([0-9A-Fa-f]{1,2}(?:\\s+[0-9A-Fa-f]{1,2})*)\\s*" +
         "\\((\\d+)\\s*bits?\\s*unused\\)"
     );
 
-    /** Entry point for MAP post-processing. */
-    public static String processMapBitStrings(String decoded) {
+     public static String processMapBitStrings(String decoded) {
         if (decoded == null) return null;
  
         Matcher m = BIT_STRING_PATTERN.matcher(decoded);
