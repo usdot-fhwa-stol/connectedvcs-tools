@@ -695,25 +695,37 @@ function createMessageJSON()
     errors.getSource().clear();
     
 
-    for(let j=0; j< laneFeat.length; j++){        
-        let coords = laneFeat[j].getGeometry().getFirstCoordinate();
-        let errorMarker = new ol.Feature({
-            geometry: new ol.geom.Point(coords)
-        });
-        errorMarker.setStyle(errorMarkerStyle);
-        if (!laneFeat[j].get("inBox")){
+    for (let j = 0; j < laneFeat.length; j++) {
+        const makeMarker = () => {
+            const m = new ol.Feature({
+                geometry: new ol.geom.Point(laneFeat[j].getGeometry().getFirstCoordinate())
+            });
+            m.setStyle(errorMarkerStyle);
+            return m;
+        };
+
+        if (!laneFeat[j].get("inBox")) {
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
+            $('#alert_placeholder').append(
+                '<div class="alert alert-danger alert-dismissable">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                '<span>Lane at error marker' +
+                ' exists outside of an approach.</span></div>'
+            );
             $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            errors.getSource().addFeature(makeMarker());
         }
         if (!laneFeat[j].get('laneNumber')) {
-            // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
             let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
+            $('#alert_placeholder').append(
+                '<div class="alert alert-danger alert-dismissable">' +
+                '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                '<span>Lane at error marker' +
+                ' is not assigned a lane number. Check overlapping points.</span></div>'
+            );
             $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            errors.getSource().addFeature(makeMarker());
         }
     }
     let vectorFeatures = vectors.getSource().getFeatures();
