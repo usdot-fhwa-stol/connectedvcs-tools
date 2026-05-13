@@ -694,28 +694,48 @@ function createMessageJSON()
     }
     errors.getSource().clear();
     
+    let inBoxErrorCounter = 0;
+    let laneNumberErrorCounter = 0;
 
-    for(let j=0; j< laneFeat.length; j++){        
-        let coords = laneFeat[j].getGeometry().getFirstCoordinate();
-        let errorMarker = new ol.Feature({
-            geometry: new ol.geom.Point(coords)
-        });
-        errorMarker.setStyle(errorMarkerStyle);
-        if (!laneFeat[j].get("inBox")){
+    for (let j = 0; j < laneFeat.length; j++) {
+        const makeMarker = () => {
+            const m = new ol.Feature({
+                geometry: new ol.geom.Point(laneFeat[j].getGeometry().getFirstCoordinate())
+            });
+            m.setStyle(errorMarkerStyle);
+            return m;
+        };
+
+        if (!laneFeat[j].get("inBox")) {
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
-            $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            inBoxErrorCounter++;
+            errors.getSource().addFeature(makeMarker());
         }
         if (!laneFeat[j].get('laneNumber')) {
-            // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
-            let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
-            $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            laneNumberErrorCounter++;
+            errors.getSource().addFeature(makeMarker());
         }
     }
+
+    if (inBoxErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> There exists ' + inBoxErrorCounter + ' lane(s) outside of an approach. Check error markers.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
+
+    if (laneNumberErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> There exists ' + laneNumberErrorCounter + ' lane(s) without a assigned lane number. Check overlapping points.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
+
     let vectorFeatures = vectors.getSource().getFeatures();
     for (let f = 0; f < vectorFeatures.length; f++) {
         let feature = vectorFeatures[f];
