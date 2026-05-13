@@ -718,20 +718,23 @@ function createMessageJSON()
         }
     }
 
-    $('#alert_placeholder').append(
-        '<div class="alert alert-danger alert-dismissable">' +
-        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
-        '<span> There exists ' + inBoxErrorCounter + ' lane(s) outside of an approach. Check error markers.</span></div>'
-    );
-    $('#message_alert').removeClass('alert-section-hidden');
+    if (inBoxErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> There exists ' + inBoxErrorCounter + ' lane(s) outside of an approach. Check error markers.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
 
-    $('#alert_placeholder').append(
-        '<div class="alert alert-danger alert-dismissable">' +
-        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
-        '<span> There exists ' + laneNumberErrorCounter + ' lane(s) without a assigned lane number. Check overlapping points.</span></div>'
-    );
-    $('#message_alert').removeClass('alert-section-hidden');
-
+    if (laneNumberErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> There exists ' + laneNumberErrorCounter + ' lane(s) without a assigned lane number. Check overlapping points.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
 
     let vectorFeatures = vectors.getSource().getFeatures();
     for (let f = 0; f < vectorFeatures.length; f++) {
