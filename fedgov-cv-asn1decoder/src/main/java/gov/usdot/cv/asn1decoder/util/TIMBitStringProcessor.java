@@ -68,7 +68,7 @@ public class TIMBitStringProcessor {
 
     private static final Pattern TIM_BIT_STRING_PATTERN = Pattern.compile(
         "\\b(viewAngle|direction|heading|directions)" +
-        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s[0-9A-Fa-f]{1,2})*)" +
+        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)" +
         "(?:\\s*\\((\\d+)\\s*bits?\\s*unused\\))?"
     );
 
