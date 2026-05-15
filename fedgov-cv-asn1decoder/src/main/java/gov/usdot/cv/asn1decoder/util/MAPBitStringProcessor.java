@@ -160,36 +160,26 @@ public class MAPBitStringProcessor {
         FIELD_TO_NAMES.put("parking",        PARKING_NAMES);
     };
 
-    private static final Pattern BIT_STRING_PATTERN_1 = Pattern.compile(
-        "\\b(maneuvers|maneuver|directionalUse|sharedWith|vehicle|crosswalk)" +
-        ":\\s?([0-9A-Fa-f]{1,2}(?:\\s[0-9A-Fa-f]{1,2})*)" +
-        "(?:\\s?\\((\\d+)\\s?bits?\\s?unused\\))?"
+    private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
+        "\\b(maneuvers|maneuver|directionalUse|sharedWith|vehicle|crosswalk|bikeLane|" +
+        "sidewalk|median|striping|trackedVehicle|parking)" +
+        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)\\s*" +
+        "\\((\\d+)\\s*bits?\\s*unused\\)"
     );
 
-    private static final Pattern BIT_STRING_PATTERN_2 = Pattern.compile(
-        "\\b(bikeLane|sidewalk|median|striping|trackedVehicle|parking)" +
-        ":\\s?([0-9A-Fa-f]{1,2}(?:\\s[0-9A-Fa-f]{1,2})*)" +
-        "(?:\\s?\\((\\d+)\\s?bits?\\s?unused\\))?"
-    );
- 
     public static String processMapBitStrings(String decoded) {
         if (decoded == null) return null;
-        decoded = processWith(decoded, BIT_STRING_PATTERN_1);
-        decoded = processWith(decoded, BIT_STRING_PATTERN_2);
-        return decoded;
-    }
  
-    private static String processWith(String decoded, Pattern pattern) {
-        Matcher m = pattern.matcher(decoded);
+        Matcher m = BIT_STRING_PATTERN.matcher(decoded);
         StringBuffer out = new StringBuffer();
         while (m.find()) {
             String fieldName = m.group(1);
             String hex       = m.group(2).trim();
-            int unusedBits   = (m.group(3) != null) ? Integer.parseInt(m.group(3)) : 0;
+            int unusedBits   = Integer.parseInt(m.group(3));
             String[] names   = FIELD_TO_NAMES.get(fieldName);
  
             if (names == null) {
-                // Regex matched but dispatch table has no entry
+                // Regex said yes but dispatch table says no — leave unchanged.
                 m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
                 continue;
             }
