@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BitStringProcessor {
+public class MAPBitStringProcessor {
 
     /**
      * AllowedManeuvers bit names (index = bit position)
@@ -163,11 +163,11 @@ public class BitStringProcessor {
     private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
         "\\b(maneuvers|maneuver|directionalUse|sharedWith|vehicle|crosswalk|bikeLane|" +
         "sidewalk|median|striping|trackedVehicle|parking)" +
-        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s+[0-9A-Fa-f]{1,2})*)\\s*" +
+        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)\\s*" +
         "\\((\\d+)\\s*bits?\\s*unused\\)"
     );
 
-     public static String processMapBitStrings(String decoded) {
+    public static String processMapBitStrings(String decoded) {
         if (decoded == null) return null;
  
         Matcher m = BIT_STRING_PATTERN.matcher(decoded);
@@ -184,35 +184,13 @@ public class BitStringProcessor {
                 continue;
             }
  
-            String readable = decodeBitString(hex, unusedBits, names);
+            String readable = BitStringUtil.decodeBitString(hex, unusedBits, names);
             m.appendReplacement(out, Matcher.quoteReplacement(fieldName + ": " + readable));
         }
         m.appendTail(out);
         return out.toString();
     }
  
-    /** Decode {@code hex} (space-separated bytes) with {@code unusedBits} trailing
-     *  unused bits into a {@code "{ name1 name2 }"} list, MSB-first. */
-    private static String decodeBitString(String hex, int unusedBits, String[] names) {
-        String[] bytesStr = hex.split("\\s+");
-        byte[] bytes = new byte[bytesStr.length];
-        for (int i = 0; i < bytesStr.length; i++) {
-            bytes[i] = (byte) Integer.parseInt(bytesStr[i], 16);
-        }
  
-        int totalBits = bytes.length * 8 - unusedBits;
- 
-        StringBuilder sb = new StringBuilder("{ ");
-        for (int i = 0; i < totalBits && i < names.length; i++) {
-            int byteIndex = i / 8;
-            int bitIndex  = 7 - (i % 8); // MSB-first
-            if (((bytes[byteIndex] >> bitIndex) & 1) == 1) {
-                sb.append(names[i]).append(' ');
-            }
-        }
-        sb.append('}');
-        return sb.toString();
-    }
- 
-    private BitStringProcessor() { /* utility class */ }
+    private MAPBitStringProcessor() { /* utility class */ }
 }   

@@ -17,7 +17,8 @@
 package gov.usdot.cv.asn1decoder;
 
 import gov.usdot.cv.libasn1decoder.DecodedResult;
-import gov.usdot.cv.asn1decoder.util.BitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -75,8 +76,15 @@ public class Decoder {
 				logger.info("Applying BIT STRING decoding for MAP (Java layer)");
 
 				result.decodedMessage =
-					BitStringProcessor.processMapBitStrings(result.decodedMessage);
+					MAPBitStringProcessor.processMapBitStrings(result.decodedMessage);
 			}
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("TravelerInformation ::=")) {
+                logger.info("Applying BIT STRING decoding for TIM (Java layer)");
+                result.decodedMessage =
+                    TIMBitStringProcessor.processTIMBitStrings(result.decodedMessage);
+            }
 
 
 		}
