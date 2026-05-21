@@ -59,7 +59,19 @@
       "laneList": {
         "approach": [
           {
-            "approachType": "Ingress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Ingress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "01",
             "drivingLanes": [
               {
@@ -89,7 +101,16 @@
                     "speedLimitType": [
                       {
                         "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [
+                            "0"
+                          ],
+                          "timePeriodType": "general",
+                          "timePeriodValue": "night",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   },
@@ -102,7 +123,16 @@
                     "speedLimitType": [
                       {
                         "speedLimitType": "Vehicle Night Max Speed",
-                        "velocity": "23"
+                        "velocity": "23",
+                        "speedLimitChoice": "regulatory",
+                        "timeRestrictions": {
+                          "daysOfTheWeek": [
+                            "0"
+                          ],
+                          "timePeriodType": "general",
+                          "timePeriodValue": "night",
+                          "timePeriodRange": {}
+                        }
                       }
                     ]
                   }
@@ -140,7 +170,19 @@
             ]
           },
           {
-            "approachType": "Egress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Egress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "02",
             "drivingLanes": [
               {
@@ -181,7 +223,19 @@
             ]
           },
           {
-            "approachType": "Ingress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Ingress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "03",
             "drivingLanes": [
               {
@@ -222,7 +276,19 @@
             ]
           },
           {
-            "approachType": "Egress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Egress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "04",
             "drivingLanes": [
               {
@@ -263,7 +329,19 @@
             ]
           },
           {
-            "approachType": "Ingress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Ingress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "05",
             "drivingLanes": [
               {
@@ -304,7 +382,19 @@
             ]
           },
           {
-            "approachType": "Egress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Egress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "06",
             "drivingLanes": [
               {
@@ -345,7 +435,19 @@
             ]
           },
           {
-            "approachType": "Ingress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Ingress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "07",
             "drivingLanes": [
               {
@@ -386,7 +488,19 @@
             ]
           },
           {
-            "approachType": "Egress",
+            "approachTypes": [
+              {
+                "rowId": 0,
+                "selected": true,
+                "approachType": "Egress",
+                "timeRestrictions": {
+                  "daysOfTheWeek": [],
+                  "timePeriodType": "",
+                  "timePeriodValue": "",
+                  "timePeriodRange": {}
+                }
+              }
+            ],
             "approachID": "08",
             "drivingLanes": [
               {

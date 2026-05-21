@@ -30,9 +30,9 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 
 1. Set up LD_LIBRARY_PATH by running:
 ```
-echo export LD_LIBRARY_PATH="[path_to_connectedvcs-tools]/fedgov-cv-lib-asn1c/third_party_lib" >> ~/.bashrc
+echo export LD_LIBRARY_PATH="[path_to_connectedvcs-tools]/fedgov-cv-lib-asn1c/lib" >> ~/.bashrc
 ```
-   - **NOTE**: Change the above path to point to the correct [third_party_lib path](/fedgov-cv-lib-asn1c/third_party_lib).
+   - **NOTE**: Change the above path to point to the correct [lib path](/fedgov-cv-lib-asn1c/lib).
 
 ## Update web.xml files for use with or without SSL
 
@@ -63,6 +63,7 @@ mv /tmp/web.xml.tmp fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
     - Please read the [Google Maps API Key Guidance](/docs/GoogleMaps_API_Key_Guidance.md).
     - Please read the [Esri Maps API Key Guidance](/docs/Azure_Maps_API_Key_Guidance.md)
     - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
+    - Please read the [S3 Bucket Configuration](/docs/S3_Bucket_Configuration.md).
 
 3. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
 4. Run:

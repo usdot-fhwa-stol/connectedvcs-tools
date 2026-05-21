@@ -1,0 +1,155 @@
+{
+    "regions": [
+      {
+        "regionType": "region",
+        "laneNodes": [
+          {
+            "nodeNumber": 0,
+            "nodeLat": 38.95499445768775,
+            "nodeLong": -77.14916739115948,
+            "nodeElevation": 40
+          },
+          {
+            "nodeNumber": 1,
+            "nodeLat": 38.95493605545525,
+            "nodeLong": -77.14918080220448,
+            "nodeElevation": 40
+          },
+          {
+            "nodeNumber": 2,
+            "nodeLat": 38.95491206881036,
+            "nodeLong": -77.14901450524545,
+            "nodeElevation": 40
+          },
+          {
+            "nodeNumber": 3,
+            "nodeLat": 38.95489642534156,
+            "nodeLong": -77.148844184973,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 4,
+            "nodeLat": 38.95488182476777,
+            "nodeLong": -77.14859205732581,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 5,
+            "nodeLat": 38.95488495346231,
+            "nodeLong": -77.14835736403703,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 6,
+            "nodeLat": 38.954893296647555,
+            "nodeLong": -77.14821520695934,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 7,
+            "nodeLat": 38.954909983014375,
+            "nodeLong": -77.1480757320903,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 8,
+            "nodeLat": 38.954930840967535,
+            "nodeLong": -77.14791614065422,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 9,
+            "nodeLat": 38.95499445768775,
+            "nodeLong": -77.14792955169922,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 10,
+            "nodeLat": 38.95496525657748,
+            "nodeLong": -77.14812535295688,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 11,
+            "nodeLat": 38.95494544153124,
+            "nodeLong": -77.1483895505452,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 12,
+            "nodeLat": 38.954947527326226,
+            "nodeLong": -77.14869532237238,
+            "nodeElevation": 41
+          },
+          {
+            "nodeNumber": 13,
+            "nodeLat": 38.9549558705034,
+            "nodeLong": -77.14884016165959,
+            "nodeElevation": 40
+          },
+          {
+            "nodeNumber": 14,
+            "nodeLat": 38.9549694281655,
+            "nodeLong": -77.1489809776325,
+            "nodeElevation": 40
+          }
+        ],
+        "extent": ""
+      }
+    ],
+    "anchorPoint": {
+      "name": "Work Zone",
+      "referenceLat": 38.95493709835287,
+      "referenceLon": -77.14893538008023,
+      "referenceElevation": "39",
+      "masterLaneWidth": "366",
+      "sspTimRights": "",
+      "packetID": "307699255",
+      "content": [
+        {
+          "codes": [
+            "7991"
+          ],
+          "text": ""
+        }
+      ],
+      "sspTypeRights": "",
+      "sspContentRights": "",
+      "sspLocationRights": "",
+      "direction": "3",
+      "mutcd": "3",
+      "infoType": "2",
+      "priority": "7",
+      "startTime": "06/25/2023 12:01 PM",
+      "endTime": "09/01/2025 12:04 PM",
+      "heading": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "verifiedPoint": {
+      "verifiedMapLat": 38.95606460014278,
+      "verifiedMapLon": -77.1493818258827,
+      "verifiedMapElevation": 38,
+      "verifiedSurveyedLat": "38.956064604728155",
+      "verifiedSurveyedLon": "-77.14938183662201",
+      "verifiedSurveyedElevation": "38"
+    },
+    "messageType": "Frame+TIM",
+    "nodeOffsets": "Tight",
+    "enableElevation": true
+  }

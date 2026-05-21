@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,9 +16,12 @@
 
 package gov.usdot.cv.asn1decoder;
 
+import gov.usdot.cv.libasn1decoder.DecodedResult;
+import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.apache.commons.codec.binary.Hex;
@@ -47,22 +50,46 @@ public class Decoder {
 	 *
 	 * @return JSON string decoded message
 	 */
-	public native String decodeMsg(byte[] message);
+	public native DecodedResult decodeMsg(byte[] message, String messageType);
+
+	public DecodedResult decode(ByteArrayObject binaryMessage, String messageType) {
+		logger.debug("Decoding the binary message...");
+		DecodedResult result = decodeMsg(binaryMessage.getMessage(), messageType);
+
+		if (result == null || !result.success) {
+			logger.error("Decoding failed or returned null.");
+			//If a null object is returned assigning a object with empty decoded message and messagetype
+			if (result == null) {
+				result = new DecodedResult();
+				result.decodedMessage = "";
+				result.messageType = "";
+				result.success = false;
+			}
+		} else {
+			logger.info("Decoded Message Type: {}", result.messageType);
+			// logger.debug("Decoded Message: {}", result.decodedMessage);
 
 
-	public String decode(ByteArrayObject binaryMessage) {
-		logger.debug("Decoding the binary message :");
+			if (result.decodedMessage != null &&
+				result.decodedMessage.contains("MapData ::=")) {
 
-		/*Decoding the binary Message */
-		String decodedMsg = decodeMsg(binaryMessage.getMessage());
+				logger.info("Applying BIT STRING decoding for MAP (Java layer)");
 
-		if (decodedMsg == null) {
-			// cannot decode message
-			logger.error("Cannot decode!");
-			return "";
+				result.decodedMessage =
+					MAPBitStringProcessor.processMapBitStrings(result.decodedMessage);
+			}
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("TravelerInformation ::=")) {
+                logger.info("Applying BIT STRING decoding for TIM (Java layer)");
+                result.decodedMessage =
+                    TIMBitStringProcessor.processTIMBitStrings(result.decodedMessage);
+            }
+
+
 		}
 
-		return decodedMsg;
+		return result;
 	}
 
 }

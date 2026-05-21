@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: fedgov-cv-map-georeferencing
+
+server:
+  port: 8080
+
+# Georeferencing configuration
+georeference:
+  image:
+    supported-formats:
+      - image/png
+      - image/jpeg
+      - image/jpg
+    max-size: 50MB
+  gcp:
+    min-count: 6
+    max-count: 10
+  

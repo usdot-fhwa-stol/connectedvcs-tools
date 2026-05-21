@@ -17,24 +17,24 @@
 package gov.usdot.cv.mapencoder;
 
 public class RegulatorySpeedLimit {
-    private SpeedLimitType type;
+    private CommonSpeedLimitType type;
     private double speed;
 
     // Constructors
     public RegulatorySpeedLimit() {
     }
 
-    public RegulatorySpeedLimit(SpeedLimitType type, double speed) {
+    public RegulatorySpeedLimit(CommonSpeedLimitType type, double speed) {
         this.type = type;
         this.speed = speed;
     }
 
     // Getter and Setter
-    public SpeedLimitType getType() {
+    public CommonSpeedLimitType getType() {
         return type;
     }
 
-    public void setType(SpeedLimitType type) {
+    public void setType(CommonSpeedLimitType type) {
         this.type = type;
     }
 

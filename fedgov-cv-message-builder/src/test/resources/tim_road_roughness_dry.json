@@ -1,0 +1,110 @@
+{
+  "regions": [
+    {
+      "regionType": "lane",
+      "laneNodes": [
+        {
+          "nodeNumber": 0,
+          "nodeLat": 42.336884905669564,
+          "nodeLong": -83.05067580147416,
+          "nodeElevation": 149,
+          "laneWidth": "0"
+        },
+        {
+          "nodeNumber": 1,
+          "nodeLat": 42.33670435093529,
+          "nodeLong": -83.05056216302263,
+          "nodeElevation": 149,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 2,
+          "nodeLat": 42.33668879286975,
+          "nodeLong": -83.05055274023123,
+          "nodeElevation": 149,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 3,
+          "nodeLat": 42.33656234937038,
+          "nodeLong": -83.050476159414,
+          "nodeElevation": 148,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 4,
+          "nodeLat": 42.3364735877127,
+          "nodeLong": -83.05042240078913,
+          "nodeElevation": 148,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 5,
+          "nodeLat": 42.33636070919715,
+          "nodeLong": -83.0503490021275,
+          "nodeElevation": 148,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 6,
+          "nodeLat": 42.33629882504343,
+          "nodeLong": -83.05030876233761,
+          "nodeElevation": 148,
+          "laneWidth": 0
+        }
+      ],
+      "extent": ""
+    }
+  ],
+  "anchorPoint": {
+    "name": "Work Zone",
+    "referenceLat": 42.336780601018944,
+    "referenceLon": -83.05062135449238,
+    "referenceElevation": "149",
+    "masterLaneWidth": "366",
+    "sspTimRights": "",
+    "packetID": "709030766",
+    "content": [
+      {
+        "codes": [
+          "7991"
+        ],
+        "text": ""
+      }
+    ],
+    "sspTypeRights": "",
+    "sspContentRights": "",
+    "sspLocationRights": "",
+    "direction": "1",
+    "mutcd": "3",
+    "infoType": "2",
+    "priority": 4,
+    "startTime": "01/01/2026 9:52 AM",
+    "endTime": "02/28/2026 9:52 AM",
+    "heading": [
+      0,
+      1,
+      2,
+      13,
+      14,
+      15
+    ],
+    "meanVerticalVariation": "16",
+    "verticalVariationStdDev": "17",
+    "meanHorizontalVariation": "18",
+    "horizontalVariationStdDev": "19",
+    "road_surface": "Portland Cement",
+    "road_condition": "0",
+    "road_surface_type": 0
+  },
+  "verifiedPoint": {
+    "verifiedMapLat": 42.33716524092131,
+    "verifiedMapLon": -83.05076082936115,
+    "verifiedSurveyedLat": "42.33716524092131",
+    "verifiedSurveyedLon": "-83.05076082936115",
+    "verifiedSurveyedElevation": "149"
+  },
+  "messageType": "Frame+TIM",
+  "nodeOffsets": "Explicit",
+  "enableElevation": true
+}

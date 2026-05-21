@@ -37,7 +37,7 @@ public class MapEncodeTest {
     RestrictionClassAssignment mockRestrictionClass;
     RestrictionClassList mockRestrictionClassList;
     Position3D mockIntersectionRefPoint;
-    SpeedLimitType mockSpeedLimitType;
+    CommonSpeedLimitType mockSpeedLimitType;
     RegulatorySpeedLimit mockRegulatorySpeedLimit;
     SpeedLimitList mockSpeedLimitList;
     LaneList mockLaneList;
@@ -104,7 +104,7 @@ public class MapEncodeTest {
         mockIntersectionGeometry2 = mock(IntersectionGeometry.class);
         mockRestrictionClassList = mock(RestrictionClassList.class);
         mockIntersectionRefPoint = mock(Position3D.class);
-        mockSpeedLimitType = mock(SpeedLimitType.class);
+        mockSpeedLimitType = mock(CommonSpeedLimitType.class);
         mockRegulatorySpeedLimit = mock(RegulatorySpeedLimit.class);
         mockSpeedLimitList = mock(SpeedLimitList.class);
         mockLaneList = mock(LaneList.class);
