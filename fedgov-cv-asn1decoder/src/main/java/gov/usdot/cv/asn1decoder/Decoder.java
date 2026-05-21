@@ -19,6 +19,8 @@ package gov.usdot.cv.asn1decoder;
 import gov.usdot.cv.libasn1decoder.DecodedResult;
 import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -84,6 +86,20 @@ public class Decoder {
                 logger.info("Applying BIT STRING decoding for TIM (Java layer)");
                 result.decodedMessage =
                     TIMBitStringProcessor.processTIMBitStrings(result.decodedMessage);
+            }
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("SPAT ::=")) {
+                logger.info("Applying BIT STRING decoding for SPAT (Java layer)");
+                result.decodedMessage =
+                    SPATBitStringProcessor.processSPATBitStrings(result.decodedMessage);
+            }
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("BasicSafetyMessage ::=")) {
+                logger.info("Applying BIT STRING decoding for BSM (Java layer)");
+                result.decodedMessage =
+                    BSMBitStringProcessor.processBSMBitStrings(result.decodedMessage);
             }
 
 

@@ -20,7 +20,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the BIT STRING post-processors
- * ({@link MAPBitStringProcessor} and {@link BSMBitStringProcessor}).
+ * ({@link MAPBitStringProcessor}, {@link BSMBitStringProcessor}, {@link SPATBitStringProcessor}).
  *
  * Both processors are pure Java (regex + dispatch table + {@link BitStringUtil}),
  * so these tests run without the native asn1c library. Expected values are
@@ -295,5 +295,104 @@ public class BitStringProcessorTest {
         String input = "brakes: 80 (4 bits unused); lights: 80 (7 bits unused)";
         String expected = "brakes: 80 (4 bits unused); lights: { lowBeamHeadlightsOn }";
         Assert.assertEquals(expected, BSMBitStringProcessor.processBSMBitStrings(input));
+    }
+
+    // SPATBitStringProcessor
+
+    @Test
+    public void spatNullInputReturnsNull() {
+        Assert.assertNull(SPATBitStringProcessor.processSPATBitStrings(null));
+    }
+
+    @Test
+    public void spatEmptyStringReturnsEmptyString() {
+        Assert.assertEquals("", SPATBitStringProcessor.processSPATBitStrings(""));
+    }
+ 
+    @Test
+    public void unrecognizedFieldNameIsLeftUnchanged() {
+        // "revision" is not in the regex alternation, so it passes through verbatim.
+        String input = "revision: 80 00";
+        Assert.assertEquals(input, SPATBitStringProcessor.processSPATBitStrings(input));
+    }
+
+    @Test
+    public void statusSingleBit() {
+        // 0x80 0x00 -> bit 0 only.
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled }",
+            SPATBitStringProcessor.processSPATBitStrings("status: 80 00"));
+    }
+ 
+    @Test
+    public void statusMultipleBitsFirstByte() {
+        // 0xA0 = 1010 0000 -> bits 0 and 2.
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled failureFlash }",
+            SPATBitStringProcessor.processSPATBitStrings("status: A0 00"));
+    }
+ 
+    @Test
+    public void statusAllEightBitsOfFirstByte() {
+        // 0xFF 0x00 -> first 8 names (manualControlIsEnabled .. standbyOperation).
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled stopTimeIsActivated failureFlash preemptIsActive "
+                + "signalPriorityIsActive fixedTimeOperation trafficDependentOperation "
+                + "standbyOperation }",
+            SPATBitStringProcessor.processSPATBitStrings("status: FF 00"));
+    }
+ 
+    @Test
+    public void statusAllFourteenNamedBits() {
+        // 14 named bits. "FF FC" = byte0 0xFF (bits 0-7),
+        // byte1 0xFC = 1111 1100 (bits 8-13 set, 14-15 reserved -> 2 unused).
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled stopTimeIsActivated failureFlash preemptIsActive "
+                + "signalPriorityIsActive fixedTimeOperation trafficDependentOperation "
+                + "standbyOperation failureMode off recentMAPmessageUpdate "
+                + "recentChangeInMAPassignedLanesIDsUsed noValidMAPisAvailableAtThisTime "
+                + "noValidSPATisAvailableAtThisTime }",
+            SPATBitStringProcessor.processSPATBitStrings("status: FF FC"));
+    }
+ 
+    @Test
+    public void reservedBitsBeyondNamesAreIgnored() {
+        // "00 03" -> bits 14 and 15 set (reserved). 14 names cap the scan, so nothing emitted.
+        Assert.assertEquals(
+            "status: { }",
+            SPATBitStringProcessor.processSPATBitStrings("status: 00 03"));
+    }
+ 
+    @Test
+    public void noBitsSetProducesEmptyBraces() {
+        Assert.assertEquals(
+            "status: { }",
+            SPATBitStringProcessor.processSPATBitStrings("status: 00 00"));
+    }
+ 
+    @Test
+    public void lastNamedBitOnly() {
+        // bit 13 = noValidSPATisAvailableAtThisTime. byte1 = 0x04 = 0000 0100 -> bit 13.
+        Assert.assertEquals(
+            "status: { noValidSPATisAvailableAtThisTime }",
+            SPATBitStringProcessor.processSPATBitStrings("status: 00 04"));
+    }
+
+    @Test
+    public void lowercaseHexIsParsed() {
+        // Lowercase 'ff', byte0 set -> first 8 names.
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled stopTimeIsActivated failureFlash preemptIsActive "
+                + "signalPriorityIsActive fixedTimeOperation trafficDependentOperation "
+                + "standbyOperation }",
+            SPATBitStringProcessor.processSPATBitStrings("status: ff 00"));
+    }
+ 
+    @Test
+    public void singularBitWordIsAccepted() {
+        // "1 bit unused" (singular) must match the same as "bits".
+        Assert.assertEquals(
+            "status: { manualControlIsEnabled }",
+            SPATBitStringProcessor.processSPATBitStrings("status: 80 00"));
     }
 }
