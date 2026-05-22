@@ -18,6 +18,12 @@ package gov.usdot.cv.asn1decoder.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.PSMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
+
 /**
  * Unit tests for the BIT STRING post-processors
  * ({@link MAPBitStringProcessor}, {@link BSMBitStringProcessor}, {@link SPATBitStringProcessor}).
@@ -394,5 +400,518 @@ public class BitStringProcessorTest {
         Assert.assertEquals(
             "status: { manualControlIsEnabled }",
             SPATBitStringProcessor.processSPATBitStrings("status: 80 00"));
+    }
+
+    // PSMBitStringProcessor
+ 
+    @Test
+    public void psmNullInputReturnsNull() {
+        Assert.assertNull(PSMBitStringProcessor.processPSMBitStrings(null));
+    }
+ 
+    @Test
+    public void psmEmptyStringReturnsEmptyString() {
+        Assert.assertEquals("", PSMBitStringProcessor.processPSMBitStrings(""));
+    }
+ 
+    @Test
+    public void psmTextWithoutBitStringIsUnchanged() {
+        String input = "PersonalSafetyMessage ::= { msgCnt: 1 } nothing to decode here";
+        Assert.assertEquals(input, PSMBitStringProcessor.processPSMBitStrings(input));
+    }
+ 
+    @Test
+    public void psmUnrecognizedFieldNameIsLeftUnchanged() {
+        String input = "speed: 80 (4 bits unused)";
+        Assert.assertEquals(input, PSMBitStringProcessor.processPSMBitStrings(input));
+    }
+ 
+    // useState — PersonalDeviceUsageState (9 bits)
+ 
+    @Test
+    public void psmUseStateUnavailable() {
+        // 0x80 = 1000 0000 -> bit 0 -> unavailable
+        Assert.assertEquals(
+            "useState: { unavailable }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 80 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateOther() {
+        // 0x40 = 0100 0000 -> bit 1 -> other
+        Assert.assertEquals(
+            "useState: { other }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 40 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateCalling() {
+        // 0x04 = 0000 0100 -> bit 5 -> calling
+        Assert.assertEquals(
+            "useState: { calling }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 04 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateViewing() {
+        // bit 8 = MSB of second byte -> 0x80 in byte1 -> viewing
+        Assert.assertEquals(
+            "useState: { viewing }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 00 80 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateAllNineBitsSet() {
+        // FF 80 -> byte0 all set (bits 0-7), byte1 MSB set (bit 8) -> all 9 names
+        Assert.assertEquals(
+            "useState: { unavailable other idle listeningToAudio typing calling "
+                + "playingGames reading viewing }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: FF 80 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateNoBitsSet() {
+        Assert.assertEquals(
+            "useState: { }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 00 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmUseStateNoUnusedBitsSuffix() {
+        // ASN1c may omit the unused-bits clause when all bits are used
+        Assert.assertEquals(
+            "useState: { unavailable }",
+            PSMBitStringProcessor.processPSMBitStrings("useState: 80"));
+    }
+ 
+    // sizing — UserSizeAndBehaviour (5 bits)
+    @Test
+    public void psmSizingSmallStature() {
+        // 0x40 = 0100 0000 -> bit 1 -> smallStature
+        Assert.assertEquals(
+            "sizing: { smallStature }",
+            PSMBitStringProcessor.processPSMBitStrings("sizing: 40 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmSizingErraticMoving() {
+        // 0x10 = 0001 0000 -> bit 3 -> erraticMoving
+        Assert.assertEquals(
+            "sizing: { erraticMoving }",
+            PSMBitStringProcessor.processPSMBitStrings("sizing: 10 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmSizingAllFiveBitsSet() {
+        // 0xF8 = 1111 1000 -> bits 0-4 -> all 5 names
+        Assert.assertEquals(
+            "sizing: { unavailable smallStature largeStature erraticMoving slowMoving }",
+            PSMBitStringProcessor.processPSMBitStrings("sizing: F8 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmSizingNoBitsSet() {
+        Assert.assertEquals(
+            "sizing: { }",
+            PSMBitStringProcessor.processPSMBitStrings("sizing: 00 (0 bits unused)"));
+    }
+ 
+    // activityType — PublicSafetyAndRoadWorkerActivity (6 bits)
+ 
+    @Test
+    public void psmActivityTypeWorkingOnRoad() {
+        // 0x40 = 0100 0000 -> bit 1 -> workingOnRoad
+        Assert.assertEquals(
+            "activityType: { workingOnRoad }",
+            PSMBitStringProcessor.processPSMBitStrings("activityType: 40 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmActivityTypeDirectingTraffic() {
+        // 0x08 = 0000 1000 -> bit 4 -> directingTraffic
+        Assert.assertEquals(
+            "activityType: { directingTraffic }",
+            PSMBitStringProcessor.processPSMBitStrings("activityType: 08 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmActivityTypeOtherActivities() {
+        // 0x04 = 0000 0100 -> bit 5 -> otherActivities
+        Assert.assertEquals(
+            "activityType: { otherActivities }",
+            PSMBitStringProcessor.processPSMBitStrings("activityType: 04 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmActivityTypeNoBitsSet() {
+        Assert.assertEquals(
+            "activityType: { }",
+            PSMBitStringProcessor.processPSMBitStrings("activityType: 00 (0 bits unused)"));
+    }
+ 
+    // activitySubType — PublicSafetyDirectingTrafficSubType (7 bits)
+ 
+    @Test
+    public void psmActivitySubTypePolice() {
+        // 0x40 = 0100 0000 -> bit 1 -> policeAndTrafficOfficers
+        Assert.assertEquals(
+            "activitySubType: { policeAndTrafficOfficers }",
+            PSMBitStringProcessor.processPSMBitStrings("activitySubType: 40 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmActivitySubTypeHighwayService() {
+        // 0x02 = 0000 0010 -> bit 6 -> highwayServiceVehiclePersonnel
+        Assert.assertEquals(
+            "activitySubType: { highwayServiceVehiclePersonnel }",
+            PSMBitStringProcessor.processPSMBitStrings("activitySubType: 02 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmActivitySubTypeNoBitsSet() {
+        Assert.assertEquals(
+            "activitySubType: { }",
+            PSMBitStringProcessor.processPSMBitStrings("activitySubType: 00 (0 bits unused)"));
+    }
+ 
+    // assistType — PersonalAssistive (6 bits)
+ 
+    @Test
+    public void psmAssistTypeVision() {
+        // 0x20 = 0010 0000 -> bit 2 -> vision
+        Assert.assertEquals(
+            "assistType: { vision }",
+            PSMBitStringProcessor.processPSMBitStrings("assistType: 20 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmAssistTypeCognition() {
+        // 0x04 = 0000 0100 -> bit 5 -> cognition
+        Assert.assertEquals(
+            "assistType: { cognition }",
+            PSMBitStringProcessor.processPSMBitStrings("assistType: 04 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmAssistTypeHearingAndMovement() {
+        // 0x18 = 0001 1000 -> bits 3,4 -> hearing, movement
+        Assert.assertEquals(
+            "assistType: { hearing movement }",
+            PSMBitStringProcessor.processPSMBitStrings("assistType: 18 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmAssistTypeNoBitsSet() {
+        Assert.assertEquals(
+            "assistType: { }",
+            PSMBitStringProcessor.processPSMBitStrings("assistType: 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmLowercaseHexIsParsed() {
+        // Lowercase hex 'f8' -> bits 0-4 set -> all 5 sizing names
+        Assert.assertEquals(
+            "sizing: { unavailable smallStature largeStature erraticMoving slowMoving }",
+            PSMBitStringProcessor.processPSMBitStrings("sizing: f8 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void psmSingularBitWordIsAccepted() {
+        Assert.assertEquals(
+            "assistType: { vision }",
+            PSMBitStringProcessor.processPSMBitStrings("assistType: 20 (1 bit unused)"));
+    }
+ 
+    @Test
+    public void psmSurroundingTextIsPreserved() {
+        Assert.assertEquals(
+            "prefix assistType: { vision } suffix",
+            PSMBitStringProcessor.processPSMBitStrings(
+                "prefix assistType: 20 (0 bits unused) suffix"));
+    }
+ 
+    @Test
+    public void psmAllFiveFieldsInOneString() {
+        String input =
+            "useState: 40 (0 bits unused)\n" +
+            "sizing: 40 (0 bits unused)\n" +
+            "activityType: 40 (0 bits unused)\n" +
+            "activitySubType: 40 (0 bits unused)\n" +
+            "assistType: 20 (0 bits unused)";
+        String result = PSMBitStringProcessor.processPSMBitStrings(input);
+        Assert.assertTrue(result.contains("useState: { other }"));
+        Assert.assertTrue(result.contains("sizing: { smallStature }"));
+        Assert.assertTrue(result.contains("activityType: { workingOnRoad }"));
+        Assert.assertTrue(result.contains("activitySubType: { policeAndTrafficOfficers }"));
+        Assert.assertTrue(result.contains("assistType: { vision }"));
+    }
+ 
+    @Test
+    public void psmNonBitStringFieldsAreUntouched() {
+        // basicType is ENUMERATED, crossRequest is BOOLEAN — must not be altered
+        String input =
+            "basicType: 1 (aPEDESTRIAN)\n" +
+            "crossRequest: TRUE\n" +
+            "assistType: 20 (0 bits unused)";
+        String result = PSMBitStringProcessor.processPSMBitStrings(input);
+        Assert.assertTrue(result.contains("basicType: 1 (aPEDESTRIAN)"));
+        Assert.assertTrue(result.contains("crossRequest: TRUE"));
+        Assert.assertTrue(result.contains("assistType: { vision }"));
+    }
+ 
+    @Test
+    public void psmRecognizedAndUnrecognizedFieldsMixed() {
+        String input = "speed: 80 (4 bits unused); assistType: 20 (0 bits unused)";
+        String expected = "speed: 80 (4 bits unused); assistType: { vision }";
+        Assert.assertEquals(expected, PSMBitStringProcessor.processPSMBitStrings(input));
+    }
+
+    // TIMBitStringProcessor
+ 
+    @Test
+    public void timNullInputReturnsNull() {
+        Assert.assertNull(TIMBitStringProcessor.processTIMBitStrings(null));
+    }
+ 
+    @Test
+    public void timEmptyStringReturnsEmptyString() {
+        Assert.assertEquals("", TIMBitStringProcessor.processTIMBitStrings(""));
+    }
+ 
+    @Test
+    public void timTextWithoutBitStringIsUnchanged() {
+        String input = "TravelerInformation ::= { msgCnt: 1 } nothing to decode here";
+        Assert.assertEquals(input, TIMBitStringProcessor.processTIMBitStrings(input));
+    }
+ 
+    @Test
+    public void timUnrecognizedFieldNameIsLeftUnchanged() {
+        String input = "speed: 80 (4 bits unused)";
+        Assert.assertEquals(input, TIMBitStringProcessor.processTIMBitStrings(input));
+    }
+ 
+    // viewAngle — HeadingSlice (16 bits), RoadSignID
+    @Test
+    public void timViewAngleNorthSector() {
+        // 0x80 0x00 -> bit 0 -> from000-0to022-5degrees
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 80 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timViewAngleTwoSectors() {
+        // 0xC0 0x00 -> bits 0,1 -> from000-0to022-5 and from022-5to045-0
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees from022-5to045-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: C0 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timViewAngleLastSector() {
+        // 0x00 0x01 -> bit 15 -> from337-5to360-0degrees
+        Assert.assertEquals(
+            "viewAngle: { from337-5to360-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 00 01 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timViewAngleAllSixteenSectors() {
+        // FF FF -> all 16 bits set
+        String result = TIMBitStringProcessor.processTIMBitStrings(
+            "viewAngle: FF FF (0 bits unused)");
+        Assert.assertTrue(result.contains("from000-0to022-5degrees"));
+        Assert.assertTrue(result.contains("from337-5to360-0degrees"));
+        Assert.assertEquals(16, countOccurrences(result, "degrees"));
+    }
+ 
+    @Test
+    public void timViewAngleNoBitsSet() {
+        Assert.assertEquals(
+            "viewAngle: { }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 00 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timViewAngleNoUnusedBitsSuffix() {
+        // ASN1c omits the unused-bits clause when SIZE is exact (HeadingSlice is SIZE 16)
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees from022-5to045-0degrees "
+                + "from045-0to067-5degrees from067-5to090-0degrees "
+                + "from090-0to112-5degrees from112-5to135-0degrees "
+                + "from337-5to360-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: FC 01"));
+    }
+ 
+    @Test
+    public void timViewAngleWithUnusedBits() {
+        // 0x80 0x00 (1 bit unused) -> 15 live bits; only bit 0 set
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 80 00 (1 bit unused)"));
+    }
+ 
+    // direction — HeadingSlice (16 bits), GeographicalPath / ValidRegion
+    @Test
+    public void timDirectionNorthSector() {
+        Assert.assertEquals(
+            "direction: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("direction: 80 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timDirectionSouthSector() {
+        // 0x00 0x80 -> bit 8 -> from180-0to202-5degrees
+        Assert.assertEquals(
+            "direction: { from180-0to202-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("direction: 00 80 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timDirectionWestSector() {
+        // 0x00 0x08 -> bit 12 -> from270-0to292-5degrees
+        Assert.assertEquals(
+            "direction: { from270-0to292-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("direction: 00 08 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timDirectionNoBitsSet() {
+        Assert.assertEquals(
+            "direction: { }",
+            TIMBitStringProcessor.processTIMBitStrings("direction: 00 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timDirectionNoUnusedBitsSuffix() {
+        // Mirrors the real decoded output observed from ASN1c
+        Assert.assertEquals(
+            "direction: { from000-0to022-5degrees from022-5to045-0degrees "
+                + "from045-0to067-5degrees from067-5to090-0degrees "
+                + "from090-0to112-5degrees from112-5to135-0degrees "
+                + "from337-5to360-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("direction: FC 01"));
+    }
+ 
+    // heading — HeadingSlice (16 bits), EventDescription
+    @Test
+    public void timHeadingNorthSector() {
+        Assert.assertEquals(
+            "heading: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("heading: 80 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timHeadingLastSector() {
+        Assert.assertEquals(
+            "heading: { from337-5to360-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("heading: 00 01 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timHeadingNoBitsSet() {
+        Assert.assertEquals(
+            "heading: { }",
+            TIMBitStringProcessor.processTIMBitStrings("heading: 00 00 (0 bits unused)"));
+    }
+ 
+    // directions — HeadingSlice (16 bits), ProbeDataManagement
+    @Test
+    public void timDirectionsTwoSectors() {
+        Assert.assertEquals(
+            "directions: { from000-0to022-5degrees from022-5to045-0degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("directions: C0 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timDirectionsNoBitsSet() {
+        Assert.assertEquals(
+            "directions: { }",
+            TIMBitStringProcessor.processTIMBitStrings("directions: 00 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timLowercaseHexIsParsed() {
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 80 00 (0 bits unused)"));
+    }
+ 
+    @Test
+    public void timSingularBitWordIsAccepted() {
+        Assert.assertEquals(
+            "viewAngle: { from000-0to022-5degrees }",
+            TIMBitStringProcessor.processTIMBitStrings("viewAngle: 80 00 (1 bit unused)"));
+    }
+ 
+    @Test
+    public void timSurroundingTextIsPreserved() {
+        Assert.assertEquals(
+            "prefix viewAngle: { from000-0to022-5degrees } suffix",
+            TIMBitStringProcessor.processTIMBitStrings(
+                "prefix viewAngle: 80 00 (0 bits unused) suffix"));
+    }
+ 
+    @Test
+    public void timAllFourFieldsInOneString() {
+        String input =
+            "viewAngle: C0 00 (0 bits unused)\n" +
+            "direction: 80 00 (0 bits unused)\n" +
+            "heading: 00 80 (0 bits unused)\n" +
+            "directions: FF FF (0 bits unused)";
+        String result = TIMBitStringProcessor.processTIMBitStrings(input);
+        Assert.assertTrue(result.contains(
+            "viewAngle: { from000-0to022-5degrees from022-5to045-0degrees }"));
+        Assert.assertTrue(result.contains(
+            "direction: { from000-0to022-5degrees }"));
+        Assert.assertTrue(result.contains(
+            "heading: { from180-0to202-5degrees }"));
+        Assert.assertEquals(16, countOccurrences(
+            result.substring(result.indexOf("directions:")), "degrees"));
+    }
+ 
+    @Test
+    public void timDirectionalityEnumeratedIsNotTouched() {
+        // directionality is DirectionOfUse (ENUMERATED) — must not be altered
+        String input = "directionality: 1 (forward)";
+        Assert.assertEquals(input, TIMBitStringProcessor.processTIMBitStrings(input));
+    }
+ 
+    @Test
+    public void timNonBitStringContentIsUntouched() {
+        String input =
+            "TravelerInformation ::= {\n" +
+            "  msgCnt: 42\n" +
+            "  viewAngle: C0 00 (0 bits unused)\n" +
+            "  url: \"http://example.com\"\n" +
+            "}";
+        String result = TIMBitStringProcessor.processTIMBitStrings(input);
+        Assert.assertTrue(result.contains("msgCnt: 42"));
+        Assert.assertTrue(result.contains("url: \"http://example.com\""));
+        Assert.assertTrue(result.contains(
+            "viewAngle: { from000-0to022-5degrees from022-5to045-0degrees }"));
+    }
+ 
+    @Test
+    public void timRecognizedAndUnrecognizedFieldsMixed() {
+        String input = "speed: 80 (4 bits unused); viewAngle: 80 00 (0 bits unused)";
+        String expected = "speed: 80 (4 bits unused); viewAngle: { from000-0to022-5degrees }";
+        Assert.assertEquals(expected, TIMBitStringProcessor.processTIMBitStrings(input));
+    }
+ 
+    // =========================================================================
+    // Helper
+    // =========================================================================
+ 
+    private static int countOccurrences(String text, String token) {
+        int count = 0;
+        int idx = 0;
+
+        while ((idx = text.indexOf(token, idx)) != -1) {
+            count++;
+            idx += token.length();
+        }
+
+        return count;
     }
 }
