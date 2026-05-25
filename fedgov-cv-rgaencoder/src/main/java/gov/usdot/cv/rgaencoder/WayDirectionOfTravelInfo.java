@@ -21,8 +21,8 @@ public class WayDirectionOfTravelInfo {
     private RGATimeRestrictions timeRestrictions;
 
     // Constants for BIT STRING field
-    public static final short FIRST_TO_LAST_NODE = 0;
-    public static final short LAST_TO_FIRST_NODE = 1;
+    public static final int FIRST_TO_LAST_NODE = 0;
+    public static final int LAST_TO_FIRST_NODE = 1;
 
     public WayDirectionOfTravelInfo() {
     }

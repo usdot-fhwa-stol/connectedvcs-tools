@@ -26,8 +26,8 @@ extern "C" {
  * Class:     gov_usdot_cv_lib_asn1c_Decoder
  * Method:    decodeMap
  */
-JNIEXPORT jstring JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg
-  (JNIEnv *, jobject, jbyteArray);
+JNIEXPORT jobject  JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg
+  (JNIEnv *, jobject, jbyteArray, jstring);
 
 
 #ifdef __cplusplus

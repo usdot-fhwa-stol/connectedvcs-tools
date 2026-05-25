@@ -254,6 +254,7 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 			$(".verified_long").hide();
 			$(".verified_elev").hide();
 			$(".approach_type").hide();
+			$("#approach-table").hide();
 			$(".intersection").hide();
 			$(".region").hide();
 			hideRGAFields(true);
@@ -264,6 +265,7 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 			$(".master_lane_width").hide();
 			$(".intersection_name").hide();
 			$(".approach_name").hide();
+			$(".maneuver_control_type").hide();
 			$(".shared_with").hide();
 		    $(".btnClone").hide();
 			//-------------------------------------

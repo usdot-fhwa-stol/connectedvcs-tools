@@ -1,0 +1,137 @@
+{
+  "regions": [
+    {
+      "regionType": "region",
+      "laneNodes": [
+        {
+          "nodeNumber": 0,
+          "nodeLat": 38.95631071959059,
+          "nodeLong": -77.14937109704637,
+          "nodeElevation": 40
+        },
+        {
+          "nodeNumber": 1,
+          "nodeLat": 38.95658603863791,
+          "nodeLong": -77.1492289399687,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 2,
+          "nodeLat": 38.9566757256724,
+          "nodeLong": -77.14924503322321,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 3,
+          "nodeLat": 38.95673621221289,
+          "nodeLong": -77.14932281728456,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 4,
+          "nodeLat": 38.956888471207435,
+          "nodeLong": -77.14983511920666,
+          "nodeElevation": 38
+        },
+        {
+          "nodeNumber": 5,
+          "nodeLat": 38.95695312903683,
+          "nodeLong": -77.14980293269849,
+          "nodeElevation": 37
+        },
+        {
+          "nodeNumber": 6,
+          "nodeLat": 38.95682381331832,
+          "nodeLong": -77.1493791436741,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 7,
+          "nodeLat": 38.956775841297684,
+          "nodeLong": -77.14924771543187,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 8,
+          "nodeLat": 38.95672786924462,
+          "nodeLong": -77.1491887068337,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 9,
+          "nodeLat": 38.9566757256724,
+          "nodeLong": -77.14915383811687,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 10,
+          "nodeLat": 38.956573524159325,
+          "nodeLong": -77.14915115590735,
+          "nodeElevation": 39
+        },
+        {
+          "nodeNumber": 11,
+          "nodeLat": 38.95628360477838,
+          "nodeLong": -77.14928794856685,
+          "nodeElevation": 40
+        }
+      ],
+      "extent": ""
+    }
+  ],
+  "anchorPoint": {
+    "name": "Advisory",
+    "referenceLat": 38.95629403355392,
+    "referenceLon": -77.14932281728488,
+    "referenceElevation": "38",
+    "masterLaneWidth": "2000",
+    "sspTimRights": "",
+    "packetID": "791292643",
+    "content": [
+      {
+        "codes": [
+          "4868"
+        ],
+        "text": ""
+      }
+    ],
+    "sspTypeRights": "",
+    "sspContentRights": "",
+    "sspLocationRights": "",
+    "direction": "3",
+    "mutcd": "2",
+    "infoType": "1",
+    "priority": 5,
+    "startTime": "01/20/2025 12:00 AM",
+    "endTime": "02/11/2025 12:00 AM",
+    "heading": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "verifiedPoint": {
+    "verifiedMapLat": 38.95606460014278,
+    "verifiedMapLon": -77.1493818258827,
+    "verifiedMapElevation": 38,
+    "verifiedSurveyedLat": "38.956064604728155",
+    "verifiedSurveyedLon": "-77.14938183662201",
+    "verifiedSurveyedElevation": "38"
+  },
+  "messageType": "TIM",
+  "nodeOffsets": "Explicit",
+  "enableElevation": true
+}

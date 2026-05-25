@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2026 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package gov.usdot.cv.msg.builder;
+
+import static org.junit.Assert.assertEquals;
+import gov.usdot.cv.timencoder.*;
+import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
+import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
+import org.apache.commons.io.FileUtils;
+import java.io.File;
+import java.io.IOException;
+import org.junit.Test;
+
+public class TravelerInformationBuilderTest {
+
+	@Test
+	public void testBuildTravelerInformation() throws IOException {
+		testBuildTravelerInformation("sample_tim.json","20100000000001bd08b5c0807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8"); 
+		testBuildTravelerInformation("sample_timplusframe.json","001f4320100000000001bd08b5c0807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8");
+		testBuildTravelerInformation("tim_Circle.json","20100000000000372d6a5082729dc23852739262402e6000002fc26fb882d030404253b8470a4e724c4805cc0b00000816e4d693a401ad2747fc400356404200004300");
+		testBuildTravelerInformation("tim_Circle2.json","20100000000000372d6a5082729dc23852739262402e6000002fc26fb882d030404253b8470a4e724c4805cc0b00000816e4d693a401ad2747fc40001f504200004300");
+		testBuildTravelerInformation("sample_tim_lane.json","001f4d201000000000035ec53d4080b292837b0e4adfe1d21f8830006fcea64a3f4020007e52506f61c95bfc3a43f100b7218000003895bfc36e4a0debd81450e25700a2992837bc2050a0000007cd80"); 
+		testBuildTravelerInformation("sample_tim_poly.json","001f7520100000000001254d1b10807299ba56787a9b892622f9fffe4fce7c1a3f4028007e53374acf0f537124c45f03e87ffff00535e5a5d7000a0a2c4e2cb7495fdd60f90afabd053ed6a4688c3027b0b01f1045ad92da78dc02850b08e6fbd6581ff7deb2c0973ede96005dee44aeb82d174000001712"); 
+		testBuildTravelerInformation("sample_tim_tight.json","001f74201000000000012571e37080b299b9ec767a9ba76a230dfffe6fce7c1a3f4038007e53373d8ecf5374ed446180b77ffff006a80969f40a0a0b8c2f02da16f656e23a9014143c44bd785fe50462cd085d165cc5c8b59e3a02e33610857daf0670e7920cb4d017518cc2e813ec233b897000807cdc"); 
+		testBuildTravelerInformation("tim_road_roughness.json","20100000000001bd08b5c1807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8084980ae00ac3a80d803e0"); 
+		testBuildTravelerInformation("tim_road_roughness_asphalt.json","20100000000001bd08b5c1807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8084988ae00ac3a80d803e0");
+		testBuildTravelerInformation("tim_road_roughness_grass.json","20100000000001bd08b5c1807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8084998b802b0ea03600f80");
+		testBuildTravelerInformation("tim_road_roughness_dry.json","001f808020100000000002a42f36e180b29dc1fafc73929a323749c00e6fd400fe1f4020007e53b83f5f8e72534646e900b72e00700298e7252be677080c898e7253da67707d4218e7253f227707cf438e7254b167707a7b813ec639c954df9dc1e300639c957bd9dc1da2e639c9594f9dc1d55800100f9b80849800e004004400900980");
+		testBuildTravelerInformation("sample_tim_large_1.json","20100000000002f2a2ae30807299ba56787a9b892622f9fffe4fd20e101ef028007e53374acf0f537124c45f03e87ffff00538f5370ac266e95f181428e3d4dc83d99ba6d4804fb18f5371e7666e9d1298f537124e66e9e4138f536c24266ea13a813ece3d4db1d299ba89f604fb38f537097e66e9ff70142863d4dc78299ba7c1c63d4dc9d099ba785e63d4dcb2d99ba744a63d4dcb4799ba6c4ee3d4dc5ef99ba55a805050000004c100"); 
+		testBuildTravelerInformation("sample_tim_large_2.json","20100000000002f2a2ae30807299ba56787a9b892622f9fffe4fd20e101ef028007e53374acf0f537124c45f03e87ffff00a38f5370ac266e95f181428e3d4dc5f599ba647204fb18f53720f666e9b5218f5371e7666e9d1298f537124e66e9e4118f537041666e9ec898f536fbe666e9f1618f536f28e66e9f6f38f536e40e66e9ff9013ec63d4db75a99ba80e063d4db09099ba84eae3d4db1d299ba89f604fb38f536d60666ea1ed8141463d4db8fa99ba859863d4dbcc299ba8330e3d4dc13499ba8044050518f5371e0a66e9f0718f537274266e9e1798f5372cb666e9d1298f5372d1e66e9b1398f537232666e986fb8f53717be66e956a014140000013040"); 
+		testBuildTravelerInformation("tim_road_roughness_gravel.json","20100000000001bd08b5c1807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a80849911c01587501b007c0"); 
+	}
+
+	public void testBuildTravelerInformation(String timName, String expectedString) throws IOException {
+		TravelerInformationBuilder timBuilder = new TravelerInformationBuilder();
+		String json = FileUtils.readFileToString(new File("src/test/resources/" + timName));
+		TravelerInformationMessage timMessage = (TravelerInformationMessage) timBuilder.build(json);
+		System.out.println("TIM Message Name: " + timMessage.getMessageName());
+		assertEquals(expectedString, timMessage.getHexString());
+	}
+}

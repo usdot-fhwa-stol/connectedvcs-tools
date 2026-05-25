@@ -1,0 +1,88 @@
+{
+  "regions": [
+    {
+      "regionType": "lane",
+      "laneNodes": [
+        {
+          "nodeNumber": 0,
+          "nodeLat": 38.95496014020435,
+          "nodeLong": -77.14921826151073,
+          "nodeElevation": 40,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 1,
+          "nodeLat": 38.954927807241546,
+          "nodeLong": -77.14901383494175,
+          "nodeElevation": 40,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 2,
+          "nodeLat": 38.95490355750971,
+          "nodeLong": -77.14880478856333,
+          "nodeElevation": 41,
+          "laneWidth": 0
+        },
+        {
+          "nodeNumber": 3,
+          "nodeLat": 38.954902659371356,
+          "nodeLong": -77.1486511798985,
+          "nodeElevation": 41,
+          "laneWidth": 0
+        }
+      ],
+      "extent": ""
+    }
+  ],
+  "anchorPoint": {
+    "name": "Work Zone",
+    "referenceLat": 38.95558059031674,
+    "referenceLon": -77.14896131761822,
+    "referenceElevation": "38",
+    "masterLaneWidth": "366",
+    "sspTimRights": "",
+    "packetID": "466651996",
+    "content": [
+      {
+        "codes": [
+          "7989"
+        ],
+        "text": ""
+      }
+    ],
+    "sspTypeRights": "",
+    "sspContentRights": "",
+    "sspLocationRights": "",
+    "direction": "",
+    "mutcd": "1",
+    "infoType": "1",
+    "priority": "1",
+    "startTime": "10/14/2025 2:31 PM",
+    "endTime": "10/16/2025 2:31 PM",
+    "heading": [
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "meanVerticalVariation": 43,
+    "verticalVariationStdDev": 234,
+    "meanHorizontalVariation": 432,
+    "horizontalVariationStdDev": 124,
+    "road_surface": "Asphalt or Tar",
+    "road_condition": 1,
+    "road_surface_type": 1
+  },
+  "verifiedPoint": {
+    "verifiedMapLat": 38.955588540498525,
+    "verifiedMapLon": -77.1489615197295,
+    "verifiedSurveyedLat": "38.955588540498525",
+    "verifiedSurveyedLon": "-77.1489615197295",
+    "verifiedSurveyedElevation": "38"
+  },
+  "messageType": "TIM",
+  "nodeOffsets": "Compact",
+  "enableElevation": false
+}

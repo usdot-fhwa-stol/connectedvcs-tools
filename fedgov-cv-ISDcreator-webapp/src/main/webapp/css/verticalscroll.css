@@ -1,0 +1,48 @@
+.panel,
+.panel-body,
+.tab-content,
+.tab-pane {
+    overflow: visible !important;
+    max-height: none !important;
+}
+#speedForm {
+    max-height: 525px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #ddd;
+    padding: 10px; 
+}
+#tab_intersects {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+}
+table#tab_approaches {
+  display: block;
+  max-height: 425px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#speedForm::-webkit-scrollbar,
+#tab_intersects::-webkit-scrollbar,
+#tab_approaches::-webkit-scrollbar {
+    width: 8px;
+}
+#speedForm::-webkit-scrollbar-track,
+#tab_intersects::-webkit-scrollbar-track,
+#tab_approaches::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+#speedForm::-webkit-scrollbar-thumb,
+#tab_intersects::-webkit-scrollbar-thumb,
+#tab_approaches::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+#speedForm::-webkit-scrollbar-thumb:hover,
+#tab_intersects::-webkit-scrollbar-thumb:hover,
+#tab_approaches::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}

@@ -40,7 +40,6 @@ import gov.usdot.cv.googlemap.services.GoogleElevationsService;
 import gov.usdot.cv.googlemap.services.GooglePlacesService;
 
 @RestController
-@CrossOrigin(origins = "${allowed.origins}")
 @RequestMapping("/googlemap/api")
 public class GoogleMapServicesController {
     @Autowired

@@ -16,13 +16,14 @@
 
 package gov.usdot.cv.rgaencoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MtrVehLaneDirectionOfTravelLayer {
     private List<IndividualWayDirectionsOfTravel> laneDirOfTravelLaneSet;
 
     public MtrVehLaneDirectionOfTravelLayer() {
-        this.laneDirOfTravelLaneSet = null;
+        this.laneDirOfTravelLaneSet = new ArrayList<>();
     }
 
     public MtrVehLaneDirectionOfTravelLayer(List<IndividualWayDirectionsOfTravel> laneDirOfTravelLaneSet) {
