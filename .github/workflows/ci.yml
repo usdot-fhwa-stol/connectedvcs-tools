@@ -1,11 +1,9 @@
-name: connectedvcs-tools
+name: connectedvcs-tools-test
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
-    branches:
-      - "develop"
-      - "master"
-      - "release/*"
+    branches: [develop, master, fix_sonar_setup]
 env:
   working-directory: $GITHUB_WORKSPACE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -17,35 +15,47 @@ jobs:
         image: maven:3.8.5-jdk-8-slim
         options: --user root
       steps:
+        - name: Install deps
+          run: |
+            apt-get update -y
+            apt-get -y install wget unzip sudo git
+
         - name: Checkout ${{ github.event.repository.name }}
           uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
         - name: Install # This action is to install and build subfolders in project
           run: |
             cd $GITHUB_WORKSPACE
-            export LD_LIBRARY_PATH=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/lib
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            jar cvf /__w/connectedvcs-tools/connectedvcs-tools/root.war -C /__w/connectedvcs-tools/connectedvcs-tools/root .
+            export LD_LIBRARY_PATH=/__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c/lib
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-parent && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-mapencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-timencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-rgaencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-builder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-ISDcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-validator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-TIMcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-map-services-proxy && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            jar cvf /__w/connectedvcs-tools-test/connectedvcs-tools-test/root.war -C /__w/connectedvcs-tools-test/connectedvcs-tools-test/root .
+
+        - name: List Jacoco reports
+          run: |
+            echo "Looking for jacoco.xml files..."
+            find . -path "*/target/site/jacoco/jacoco.xml" -print
+
         - name: Archive generated Class files
           uses: actions/upload-artifact@v4 # Archive the generated class files after the build action used for deployment
           with:
             name: Class files
             path: |
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/classes
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/test-classes
+              /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-builder/target/classes
+              /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-builder/target/test-classes
+
         - name: Download Apache tomcat # Download apache tomcat for deployment
           run: |
-            apt-get update -y
-            apt-get -y install wget unzip sudo
             wget https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.34/bin/apache-tomcat-9.0.34.tar.gz
             tar -xzf apache-tomcat-9.0.34.tar.gz
             mv apache-tomcat-9.0.34 tomcat
@@ -57,14 +67,14 @@ jobs:
             rm -f apache-tomcat-9.0.34.tar.gz
         - name: Configure webapp # Configure the tomcat webapp with moving the files to tomcat dir's
           run: |
-            mkdir -p tomcat/webapps/connectedvcs-tools/ROOT/WEB-INF/classes
-            mv $GITHUB_WORKSPACE/root/WEB-INF/web.xml /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/ROOT/WEB-INF/
-            mv $GITHUB_WORKSPACE/root/index.html /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/
-            mv -n $GITHUB_WORKSPACE/root/* /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/ROOT/
-            cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/tim.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
-            cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/isd.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
-            cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/validator.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
-            cp /__w/connectedvcs-tools/connectedvcs-tools/root.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
+            mkdir -p tomcat/webapps/connectedvcs-tools-test/ROOT/WEB-INF/classes
+            mv $GITHUB_WORKSPACE/root/WEB-INF/web.xml /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/connectedvcs-tools-test/ROOT/WEB-INF/
+            mv $GITHUB_WORKSPACE/root/index.html /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/connectedvcs-tools-test/
+            mv -n $GITHUB_WORKSPACE/root/* /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/connectedvcs-tools-test/ROOT/
+            cp /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-TIMcreator-webapp/target/tim.war /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/
+            cp /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-ISDcreator-webapp/target/isd.war /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/
+            cp /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-validator-webapp/target/validator.war /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/
+            cp /__w/connectedvcs-tools-test/connectedvcs-tools-test/root.war /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/webapps/
         - uses: actions/setup-java@v3 # This action is to setup Java
           with:
             distribution: 'temurin'
@@ -72,8 +82,8 @@ jobs:
             check-latest: true
         -  name: Configure network and set privileges # This action is to set newtork privileges on tomact server
            run: |
-            sed -i '/<\/Engine>/ i \ \ \ \ \  <Host name="connectedvcs-tools" appBase="webapps/connectedvcs-tools" unpackWARs="true" autoDeploy="true">\n      </Host>' tomcat/conf/server.xml
-            echo -e '127.0.0.1\connectedvcs-tools' | sudo tee -a /etc/hosts
+            sed -i '/<\/Engine>/ i \ \ \ \ \  <Host name="connectedvcs-tools-test" appBase="webapps/connectedvcs-tools-test" unpackWARs="true" autoDeploy="true">\n      </Host>' tomcat/conf/server.xml
+            echo -e '127.0.0.1\connectedvcs-tools-test' | sudo tee -a /etc/hosts
             sudo groupadd tomcat
             sudo useradd -g tomcat -m tomcat
             chmod g+r tomcat/conf/*
@@ -84,51 +94,13 @@ jobs:
             sudo chown -R tomcat:tomcat tomcat/work
         - name: Start Tomcat and verify deployment
           run: |
-            mv setenv.sh /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/
-            sudo /__w/connectedvcs-tools/connectedvcs-tools/tomcat/bin/catalina.sh start
-        - name: Setup SonarScanner
-          uses: warchant/setup-sonar-scanner@v7 # This action is to setup sonar scanner with required dep's
-          with:
-            version: 5.0.1.3006
-        - name: Generate sonar properties file # This action is to generate a sonar propertyfile with respective project properties needed by sonar cloud
-          run: |
-            cd $GITHUB_WORKSPACE
-            cat <<EOF > sonar-project.properties
-            sonar.host.url=https://sonarcloud.io
-            sonar.organization=usdot-fhwa-stol
-            sonar.scanner.force-deprecated-java-version=true
-            sonar.projectKey=usdot-fhwa-stol_connectedvcs-tools
-            sonar.projectName=connectedvcs-tools
-            sonar.exclusions=**/target/**
-            sonar.coverage.jacoco.xmlReportPaths=$GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target/site/jacoco/jacoco.xml,\
-               $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target/site/jacoco/jacoco.xml,\
-              $GITHUB_WORKSPACE/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target/site/jacoco/jacoco.xml
-
-            sonar.java.binaries=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder/target,\
-              /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy/target
-            sonar.c.file.suffixes=-
-            sonar.cpp.file.suffixes=-
-            sonar.objc.file.suffixes=-
-            EOF
+            mv setenv.sh /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/bin/
+            sudo /__w/connectedvcs-tools-test/connectedvcs-tools-test/tomcat/bin/catalina.sh start
         - name: Set CLONED_REPO_PATH
           run: echo "CLONED_REPO_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
-        - name: Run SonarScanner # This action is used to run sonar scan with above properties and upload results to sonar cloud project
+        - name: Run SonarScanner
           uses: usdot-fhwa-stol/actions/sonar-scanner@main
           with:
             sonar-token: ${{ secrets.SONAR_TOKEN }}
             working-dir: ${{ env.CLONED_REPO_PATH }}
-
