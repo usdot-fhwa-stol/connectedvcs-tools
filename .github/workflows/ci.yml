@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [develop, master, fix_sonar_setup]
+    branches: [develop, master, fix_parent_pom]
 env:
   working-directory: $GITHUB_WORKSPACE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -21,24 +21,38 @@ jobs:
             apt-get -y install wget unzip sudo git
 
         - name: Checkout ${{ github.event.repository.name }}
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
           with:
             fetch-depth: 0
+
+        - name: Build native ASN.1 JNI library
+          run: |
+            apt-get -y install build-essential cmake gcc gettext-base
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c
+            chmod +x build_jni.sh
+            ./build_jni.sh || {
+              echo "::warning::Native lib build failed - native-dependent tests will error out, coverage will be partial"
+              exit 0
+            }
+            echo "--- Built libraries ---"
+            ls -la lib/ || echo "lib/ directory not created"
+
         - name: Install # This action is to install and build subfolders in project
           run: |
             cd $GITHUB_WORKSPACE
             export LD_LIBRARY_PATH=/__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c/lib
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-parent && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-asn1decoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-mapencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-timencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-rgaencoder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-builder && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-ISDcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-validator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-TIMcreator-webapp && mvn -e -X clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-map-services-proxy && mvn -e -X clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-parent && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-lib-asn1c && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-asn1decoder && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-mapencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-timencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-rgaencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-builder && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-ISDcreator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-message-validator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-TIMcreator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-map-services-proxy && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools-test/connectedvcs-tools-test/fedgov-cv-map-georeferencing && mvn -e clean install -Dmaven.test.failure.ignore=true
             jar cvf /__w/connectedvcs-tools-test/connectedvcs-tools-test/root.war -C /__w/connectedvcs-tools-test/connectedvcs-tools-test/root .
 
         - name: List Jacoco reports
