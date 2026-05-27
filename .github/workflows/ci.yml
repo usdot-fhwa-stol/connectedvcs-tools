@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [develop, master, fix_sonar_setup]
+    branches: [develop, master]
 env:
   working-directory: $GITHUB_WORKSPACE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
