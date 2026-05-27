@@ -21,6 +21,7 @@ import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SRMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.PSMBitStringProcessor;
 
 import java.nio.ByteOrder;
@@ -104,7 +105,14 @@ public class Decoder {
             }
 
 			if (result.decodedMessage != null
-					&& result.decodedMessage.contains("PersonalSafetyMessage ::=")) {
+					&& result.decodedMessage.contains("SignalRequestMessage ::=")) {
+				logger.info("Applying BIT STRING decoding for SRM (Java layer)");
+				result.decodedMessage =
+					SRMBitStringProcessor.processSRMBitStrings(result.decodedMessage);
+			}
+
+			if (result.decodedMessage != null 
+				&& result.decodedMessage.contains("PersonalSafetyMessage ::=")) {
 				logger.info("Applying BIT STRING decoding for PSM (Java layer)");
 				result.decodedMessage =
 					PSMBitStringProcessor.processPSMBitStrings(result.decodedMessage);

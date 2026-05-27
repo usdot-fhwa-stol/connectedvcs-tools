@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SRMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.PSMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
@@ -913,5 +914,190 @@ public class BitStringProcessorTest {
         }
 
         return count;
+    }
+
+        // SRMBitStringProcessor
+
+    @Test
+    public void srmNullInputReturnsNull() {
+        Assert.assertNull(SRMBitStringProcessor.processSRMBitStrings(null));
+    }
+
+    @Test
+    public void srmEmptyStringReturnsEmptyString() {
+        Assert.assertEquals("", SRMBitStringProcessor.processSRMBitStrings(""));
+    }
+
+    @Test
+    public void srmTextWithoutBitStringIsUnchanged() {
+        String input = "SignalRequestMessage ::= { second: 100 } nothing to decode here";
+        Assert.assertEquals(input, SRMBitStringProcessor.processSRMBitStrings(input));
+    }
+
+    @Test
+    public void srmUnrecognizedFieldNameIsLeftUnchanged() {
+        String input = "speed: 80 (2 bits unused)";
+        Assert.assertEquals(input, SRMBitStringProcessor.processSRMBitStrings(input));
+    }
+
+    @Test
+    public void srmTransitStatusLoading() {
+        // 0x80 = 1000 0000, 6 live bits -> bit 0 -> loading
+        Assert.assertEquals(
+            "transitStatus: { loading }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 80 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusAnADAuse() {
+        // 0x40 = 0100 0000 -> bit 1 -> anADAuse
+        Assert.assertEquals(
+            "transitStatus: { anADAuse }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 40 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusABikeLoad() {
+        // 0x20 = 0010 0000 -> bit 2 -> aBikeLoad
+        Assert.assertEquals(
+            "transitStatus: { aBikeLoad }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 20 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusDoorOpen() {
+        // 0x10 = 0001 0000 -> bit 3 -> doorOpen
+        Assert.assertEquals(
+            "transitStatus: { doorOpen }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 10 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusCharging() {
+        // 0x08 = 0000 1000 -> bit 4 -> charging
+        Assert.assertEquals(
+            "transitStatus: { charging }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 08 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusAtStopLine() {
+        // 0x04 = 0000 0100 -> bit 5 -> atStopLine
+        Assert.assertEquals(
+            "transitStatus: { atStopLine }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 04 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusAllSixBitsSet() {
+        // 0xFC = 1111 1100 -> bits 0-5 -> all 6 names
+        Assert.assertEquals(
+            "transitStatus: { loading anADAuse aBikeLoad doorOpen charging atStopLine }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: FC (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusNoBitsSet() {
+        Assert.assertEquals(
+            "transitStatus: { }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 00 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusMultipleBitsSet() {
+        // 0xC0 = 1100 0000 -> bits 0,1 -> loading, anADAuse
+        Assert.assertEquals(
+            "transitStatus: { loading anADAuse }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: C0 (2 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusReservedBitsBeyondNamesAreIgnored() {
+        // bits 6,7 are beyond the 6 named bits -> empty set
+        Assert.assertEquals(
+            "transitStatus: { }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 03 (0 bits unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusSingularBitKeywordAccepted() {
+        Assert.assertEquals(
+            "transitStatus: { loading }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: 80 (1 bit unused)"));
+    }
+
+    @Test
+    public void srmTransitStatusNoUnusedBitsSuffix() {
+        Assert.assertEquals(
+            "transitStatus: { loading }",
+            SRMBitStringProcessor.processSRMBitStrings("transitStatus: 80"));
+    }
+
+    @Test
+    public void srmTransitStatusLowercaseHexIsParsed() {
+        Assert.assertEquals(
+            "transitStatus: { loading anADAuse aBikeLoad doorOpen charging atStopLine }",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "transitStatus: fc (2 bits unused)"));
+    }
+
+    @Test
+    public void srmSurroundingTextIsPreserved() {
+        Assert.assertEquals(
+            "prefix transitStatus: { doorOpen } suffix",
+            SRMBitStringProcessor.processSRMBitStrings(
+                "prefix transitStatus: 10 (2 bits unused) suffix"));
+    }
+
+    @Test
+    public void srmNonBitStringFieldsAreUntouched() {
+        // role is BasicVehicleRole (ENUMERATED), requestType is PriorityRequestType (ENUMERATED)
+        String input =
+            "SignalRequestMessage ::= {\n" +
+            "  role: 9 (transit)\n" +
+            "  requestType: 1 (priorityRequest)\n" +
+            "  transitStatus: 80 (2 bits unused)\n" +
+            "}";
+        String result = SRMBitStringProcessor.processSRMBitStrings(input);
+        Assert.assertTrue(result.contains("role: 9 (transit)"));
+        Assert.assertTrue(result.contains("requestType: 1 (priorityRequest)"));
+        Assert.assertTrue(result.contains("transitStatus: { loading }"));
+    }
+
+    @Test
+    public void srmRecognizedAndUnrecognizedFieldsMixed() {
+        String input = "speed: 80 (2 bits unused); transitStatus: 80 (2 bits unused)";
+        String expected = "speed: 80 (2 bits unused); transitStatus: { loading }";
+        Assert.assertEquals(expected, SRMBitStringProcessor.processSRMBitStrings(input));
+    }
+
+    @Test
+    public void srmFullMessageContext() {
+        String input =
+            "MessageFrame ::= {\n" +
+            "  messageId: 29\n" +
+            "  value: SignalRequestMessage ::= {\n" +
+            "    second: 1000\n" +
+            "    requestor: RequestorDescription ::= {\n" +
+            "      id: 12 34 56 78\n" +
+            "      transitStatus: C0 (2 bits unused)\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+        String result = SRMBitStringProcessor.processSRMBitStrings(input);
+        Assert.assertTrue(result.contains("transitStatus: { loading anADAuse }"));
+        Assert.assertTrue(result.contains("second: 1000"));
+        Assert.assertTrue(result.contains("id: 12 34 56 78"));
     }
 }
