@@ -21,6 +21,7 @@ import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
 import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SRMBitStringProcessor;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -102,6 +103,12 @@ public class Decoder {
                     BSMBitStringProcessor.processBSMBitStrings(result.decodedMessage);
             }
 
+			if (result.decodedMessage != null
+					&& result.decodedMessage.contains("SignalRequestMessage ::=")) {
+				logger.info("Applying BIT STRING decoding for SRM (Java layer)");
+				result.decodedMessage =
+					SRMBitStringProcessor.processSRMBitStrings(result.decodedMessage);
+			}
 
 		}
 
