@@ -41,18 +41,18 @@ jobs:
           run: |
             cd $GITHUB_WORKSPACE
             export LD_LIBRARY_PATH=/__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c/lib
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -e clean install -Dmaven.test.failure.ignore=true
-            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-georeferencing && mvn -e clean install -Dmaven.test.failure.ignore=true
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-parent && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-lib-asn1c && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-asn1decoder && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-mapencoder && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-timencoder && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-rgaencoder && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-builder && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-services-proxy && mvn -e clean install
+            cd /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-map-georeferencing && mvn -e clean install
             jar cvf /__w/connectedvcs-tools/connectedvcs-tools/root.war -C /__w/connectedvcs-tools/connectedvcs-tools/root .
 
         - name: List Jacoco reports
