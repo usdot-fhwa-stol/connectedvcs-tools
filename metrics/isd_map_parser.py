@@ -14,56 +14,57 @@ DEFAULT_OUTPUT_CSV = "./metrics/reports/map_messages.csv"
 
 
 # ------------------------------------------------------------------
-# Resolve input log file
+# Resolve input path
 # ------------------------------------------------------------------
 
-user_input_file = input(
+user_input = input(
     f"Enter input log file/folder "
     f"(Press Enter for default search: {DEFAULT_INPUT_PATTERN}): "
 ).strip()
 
-if user_input_file:
 
-    # --------------------------------------------------------------
-    # User entered something
-    # --------------------------------------------------------------
+def discover_log_files(path_input):
+    """
+    Return list of all matching isd.log files.
+    """
 
-    if os.path.isdir(user_input_file):
+    if not path_input:
 
-        # Search recursively for isd.log inside folder
         matches = glob.glob(
-            os.path.join(user_input_file, "**", "isd.log"),
+            DEFAULT_INPUT_PATTERN,
             recursive=True
         )
 
-        if not matches:
-            raise FileNotFoundError(
-                f"No isd.log files found in {user_input_file}"
-            )
+    elif os.path.isdir(path_input):
 
-        INPUT_LOG_FILE = matches[0]
+        matches = glob.glob(
+            os.path.join(path_input, "**", "isd.log"),
+            recursive=True
+        )
+
+    elif os.path.isfile(path_input):
+
+        matches = [path_input]
 
     else:
-
-        # Assume user entered direct file path
-        INPUT_LOG_FILE = user_input_file
-
-else:
-
-    # --------------------------------------------------------------
-    # Use default recursive search
-    # --------------------------------------------------------------
-
-    matches = glob.glob(DEFAULT_INPUT_PATTERN, recursive=True)
+        raise FileNotFoundError(
+            f"Invalid input path: {path_input}"
+        )
 
     if not matches:
         raise FileNotFoundError(
-            f"No isd.log files found using pattern: "
-            f"{DEFAULT_INPUT_PATTERN}"
+            "No isd.log files found."
         )
 
-    INPUT_LOG_FILE = matches[0]
+    return sorted(matches)
 
+
+INPUT_LOG_FILES = discover_log_files(user_input)
+
+
+print("\nDiscovered log files:")
+for file in INPUT_LOG_FILES:
+    print(f"  - {file}")
 
 # ------------------------------------------------------------------
 # Resolve output CSV
@@ -79,25 +80,17 @@ OUTPUT_CSV_FILE = (
     if user_output_file
     else DEFAULT_OUTPUT_CSV
 )
-
-
 # ------------------------------------------------------------------
-# Ensure output folder exists
+# Duplicate handling
 # ------------------------------------------------------------------
 
-output_dir = os.path.dirname(OUTPUT_CSV_FILE)
+allow_duplicates_input = input(
+    "Allow duplicate timestamps? (y/N): "
+).strip().lower()
 
-if output_dir:
-    os.makedirs(output_dir, exist_ok=True)
-
-
-# ------------------------------------------------------------------
-# Display final paths
-# ------------------------------------------------------------------
-
-print("\nUsing paths:")
-print(f"  INPUT_LOG_FILE  = {INPUT_LOG_FILE}")
-print(f"  OUTPUT_CSV_FILE = {OUTPUT_CSV_FILE}")
+ALLOW_DUPLICATES = (
+    allow_duplicates_input == "y"
+)
 
 
 def extract_json_from_line(line: str):
@@ -168,63 +161,184 @@ def count_map_fields(map_data):
     return num_approaches, num_lanes, num_connections, num_nodes
 
 
-def process_log_file():
+def process_log_files():
+
     rows = []
 
-    with open(INPUT_LOG_FILE, "r", encoding="utf-8") as f:
-        for line in f:
+    seen_records = set()
 
-            # 1. Extract timestamp from log prefix
-            ts_match = re.match(r"^(.*?)\s+\[", line)
-            timestamp = ts_match.group(1) if ts_match else None
+    duplicate_count = 0
+    processed_count = 0
 
-            # 2. Extract JSON payload
-            data = extract_json_from_line(line)
-            if not data:
-                continue
+    for log_file in INPUT_LOG_FILES:
 
-            map_data = data.get("mapData", {})
-            geometry = safe_get(map_data, ["intersectionGeometry"], {})
+        print(f"\nProcessing: {log_file}")
 
-            ref = geometry.get("referencePoint", {})
-            verified = geometry.get("verifiedPoint", {})
+        with open(log_file, "r", encoding="utf-8") as f:
 
-            # 3. Derived metrics
-            num_approaches, num_lanes, num_connections, num_nodes = count_map_fields(map_data)
+            for line in f:
 
-            row = {
-                "timestamp": timestamp,
-                "minuteOfTheYear": map_data.get("minuteOfTheYear"),
-                "layerType": map_data.get("layerType"),
-                "descriptiveIntersctionName": ref.get("descriptiveIntersctionName"),
-                "layerID": ref.get("layerID"),
-                "intersectionID": ref.get("intersectionID"),
-                "regionID": ref.get("regionID"),
-                "msgCount": ref.get("msgCount"),
-                "masterLaneWidth": ref.get("masterLaneWidth"),
+                # --------------------------------------------------
+                # Extract timestamp
+                # --------------------------------------------------
 
-                "referenceLat": ref.get("referenceLat"),
-                "referenceLon": ref.get("referenceLon"),
-                "referenceElevation": ref.get("referenceElevation"),
+                ts_match = re.match(r"^(.*?)\s+\[", line)
 
-                "verifiedMapLat": verified.get("verifiedMapLat"),
-                "verifiedMapLon": verified.get("verifiedMapLon"),
-                "verifiedMapElevation": verified.get("verifiedMapElevation"),
+                timestamp = (
+                    ts_match.group(1)
+                    if ts_match
+                    else None
+                )
 
-                "verifiedSurveyedLat": verified.get("verifiedSurveyedLat"),
-                "verifiedSurveyedLon": verified.get("verifiedSurveyedLon"),
-                "verifiedSurveyedElevation": verified.get("verifiedSurveyedElevation"),
+                # --------------------------------------------------
+                # Extract JSON
+                # --------------------------------------------------
 
-                "numApproaches": num_approaches,
-                "numLanes": num_lanes,
-                "numConnections": num_connections,
-                "numNodes": num_nodes,
+                data = extract_json_from_line(line)
 
-                "enableElevation": data.get("enableElevation"),
-                "messageType": data.get("messageType"),
-            }
+                if not data:
+                    continue
 
-            rows.append(row)
+                map_data = data.get("mapData", {})
+
+                geometry = safe_get(
+                    map_data,
+                    ["intersectionGeometry"],
+                    {}
+                )
+
+                ref = geometry.get(
+                    "referencePoint",
+                    {}
+                )
+
+                verified = geometry.get(
+                    "verifiedPoint",
+                    {}
+                )
+
+                # --------------------------------------------------
+                # Derived metrics
+                # --------------------------------------------------
+
+                (
+                    num_approaches,
+                    num_lanes,
+                    num_connections,
+                    num_nodes
+                ) = count_map_fields(map_data)
+
+                # --------------------------------------------------
+                # Duplicate key
+                # --------------------------------------------------
+
+                duplicate_key = (
+                    timestamp,
+                    ref.get("intersectionID")
+                )
+
+                if (
+                    not ALLOW_DUPLICATES
+                    and duplicate_key in seen_records
+                ):
+                    duplicate_count += 1
+                    continue
+
+                seen_records.add(duplicate_key)
+
+                # --------------------------------------------------
+                # Build row
+                # --------------------------------------------------
+
+                row = {
+
+                    "sourceLogFile": log_file,
+
+                    "timestamp": timestamp,
+
+                    "minuteOfTheYear":
+                        map_data.get("minuteOfTheYear"),
+
+                    "layerType":
+                        map_data.get("layerType"),
+
+                    "descriptiveIntersctionName":
+                        ref.get("descriptiveIntersctionName"),
+
+                    "layerID":
+                        ref.get("layerID"),
+
+                    "intersectionID":
+                        ref.get("intersectionID"),
+
+                    "regionID":
+                        ref.get("regionID"),
+
+                    "msgCount":
+                        ref.get("msgCount"),
+
+                    "masterLaneWidth":
+                        ref.get("masterLaneWidth"),
+
+                    "referenceLat":
+                        ref.get("referenceLat"),
+
+                    "referenceLon":
+                        ref.get("referenceLon"),
+
+                    "referenceElevation":
+                        ref.get("referenceElevation"),
+
+                    "verifiedMapLat":
+                        verified.get("verifiedMapLat"),
+
+                    "verifiedMapLon":
+                        verified.get("verifiedMapLon"),
+
+                    "verifiedMapElevation":
+                        verified.get("verifiedMapElevation"),
+
+                    "verifiedSurveyedLat":
+                        verified.get("verifiedSurveyedLat"),
+
+                    "verifiedSurveyedLon":
+                        verified.get("verifiedSurveyedLon"),
+
+                    "verifiedSurveyedElevation":
+                        verified.get("verifiedSurveyedElevation"),
+
+                    "numApproaches":
+                        num_approaches,
+
+                    "numLanes":
+                        num_lanes,
+
+                    "numConnections":
+                        num_connections,
+
+                    "numNodes":
+                        num_nodes,
+
+                    "enableElevation":
+                        data.get("enableElevation"),
+
+                    "messageType":
+                        data.get("messageType"),
+                }
+
+                rows.append(row)
+
+                processed_count += 1
+
+    # --------------------------------------------------------------
+    # Statistics
+    # --------------------------------------------------------------
+
+    print("\nProcessing Statistics")
+    print("---------------------")
+    print(f"Processed records : {processed_count}")
+    print(f"Duplicate records : {duplicate_count}")
+    print(f"Final CSV rows    : {len(rows)}")
 
     return rows
 
@@ -245,5 +359,5 @@ def write_csv(rows):
 
 
 if __name__ == "__main__":
-    rows = process_log_file()
+    rows = process_log_files()
     write_csv(rows)
