@@ -1648,12 +1648,13 @@ $(document).ready(() => {
 
 
 export {
+  map,
   lanes,
   vectors,
   laneMarkers,
   laneWidths,
   box,
-  errors, 
+  errors,
   rgaEnabled,
   selectedMarker
 };
