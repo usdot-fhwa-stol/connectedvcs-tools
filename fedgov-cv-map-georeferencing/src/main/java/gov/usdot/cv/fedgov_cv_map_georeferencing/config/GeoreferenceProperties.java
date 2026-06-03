@@ -58,7 +58,7 @@ public class GeoreferenceProperties {
      */
     @Data
     public static class Gcp {
-        private int minCount = 6;
-        private int maxCount = 10;
+        private int minCount = 4;
+        private Integer maxCount = null;
     }
 }
