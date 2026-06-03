@@ -35,6 +35,7 @@
 	<link rel="stylesheet" href="external/ol_v10.4.0/ol.css">
 	<link rel="stylesheet" href="external/ol-layerswitcher.css">
 	<link rel="stylesheet" href="css/verticalscroll.css">
+	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
 
 </head>
 
@@ -101,6 +102,8 @@
 			          <ul class="dropdown-menu" role="menu">
 						  <li class="encoder"><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encoder</a></li>
 						  <li><a href="#" id="clearMap">Clear Map</a></li>
+						  <li class="divider"></li>
+						  <li><a href="#" id="openGeoreferencer">Georeferencing</a></li>
 			          </ul>
 			        </li>
 					<li class="dropdown">
@@ -1793,6 +1796,15 @@
 	<script src="js/config.js"></script>
 	<script type="module" src="js/depositor-latest.js"></script>
 	<script src="js/bing.js"></script>
+
+	<script type="module">
+		import { map } from './js/map.js';
+		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		initGeoreferencer(map, {
+			georefEndpoint: '/georef/api/georeference',
+			csrfTokenUrl: '/msp/security/api/csrf-token/'
+		});
+	</script>
 
 </body>
 </html>
