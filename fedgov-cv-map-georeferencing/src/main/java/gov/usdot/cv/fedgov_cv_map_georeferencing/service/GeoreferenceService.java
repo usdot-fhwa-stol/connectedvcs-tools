@@ -107,8 +107,9 @@ public class GeoreferenceService {
                     + (gcps != null ? gcps.size() : 0));
         }
         
-        if(gcps.size() > georeferenceProperties.getGcp().getMaxCount()) {
-            throw new IllegalArgumentException("No more than " + georeferenceProperties.getGcp().getMaxCount()
+        Integer maxCount = georeferenceProperties.getGcp().getMaxCount();
+        if(maxCount != null && gcps.size() > maxCount) {
+            throw new IllegalArgumentException("No more than " + maxCount
                     + " ground control points are allowed. Provided: "
                     + gcps.size());
         }
