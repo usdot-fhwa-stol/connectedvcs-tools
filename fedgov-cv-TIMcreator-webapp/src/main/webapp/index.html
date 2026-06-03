@@ -32,8 +32,9 @@
 	<link rel="stylesheet" href="css/sidebar.css" type="text/css">
 	<link rel="stylesheet" href="css/jquery-ui.css" type="text/css">
 	<link rel="stylesheet" href="css/select2.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
 
-	
+
 </head>
 
 <body>
@@ -84,6 +85,8 @@
 			          <ul class="dropdown-menu" role="menu">
 						  <li><a href="#message_deposit_modal" data-toggle="modal" data-target="#message_deposit_modal">Encoder</a></li>
 						  <li><a href="#" onclick="Clear();">Clear Map</a></li>
+						  <li class="divider"></li>
+						  <li><a href="#" id="openGeoreferencer">Georeferencing</a></li>
 			          </ul>
 			        </li>
 					<li class="dropdown">
@@ -924,7 +927,15 @@
 	<script src="js/latlon-vincenty.js"></script>
 	<script src="js/bing.js"></script>
 	<script type="module" src="js/api.js"></script>
-	
+
+	<script type="module">
+		import { map } from './js/mapping.js';
+		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		initGeoreferencer(map, {
+			georefEndpoint: '/georef/api/georeference',
+			csrfTokenUrl: '/msp/security/api/csrf-token/'
+		});
+	</script>
 
 </body>
 </html>
