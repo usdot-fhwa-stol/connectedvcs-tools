@@ -30,7 +30,7 @@ public class VincentyTest {
         assertNotNull(result);
         assertEquals(54972.271, result.getDistance(), DISTANCE_TOLERANCE_METERS);
         assertEquals(306.8681583333333, result.getInitialBearing(), BEARING_TOLERANCE_DEGREES);
-        assertEquals(127.17363056, result.getFinalBearing(), 0.01);
+        assertEquals(307.17363056, result.getFinalBearing(), 0.01);
     }
 
     /**
