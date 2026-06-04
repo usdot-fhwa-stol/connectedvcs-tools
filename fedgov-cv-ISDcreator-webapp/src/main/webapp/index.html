@@ -1798,9 +1798,9 @@
 	<script src="js/bing.js"></script>
 
 	<script type="module">
-		import { map } from './js/map.js';
+		import * as mapModule from './js/map.js';
 		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
-		initGeoreferencer(map, {
+		initGeoreferencer(() => mapModule.map, {
 			georefEndpoint: '/georef/api/georeference',
 			csrfTokenUrl: '/msp/security/api/csrf-token/'
 		});
