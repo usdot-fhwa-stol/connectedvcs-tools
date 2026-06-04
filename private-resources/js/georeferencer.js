@@ -53,20 +53,35 @@ const DEFAULTS = {
 
 // ─── Initialization ──────────────────────────────────────────────────────────
 
-export function initGeoreferencer(olMap, userOptions) {
-    map = olMap;
+export function initGeoreferencer(olMapOrGetter, userOptions) {
     options = Object.assign({}, DEFAULTS, userOptions);
 
-    if (!map) {
-        console.error('Georeferencer: map object is required');
-        return;
+    function tryInit() {
+        var resolvedMap = typeof olMapOrGetter === 'function' ? olMapOrGetter() : olMapOrGetter;
+        if (!resolvedMap) {
+            return false;
+        }
+        map = resolvedMap;
+        injectModalHTML();
+        createGcpMapLayer();
+        createOverlayPanel();
+        bindEvents();
+        fetchBackendConfig();
+        return true;
     }
 
-    injectModalHTML();
-    createGcpMapLayer();
-    createOverlayPanel();
-    bindEvents();
-    fetchBackendConfig();
+    if (!tryInit()) {
+        var attempts = 0;
+        var interval = setInterval(function () {
+            attempts++;
+            if (tryInit() || attempts > 50) {
+                clearInterval(interval);
+                if (!map) {
+                    console.error('Georeferencer: map object not available after waiting');
+                }
+            }
+        }, 100);
+    }
 }
 
 async function fetchBackendConfig() {
