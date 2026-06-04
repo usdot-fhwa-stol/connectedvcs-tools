@@ -27,13 +27,14 @@ You need an AWS Access Key ID and Secret Access Key with permissions to access t
 
 ---
 
-## 3. Update `application.properties`
+## 3. Configure S3 Credentials
 
-Open `fedgov-cv-map-services-proxy/src/main/resources/application.properties` and add or update the following properties:
+Provide your AWS credentials via environment variables at runtime rather than editing source files directly. See [Environment Variables](/docs/Environment_Variables.md) for full setup instructions.
 
-```properties
-# S3 Configuration
-aws.s3.accessKey=YOUR_AWS_ACCESS_KEY_ID
-aws.s3.secretKey=YOUR_AWS_SECRET_ACCESS_KEY
-aws.s3.region=YOUR_AWS_REGION   # e.g., us-east-1
-aws.s3.bucket=YOUR_BUCKET_NAME  # e.g., my-fedgov-cv-map-tiles
+The relevant variables are:
+
+```
+AWS_S3_BUCKET=your-bucket-name
+AWS_S3_REGION=us-east-1
+AWS_S3_ACCESSKEY=your-access-key-id
+AWS_S3_SECRETKEY=your-secret-access-key
