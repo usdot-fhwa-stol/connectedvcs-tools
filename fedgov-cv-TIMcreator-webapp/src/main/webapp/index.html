@@ -929,9 +929,9 @@
 	<script type="module" src="js/api.js"></script>
 
 	<script type="module">
-		import { map } from './js/mapping.js';
+		import * as mapping from './js/mapping.js';
 		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
-		initGeoreferencer(map, {
+		initGeoreferencer(() => mapping.map, {
 			georefEndpoint: '/georef/api/georeference',
 			csrfTokenUrl: '/msp/security/api/csrf-token/'
 		});
