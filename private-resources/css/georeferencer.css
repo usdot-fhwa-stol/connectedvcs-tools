@@ -14,7 +14,12 @@
  * the License.
  */
 
+.georef-modal {
+    pointer-events: none;
+}
+
 .georef-modal .modal-dialog {
+    pointer-events: auto;
     width: 500px;
     float: right;
     margin-right: 20px;
@@ -51,6 +56,10 @@
 .georef-image-container.georef-add-mode {
     cursor: crosshair;
     border-color: #337ab7;
+}
+
+.georef-map-add-mode {
+    cursor: crosshair !important;
 }
 
 .georef-image-container.georef-delete-mode {
