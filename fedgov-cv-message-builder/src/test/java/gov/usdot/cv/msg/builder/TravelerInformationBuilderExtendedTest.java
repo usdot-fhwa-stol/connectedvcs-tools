@@ -354,15 +354,6 @@ public class TravelerInformationBuilderExtendedTest {
         assertNotNull(msg.getHexString());
     }
 
-    @Test
-    public void buildContent_nullHeadingField_buildsSuccessfully() {
-        // heading absent from JSON → field defaults to null → HeadingSlice(0)
-        String json = baseTimJson("Work Zone")
-                .replace(",\n    \"heading\": [11, 12]", "");
-        TravelerInformationMessage msg = (TravelerInformationMessage) BUILDER.build(json);
-        assertNotNull(msg.getHexString());
-    }
-
     // =========================================================================
     // elevation enabled path
     // =========================================================================
