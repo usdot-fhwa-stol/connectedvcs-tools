@@ -61,4 +61,15 @@ public class GeoreferenceProperties {
         private int minCount = 4;
         private Integer maxCount = null;
     }
+
+    private Warp warp = new Warp();
+
+    /**
+     * Warp/transformation configuration properties.
+     */
+    @Data
+    public static class Warp {
+        private String transformMethod = "tps";
+        private String resamplingMethod = "bilinear";
+    }
 }

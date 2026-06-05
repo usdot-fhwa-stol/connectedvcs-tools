@@ -57,6 +57,9 @@ class GeoreferenceServiceTest {
     @Mock
     private GeoreferenceProperties.Image imageProperties;
 
+    @Mock
+    private GeoreferenceProperties.Warp warpProperties;
+
     private GeoreferenceService georeferenceService;
 
     private MultipartFile validImageFile;
@@ -69,6 +72,9 @@ class GeoreferenceServiceTest {
         // Setup mock properties
         lenient().when(georeferenceProperties.getGcp()).thenReturn(gcpProperties);
         lenient().when(georeferenceProperties.getImage()).thenReturn(imageProperties);
+        lenient().when(georeferenceProperties.getWarp()).thenReturn(warpProperties);
+        lenient().when(warpProperties.getTransformMethod()).thenReturn("tps");
+        lenient().when(warpProperties.getResamplingMethod()).thenReturn("bilinear");
         lenient().when(gcpProperties.getMinCount()).thenReturn(4);
         lenient().when(gcpProperties.getMaxCount()).thenReturn(Integer.valueOf(10));
         lenient().when(imageProperties.getSupportedFormatsAsSet()).thenReturn(
@@ -136,7 +142,7 @@ class GeoreferenceServiceTest {
         }).when(gdalFacade).translateImage(any(), any(), eq("PNG"), eq("-scale"));
         
         doNothing().when(gdalFacade).createVrtWithGcps(any(), any(), any(), any());
-        doNothing().when(gdalFacade).warpImage(any(), any(), any(), any(), any());
+        doNothing().when(gdalFacade).warpImage(any(), any(), any(), any(), any(), any());
         
         Map<String, Object> mockImageInfo = new HashMap<>();
         mockImageInfo.put("gdalinfo_json", "{\"wgs84Extent\":{\"coordinates\":[[[-77.151679,38.957170],[-77.151679,38.954914],[-77.146619,38.954914],[-77.146619,38.957170],[-77.151679,38.957170]]]},\"size\":[898,516]}");

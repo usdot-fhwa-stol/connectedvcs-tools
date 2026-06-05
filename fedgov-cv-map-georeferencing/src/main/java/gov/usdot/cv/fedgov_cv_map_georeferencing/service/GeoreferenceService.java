@@ -164,7 +164,10 @@ public class GeoreferenceService {
             
             // Step 2: Transform VRT to Web Mercator (EPSG:3857) for web display using GDAL facade
             Path georeferencedTiffPath = tempDir.resolve("georef.tif");
-            gdalFacade.warpImage(vrtPath, georeferencedTiffPath, "EPSG:3857", "bilinear", "GTiff");
+            gdalFacade.warpImage(vrtPath, georeferencedTiffPath, "EPSG:3857",
+                    georeferenceProperties.getWarp().getResamplingMethod(),
+                    "GTiff",
+                    georeferenceProperties.getWarp().getTransformMethod());
             
             // Step 3: Convert GeoTIFF to PNG for browser display using GDAL facade
             Path finalPngPath = tempDir.resolve("georef_final.png");

@@ -126,29 +126,40 @@ public class GdalFacade {
      * @param outputFormat Output format ("PNG")
      * @throws GdalException if the operation fails
      */
-    public void warpImage(Path inputPath, Path outputPath, String targetSrs, 
-                         String resamplingMethod, String outputFormat) throws GdalException {
-        logger.info("Warping image {} -> {} (SRS: {}, Format: {})", 
-                   inputPath.getFileName(), outputPath.getFileName(), targetSrs, outputFormat);
-        
+    public void warpImage(Path inputPath, Path outputPath, String targetSrs,
+                         String resamplingMethod, String outputFormat,
+                         String transformMethod) throws GdalException {
+        logger.info("Warping image {} -> {} (SRS: {}, Format: {}, Transform: {})",
+                   inputPath.getFileName(), outputPath.getFileName(), targetSrs, outputFormat, transformMethod);
+
         List<String> command = new ArrayList<>();
         command.add(GDAL_WARP);
+
+        if (transformMethod != null) {
+            if ("tps".equalsIgnoreCase(transformMethod)) {
+                command.add("-tps");
+            } else if (transformMethod.toLowerCase().startsWith("order")) {
+                command.add("-order");
+                command.add(transformMethod.substring(5));
+            }
+        }
+
         command.add("-t_srs");
         command.add(targetSrs);
-        
+
         if (resamplingMethod != null) {
             command.add("-r");
             command.add(resamplingMethod);
         }
-        
+
         if (outputFormat != null) {
             command.add("-of");
             command.add(outputFormat);
         }
-        
+
         command.add(inputPath.toString());
         command.add(outputPath.toString());
-        
+
         executeGdalCommand(command, "Image warping to " + targetSrs);
     }
     

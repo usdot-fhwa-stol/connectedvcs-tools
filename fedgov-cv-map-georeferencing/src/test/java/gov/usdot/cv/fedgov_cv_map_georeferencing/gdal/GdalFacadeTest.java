@@ -108,7 +108,7 @@ class GdalFacadeTest {
             Files.write(inputPath, "dummy vrt data".getBytes());
 
             assertThrows(GdalException.class,
-                () -> gdalFacade.warpImage(inputPath, outputPath, "EPSG:3857", "bilinear", "GTiff"));
+                () -> gdalFacade.warpImage(inputPath, outputPath, "EPSG:3857", "bilinear", "GTiff", "tps"));
         }
     }
 
