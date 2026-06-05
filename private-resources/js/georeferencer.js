@@ -342,6 +342,9 @@ function bindEvents() {
     $('#georef_modal').on('hidden.bs.modal', function () {
         onModalClose();
     });
+
+    // Disable Bootstrap 3 enforceFocus so clicks on the map behind the modal work
+    $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 }
 
 // ─── Open / Close ────────────────────────────────────────────────────────────
@@ -442,6 +445,7 @@ function enableAddGcpMode() {
 
     document.getElementById('georef-add-gcp').classList.add('active');
     document.getElementById('georef-image-container').classList.add('georef-add-mode');
+    map.getViewport().classList.add('georef-map-add-mode');
 
     gcpTranslateInteraction.setActive(true);
 
@@ -455,6 +459,7 @@ function disableAddGcpMode() {
 
     document.getElementById('georef-add-gcp').classList.remove('active');
     document.getElementById('georef-image-container').classList.remove('georef-add-mode');
+    map.getViewport().classList.remove('georef-map-add-mode');
 
     gcpTranslateInteraction.setActive(false);
 
