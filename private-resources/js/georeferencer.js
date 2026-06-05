@@ -43,6 +43,7 @@ let overlayEntries = []; // { layer, file, gcps, filename, id }
 let overlayIdCounter = 0;
 let editingOverlayId = null;
 let mapClickListenerKey = null;
+let imageZoom = 1;
 
 const DEFAULTS = {
     georefEndpoint: '/georef/api/georeference',
@@ -339,6 +340,37 @@ function bindEvents() {
         handleImageClick(e);
     });
 
+    document.getElementById('georef-image-container').addEventListener('wheel', function (e) {
+        handleImageZoom(e);
+    });
+
+    var imgContainer = document.getElementById('georef-image-container');
+    var isPanning = false;
+    var panStartX, panStartY, scrollStartX, scrollStartY;
+
+    imgContainer.addEventListener('mousedown', function (e) {
+        if (e.button !== 1) return;
+        e.preventDefault();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        scrollStartX = imgContainer.scrollLeft;
+        scrollStartY = imgContainer.scrollTop;
+        imgContainer.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', function (e) {
+        if (!isPanning) return;
+        imgContainer.scrollLeft = scrollStartX - (e.clientX - panStartX);
+        imgContainer.scrollTop = scrollStartY - (e.clientY - panStartY);
+    });
+
+    window.addEventListener('mouseup', function (e) {
+        if (e.button !== 1 || !isPanning) return;
+        isPanning = false;
+        imgContainer.style.cursor = '';
+    });
+
     $('#georef_modal').on('hidden.bs.modal', function () {
         onModalClose();
     });
@@ -364,6 +396,7 @@ function resetState() {
     addGcpMode = false;
     deleteGcpMode = false;
     pendingMapClick = null;
+    imageZoom = 1;
 
     clearGcpMapMarkers();
     clearImageMarkers();
@@ -410,6 +443,7 @@ function handleImageSelect(file) {
 function showImagePreview(file) {
     const container = document.getElementById('georef-image-container');
     container.innerHTML = '';
+    imageZoom = 1;
 
     const img = document.createElement('img');
     img.id = 'georef-preview-img';
@@ -426,6 +460,39 @@ function showImagePreview(file) {
     reader.readAsDataURL(file);
 
     container.appendChild(img);
+}
+
+function handleImageZoom(e) {
+    var img = document.getElementById('georef-preview-img');
+    if (!img) return;
+
+    e.preventDefault();
+
+    var container = document.getElementById('georef-image-container');
+    var delta = e.deltaY > 0 ? -0.1 : 0.1;
+    var newZoom = Math.min(Math.max(imageZoom + delta, 0.5), 5);
+    if (newZoom === imageZoom) return;
+
+    var rect = container.getBoundingClientRect();
+    var mouseX = e.clientX - rect.left + container.scrollLeft;
+    var mouseY = e.clientY - rect.top + container.scrollTop;
+
+    var ratio = newZoom / imageZoom;
+    imageZoom = newZoom;
+
+    applyImageZoom();
+
+    container.scrollLeft = mouseX * ratio - (e.clientX - rect.left);
+    container.scrollTop = mouseY * ratio - (e.clientY - rect.top);
+}
+
+function applyImageZoom() {
+    var img = document.getElementById('georef-preview-img');
+    if (!img) return;
+
+    img.style.width = (imageZoom * 100) + '%';
+
+    repositionAllImageMarkers();
 }
 
 // ─── GCP Mode Toggles ───────────────────────────────────────────────────────
@@ -658,6 +725,15 @@ function setupImageMarkerDrag(marker, gcp) {
         gcp.imageX = pixelX;
         gcp.imageY = pixelY;
         refreshGcpTable();
+    });
+}
+
+function repositionAllImageMarkers() {
+    var img = document.getElementById('georef-preview-img');
+    if (!img) return;
+    gcps.forEach(function (gcp) {
+        var marker = document.querySelector('.georef-image-marker[data-gcp-id="' + gcp.pointId + '"]');
+        if (marker) positionImageMarker(marker, gcp, img);
     });
 }
 

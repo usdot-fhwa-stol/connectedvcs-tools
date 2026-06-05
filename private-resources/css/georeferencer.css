@@ -68,7 +68,8 @@
 }
 
 .georef-image-container img {
-    max-width: 100%;
+    max-width: none;
+    width: 100%;
     display: block;
 }
 
