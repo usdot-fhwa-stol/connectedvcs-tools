@@ -197,10 +197,9 @@ public class TravelerInformationBuilderExtendedTest {
 
     @Test
     public void build_longDuration_cappedAt32000Minutes() throws IOException {
-        // Use sample_tim.json as base; create a version with a start/end 1 year apart
-        // (1 year ≈ 525,960 min >> 32,000). We can't inspect getDurationTime directly,
-        // but we verify that building a TIM with a very long duration succeeds (doesn't
-        // throw) and produces a valid hex output, which means the cap was applied.
+        // Duration of 32 days = 46,080 minutes >> MAX_MINUTES_DURATION (32,000).
+        // The cap must be applied; encoding must succeed and return a non-empty hex string.
+        // Uses the same date format as the working fixture files to avoid encoder rejection.
         String json = "{\n" +
             "  \"regions\": [\n" +
             "    {\n" +
@@ -228,8 +227,8 @@ public class TravelerInformationBuilderExtendedTest {
             "    \"mutcd\": \"1\",\n" +
             "    \"infoType\": \"1\",\n" +
             "    \"priority\": \"1\",\n" +
-            "    \"startTime\": \"01/01/2024 12:00 AM\",\n" +
-            "    \"endTime\":   \"01/01/2026 12:00 AM\",\n" +   // ~2 years > 32000 min
+            "    \"startTime\": \"10/14/2025 2:31 PM\",\n" +
+            "    \"endTime\":   \"11/15/2025 2:31 PM\",\n" +
             "    \"heading\": []\n" +
             "  },\n" +
             "  \"verifiedPoint\": {\n" +
