@@ -5,9 +5,7 @@
 package gov.usdot.cv.msg.builder;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
 
-import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import gov.usdot.cv.msg.builder.message.TravelerInformationMessage;
 import gov.usdot.cv.timencoder.MUTCDCode;
 import org.apache.commons.io.FileUtils;
@@ -24,13 +22,14 @@ import java.io.IOException;
  *   The native ASN.1 JNI encoder (asn1c_timencoder) is NOT thread-safe.
  *   Calling it from multiple @Test methods simultaneously causes random
  *   MessageEncodeException crashes — a different test fails each CI run.
- *   The fix is the same pattern used by the existing TravelerInformationBuilderTest:
- *   put all encoder calls in ONE @Test method so they execute sequentially
+ *   Fix: put all encoder calls in ONE @Test method so they execute sequentially
  *   in a single thread. Pure-logic tests (getMutcdFromInt, etc.) remain as
  *   separate @Test methods because they never touch the native encoder.
  *
- *   When the native library is absent, build() throws MessageEncodeException.
- *   assumeTrue() skips the encoding test gracefully instead of failing.
+ * NODE COUNT NOTE:
+ *   The Compact nodeOffsets encoding requires a minimum of 3 lane nodes.
+ *   All inline lane JSON fixtures use 3 nodes. Circle fixtures use Standard
+ *   encoding which accepts 1 node (different path in the C encoder).
  */
 public class TravelerInformationBuilderExtendedTest {
 
@@ -161,7 +160,8 @@ public class TravelerInformationBuilderExtendedTest {
             "      \"regionType\": \"lane\",\n" +
             "      \"laneNodes\": [\n" +
             "        { \"nodeNumber\": 0, \"nodeLat\": 38.9549, \"nodeLong\": -77.1492, \"nodeElevation\": 40, \"laneWidth\": 0 },\n" +
-            "        { \"nodeNumber\": 1, \"nodeLat\": 38.9545, \"nodeLong\": -77.1488, \"nodeElevation\": 40, \"laneWidth\": 0 }\n" +
+            "        { \"nodeNumber\": 1, \"nodeLat\": 38.9545, \"nodeLong\": -77.1488, \"nodeElevation\": 40, \"laneWidth\": 0 },\n" +
+            "        { \"nodeNumber\": 2, \"nodeLat\": 38.9541, \"nodeLong\": -77.1484, \"nodeElevation\": 40, \"laneWidth\": 0 }\n" +
             "      ],\n" +
             "      \"extent\": \"\"\n" +
             "    }\n" +
@@ -209,7 +209,8 @@ public class TravelerInformationBuilderExtendedTest {
             "      \"regionType\": \"lane\",\n" +
             "      \"laneNodes\": [\n" +
             "        { \"nodeNumber\": 0, \"nodeLat\": 38.9549, \"nodeLong\": -77.1492, \"nodeElevation\": 40, \"laneWidth\": 0 },\n" +
-            "        { \"nodeNumber\": 1, \"nodeLat\": 38.9545, \"nodeLong\": -77.1488, \"nodeElevation\": 40, \"laneWidth\": 0 }\n" +
+            "        { \"nodeNumber\": 1, \"nodeLat\": 38.9545, \"nodeLong\": -77.1488, \"nodeElevation\": 40, \"laneWidth\": 0 },\n" +
+            "        { \"nodeNumber\": 2, \"nodeLat\": 38.9541, \"nodeLong\": -77.1484, \"nodeElevation\": 40, \"laneWidth\": 0 }\n" +
             "      ],\n" +
             "      \"extent\": \"\"\n" +
             "    }\n" +
@@ -297,28 +298,16 @@ public class TravelerInformationBuilderExtendedTest {
     // =========================================================================
 
     /**
-     * Builds from json; skips the whole test if native encoder is unavailable.
-     * Call this from within the single allEncodingTests() @Test method only.
+     * Builds from json and asserts the result is a non-null, non-empty hex string.
      */
     private void assertEncodesValidHex(String json, String description) {
-        TravelerInformationMessage msg = buildOrSkip(json, description);
-        if (msg == null) return; // assumeTrue already triggered skip
+        TravelerInformationMessage msg = (TravelerInformationMessage) BUILDER.build(json);
         String hex = msg.getHexString();
         assertNotNull("hex must not be null for: " + description, hex);
         assertFalse("hex must not be empty for: " + description, hex.isEmpty());
     }
 
-    /**
-     * Returns null (after calling assumeTrue to skip) if encoder unavailable,
-     * otherwise returns the built message.
-     */
     private TravelerInformationMessage buildOrSkip(String json, String description) {
-        try {
-            return (TravelerInformationMessage) BUILDER.build(json);
-        } catch (MessageEncodeException e) {
-            assumeTrue("Skipping encoding test [" + description
-                    + "]: native encoder unavailable", false);
-            return null; // unreachable
-        }
+        return (TravelerInformationMessage) BUILDER.build(json);
     }
 }
