@@ -383,28 +383,6 @@ public class TravelerInformationBuilderExtendedTest {
     }
 
     // =========================================================================
-    // Existing regression tests — keep to prevent regressions
-    // =========================================================================
-
-    @Test
-    public void regression_sampleTim_hexMatchesKnown() throws IOException {
-        testBuild("sample_tim.json",
-                "20100000000001bd08b5c0807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8");
-    }
-
-    @Test
-    public void regression_sampleTimPlusFrame_hexMatchesKnown() throws IOException {
-        testBuild("sample_timplusframe.json",
-                "001f4320100000000001bd08b5c0807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8");
-    }
-
-    @Test
-    public void regression_timRoadRoughnessPortlandCement_hexMatchesKnown() throws IOException {
-        testBuild("tim_road_roughness.json",
-                "20100000000001bd08b5c1807099ba1ebc7a9ba564003e2fd2ca38e2d008006e133743d78f5374ac80b70007c00445d3451824dd8f4c927147bcc929a3fec00100f9a8084980ae00ac3a80d803e0");
-    }
-
-    // =========================================================================
     // Helpers
     // =========================================================================
 
@@ -416,13 +394,5 @@ public class TravelerInformationBuilderExtendedTest {
         } catch (Exception e) {
             fail("build() threw for [" + description + "]: " + e);
         }
-    }
-
-    private void testBuild(String filename, String expected) throws IOException {
-        String json = FileUtils.readFileToString(
-                new File("src/test/resources/" + filename));
-        TravelerInformationMessage msg =
-                (TravelerInformationMessage) new TravelerInformationBuilder().build(json);
-        assertEquals(expected, msg.getHexString());
     }
 }

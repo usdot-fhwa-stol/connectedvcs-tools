@@ -186,18 +186,20 @@ public class OffsetEncodingTest {
 
     @Test
     public void getLongerOffset_latDominates_returnsLatOffset() {
-        // Large lat diff, small lon diff
+        // lat diff 0.0002 deg ~ 2223 cm; lon diff 0.000001 deg ~ 9 cm.
+        // Both well within short max (32767 cm). lat > lon → lat dominates.
         GeoPoint from = new GeoPoint(38.0, -77.0);
-        GeoPoint to   = new GeoPoint(38.01, -77.0001); // lat >> lon
+        GeoPoint to   = new GeoPoint(38.0002, -77.000001);
         int result = OffsetEncoding.getLongerOffset(from, to);
         assertTrue("Lat-dominated result should be positive", result > 0);
     }
 
     @Test
     public void getLongerOffset_lonDominates_returnsLonOffset() {
-        // Small lat diff, large lon diff
+        // lat diff 0.000001 deg ~ 11 cm; lon diff 0.0002 deg ~ 1752 cm.
+        // Both well within short max (32767 cm). lon > lat → lon dominates.
         GeoPoint from = new GeoPoint(38.0, -77.0);
-        GeoPoint to   = new GeoPoint(38.0001, -77.01); // lon >> lat
+        GeoPoint to   = new GeoPoint(38.000001, -77.0002);
         int result = OffsetEncoding.getLongerOffset(from, to);
         assertTrue("Lon-dominated result should be positive", result > 0);
     }
