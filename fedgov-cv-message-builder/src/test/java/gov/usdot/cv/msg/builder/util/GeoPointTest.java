@@ -34,8 +34,12 @@ public class GeoPointTest {
     // Small safe delta: ~5.5 meters = ~555 cm — well within Short.MAX_VALUE
     private static final double SMALL_DELTA = 0.00005;
 
-    // Large delta that reliably exceeds Short.MAX_VALUE (~33,300 cm > 32,767)
-    private static final double OVERFLOW_DELTA = 0.003;
+    // Latitude overflow delta: 0.003 deg = ~33,300 cm > Short.MAX_VALUE (32,767)
+    private static final double OVERFLOW_DELTA_LAT = 0.003;
+
+    // Longitude overflow delta: longitude compresses by cos(lat)=0.778 at this latitude,
+    // so 0.003 deg lon = only ~25,900 cm which does NOT overflow. Use 0.004 deg = ~34,527 cm.
+    private static final double OVERFLOW_DELTA_LON = 0.004;
 
     // =========================================================================
     // Constructor and getters
@@ -231,20 +235,20 @@ public class GeoPointTest {
 
     // =========================================================================
     // validateShortRange — overflow guard throws IllegalArgumentException
-    // OVERFLOW_DELTA produces ~33,300 cm which exceeds Short.MAX_VALUE (32,767)
+    // OVERFLOW_DELTA_LAT (~33,300 cm) and OVERFLOW_DELTA_LON (~34,527 cm) both exceed Short.MAX_VALUE (32,767)
     // =========================================================================
 
     @Test(expected = IllegalArgumentException.class)
     public void getLatOffsetInCentimeters_overflowDelta_throwsIllegalArgument() {
         GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
-        GeoPoint to   = new GeoPoint(BASE_LAT + OVERFLOW_DELTA, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + OVERFLOW_DELTA_LAT, BASE_LON);
         to.getLatOffsetInCentimeters(from);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getLonOffsetInCentimeters_overflowDelta_throwsIllegalArgument() {
         GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
-        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON + OVERFLOW_DELTA);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON + OVERFLOW_DELTA_LON);
         to.getLonOffsetInCentimeters(from);
     }
 
