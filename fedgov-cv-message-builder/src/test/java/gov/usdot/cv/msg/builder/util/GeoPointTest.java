@@ -14,13 +14,28 @@ import static org.junit.Assert.*;
  * GeoPoint computes signed lat/lon offsets used in every MAP and TIM message
  * node encoding. The bearing-based sign assignment (positive vs negative offset)
  * is the critical logic — a wrong sign flips a node to the opposite side of the
- * reference point, producing a physically incorrect map lane geometry.
- * The elevation guard (J2735 valid range) silently returns 0 for out-of-range
- * values; without a test this could mask a field data error.
- * The validateShortRange overflow guard throws IllegalArgumentException for
- * unreachable offsets — this is the safety net against encoding garbage data.
+ * reference point, producing physically incorrect lane geometry sent to vehicles.
+ *
+ * The elevation guard (J2735 valid range -409.5m to 6143.9m) silently returns 0
+ * for out-of-range values. The validateShortRange overflow guard throws
+ * IllegalArgumentException for offsets exceeding Short.MAX_VALUE (32,767 cm).
+ *
+ * COORDINATE DELTA NOTE:
+ * All test deltas use 0.00005 degrees (~5 meters), keeping computed offsets
+ * well within Short range (32,767 cm). The overflow test uses 0.003 degrees
+ * (~333 meters = ~33,300 cm) which reliably exceeds Short.MAX_VALUE.
  */
 public class GeoPointTest {
+
+    // Reference point near Washington DC, used across all tests
+    private static final double BASE_LAT = 38.9555;
+    private static final double BASE_LON = -77.1489;
+
+    // Small safe delta: ~5.5 meters = ~555 cm — well within Short.MAX_VALUE
+    private static final double SMALL_DELTA = 0.00005;
+
+    // Large delta that reliably exceeds Short.MAX_VALUE (~33,300 cm > 32,767)
+    private static final double OVERFLOW_DELTA = 0.003;
 
     // =========================================================================
     // Constructor and getters
@@ -28,15 +43,15 @@ public class GeoPointTest {
 
     @Test
     public void constructor_twoArg_setsLatLon() {
-        GeoPoint p = new GeoPoint(38.9555, -77.1489);
-        assertEquals(38.9555, p.getLat(), 1e-7);
-        assertEquals(-77.1489, p.getLon(), 1e-7);
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON);
+        assertEquals(BASE_LAT, p.getLat(), 1e-7);
+        assertEquals(BASE_LON, p.getLon(), 1e-7);
         assertEquals(0.0, p.getElevation(), 1e-7);
     }
 
     @Test
     public void constructor_threeArg_setsElevation() {
-        GeoPoint p = new GeoPoint(38.9555, -77.1489, 42.0);
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON, 42.0);
         assertEquals(42.0, p.getElevation(), 1e-7);
     }
 
@@ -52,101 +67,104 @@ public class GeoPointTest {
     }
 
     // =========================================================================
-    // getElevationOffsetInCentimeters — out-of-range guard
+    // getElevationOffsetInCentimeters — J2735 range guard
     // =========================================================================
 
     @Test
     public void getElevationOffset_validRange_returnsOffset() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489, 10.0);
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490, 15.0);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON, 10.0);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON, 15.0);
         // 5.0m difference = 500cm
-        short result = to.getElevationOffsetInCentimeters(from);
-        assertEquals(500, result);
+        assertEquals(500, to.getElevationOffsetInCentimeters(from));
     }
 
     @Test
     public void getElevationOffset_negativeOffset_returnsNegative() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489, 20.0);
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490, 15.0);
-        // -5.0m difference = -500cm
-        short result = to.getElevationOffsetInCentimeters(from);
-        assertEquals(-500, result);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON, 20.0);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON, 15.0);
+        assertEquals(-500, to.getElevationOffsetInCentimeters(from));
     }
 
     @Test
-    public void getElevationOffset_toElevationOutOfRange_returnsZero() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489, 10.0);
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490, 9999.0); // > 6143.9 max
-        short result = to.getElevationOffsetInCentimeters(from);
-        assertEquals("Out-of-range elevation must return 0", 0, result);
+    public void getElevationOffset_toElevationAboveMax_returnsZero() {
+        // J2735 max elevation is 6143.9m
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON, 10.0);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON, 6200.0); // > 6143.9
+        assertEquals("Elevation above J2735 max must return 0", 0,
+                to.getElevationOffsetInCentimeters(from));
     }
 
     @Test
-    public void getElevationOffset_fromElevationOutOfRange_returnsZero() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489, -500.0); // < -409.5 min
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490, 10.0);
-        short result = to.getElevationOffsetInCentimeters(from);
-        assertEquals("Out-of-range fromPoint elevation must return 0", 0, result);
+    public void getElevationOffset_fromElevationBelowMin_returnsZero() {
+        // J2735 min elevation is -409.5m
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON, -500.0); // < -409.5
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON, 10.0);
+        assertEquals("Elevation below J2735 min must return 0", 0,
+                to.getElevationOffsetInCentimeters(from));
     }
 
     @Test
-    public void getElevationOffset_atMaxValidElevation_doesNotReturnZero() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489, 6143.9);
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490, 6143.9);
-        // Same elevation, valid range — offset is 0 but for correct reason
-        short result = to.getElevationOffsetInCentimeters(from);
-        assertEquals(0, result);
+    public void getElevationOffset_sameElevation_returnsZero() {
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON, 100.0);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON, 100.0);
+        assertEquals(0, to.getElevationOffsetInCentimeters(from));
     }
 
     // =========================================================================
-    // getLatOffsetInCentimeters — directional sign (bearing logic)
+    // getLatOffsetInCentimeters — bearing-based sign logic
+    // SMALL_DELTA keeps offsets ~555 cm, safely within Short.MAX_VALUE
     // =========================================================================
 
     @Test
     public void getLatOffsetInCentimeters_northward_returnsPositive() {
-        // Moving north: bearing ~0°, which is NOT in (90,270) → positive
-        GeoPoint from = new GeoPoint(38.9000, -77.1489);
-        GeoPoint to   = new GeoPoint(38.9100, -77.1489); // ~1.11 km north
+        // Moving north: bearing ~0°, NOT in range (90°, 270°) → positive offset
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON);
         short result = to.getLatOffsetInCentimeters(from);
         assertTrue("Northward lat offset must be positive, got: " + result, result > 0);
     }
 
     @Test
     public void getLatOffsetInCentimeters_southward_returnsNegative() {
-        // Moving south: bearing ~180°, which IS in (90,270) → negative
-        GeoPoint from = new GeoPoint(38.9100, -77.1489);
-        GeoPoint to   = new GeoPoint(38.9000, -77.1489); // south
+        // Moving south: bearing ~180°, IS in range (90°, 270°) → negative offset
+        GeoPoint from = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON);
         short result = to.getLatOffsetInCentimeters(from);
         assertTrue("Southward lat offset must be negative, got: " + result, result < 0);
     }
 
     @Test
     public void getLatOffsetInCentimeters_samePoint_returnsZero() {
-        GeoPoint p = new GeoPoint(38.9555, -77.1489);
-        short result = p.getLatOffsetInCentimeters(p);
-        assertEquals(0, result);
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON);
+        assertEquals(0, p.getLatOffsetInCentimeters(p));
     }
 
     // =========================================================================
-    // getLonOffsetInCentimeters — directional sign (bearing logic)
+    // getLonOffsetInCentimeters — bearing-based sign logic
     // =========================================================================
 
     @Test
     public void getLonOffsetInCentimeters_eastward_returnsPositive() {
-        // Moving east: bearing ~90°, which is NOT in (180,360) → positive
-        GeoPoint from = new GeoPoint(38.9555, -77.1500);
-        GeoPoint to   = new GeoPoint(38.9555, -77.1400); // east
+        // Moving east: bearing ~90°, NOT in range (180°, 360°) → positive offset
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON + SMALL_DELTA);
         short result = to.getLonOffsetInCentimeters(from);
         assertTrue("Eastward lon offset must be positive, got: " + result, result > 0);
     }
 
     @Test
     public void getLonOffsetInCentimeters_westward_returnsNegative() {
-        // Moving west: bearing ~270°, which IS in (180,360) → negative
-        GeoPoint from = new GeoPoint(38.9555, -77.1400);
-        GeoPoint to   = new GeoPoint(38.9555, -77.1500); // west
+        // Moving west: bearing ~270°, IS in range (180°, 360°) → negative offset
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON + SMALL_DELTA);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON);
         short result = to.getLonOffsetInCentimeters(from);
         assertTrue("Westward lon offset must be negative, got: " + result, result < 0);
+    }
+
+    @Test
+    public void getLonOffsetInCentimeters_samePoint_returnsZero() {
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON);
+        assertEquals(0, p.getLonOffsetInCentimeters(p));
     }
 
     // =========================================================================
@@ -155,17 +173,16 @@ public class GeoPointTest {
 
     @Test
     public void getDistanceInCentimeters_smallOffset_returnsPositive() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489);
-        GeoPoint to   = new GeoPoint(38.9556, -77.1490);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON + SMALL_DELTA);
         short result = to.getDistanceInCentimeters(from);
         assertTrue("Distance must be positive, got: " + result, result > 0);
     }
 
     @Test
     public void getDistanceInCentimeters_samePoint_returnsZero() {
-        GeoPoint p = new GeoPoint(38.9555, -77.1489);
-        short result = p.getDistanceInCentimeters(p);
-        assertEquals(0, result);
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON);
+        assertEquals(0, p.getDistanceInCentimeters(p));
     }
 
     // =========================================================================
@@ -174,39 +191,61 @@ public class GeoPointTest {
 
     @Test
     public void getLatOffsetInMeters_northward_returnsPositive() {
-        GeoPoint from = new GeoPoint(38.9000, -77.1489);
-        GeoPoint to   = new GeoPoint(38.9050, -77.1489);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON);
         short result = to.getLatOffsetInMeters(from);
         assertTrue("Northward lat offset in meters must be positive, got: " + result, result > 0);
     }
 
     @Test
+    public void getLatOffsetInMeters_southward_returnsNegative() {
+        GeoPoint from = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON);
+        short result = to.getLatOffsetInMeters(from);
+        assertTrue("Southward lat offset in meters must be negative, got: " + result, result < 0);
+    }
+
+    @Test
     public void getLonOffsetInMeters_eastward_returnsPositive() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1500);
-        GeoPoint to   = new GeoPoint(38.9555, -77.1450);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON + SMALL_DELTA);
         short result = to.getLonOffsetInMeters(from);
         assertTrue("Eastward lon offset in meters must be positive, got: " + result, result > 0);
     }
 
     @Test
+    public void getLonOffsetInMeters_westward_returnsNegative() {
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON + SMALL_DELTA);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON);
+        short result = to.getLonOffsetInMeters(from);
+        assertTrue("Westward lon offset in meters must be negative, got: " + result, result < 0);
+    }
+
+    @Test
     public void getDistanceInMeters_smallOffset_returnsPositive() {
-        GeoPoint from = new GeoPoint(38.9555, -77.1489);
-        GeoPoint to   = new GeoPoint(38.9560, -77.1490);
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + SMALL_DELTA, BASE_LON + SMALL_DELTA);
         short result = to.getDistanceInMeters(from);
         assertTrue("Distance in meters must be positive, got: " + result, result > 0);
     }
 
     // =========================================================================
-    // validateShortRange — overflow guard (IllegalArgumentException)
+    // validateShortRange — overflow guard throws IllegalArgumentException
+    // OVERFLOW_DELTA produces ~33,300 cm which exceeds Short.MAX_VALUE (32,767)
     // =========================================================================
 
     @Test(expected = IllegalArgumentException.class)
-    public void getLatOffsetInCentimeters_hugeDelta_throwsIllegalArgument() {
-        // 400 degrees latitude difference → offset >> Short.MAX_VALUE
-        GeoPoint from = new GeoPoint(0.0,   0.0);
-        GeoPoint to   = new GeoPoint(89.0,  0.0); // max realistic: ~89 degrees
-        // ~9900 km = 990,000,000 cm >> 32767 → should throw
+    public void getLatOffsetInCentimeters_overflowDelta_throwsIllegalArgument() {
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT + OVERFLOW_DELTA, BASE_LON);
         to.getLatOffsetInCentimeters(from);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getLonOffsetInCentimeters_overflowDelta_throwsIllegalArgument() {
+        GeoPoint from = new GeoPoint(BASE_LAT, BASE_LON);
+        GeoPoint to   = new GeoPoint(BASE_LAT, BASE_LON + OVERFLOW_DELTA);
+        to.getLonOffsetInCentimeters(from);
     }
 
     // =========================================================================
@@ -215,9 +254,9 @@ public class GeoPointTest {
 
     @Test
     public void toString_containsLatAndLon() {
-        GeoPoint p = new GeoPoint(38.9555, -77.1489);
+        GeoPoint p = new GeoPoint(BASE_LAT, BASE_LON);
         String s = p.toString();
-        assertTrue(s.contains("38.9555"));
-        assertTrue(s.contains("-77.1489"));
+        assertTrue(s.contains(String.valueOf(BASE_LAT)));
+        assertTrue(s.contains(String.valueOf(BASE_LON)));
     }
 }
