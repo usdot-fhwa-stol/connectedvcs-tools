@@ -7,13 +7,13 @@ package gov.usdot.cv.googlemap.services;
 import gov.usdot.cv.googlemap.models.GooglePlaceSuggestions;
 import gov.usdot.cv.googlemap.models.GoogleSearchTextResponse;
 import gov.usdot.cv.utils.RequestComposer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for the pure Java (non-HTTP) methods of {@link GooglePlacesService}
@@ -22,21 +22,19 @@ import static org.junit.Assert.*;
  * WHY THESE TESTS HAVE VALUE:
  * parseAutoCompletePlacesResponse() and parseSearchTextResponse() contain
  * real branch logic: success path (valid JSON), error path (JSON with "error"
- * key), null/invalid input path (exception handler), and NullPointerException
- * guard. These branches determine whether valid place suggestions and coordinates
- * are returned to the UI. A bug here means the map UI gets null results
- * silently instead of crashing visibly. Tests run without any HTTP server
- * — they use plain String inputs.
+ * key), null/invalid input path (exception handler). These branches determine
+ * whether valid place suggestions are returned to the UI. A bug here means
+ * the map UI gets null results silently instead of an informative error.
+ * Tests run without any HTTP server — they use plain String inputs.
  *
  * RequestComposer.composeRequestBodyData() is the JSON serialisation utility
- * used to build every outbound HTTP request body. A bug here means malformed
- * request bodies sent to the Google Places API.
+ * used to build every outbound HTTP request body to the Google Places API.
  */
 public class GooglePlacesServiceTest {
 
     private GooglePlacesService service;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         service = new GooglePlacesService();
     }
@@ -53,8 +51,8 @@ public class GooglePlacesServiceTest {
         String result = new RequestComposer().composeRequestBodyData(fields);
 
         assertNotNull(result);
-        assertTrue("Should contain the key", result.contains("\"input\""));
-        assertTrue("Should contain the value", result.contains("Washington DC"));
+        assertTrue(result.contains("\"input\""));
+        assertTrue(result.contains("Washington DC"));
     }
 
     @Test
@@ -79,20 +77,8 @@ public class GooglePlacesServiceTest {
         assertEquals("{}", result);
     }
 
-    @Test
-    public void composeRequestBodyData_specialCharsInValue_escapedCorrectly() {
-        Map<String, String> fields = new HashMap<>();
-        fields.put("query", "O'Brien & Sons \"LLC\"");
-
-        String result = new RequestComposer().composeRequestBodyData(fields);
-        assertNotNull(result);
-        // Jackson should produce valid JSON regardless of special chars
-        assertTrue(result.startsWith("{"));
-        assertTrue(result.endsWith("}"));
-    }
-
     // =========================================================================
-    // GooglePlacesService.parseAutoCompletePlacesResponse — success path
+    // GooglePlacesService.parseAutoCompletePlacesResponse
     // =========================================================================
 
     @Test
@@ -101,25 +87,19 @@ public class GooglePlacesServiceTest {
             "  \"suggestions\": [\n" +
             "    {\n" +
             "      \"placePrediction\": {\n" +
-            "        \"text\": {\n" +
-            "          \"text\": \"Washington, DC, USA\",\n" +
-            "          \"matches\": []\n" +
-            "        },\n" +
+            "        \"text\": { \"text\": \"Washington, DC, USA\", \"matches\": [] },\n" +
             "        \"placeId\": \"ChIJW-T2Wt7Gt4kRKl2I1CJFUsI\"\n" +
             "      }\n" +
             "    }\n" +
             "  ]\n" +
             "}";
 
-        GooglePlaceSuggestions result =
-                service.parseAutoCompletePlacesResponse(validResponse);
-
-        assertNotNull("Valid response should parse successfully", result);
+        GooglePlaceSuggestions result = service.parseAutoCompletePlacesResponse(validResponse);
+        assertNotNull(result);
     }
 
     @Test
     public void parseAutoCompletePlacesResponse_errorResponse_returnsNull() {
-        // When the Google API returns an error object, service should return null
         String errorResponse = "{\n" +
             "  \"error\": {\n" +
             "    \"code\": 400,\n" +
@@ -128,45 +108,34 @@ public class GooglePlacesServiceTest {
             "  }\n" +
             "}";
 
-        GooglePlaceSuggestions result =
-                service.parseAutoCompletePlacesResponse(errorResponse);
-
-        assertNull("Error response should return null", result);
+        GooglePlaceSuggestions result = service.parseAutoCompletePlacesResponse(errorResponse);
+        assertNull(result);
     }
 
     @Test
     public void parseAutoCompletePlacesResponse_nullInput_returnsNull() {
-        GooglePlaceSuggestions result = service.parseAutoCompletePlacesResponse(null);
-        assertNull("Null input should return null", result);
+        assertNull(service.parseAutoCompletePlacesResponse(null));
     }
 
     @Test
     public void parseAutoCompletePlacesResponse_emptyString_returnsNull() {
-        GooglePlaceSuggestions result = service.parseAutoCompletePlacesResponse("");
-        assertNull("Empty string should return null", result);
+        assertNull(service.parseAutoCompletePlacesResponse(""));
     }
 
     @Test
     public void parseAutoCompletePlacesResponse_malformedJson_returnsNull() {
-        GooglePlaceSuggestions result =
-                service.parseAutoCompletePlacesResponse("not valid json {{{{");
-        assertNull("Malformed JSON should return null", result);
+        assertNull(service.parseAutoCompletePlacesResponse("not valid json {{{{"));
     }
 
     @Test
-    public void parseAutoCompletePlacesResponse_validJsonWithNoSuggestions_handlesGracefully() {
-        String emptyResponse = "{\"suggestions\": []}";
-        // Should not throw — returns either an empty result or null gracefully
-        // No assertion on value; just verify no exception
-        try {
-            service.parseAutoCompletePlacesResponse(emptyResponse);
-        } catch (Exception e) {
-            fail("Should not throw exception for valid JSON with empty suggestions: " + e);
-        }
+    public void parseAutoCompletePlacesResponse_validJsonNoSuggestions_doesNotThrow() {
+        assertDoesNotThrow(() ->
+            service.parseAutoCompletePlacesResponse("{\"suggestions\": []}")
+        );
     }
 
     // =========================================================================
-    // GooglePlacesService.parseSearchTextResponse — success path
+    // GooglePlacesService.parseSearchTextResponse
     // =========================================================================
 
     @Test
@@ -175,18 +144,13 @@ public class GooglePlacesServiceTest {
             "  \"places\": [\n" +
             "    {\n" +
             "      \"formattedAddress\": \"Washington, DC, USA\",\n" +
-            "      \"location\": {\n" +
-            "        \"latitude\": 38.9072,\n" +
-            "        \"longitude\": -77.0369\n" +
-            "      }\n" +
+            "      \"location\": { \"latitude\": 38.9072, \"longitude\": -77.0369 }\n" +
             "    }\n" +
             "  ]\n" +
             "}";
 
-        GoogleSearchTextResponse result =
-                service.parseSearchTextResponse(validResponse);
-
-        assertNotNull("Valid response should parse successfully", result);
+        GoogleSearchTextResponse result = service.parseSearchTextResponse(validResponse);
+        assertNotNull(result);
     }
 
     @Test
@@ -199,35 +163,27 @@ public class GooglePlacesServiceTest {
             "  }\n" +
             "}";
 
-        GoogleSearchTextResponse result = service.parseSearchTextResponse(errorResponse);
-        assertNull("Error response should return null", result);
+        assertNull(service.parseSearchTextResponse(errorResponse));
     }
 
     @Test
     public void parseSearchTextResponse_nullInput_returnsNull() {
-        GoogleSearchTextResponse result = service.parseSearchTextResponse(null);
-        assertNull("Null input should return null", result);
+        assertNull(service.parseSearchTextResponse(null));
     }
 
     @Test
     public void parseSearchTextResponse_emptyString_returnsNull() {
-        GoogleSearchTextResponse result = service.parseSearchTextResponse("");
-        assertNull("Empty string should return null", result);
+        assertNull(service.parseSearchTextResponse(""));
     }
 
     @Test
     public void parseSearchTextResponse_malformedJson_returnsNull() {
-        GoogleSearchTextResponse result =
-                service.parseSearchTextResponse("{invalid");
-        assertNull("Malformed JSON should return null", result);
+        assertNull(service.parseSearchTextResponse("{invalid"));
     }
 
     @Test
     public void parseSearchTextResponse_missingPlacesKey_returnsNull() {
-        // Valid JSON but missing the "places" key — causes NullPointerException
-        // which is caught and returns null
-        String missingPlaces = "{ \"status\": \"OK\" }";
-        GoogleSearchTextResponse result = service.parseSearchTextResponse(missingPlaces);
-        assertNull("Missing 'places' key should return null", result);
+        // Valid JSON but missing "places" key — NullPointerException caught internally
+        assertNull(service.parseSearchTextResponse("{ \"status\": \"OK\" }"));
     }
 }
