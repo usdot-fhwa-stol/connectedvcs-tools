@@ -63,10 +63,10 @@ public class TravelerInputDataTest {
         TravelerInputData.GenerateType.fromType("tim");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void fromType_null_throwsException() {
-        // contentEquals(null) throws NullPointerException or IllegalArgument
-        // Either is acceptable — the point is it does not return silently
+    @Test(expected = NullPointerException.class)
+    public void fromType_null_throwsNullPointerException() {
+        // contentEquals(null) throws NullPointerException — documents actual behavior.
+        // The point is it fails loudly rather than returning a wrong default silently.
         TravelerInputData.GenerateType.fromType(null);
     }
 
