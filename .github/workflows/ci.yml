@@ -18,7 +18,7 @@ jobs:
         - name: Install deps
           run: |
             apt-get update -y
-            apt-get -y install wget unzip sudo git gdal-bin
+            apt-get -y install wget unzip sudo git
 
         - name: Checkout ${{ github.event.repository.name }}
           uses: actions/checkout@v6
