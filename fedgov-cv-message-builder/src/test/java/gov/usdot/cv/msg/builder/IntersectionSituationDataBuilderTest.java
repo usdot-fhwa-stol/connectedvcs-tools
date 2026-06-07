@@ -379,8 +379,9 @@ public class IntersectionSituationDataBuilderTest {
         assertLaneTypeBuilds("parking", "parking lane type");
 
         // SOURCE BUG: trackedVehicle branch unreachable due to toLowerCase mismatch
-        assertLaneTypeThrows("trackedVehicle", "trackedVehicle hits unsupported (source bug)");
-        assertLaneTypeThrows("trackedvehicle", "trackedvehicle also hits unsupported (source bug)");
+        assertLaneTypeBuilds("trackedVehicle", "trackedVehicle now resolves correctly after source fix");
+        assertLaneTypeBuilds("trackedvehicle", "trackedvehicle (lowercase) resolves correctly");
+
 
         // crosswalk approach type (approachID = -1 path)
         assertBuilds(crosswalkApproachJson(), "crosswalk approach type");
