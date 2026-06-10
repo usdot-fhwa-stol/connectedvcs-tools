@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * GDAL Facade - Provides a clean interface for all GDAL command-line utility operations.
@@ -230,11 +231,15 @@ public class GdalFacade {
                 }
             }
             
-            int exitCode = process.waitFor();
+            boolean finished = process.waitFor(120, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new GdalException("gdalinfo timed out after 120 seconds");
+            }
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
                 String error = readProcessError(process);
                 if (jsonOutput) {
-                    // Fallback: try without JSON format
                     logger.warn("JSON gdalinfo failed, trying text format for: {}", imagePath.getFileName());
                     return getImageInfo(imagePath, false, includeChecksum);
                 } else {
@@ -297,9 +302,14 @@ public class GdalFacade {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process process = pb.start();
-            
-            int exitCode = process.waitFor();
-            
+
+            boolean finished = process.waitFor(120, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new GdalException(operationDescription + " timed out after 120 seconds");
+            }
+            int exitCode = process.exitValue();
+
             if (exitCode != 0) {
                 String error = readProcessError(process);
                 String commandStr = String.join(" ", command);

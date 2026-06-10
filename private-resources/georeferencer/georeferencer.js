@@ -44,6 +44,8 @@ let overlayIdCounter = 0;
 let editingOverlayId = null;
 let mapClickListenerKey = null;
 let imageZoom = 1;
+let pendingLonLat = null;
+let pendingFeature = null;
 
 const DEFAULTS = {
     georefEndpoint: '/georef/api/georeference',
@@ -484,6 +486,9 @@ function showImagePreview(file) {
             imageNaturalHeight = img.naturalHeight;
             restoreImageMarkers();
         };
+        img.onerror = function () {
+            setStatus('Failed to load image. The file may not be in the correct format.', 'error');
+        };
     };
     reader.readAsDataURL(file);
 
@@ -550,7 +555,13 @@ function enableAddGcpMode() {
 
 function disableAddGcpMode() {
     addGcpMode = false;
+
+    if (pendingMapClick === 'image' && pendingFeature) {
+        gcpMapLayer.getSource().removeFeature(pendingFeature);
+    }
     pendingMapClick = null;
+    pendingLonLat = null;
+    pendingFeature = null;
 
     document.getElementById('georef-add-gcp').classList.remove('active');
     document.getElementById('georef-image-container').classList.remove('georef-add-mode');
@@ -617,8 +628,8 @@ function handleMapClick(evt) {
         gcpMapLayer.getSource().addFeature(feature);
 
         pendingMapClick = 'image';
-        window._georefPendingLonLat = lonLat;
-        window._georefPendingFeature = feature;
+        pendingLonLat = lonLat;
+        pendingFeature = feature;
 
         setStatus('Now click the corresponding point on the image.', 'waiting');
     }
@@ -652,7 +663,7 @@ function handleImageClick(e) {
     }
 
     gcpTsCounter++;
-    const lonLat = window._georefPendingLonLat;
+    const lonLat = pendingLonLat;
     const gcp = {
         _ts: gcpTsCounter,
         pointId: 'GCP ' + (gcps.length + 1),
@@ -664,7 +675,7 @@ function handleImageClick(e) {
     gcps.push(gcp);
 
     // Update the temp map feature with the real _ts
-    const pendingFeature = window._georefPendingFeature;
+    const pendingFeature = pendingFeature;
     if (pendingFeature) {
         pendingFeature.set('gcpTs', gcpTsCounter);
     }
@@ -673,8 +684,8 @@ function handleImageClick(e) {
     refreshGcpTable();
     updateButtonStates();
 
-    window._georefPendingLonLat = null;
-    window._georefPendingFeature = null;
+    pendingLonLat = null;
+    pendingFeature = null;
     pendingMapClick = 'map';
 
     if (gcps.length >= options.minGcps) {
@@ -697,7 +708,7 @@ function addImageMarker(gcp, img) {
     marker.textContent = gcp.pointId.replace('GCP ', '');
 
     positionImageMarker(marker, gcp, img);
-    setupImageMarkerDrag(marker, gcp);
+    setupImageMarkerDrag(marker);
 
     container.appendChild(marker);
 }
@@ -713,56 +724,54 @@ function positionImageMarker(marker, gcp, img) {
     marker.style.top = displayY + 'px';
 }
 
-function setupImageMarkerDrag(marker, gcp) {
-    let isDragging = false;
-    let startX, startY;
+let dragState = null;
 
+function setupImageMarkerDrag(marker) {
     marker.addEventListener('mousedown', function (e) {
         if (deleteGcpMode) return;
         if (addGcpMode && pendingMapClick === 'image') return;
 
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
+        const ts = parseInt(marker.dataset.gcpTs);
+        dragState = { marker: marker, gcpTs: ts };
         marker.classList.add('georef-dragging');
         e.preventDefault();
         e.stopPropagation();
     });
-
-    document.addEventListener('mousemove', function (e) {
-        if (!isDragging) return;
-
-        const img = document.getElementById('georef-preview-img');
-        if (!img) return;
-
-        const rect = img.getBoundingClientRect();
-        const newX = e.clientX - rect.left;
-        const newY = e.clientY - rect.top;
-
-        marker.style.left = Math.max(0, Math.min(newX, img.clientWidth)) + 'px';
-        marker.style.top = Math.max(0, Math.min(newY, img.clientHeight)) + 'px';
-    });
-
-    document.addEventListener('mouseup', function (e) {
-        if (!isDragging) return;
-        isDragging = false;
-        marker.classList.remove('georef-dragging');
-
-        const img = document.getElementById('georef-preview-img');
-        if (!img) return;
-
-        const rect = img.getBoundingClientRect();
-        const newX = e.clientX - rect.left;
-        const newY = e.clientY - rect.top;
-
-        const pixelX = Math.round((Math.max(0, Math.min(newX, img.clientWidth)) / img.clientWidth) * imageNaturalWidth);
-        const pixelY = Math.round((Math.max(0, Math.min(newY, img.clientHeight)) / img.clientHeight) * imageNaturalHeight);
-
-        gcp.imageX = pixelX;
-        gcp.imageY = pixelY;
-        refreshGcpTable();
-    });
 }
+
+document.addEventListener('mousemove', function (e) {
+    if (!dragState) return;
+
+    const img = document.getElementById('georef-preview-img');
+    if (!img) return;
+
+    const rect = img.getBoundingClientRect();
+    const newX = e.clientX - rect.left;
+    const newY = e.clientY - rect.top;
+
+    dragState.marker.style.left = Math.max(0, Math.min(newX, img.clientWidth)) + 'px';
+    dragState.marker.style.top = Math.max(0, Math.min(newY, img.clientHeight)) + 'px';
+});
+
+document.addEventListener('mouseup', function (e) {
+    if (!dragState) return;
+
+    const marker = dragState.marker;
+    const gcp = gcps.find(g => g._ts === dragState.gcpTs);
+    dragState = null;
+    marker.classList.remove('georef-dragging');
+
+    const img = document.getElementById('georef-preview-img');
+    if (!img || !gcp) return;
+
+    const rect = img.getBoundingClientRect();
+    const newX = e.clientX - rect.left;
+    const newY = e.clientY - rect.top;
+
+    gcp.imageX = Math.round((Math.max(0, Math.min(newX, img.clientWidth)) / img.clientWidth) * imageNaturalWidth);
+    gcp.imageY = Math.round((Math.max(0, Math.min(newY, img.clientHeight)) / img.clientHeight) * imageNaturalHeight);
+    refreshGcpTable();
+});
 
 function repositionAllImageMarkers() {
     var img = document.getElementById('georef-preview-img');
@@ -861,12 +870,14 @@ function handleCellEdit(gcpTs, field, value) {
     }
 
     if (field === 'imageX') {
-        gcp.imageX = Math.round(numValue);
+        gcp.imageX = Math.max(0, Math.min(Math.round(numValue), imageNaturalWidth));
     } else if (field === 'imageY') {
-        gcp.imageY = Math.round(numValue);
+        gcp.imageY = Math.max(0, Math.min(Math.round(numValue), imageNaturalHeight));
     } else if (field === 'longitude') {
+        if (numValue < -180 || numValue > 180) { refreshGcpTable(); return; }
         gcp.longitude = numValue;
     } else if (field === 'latitude') {
+        if (numValue < -90 || numValue > 90) { refreshGcpTable(); return; }
         gcp.latitude = numValue;
     }
 
@@ -1050,7 +1061,14 @@ async function startGeoreferencing() {
             body: formData
         });
 
-        const result = await response.json();
+        let result;
+        try {
+            result = await response.json();
+        } catch (parseErr) {
+            setStatus('Server returned an invalid response.', 'error');
+            document.getElementById('georef-start').disabled = false;
+            return;
+        }
 
         if (!response.ok || !result.success) {
             setStatus('Georeferencing failed: ' + (result.message || 'Unknown error'), 'error');
@@ -1081,10 +1099,19 @@ async function startGeoreferencing() {
                     if (csrfToken) {
                         xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
                     }
+                    xhr.timeout = 30000;
                     xhr.onload = function () {
                         if (xhr.status === 200) {
                             image.getImage().src = URL.createObjectURL(xhr.response);
+                        } else {
+                            console.error('Georeferencer: failed to load overlay image, status ' + xhr.status);
                         }
+                    };
+                    xhr.onerror = function () {
+                        console.error('Georeferencer: network error loading overlay image');
+                    };
+                    xhr.ontimeout = function () {
+                        console.error('Georeferencer: timeout loading overlay image');
                     };
                     xhr.send();
                 }
