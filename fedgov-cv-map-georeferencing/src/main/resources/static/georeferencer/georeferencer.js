@@ -687,8 +687,6 @@ function handleImageClick(e) {
     };
     gcps.push(gcp);
 
-    // Update the temp map feature with the real _ts
-    const pendingFeature = pendingFeature;
     if (pendingFeature) {
         pendingFeature.set('gcpTs', gcpTsCounter);
     }
