@@ -119,7 +119,7 @@ public class GeoreferenceController {
                 logger.error("Failed to parse GCPs JSON: {}", e.getMessage());
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("success", false);
-                errorResponse.put("message", "Invalid GCP format: " + e.getMessage());
+                errorResponse.put("message", "Invalid GCP format. Please verify the control point data.");
                 errorResponse.put("error", "JSON_PARSE_ERROR");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
@@ -197,7 +197,7 @@ public class GeoreferenceController {
             logger.error("Internal server error: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "Internal server error: " + e.getMessage());
+            errorResponse.put("message", "Georeferencing failed. Please check your inputs and try again.");
             errorResponse.put("error", "INTERNAL_SERVER_ERROR");
             return ResponseEntity.internalServerError().body(errorResponse);
         }

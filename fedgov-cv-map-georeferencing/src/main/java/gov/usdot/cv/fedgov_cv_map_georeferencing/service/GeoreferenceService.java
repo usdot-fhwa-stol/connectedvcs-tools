@@ -472,6 +472,9 @@ public class GeoreferenceService {
      * Convert Web Mercator X coordinate to longitude
      */
     private double webMercatorXToLon(double x) {
+        if (Math.abs(x) > WEB_MERCATOR_MAX_EXTENT * 1.01) {
+            logger.warn("Web Mercator X value {} exceeds expected range, output may be incorrect", x);
+        }
         return x / WEB_MERCATOR_MAX_EXTENT * 180.0;
     }
 
@@ -479,6 +482,9 @@ public class GeoreferenceService {
      * Convert Web Mercator Y coordinate to latitude
      */
     private double webMercatorYToLat(double y) {
+        if (Math.abs(y) > WEB_MERCATOR_MAX_EXTENT * 1.01) {
+            logger.warn("Web Mercator Y value {} exceeds expected range, output may be incorrect", y);
+        }
         return Math.toDegrees(Math.atan(Math.sinh(y / WEB_MERCATOR_MAX_EXTENT * Math.PI)));
     }
 

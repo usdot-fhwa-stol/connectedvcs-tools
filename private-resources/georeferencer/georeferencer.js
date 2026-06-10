@@ -51,7 +51,14 @@ const DEFAULTS = {
     georefEndpoint: '/georef/api/georeference',
     csrfTokenUrl: '/msp/security/api/csrf-token/',
     minGcps: 4,
-    maxGcps: 10
+    maxGcps: 10,
+    initPollInterval: 100,
+    initMaxAttempts: 150,
+    zoomMin: 0.5,
+    zoomMax: 5,
+    zoomStep: 0.1,
+    coordPrecision: 7,
+    xhrTimeout: 30000
 };
 
 // Initialization
@@ -77,13 +84,13 @@ export function initGeoreferencer(olMapOrGetter, userOptions) {
         var attempts = 0;
         var interval = setInterval(function () {
             attempts++;
-            if (tryInit() || attempts > 50) {
+            if (tryInit() || attempts > options.initMaxAttempts) {
                 clearInterval(interval);
                 if (!map) {
                     console.error('Georeferencer: map object not available after waiting');
                 }
             }
-        }, 100);
+        }, options.initPollInterval);
     }
 }
 
@@ -195,8 +202,8 @@ function createGcpMapLayer() {
 
         const gcp = gcps.find(g => g._ts === ts);
         if (gcp) {
-            gcp.longitude = parseFloat(lonLat[0].toFixed(7));
-            gcp.latitude = parseFloat(lonLat[1].toFixed(7));
+            gcp.longitude = parseFloat(lonLat[0].toFixed(options.coordPrecision));
+            gcp.latitude = parseFloat(lonLat[1].toFixed(options.coordPrecision));
             refreshGcpTable();
         }
     });
@@ -299,6 +306,8 @@ function refreshOverlayPanel() {
 function removeOverlay(overlayId) {
     const idx = overlayEntries.findIndex(e => e.id === overlayId);
     if (idx === -1) return;
+
+    if (!confirm('Remove this overlay? This cannot be undone.')) return;
 
     map.removeLayer(overlayEntries[idx].layer);
     overlayEntries.splice(idx, 1);
@@ -405,8 +414,12 @@ function bindEvents() {
         onModalClose();
     });
 
-    // Disable Bootstrap 3 enforceFocus so clicks on the map behind the modal work
-    $.fn.modal.Constructor.prototype.enforceFocus = function () {};
+    // Disable Bootstrap 3 enforceFocus only for the georef modal so clicks on the map work
+    var origEnforceFocus = $.fn.modal.Constructor.prototype.enforceFocus;
+    $.fn.modal.Constructor.prototype.enforceFocus = function () {
+        if (this.$element && this.$element.attr('id') === 'georef_modal') return;
+        origEnforceFocus.call(this);
+    };
 }
 
 // Open / Close
@@ -502,8 +515,8 @@ function handleImageZoom(e) {
     e.preventDefault();
 
     var container = document.getElementById('georef-image-container');
-    var delta = e.deltaY > 0 ? -0.1 : 0.1;
-    var newZoom = Math.min(Math.max(imageZoom + delta, 0.5), 5);
+    var delta = e.deltaY > 0 ? -options.zoomStep : options.zoomStep;
+    var newZoom = Math.min(Math.max(imageZoom + delta, options.zoomMin), options.zoomMax);
     if (newZoom === imageZoom) return;
 
     var rect = container.getBoundingClientRect();
@@ -669,8 +682,8 @@ function handleImageClick(e) {
         pointId: 'GCP ' + (gcps.length + 1),
         imageX: pixelX,
         imageY: pixelY,
-        longitude: parseFloat(lonLat[0].toFixed(7)),
-        latitude: parseFloat(lonLat[1].toFixed(7))
+        longitude: parseFloat(lonLat[0].toFixed(options.coordPrecision)),
+        latitude: parseFloat(lonLat[1].toFixed(options.coordPrecision))
     };
     gcps.push(gcp);
 
@@ -1099,7 +1112,7 @@ async function startGeoreferencing() {
                     if (csrfToken) {
                         xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
                     }
-                    xhr.timeout = 30000;
+                    xhr.timeout = options.xhrTimeout;
                     xhr.onload = function () {
                         if (xhr.status === 200) {
                             image.getImage().src = URL.createObjectURL(xhr.response);
