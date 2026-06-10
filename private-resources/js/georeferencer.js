@@ -33,7 +33,7 @@ let selectedImage = null;
 let imageNaturalWidth = 0;
 let imageNaturalHeight = 0;
 let gcps = [];
-let gcpIdCounter = 0;
+let gcpTsCounter = 0;
 let addGcpMode = false;
 let deleteGcpMode = false;
 let pendingMapClick = null; // 'map' | 'image' | null
@@ -123,7 +123,7 @@ function injectModalHTML() {
                         </button>
                         <input type="file" id="georef-file-input" accept="image/png,image/jpeg" style="display:none;">
                         <button type="button" class="btn btn-default btn-sm" id="georef-add-gcp" disabled>
-                            <i class="fa fa-plus-circle"></i> Add GCP
+                            <i class="fa fa-plus-circle"></i> Add/Edit GCP
                         </button>
                         <button type="button" class="btn btn-default btn-sm" id="georef-delete-gcp" disabled>
                             <i class="fa fa-minus-circle"></i> Delete GCP
@@ -187,11 +187,11 @@ function createGcpMapLayer() {
 
     gcpTranslateInteraction.on('translateend', function (evt) {
         const feature = evt.features.item(0);
-        const gcpId = feature.get('gcpId');
+        const ts = feature.get('gcpTs');
         const coord = feature.getGeometry().getCoordinates();
         const lonLat = ol.proj.toLonLat(coord);
 
-        const gcp = gcps.find(g => g.pointId === gcpId);
+        const gcp = gcps.find(g => g._ts === ts);
         if (gcp) {
             gcp.longitude = parseFloat(lonLat[0].toFixed(7));
             gcp.latitude = parseFloat(lonLat[1].toFixed(7));
@@ -291,17 +291,26 @@ function editOverlay(overlayId) {
     editingOverlayId = overlayId;
     selectedImage = entry.file;
     gcps = JSON.parse(JSON.stringify(entry.gcps));
-    gcpIdCounter = gcps.length > 0
-        ? Math.max(...gcps.map(g => parseInt(g.pointId.replace('GCP', '')) || 0)) + 1
+    // Backfill _ts for any GCPs saved before this field existed
+    gcps.forEach(function (g, i) {
+        if (!g._ts) g._ts = i + 1;
+    });
+    gcpTsCounter = gcps.length > 0
+        ? Math.max(...gcps.map(g => g._ts)) + 1
         : 1;
+    renumberGcps();
+
+    entry.layer.setOpacity(0);
+    refreshOverlayPanel();
 
     showImagePreview(selectedImage);
     restoreGcpMarkers();
     refreshGcpTable();
     updateButtonStates();
-    setStatus('Edit GCP points as needed, then click "Start Georeferencing" to update.', 'info');
 
     $('#georef_modal').modal('show');
+    enableAddGcpMode();
+    setStatus('Add more points or drag existing ones, then click "Start Georeferencing" to update.', 'waiting');
 }
 
 // ─── Event Binding ───────────────────────────────────────────────────────────
@@ -392,7 +401,7 @@ function resetState() {
     imageNaturalWidth = 0;
     imageNaturalHeight = 0;
     gcps = [];
-    gcpIdCounter = 0;
+    gcpTsCounter = 0;
     addGcpMode = false;
     deleteGcpMode = false;
     pendingMapClick = null;
@@ -436,7 +445,7 @@ function handleImageSelect(file) {
 
     selectedImage = file;
     showImagePreview(file);
-    setStatus('Image loaded. Click "Add GCP" to start picking control points.', 'info');
+    setStatus('Image loaded. Click "Add/Edit GCP" to start picking control points.', 'info');
     updateButtonStates();
 }
 
@@ -517,7 +526,7 @@ function enableAddGcpMode() {
     gcpTranslateInteraction.setActive(true);
 
     mapClickListenerKey = map.on('click', handleMapClick);
-    setStatus('Click on the map to pick a geographic point.', 'waiting');
+    setStatus('Click on the map to pick a geographic point or edit existing points by dragging them.', 'waiting');
 }
 
 function disableAddGcpMode() {
@@ -536,6 +545,7 @@ function disableAddGcpMode() {
     }
 
     updateButtonStates();
+    restoreDefaultStatus();
 }
 
 function toggleDeleteGcpMode() {
@@ -563,6 +573,7 @@ function disableDeleteGcpMode() {
     document.getElementById('georef-image-container').classList.remove('georef-delete-mode');
 
     updateButtonStates();
+    restoreDefaultStatus();
 }
 
 // ─── Map Click Handler ───────────────────────────────────────────────────────
@@ -576,12 +587,12 @@ function handleMapClick(evt) {
         const coord = evt.coordinate;
         const lonLat = ol.proj.toLonLat(coord);
 
-        const tempGcpId = 'GCP' + (gcpIdCounter + 1);
+        const tempTs = gcpTsCounter + 1;
 
         const feature = new ol.Feature({
             geometry: new ol.geom.Point(coord),
-            gcpId: tempGcpId,
-            gcpLabel: String(gcpIdCounter + 1)
+            gcpTs: tempTs,
+            gcpLabel: String(gcps.length + 1)
         });
 
         gcpMapLayer.getSource().addFeature(feature);
@@ -603,8 +614,7 @@ function handleImageClick(e) {
     if (deleteGcpMode) {
         const marker = e.target.closest('.georef-image-marker');
         if (marker) {
-            const gcpId = marker.dataset.gcpId;
-            deleteGcp(gcpId);
+            deleteGcp(parseInt(marker.dataset.gcpTs));
         }
         return;
     }
@@ -622,16 +632,23 @@ function handleImageClick(e) {
         return;
     }
 
-    gcpIdCounter++;
+    gcpTsCounter++;
     const lonLat = window._georefPendingLonLat;
     const gcp = {
-        pointId: 'GCP' + gcpIdCounter,
+        _ts: gcpTsCounter,
+        pointId: 'GCP ' + (gcps.length + 1),
         imageX: pixelX,
         imageY: pixelY,
         longitude: parseFloat(lonLat[0].toFixed(7)),
         latitude: parseFloat(lonLat[1].toFixed(7))
     };
     gcps.push(gcp);
+
+    // Update the temp map feature with the real _ts
+    const pendingFeature = window._georefPendingFeature;
+    if (pendingFeature) {
+        pendingFeature.set('gcpTs', gcpTsCounter);
+    }
 
     addImageMarker(gcp, img);
     refreshGcpTable();
@@ -657,8 +674,8 @@ function addImageMarker(gcp, img) {
     const container = document.getElementById('georef-image-container');
     const marker = document.createElement('div');
     marker.className = 'georef-image-marker';
-    marker.dataset.gcpId = gcp.pointId;
-    marker.textContent = gcp.pointId.replace('GCP', '');
+    marker.dataset.gcpTs = gcp._ts;
+    marker.textContent = gcp.pointId.replace('GCP ', '');
 
     positionImageMarker(marker, gcp, img);
     setupImageMarkerDrag(marker, gcp);
@@ -732,7 +749,7 @@ function repositionAllImageMarkers() {
     var img = document.getElementById('georef-preview-img');
     if (!img) return;
     gcps.forEach(function (gcp) {
-        var marker = document.querySelector('.georef-image-marker[data-gcp-id="' + gcp.pointId + '"]');
+        var marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcp._ts + '"]');
         if (marker) positionImageMarker(marker, gcp, img);
     });
 }
@@ -767,8 +784,8 @@ function restoreGcpMarkers() {
         const coord = ol.proj.fromLonLat([gcp.longitude, gcp.latitude]);
         const feature = new ol.Feature({
             geometry: new ol.geom.Point(coord),
-            gcpId: gcp.pointId,
-            gcpLabel: gcp.pointId.replace('GCP', '')
+            gcpTs: gcp._ts,
+            gcpLabel: gcp.pointId.replace('GCP ', '')
         });
         gcpMapLayer.getSource().addFeature(feature);
     });
@@ -782,7 +799,7 @@ function refreshGcpTable() {
 
     gcps.forEach(function (gcp) {
         const row = document.createElement('tr');
-        row.dataset.gcpId = gcp.pointId;
+        row.dataset.gcpTs = gcp._ts;
         row.innerHTML = `
             <td>${gcp.pointId}</td>
             <td contenteditable="true" data-field="imageX">${gcp.imageX}</td>
@@ -794,7 +811,7 @@ function refreshGcpTable() {
 
         row.querySelectorAll('td[contenteditable]').forEach(function (cell) {
             cell.addEventListener('blur', function () {
-                handleCellEdit(gcp.pointId, cell.dataset.field, cell.textContent.trim());
+                handleCellEdit(gcp._ts, cell.dataset.field, cell.textContent.trim());
             });
             cell.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
@@ -805,7 +822,7 @@ function refreshGcpTable() {
         });
 
         row.querySelector('.georef-delete-btn').addEventListener('click', function () {
-            deleteGcp(gcp.pointId);
+            deleteGcp(gcp._ts);
         });
 
         tbody.appendChild(row);
@@ -814,8 +831,8 @@ function refreshGcpTable() {
     updateGcpCount();
 }
 
-function handleCellEdit(gcpId, field, value) {
-    const gcp = gcps.find(g => g.pointId === gcpId);
+function handleCellEdit(gcpTs, field, value) {
+    const gcp = gcps.find(g => g._ts === gcpTs);
     if (!gcp) return;
 
     const numValue = parseFloat(value);
@@ -835,30 +852,30 @@ function handleCellEdit(gcpId, field, value) {
     }
 
     if (field === 'longitude' || field === 'latitude') {
-        updateMapMarkerPosition(gcpId);
+        updateMapMarkerPosition(gcpTs);
     }
     if (field === 'imageX' || field === 'imageY') {
-        updateImageMarkerPosition(gcpId);
+        updateImageMarkerPosition(gcpTs);
     }
 }
 
-function updateMapMarkerPosition(gcpId) {
-    const gcp = gcps.find(g => g.pointId === gcpId);
+function updateMapMarkerPosition(gcpTs) {
+    const gcp = gcps.find(g => g._ts === gcpTs);
     if (!gcp) return;
 
     const features = gcpMapLayer.getSource().getFeatures();
-    const feature = features.find(f => f.get('gcpId') === gcpId);
+    const feature = features.find(f => f.get('gcpTs') === gcpTs);
     if (feature) {
         const coord = ol.proj.fromLonLat([gcp.longitude, gcp.latitude]);
         feature.getGeometry().setCoordinates(coord);
     }
 }
 
-function updateImageMarkerPosition(gcpId) {
-    const gcp = gcps.find(g => g.pointId === gcpId);
+function updateImageMarkerPosition(gcpTs) {
+    const gcp = gcps.find(g => g._ts === gcpTs);
     if (!gcp) return;
 
-    const marker = document.querySelector('.georef-image-marker[data-gcp-id="' + gcpId + '"]');
+    const marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcpTs + '"]');
     if (marker) {
         positionImageMarker(marker, gcp);
     }
@@ -871,25 +888,54 @@ function updateGcpCount() {
     }
 }
 
+// ─── GCP Renumbering ─────────────────────────────────────────────────────────
+
+function renumberGcps() {
+    gcps.sort(function (a, b) { return a._ts - b._ts; });
+    gcps.forEach(function (gcp, i) {
+        gcp.pointId = 'GCP ' + (i + 1);
+    });
+
+    // Update map feature labels
+    if (gcpMapLayer) {
+        var features = gcpMapLayer.getSource().getFeatures();
+        gcps.forEach(function (gcp) {
+            var feature = features.find(function (f) { return f.get('gcpTs') === gcp._ts; });
+            if (feature) {
+                feature.set('gcpLabel', gcp.pointId.replace('GCP ', ''));
+            }
+        });
+    }
+
+    // Update image marker labels
+    gcps.forEach(function (gcp) {
+        var marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcp._ts + '"]');
+        if (marker) {
+            marker.textContent = gcp.pointId.replace('GCP ', '');
+        }
+    });
+}
+
 // ─── GCP Deletion ────────────────────────────────────────────────────────────
 
-function deleteGcp(gcpId) {
-    const idx = gcps.findIndex(g => g.pointId === gcpId);
+function deleteGcp(gcpTs) {
+    const idx = gcps.findIndex(g => g._ts === gcpTs);
     if (idx === -1) return;
 
     gcps.splice(idx, 1);
 
     // Remove map marker
     const features = gcpMapLayer.getSource().getFeatures();
-    const feature = features.find(f => f.get('gcpId') === gcpId);
+    const feature = features.find(f => f.get('gcpTs') === gcpTs);
     if (feature) {
         gcpMapLayer.getSource().removeFeature(feature);
     }
 
     // Remove image marker
-    const marker = document.querySelector('.georef-image-marker[data-gcp-id="' + gcpId + '"]');
+    const marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcpTs + '"]');
     if (marker) marker.remove();
 
+    renumberGcps();
     refreshGcpTable();
     updateButtonStates();
 }
@@ -906,6 +952,16 @@ function updateButtonStates() {
 }
 
 // ─── Status Messages ─────────────────────────────────────────────────────────
+
+function restoreDefaultStatus() {
+    if (gcps.length >= options.minGcps) {
+        setStatus('Sufficient points selected. Add more or click "Start Georeferencing".', 'info');
+    } else if (selectedImage) {
+        setStatus('Click "Add/Edit GCP" to start picking control points.', 'info');
+    } else {
+        setStatus('Open an image to begin.', 'info');
+    }
+}
 
 function setStatus(message, type) {
     const el = document.getElementById('georef-status');
@@ -959,7 +1015,10 @@ async function startGeoreferencing() {
 
         const formData = new FormData();
         formData.append('image', selectedImage);
-        formData.append('gcps', JSON.stringify(gcps));
+        var gcpsForApi = gcps.map(function (g) {
+            return { pointId: g.pointId, imageX: g.imageX, imageY: g.imageY, longitude: g.longitude, latitude: g.latitude };
+        });
+        formData.append('gcps', JSON.stringify(gcpsForApi));
 
         const headers = {};
         if (csrfToken) {
