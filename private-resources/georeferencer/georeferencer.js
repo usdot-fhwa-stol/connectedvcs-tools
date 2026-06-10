@@ -250,24 +250,43 @@ function refreshOverlayPanel() {
     overlayEntries.forEach(function (entry) {
         const item = document.createElement('div');
         item.className = 'georef-overlay-item';
-        item.innerHTML = `
-            <span class="georef-overlay-name" title="${entry.filename}">${entry.filename}</span>
-            <input type="range" min="0" max="1" step="0.05" value="${entry.layer.getOpacity()}"
-                   title="Opacity" data-overlay-id="${entry.id}">
-            <span class="georef-overlay-edit fa fa-pencil" title="Edit" data-overlay-id="${entry.id}"></span>
-            <span class="georef-overlay-remove fa fa-times" title="Remove" data-overlay-id="${entry.id}"></span>
-        `;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'georef-overlay-name';
+        nameSpan.title = entry.filename;
+        nameSpan.textContent = entry.filename;
+        item.appendChild(nameSpan);
 
-        const slider = item.querySelector('input[type="range"]');
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '0';
+        slider.max = '1';
+        slider.step = '0.05';
+        slider.value = entry.layer.getOpacity();
+        slider.title = 'Opacity';
+        slider.dataset.overlayId = entry.id;
+        item.appendChild(slider);
+
+        const editIcon = document.createElement('span');
+        editIcon.className = 'georef-overlay-edit fa fa-pencil';
+        editIcon.title = 'Edit';
+        editIcon.dataset.overlayId = entry.id;
+        item.appendChild(editIcon);
+
+        const removeIcon = document.createElement('span');
+        removeIcon.className = 'georef-overlay-remove fa fa-times';
+        removeIcon.title = 'Remove';
+        removeIcon.dataset.overlayId = entry.id;
+        item.appendChild(removeIcon);
+
         slider.addEventListener('input', function () {
             entry.layer.setOpacity(parseFloat(this.value));
         });
 
-        item.querySelector('.georef-overlay-edit').addEventListener('click', function () {
+        editIcon.addEventListener('click', function () {
             editOverlay(entry.id);
         });
 
-        item.querySelector('.georef-overlay-remove').addEventListener('click', function () {
+        removeIcon.addEventListener('click', function () {
             removeOverlay(entry.id);
         });
 
