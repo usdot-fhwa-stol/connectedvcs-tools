@@ -35,7 +35,7 @@
 	<link rel="stylesheet" href="external/ol_v10.4.0/ol.css">
 	<link rel="stylesheet" href="external/ol-layerswitcher.css">
 	<link rel="stylesheet" href="css/verticalscroll.css">
-	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/georeferencer/georeferencer.css" type="text/css">
 
 </head>
 
@@ -1800,7 +1800,7 @@
 
 	<script type="module">
 		import * as mapModule from './js/map.js';
-		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		import { initGeoreferencer } from '/private-resources/georeferencer/georeferencer.js';
 		initGeoreferencer(() => mapModule.map, {
 			georefEndpoint: '/georef/api/georeference',
 			csrfTokenUrl: '/msp/security/api/csrf-token/'

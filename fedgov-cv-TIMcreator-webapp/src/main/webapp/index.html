@@ -32,7 +32,7 @@
 	<link rel="stylesheet" href="css/sidebar.css" type="text/css">
 	<link rel="stylesheet" href="css/jquery-ui.css" type="text/css">
 	<link rel="stylesheet" href="css/select2.css" type="text/css">
-	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/georeferencer/georeferencer.css" type="text/css">
 
 
 </head>
@@ -931,7 +931,7 @@
 
 	<script type="module">
 		import * as mapping from './js/mapping.js';
-		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		import { initGeoreferencer } from '/private-resources/georeferencer/georeferencer.js';
 		initGeoreferencer(() => mapping.map, {
 			georefEndpoint: '/georef/api/georeference',
 			csrfTokenUrl: '/msp/security/api/csrf-token/'
