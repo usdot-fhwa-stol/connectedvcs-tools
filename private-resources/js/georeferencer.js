@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 LEIDOS.
+ * Copyright (C) 2026 LEIDOS.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -52,7 +52,7 @@ const DEFAULTS = {
     maxGcps: 10
 };
 
-// ─── Initialization ──────────────────────────────────────────────────────────
+// Initialization
 
 export function initGeoreferencer(olMapOrGetter, userOptions) {
     options = Object.assign({}, DEFAULTS, userOptions);
@@ -102,7 +102,7 @@ async function fetchBackendConfig() {
     }
 }
 
-// ─── Modal HTML Injection ────────────────────────────────────────────────────
+// Modal HTML Injection
 
 function injectModalHTML() {
     const modalHTML = `
@@ -165,7 +165,7 @@ function injectModalHTML() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
-// ─── GCP Map Layer ───────────────────────────────────────────────────────────
+// GCP Map Layer
 
 function createGcpMapLayer() {
     const gcpSource = new ol.source.Vector();
@@ -218,7 +218,7 @@ function gcpMarkerStyle(feature) {
     });
 }
 
-// ─── Overlay Panel ───────────────────────────────────────────────────────────
+// Overlay Panel
 
 function createOverlayPanel() {
     const panel = document.createElement('div');
@@ -313,7 +313,7 @@ function editOverlay(overlayId) {
     setStatus('Add more points or drag existing ones, then click "Start Georeferencing" to update.', 'waiting');
 }
 
-// ─── Event Binding ───────────────────────────────────────────────────────────
+// Event Binding
 
 function bindEvents() {
     document.addEventListener('click', function (e) {
@@ -388,7 +388,7 @@ function bindEvents() {
     $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 }
 
-// ─── Open / Close ────────────────────────────────────────────────────────────
+// Open / Close
 
 function openGeoreferencer() {
     editingOverlayId = null;
@@ -434,7 +434,7 @@ function onModalClose() {
     editingOverlayId = null;
 }
 
-// ─── Image Handling ──────────────────────────────────────────────────────────
+// Image Handling
 
 function handleImageSelect(file) {
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
@@ -504,7 +504,7 @@ function applyImageZoom() {
     repositionAllImageMarkers();
 }
 
-// ─── GCP Mode Toggles ───────────────────────────────────────────────────────
+// GCP Mode Toggles
 
 function toggleAddGcpMode() {
     if (addGcpMode) {
@@ -526,7 +526,7 @@ function enableAddGcpMode() {
     gcpTranslateInteraction.setActive(true);
 
     mapClickListenerKey = map.on('click', handleMapClick);
-    setStatus('Click on the map to pick a geographic point or edit existing points by dragging them.', 'waiting');
+    setStatus('Click on the map to pick a geographic point or drag existing ones to reposition them.', 'waiting');
 }
 
 function disableAddGcpMode() {
@@ -576,7 +576,7 @@ function disableDeleteGcpMode() {
     restoreDefaultStatus();
 }
 
-// ─── Map Click Handler ───────────────────────────────────────────────────────
+// Map Click Handler
 
 function handleMapClick(evt) {
     if (!addGcpMode) return;
@@ -605,7 +605,7 @@ function handleMapClick(evt) {
     }
 }
 
-// ─── Image Click Handler ─────────────────────────────────────────────────────
+// Image Click Handler
 
 function handleImageClick(e) {
     const img = document.getElementById('georef-preview-img');
@@ -659,13 +659,13 @@ function handleImageClick(e) {
     pendingMapClick = 'map';
 
     if (gcps.length >= options.minGcps) {
-        setStatus('GCP added. You have enough points to georeference. Add more or click "Start Georeferencing".', 'info');
+        setStatus('GCP added. Sufficient points added. Add more or click "Start Georeferencing".', 'info');
     } else {
         setStatus('GCP added (' + gcps.length + '/' + options.minGcps + ' minimum). Click on the map to pick the next point.', 'waiting');
     }
 }
 
-// ─── Image Markers ───────────────────────────────────────────────────────────
+// Image Markers
 
 function addImageMarker(gcp, img) {
     if (!img) img = document.getElementById('georef-preview-img');
@@ -770,7 +770,7 @@ function restoreImageMarkers() {
     });
 }
 
-// ─── GCP Map Markers ─────────────────────────────────────────────────────────
+// GCP Map Markers
 
 function clearGcpMapMarkers() {
     if (gcpMapLayer) {
@@ -791,7 +791,7 @@ function restoreGcpMarkers() {
     });
 }
 
-// ─── GCP Table ───────────────────────────────────────────────────────────────
+// GCP Table
 
 function refreshGcpTable() {
     const tbody = document.getElementById('georef-gcp-tbody');
@@ -888,7 +888,7 @@ function updateGcpCount() {
     }
 }
 
-// ─── GCP Renumbering ─────────────────────────────────────────────────────────
+// GCP Renumbering
 
 function renumberGcps() {
     gcps.sort(function (a, b) { return a._ts - b._ts; });
@@ -916,7 +916,7 @@ function renumberGcps() {
     });
 }
 
-// ─── GCP Deletion ────────────────────────────────────────────────────────────
+// GCP Deletion
 
 function deleteGcp(gcpTs) {
     const idx = gcps.findIndex(g => g._ts === gcpTs);
@@ -940,7 +940,7 @@ function deleteGcp(gcpTs) {
     updateButtonStates();
 }
 
-// ─── Button State Management ─────────────────────────────────────────────────
+// Button State Management
 
 function updateButtonStates() {
     const hasImage = selectedImage !== null;
@@ -951,7 +951,7 @@ function updateButtonStates() {
     document.getElementById('georef-start').disabled = !hasImage || !hasEnoughGcps;
 }
 
-// ─── Status Messages ─────────────────────────────────────────────────────────
+// Status Messages
 
 function restoreDefaultStatus() {
     if (gcps.length >= options.minGcps) {
@@ -973,7 +973,7 @@ function setStatus(message, type) {
     else if (type === 'success') el.classList.add('georef-status-success');
 }
 
-// ─── CSRF Token ──────────────────────────────────────────────────────────────
+// CSRF Token
 
 async function fetchCsrfToken() {
     try {
@@ -988,7 +988,7 @@ async function fetchCsrfToken() {
     return null;
 }
 
-// ─── Start Georeferencing ────────────────────────────────────────────────────
+// Start Georeferencing
 
 async function startGeoreferencing() {
     if (!selectedImage) {
