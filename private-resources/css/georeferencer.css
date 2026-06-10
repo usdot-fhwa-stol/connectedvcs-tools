@@ -168,8 +168,9 @@
 
 .georef-overlay-panel {
     position: absolute;
-    bottom: 10px;
+    top: 50%;
     right: 10px;
+    transform: translateY(-50%);
     z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 4px;
