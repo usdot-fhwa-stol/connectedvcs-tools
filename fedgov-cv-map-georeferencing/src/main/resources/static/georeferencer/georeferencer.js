@@ -1276,35 +1276,3 @@ async function startGeoreferencing() {
         document.getElementById('georef-start').disabled = false;
     }
 }
-
-// Test API — exposes internals for automated testing; not used in production
-export const _test = {
-    getState: function () {
-        return {
-            map, options, selectedImage, imageNaturalWidth, imageNaturalHeight,
-            gcps, gcpTsCounter, addGcpMode, deleteGcpMode, pendingMapClick,
-            gcpMapLayer, overlayEntries, overlayIdCounter, editingOverlayId,
-            imageZoom, pendingLonLat, pendingFeature
-        };
-    },
-    resetState: resetState,
-    enableAddGcpMode: enableAddGcpMode,
-    disableAddGcpMode: disableAddGcpMode,
-    enableDeleteGcpMode: enableDeleteGcpMode,
-    disableDeleteGcpMode: disableDeleteGcpMode,
-    handleCellEdit: handleCellEdit,
-    deleteGcp: deleteGcp,
-    renumberGcps: renumberGcps,
-    updateButtonStates: updateButtonStates,
-    setStatus: setStatus,
-    restoreDefaultStatus: restoreDefaultStatus,
-    handleImageSelect: handleImageSelect,
-    refreshGcpTable: refreshGcpTable,
-    addGcp: function (gcp) {
-        gcps.push(gcp);
-        gcpTsCounter = Math.max(gcpTsCounter, gcp._ts);
-    },
-    setSelectedImage: function (file) { selectedImage = file; },
-    setImageDimensions: function (w, h) { imageNaturalWidth = w; imageNaturalHeight = h; },
-    DEFAULTS: DEFAULTS
-};
