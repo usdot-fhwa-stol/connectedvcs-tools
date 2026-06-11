@@ -221,8 +221,14 @@ function createGcpMapLayer() {
 function gcpMarkerStyle(feature) {
     const label = feature.get('gcpLabel') || '';
     var size = 10;
-    var gap = 3;
+    var gap = 2;
     return [
+        new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: size,
+                fill: new ol.style.Fill({ color: 'rgba(0, 0, 0, 0.0)' })
+            })
+        }),
         new ol.style.Style({
             renderer: function (coords, state) {
                 var ctx = state.context;

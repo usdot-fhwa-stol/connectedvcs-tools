@@ -101,14 +101,24 @@
         linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) right  center / 35% 2px no-repeat;
 }
 
+.georef-image-marker::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    cursor: grab;
+}
+
 .georef-image-marker .georef-marker-label {
     position: absolute;
-    top: -2px;
-    left: 12px;
-    font-size: 10px;
+    top: -15px;
+    left: 20px;
+    font-size: 12px;
     font-weight: bold;
     color: #d9534f;
-    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+    text-shadow: -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff, 1px 1px 2px #fff;
     white-space: nowrap;
     pointer-events: none;
 }
