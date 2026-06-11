@@ -839,14 +839,29 @@ function refreshGcpTable() {
     gcps.forEach(function (gcp) {
         const row = document.createElement('tr');
         row.dataset.gcpTs = gcp._ts;
-        row.innerHTML = `
-            <td>${gcp.pointId}</td>
-            <td contenteditable="true" data-field="imageX">${gcp.imageX}</td>
-            <td contenteditable="true" data-field="imageY">${gcp.imageY}</td>
-            <td contenteditable="true" data-field="longitude">${gcp.longitude}</td>
-            <td contenteditable="true" data-field="latitude">${gcp.latitude}</td>
-            <td><span class="georef-delete-btn" title="Delete">&times;</span></td>
-        `;
+        var fields = [
+            { text: gcp.pointId, editable: false },
+            { text: gcp.imageX, editable: true, field: 'imageX' },
+            { text: gcp.imageY, editable: true, field: 'imageY' },
+            { text: gcp.longitude, editable: true, field: 'longitude' },
+            { text: gcp.latitude, editable: true, field: 'latitude' }
+        ];
+        fields.forEach(function (f) {
+            var td = document.createElement('td');
+            td.textContent = f.text;
+            if (f.editable) {
+                td.contentEditable = 'true';
+                td.dataset.field = f.field;
+            }
+            row.appendChild(td);
+        });
+        var deleteTd = document.createElement('td');
+        var deleteBtn = document.createElement('span');
+        deleteBtn.className = 'georef-delete-btn';
+        deleteBtn.title = 'Delete';
+        deleteBtn.textContent = '×';
+        deleteTd.appendChild(deleteBtn);
+        row.appendChild(deleteTd);
 
         row.querySelectorAll('td[contenteditable]').forEach(function (cell) {
             cell.addEventListener('blur', function () {
