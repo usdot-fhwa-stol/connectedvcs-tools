@@ -216,6 +216,18 @@ function createGcpMapLayer() {
             refreshGcpTable();
         }
     });
+
+    map.on('pointermove', function (evt) {
+        if (evt.dragging) return;
+        var hit = map.hasFeatureAtPixel(evt.pixel, { layerFilter: function (l) { return l === gcpMapLayer; } });
+        map.getTargetElement().style.cursor = hit ? 'grab' : '';
+    });
+
+    map.addInteraction(new ol.interaction.DragPan({
+        condition: function (evt) {
+            return evt.originalEvent.button === 1;
+        }
+    }));
 }
 
 function gcpMarkerStyle(feature) {
