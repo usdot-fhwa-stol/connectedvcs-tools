@@ -32,25 +32,44 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 4. Using SSL vs not using SSL:
 
     - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the ssl.ini and keystore files will need to be updated or replaced to copy your applicable keystore information to the image. **NOTE**: The current ssl.ini and keystore files are examples only. Please update or replace before running the following command.
+    BuildKit should be enabled when building the Docker image:
     ```
-    sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
+    sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
     ```
-
-    - If running the tool without certificates, no changes are needed. Run the following command.
+    If running the tool without certificates, no changes are needed. Run the following command. BuildKit should be enabled when building the Docker image:
     ```
-    sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
+    sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
     ```
 
 ### Run Image with SSL certificate
 ```
-sudo docker run -d -p 443:443 usdotfhwastol/connectedvcs-tools:<tag>
+sudo docker run -d --restart unless-stopped -p 443:443 usdotfhwastol/connectedvcs-tools:<tag>
 ```
 
 ### Run Image without SSL certificate
 ```
-sudo docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools:<tag>
+sudo docker run -d --restart unless-stopped -p 8080:8080 usdotfhwastol/connectedvcs-tools:<tag>
 ```
 
+### Verify Docker Restart Policy
+
+The --restart unless-stopped option allows Docker to automatically restart the container if it exits unexpectedly or if the host restarts, unless the container was manually stopped.
+
+To verify the restart policy for a running container:
+
+docker inspect <container-name-or-id> --format 'Status={{.State.Status}} RestartPolicy={{.HostConfig.RestartPolicy.Name}} RestartCount={{.RestartCount}}'
+
+Expected value:
+
+RestartPolicy=unless-stopped
+
+If the container is already running and was started without a restart policy, update it with:
+
+sudo docker update --restart unless-stopped <container-name-or-id>
+
+Then verify again:
+
+docker inspect <container-name-or-id> --format 'Status={{.State.Status}} RestartPolicy={{.HostConfig.RestartPolicy.Name}} RestartCount={{.RestartCount}}'
 ## Access the ConnectedVCS Tools Interface
 
 1.  In your browser, navigate to:
