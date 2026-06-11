@@ -87,25 +87,38 @@
 
 .georef-image-marker {
     position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(255, 0, 0, 0.8);
-    border: 2px solid #fff;
+    width: 20px;
+    height: 20px;
+    border: none;
     transform: translate(-50%, -50%);
     pointer-events: auto;
     cursor: grab;
     z-index: 10;
-    font-size: 9px;
-    line-height: 12px;
-    text-align: center;
-    color: #fff;
+    background:
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) center top    / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) center bottom / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) left   center / 35% 2px no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) right  center / 35% 2px no-repeat;
+}
+
+.georef-image-marker .georef-marker-label {
+    position: absolute;
+    top: -2px;
+    left: 12px;
+    font-size: 10px;
     font-weight: bold;
+    color: #d9534f;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .georef-image-marker:hover {
-    background-color: rgba(255, 0, 0, 1);
-    transform: translate(-50%, -50%) scale(1.3);
+    background:
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) center top    / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) center bottom / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) left   center / 35% 2px no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) right  center / 35% 2px no-repeat;
 }
 
 .georef-image-marker.georef-dragging {

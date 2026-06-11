@@ -220,23 +220,26 @@ function createGcpMapLayer() {
 
 function gcpMarkerStyle(feature) {
     const label = feature.get('gcpLabel') || '';
-    var crossStroke = new ol.style.Stroke({ color: 'rgba(255, 0, 0, 0.8)', width: 2 });
+    var size = 10;
+    var gap = 3;
     return [
         new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 2,
-                radius: 10,
-                rotation: 0,
-                stroke: crossStroke
-            })
+            renderer: function (coords, state) {
+                var ctx = state.context;
+                var x = coords[0], y = coords[1];
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, y - size); ctx.lineTo(x, y - gap);
+                ctx.moveTo(x, y + gap);  ctx.lineTo(x, y + size);
+                ctx.moveTo(x - size, y); ctx.lineTo(x - gap, y);
+                ctx.moveTo(x + gap, y);  ctx.lineTo(x + size, y);
+                ctx.stroke();
+                ctx.restore();
+            }
         }),
         new ol.style.Style({
-            image: new ol.style.RegularShape({
-                points: 2,
-                radius: 10,
-                rotation: Math.PI / 2,
-                stroke: crossStroke
-            }),
             text: new ol.style.Text({
                 text: label,
                 offsetX: 10,
@@ -782,7 +785,10 @@ function addImageMarker(gcp, img) {
     const marker = document.createElement('div');
     marker.className = 'georef-image-marker';
     marker.dataset.gcpTs = gcp._ts;
-    marker.textContent = gcp.pointId.replace('GCP ', '');
+    const label = document.createElement('span');
+    label.className = 'georef-marker-label';
+    label.textContent = gcp.pointId.replace('GCP ', '');
+    marker.appendChild(label);
 
     positionImageMarker(marker, gcp, img);
     setupImageMarkerDrag(marker);
