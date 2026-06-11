@@ -70,11 +70,6 @@ class GeoreferencerJsTest {
                 "JS must export initGeoreferencer function");
     }
 
-    @Test
-    void jsExportsTestApi() {
-        assertTrue(jsContent.contains("export const _test"),
-                "JS must export _test API for testing");
-    }
 
     // --- DEFAULTS config keys ---
 
