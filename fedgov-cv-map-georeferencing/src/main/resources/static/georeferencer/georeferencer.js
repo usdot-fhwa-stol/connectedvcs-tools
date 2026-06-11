@@ -220,20 +220,35 @@ function createGcpMapLayer() {
 
 function gcpMarkerStyle(feature) {
     const label = feature.get('gcpLabel') || '';
-    return new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 7,
-            fill: new ol.style.Fill({ color: 'rgba(255, 0, 0, 0.8)' }),
-            stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
+    var crossStroke = new ol.style.Stroke({ color: 'rgba(255, 0, 0, 0.8)', width: 2 });
+    return [
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 2,
+                radius: 10,
+                rotation: 0,
+                stroke: crossStroke
+            })
         }),
-        text: new ol.style.Text({
-            text: label,
-            offsetY: -15,
-            font: 'bold 11px Arial',
-            fill: new ol.style.Fill({ color: '#d9534f' }),
-            stroke: new ol.style.Stroke({ color: '#fff', width: 3 })
+        new ol.style.Style({
+            image: new ol.style.RegularShape({
+                points: 2,
+                radius: 10,
+                rotation: Math.PI / 2,
+                stroke: crossStroke
+            }),
+            text: new ol.style.Text({
+                text: label,
+                offsetX: 10,
+                offsetY: -10,
+                textAlign: 'left',
+                textBaseline: 'bottom',
+                font: 'bold 11px Arial',
+                fill: new ol.style.Fill({ color: '#d9534f' }),
+                stroke: new ol.style.Stroke({ color: '#fff', width: 3 })
+            })
         })
-    });
+    ];
 }
 
 // Overlay Panel
