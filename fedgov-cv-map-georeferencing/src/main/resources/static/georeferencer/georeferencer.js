@@ -220,7 +220,12 @@ function createGcpMapLayer() {
     map.on('pointermove', function (evt) {
         if (evt.dragging) return;
         var hit = map.hasFeatureAtPixel(evt.pixel, { layerFilter: function (l) { return l === gcpMapLayer; } });
-        map.getTargetElement().style.cursor = hit ? 'grab' : '';
+        var vp = map.getViewport();
+        if (hit) {
+            vp.classList.add('georef-map-marker-hover');
+        } else {
+            vp.classList.remove('georef-map-marker-hover');
+        }
     });
 
     map.addInteraction(new ol.interaction.DragPan({

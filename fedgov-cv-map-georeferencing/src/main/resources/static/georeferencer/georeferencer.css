@@ -62,6 +62,10 @@
     cursor: crosshair !important;
 }
 
+.georef-map-add-mode.georef-map-marker-hover {
+    cursor: grab !important;
+}
+
 .georef-image-container.georef-delete-mode {
     cursor: not-allowed;
     border-color: #d9534f;
