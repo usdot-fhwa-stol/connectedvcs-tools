@@ -63,6 +63,11 @@ const DEFAULTS = {
 
 // Initialization
 
+/**
+ * Initialize the georeferencer module against an OpenLayers map.
+ * @param {ol.Map|function():ol.Map} olMapOrGetter - Map instance or getter; if getter returns falsy, retries on a poll interval.
+ * @param {Object} [userOptions] - Overrides for DEFAULTS (endpoints, GCP limits, zoom, timeouts).
+ */
 export function initGeoreferencer(olMapOrGetter, userOptions) {
     options = Object.assign({}, DEFAULTS, userOptions);
 
@@ -94,6 +99,7 @@ export function initGeoreferencer(olMapOrGetter, userOptions) {
     }
 }
 
+/** Fetches GCP min/max config from the backend; falls back to DEFAULTS on failure. */
 async function fetchBackendConfig() {
     try {
         const response = await fetch(options.georefEndpoint + '/config');
@@ -178,6 +184,7 @@ function injectModalHTML() {
 
 // GCP Map Layer
 
+/** Creates the OL vector layer and translate interaction for GCP map markers. */
 function createGcpMapLayer() {
     const gcpSource = new ol.source.Vector();
 
@@ -316,6 +323,10 @@ function removeOverlay(overlayId) {
     refreshOverlayPanel();
 }
 
+/**
+ * Re-opens the modal pre-populated with an existing overlay's GCPs for editing.
+ * @param {number} overlayId - ID of the overlay entry to edit.
+ */
 function editOverlay(overlayId) {
     const entry = overlayEntries.find(e => e.id === overlayId);
     if (!entry) return;
@@ -497,6 +508,11 @@ function handleImageSelect(file) {
     updateButtonStates();
 }
 
+/**
+ * Renders the selected image into the preview container inside a positioning
+ * stage element, and restores any existing GCP markers once the image loads.
+ * @param {File} file - Image file to preview.
+ */
 function showImagePreview(file) {
     const container = document.getElementById('georef-image-container');
     container.innerHTML = '';
@@ -529,6 +545,7 @@ function showImagePreview(file) {
     container.appendChild(stage);
 }
 
+/** Zooms the image preview on mouse wheel, keeping the cursor point stationary. */
 function handleImageZoom(e) {
     var img = document.getElementById('georef-preview-img');
     if (!img) return;
@@ -642,6 +659,11 @@ function disableDeleteGcpMode() {
 
 // Map Click Handler
 
+/**
+ * Handles a map click during GCP add mode. Places a temporary map marker and
+ * transitions the pending state to expect the corresponding image click.
+ * @param {ol.MapBrowserEvent} evt
+ */
 function handleMapClick(evt) {
     if (!addGcpMode) return;
 
@@ -671,6 +693,12 @@ function handleMapClick(evt) {
 
 // Image Click Handler
 
+/**
+ * Handles a click on the image preview. In add-GCP mode with a pending map point,
+ * computes the pixel coordinate and finalizes the GCP pair. In delete mode,
+ * removes the clicked marker's GCP.
+ * @param {MouseEvent} e
+ */
 function handleImageClick(e) {
     const img = document.getElementById('georef-preview-img');
     if (!img) return;
@@ -747,6 +775,12 @@ function addImageMarker(gcp, img) {
     stage.appendChild(marker);
 }
 
+/**
+ * Sets a marker's left/top to the GCP's pixel coords scaled to current display size.
+ * @param {HTMLElement} marker
+ * @param {Object} gcp - Must have imageX, imageY in natural-pixel coords.
+ * @param {HTMLImageElement} [img] - Preview image element; looked up if omitted.
+ */
 function positionImageMarker(marker, gcp, img) {
     if (!img) img = document.getElementById('georef-preview-img');
     if (!img) return;
@@ -908,6 +942,13 @@ function refreshGcpTable() {
     updateGcpCount();
 }
 
+/**
+ * Applies a user edit from a contenteditable table cell back to the GCP model.
+ * Validates numeric range, clamps image coords, and syncs the corresponding marker.
+ * @param {number} gcpTs - Internal timestamp key identifying the GCP.
+ * @param {string} field - One of 'imageX', 'imageY', 'longitude', 'latitude'.
+ * @param {string} value - Raw text from the cell.
+ */
 function handleCellEdit(gcpTs, field, value) {
     const gcp = gcps.find(g => g._ts === gcpTs);
     if (!gcp) return;
@@ -969,6 +1010,7 @@ function updateGcpCount() {
 
 // GCP Renumbering
 
+/** Re-sorts GCPs by creation order and reassigns sequential pointId labels and marker text. */
 function renumberGcps() {
     gcps.sort(function (a, b) { return a._ts - b._ts; });
     gcps.forEach(function (gcp, i) {
@@ -1054,6 +1096,7 @@ function setStatus(message, type) {
 
 // CSRF Token
 
+/** Fetches the CSRF token from the security endpoint; returns null on failure. */
 async function fetchCsrfToken() {
     try {
         const response = await fetch(options.csrfTokenUrl);
@@ -1069,6 +1112,10 @@ async function fetchCsrfToken() {
 
 // Start Georeferencing
 
+/**
+ * Submits the image and GCPs to the backend, validates the response, and
+ * adds (or replaces) the georeferenced image as an OL static-image layer.
+ */
 async function startGeoreferencing() {
     if (!selectedImage) {
         setStatus('Please select an image first.', 'error');
