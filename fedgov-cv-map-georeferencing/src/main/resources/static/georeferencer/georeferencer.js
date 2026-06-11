@@ -103,7 +103,9 @@ async function fetchBackendConfig() {
                 if (typeof config.gcp.minCount === 'number') {
                     options.minGcps = config.gcp.minCount;
                 }
-                options.maxGcps = config.gcp.maxCount; // null means no limit
+                if (typeof config.gcp.maxCount === 'number' || config.gcp.maxCount === null) {
+                    options.maxGcps = config.gcp.maxCount; // null means no limit
+                }
             }
         }
     } catch (e) {
@@ -414,7 +416,19 @@ function bindEvents() {
         onModalClose();
     });
 
-    // Disable Bootstrap 3 enforceFocus only for the georef modal so clicks on the map work
+    patchBootstrapEnforceFocus();
+}
+
+// Disable Bootstrap 3's modal focus enforcement ONLY for the georef modal, so the user
+// can click the underlying map while the modal is open. This monkeypatches a shared
+// Bootstrap prototype, so it must run exactly once — guard against repeated init() calls
+// re-wrapping (and stacking) the override.
+let enforceFocusPatched = false;
+function patchBootstrapEnforceFocus() {
+    if (enforceFocusPatched) return;
+    if (!($.fn.modal && $.fn.modal.Constructor)) return;
+    enforceFocusPatched = true;
+
     var origEnforceFocus = $.fn.modal.Constructor.prototype.enforceFocus;
     $.fn.modal.Constructor.prototype.enforceFocus = function () {
         if (this.$element && this.$element.attr('id') === 'georef_modal') return;
@@ -488,6 +502,12 @@ function showImagePreview(file) {
     container.innerHTML = '';
     imageZoom = 1;
 
+    // Stage wraps the image so markers can be positioned relative to the image itself,
+    // not the scroll container — keeps them aligned regardless of any container offset.
+    const stage = document.createElement('div');
+    stage.className = 'georef-image-stage';
+    stage.id = 'georef-image-stage';
+
     const img = document.createElement('img');
     img.id = 'georef-preview-img';
 
@@ -505,7 +525,8 @@ function showImagePreview(file) {
     };
     reader.readAsDataURL(file);
 
-    container.appendChild(img);
+    stage.appendChild(img);
+    container.appendChild(stage);
 }
 
 function handleImageZoom(e) {
@@ -712,7 +733,9 @@ function addImageMarker(gcp, img) {
     if (!img) img = document.getElementById('georef-preview-img');
     if (!img) return;
 
-    const container = document.getElementById('georef-image-container');
+    const stage = document.getElementById('georef-image-stage');
+    if (!stage) return;
+
     const marker = document.createElement('div');
     marker.className = 'georef-image-marker';
     marker.dataset.gcpTs = gcp._ts;
@@ -721,7 +744,7 @@ function addImageMarker(gcp, img) {
     positionImageMarker(marker, gcp, img);
     setupImageMarkerDrag(marker);
 
-    container.appendChild(marker);
+    stage.appendChild(marker);
 }
 
 function positionImageMarker(marker, gcp, img) {
@@ -1081,11 +1104,20 @@ async function startGeoreferencing() {
             headers['X-CSRF-TOKEN'] = csrfToken;
         }
 
-        const response = await fetch(options.georefEndpoint, {
-            method: 'POST',
-            headers: headers,
-            body: formData
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(function () { controller.abort(); }, options.xhrTimeout);
+
+        let response;
+        try {
+            response = await fetch(options.georefEndpoint, {
+                method: 'POST',
+                headers: headers,
+                body: formData,
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         let result;
         try {
@@ -1103,8 +1135,18 @@ async function startGeoreferencing() {
         }
 
         const details = result.details;
-        const extent = details.extent;
-        const imageUrl = details.processedImageUrl;
+        const extent = details && details.extent;
+        const imageUrl = details && details.processedImageUrl;
+
+        const extentValid = extent &&
+            ['minLongitude', 'maxLongitude', 'minLatitude', 'maxLatitude']
+                .every(k => typeof extent[k] === 'number' && isFinite(extent[k]));
+
+        if (!imageUrl || !extentValid) {
+            setStatus('Georeferencing did not return a usable result. Please try again.', 'error');
+            document.getElementById('georef-start').disabled = false;
+            return;
+        }
 
         const epsg3857Extent = ol.proj.transformExtent(
             [extent.minLongitude, extent.minLatitude, extent.maxLongitude, extent.maxLatitude],
@@ -1179,7 +1221,11 @@ async function startGeoreferencing() {
 
     } catch (e) {
         console.error('Georeferencer: API error', e);
-        setStatus('Error: ' + e.message, 'error');
+        if (e.name === 'AbortError') {
+            setStatus('Georeferencing timed out. Please try again.', 'error');
+        } else {
+            setStatus('Error: ' + e.message, 'error');
+        }
         document.getElementById('georef-start').disabled = false;
     }
 }
