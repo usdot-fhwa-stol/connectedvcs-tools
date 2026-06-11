@@ -42,6 +42,7 @@ let gcpTranslateInteraction = null;
 let overlayEntries = []; // { layer, file, gcps, filename, id }
 let overlayIdCounter = 0;
 let editingOverlayId = null;
+let editingSavedOpacity = null;
 let mapClickListenerKey = null;
 let imageZoom = 1;
 let pendingLonLat = null;
@@ -50,6 +51,7 @@ let pendingFeature = null;
 const DEFAULTS = {
     georefEndpoint: '/georef/api/georeference',
     csrfTokenUrl: '/msp/security/api/csrf-token/',
+    imageBaseUrl: null,
     minGcps: 4,
     maxGcps: 10,
     initPollInterval: 100,
@@ -373,6 +375,7 @@ function editOverlay(overlayId) {
     if (!entry) return;
 
     editingOverlayId = overlayId;
+    editingSavedOpacity = entry.layer.getOpacity();
     selectedImage = entry.file;
     gcps = JSON.parse(JSON.stringify(entry.gcps));
     // Backfill _ts for any GCPs saved before this field existed
@@ -528,6 +531,17 @@ function onModalClose() {
     disableDeleteGcpMode();
     clearGcpMapMarkers();
 
+    // If an edit session was opened but not applied (cancelled), restore the
+    // original overlay's opacity that editOverlay() set to 0 while editing.
+    if (editingOverlayId !== null && editingSavedOpacity !== null) {
+        const entry = overlayEntries.find(e => e.id === editingOverlayId);
+        if (entry) {
+            entry.layer.setOpacity(editingSavedOpacity);
+            refreshOverlayPanel();
+        }
+    }
+    editingSavedOpacity = null;
+
     if (editingOverlayId === null) {
         gcps = [];
     }
@@ -631,6 +645,7 @@ function toggleAddGcpMode() {
 }
 
 function enableAddGcpMode() {
+    if (addGcpMode) return; // already active — avoid rebinding (and leaking) the map click listener
     disableDeleteGcpMode();
     addGcpMode = true;
     pendingMapClick = 'map';
@@ -761,7 +776,7 @@ function handleImageClick(e) {
     const pixelX = Math.round((clickX / img.clientWidth) * imageNaturalWidth);
     const pixelY = Math.round((clickY / img.clientHeight) * imageNaturalHeight);
 
-    if (pixelX < 0 || pixelX > imageNaturalWidth || pixelY < 0 || pixelY > imageNaturalHeight) {
+    if (pixelX < 0 || pixelX >= imageNaturalWidth || pixelY < 0 || pixelY >= imageNaturalHeight) {
         return;
     }
 
@@ -1248,7 +1263,12 @@ async function startGeoreferencing() {
             'EPSG:3857'
         );
 
-        const fullImageUrl = '/georef' + imageUrl;
+        // Derive the gateway prefix from the configured endpoint (e.g. '/georef/api/georeference'
+        // -> '/georef') so the overlay URL stays correct if the service is mounted elsewhere.
+        const apiBase = options.imageBaseUrl != null
+            ? options.imageBaseUrl
+            : options.georefEndpoint.replace(/\/api\/georeference\/?$/, '');
+        const fullImageUrl = apiBase + imageUrl;
 
         const imageLayer = new ol.layer.Image({
             source: new ol.source.ImageStatic({
@@ -1264,7 +1284,11 @@ async function startGeoreferencing() {
                     xhr.timeout = options.xhrTimeout;
                     xhr.onload = function () {
                         if (xhr.status === 200) {
-                            image.getImage().src = URL.createObjectURL(xhr.response);
+                            var objectUrl = URL.createObjectURL(xhr.response);
+                            var imgEl = image.getImage();
+                            // Revoke once the blob has been decoded to avoid leaking object URLs.
+                            imgEl.onload = function () { URL.revokeObjectURL(objectUrl); };
+                            imgEl.src = objectUrl;
                         } else {
                             console.error('Georeferencer: failed to load overlay image, status ' + xhr.status);
                         }
@@ -1286,6 +1310,10 @@ async function startGeoreferencing() {
             const existingIdx = overlayEntries.findIndex(e => e.id === editingOverlayId);
             if (existingIdx !== -1) {
                 map.removeLayer(overlayEntries[existingIdx].layer);
+                // Carry over the overlay's prior opacity to the replacement layer, then
+                // mark the edit as applied so onModalClose doesn't try to "restore" it.
+                imageLayer.setOpacity(editingSavedOpacity != null ? editingSavedOpacity : 1);
+                editingSavedOpacity = null;
                 overlayEntries[existingIdx].layer = imageLayer;
                 overlayEntries[existingIdx].gcps = JSON.parse(JSON.stringify(gcps));
                 overlayEntries[existingIdx].file = selectedImage;
