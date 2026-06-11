@@ -4,7 +4,12 @@ WORKDIR /root/fedgov-cv-lib-asn1c
 RUN ./build_jni.sh --clean
 WORKDIR /root
 ARG USE_SSL
-RUN ./build.sh
+ARG RUN_TESTS=false
+RUN if [ "$RUN_TESTS" = "true" ]; then \
+        ./build.sh --run-tests; \
+    else \
+        ./build.sh; \
+    fi 
 
 # Update the web.xml based on SSL selection
 RUN if [ "$USE_SSL" = "true" ]; then \
