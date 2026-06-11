@@ -161,4 +161,61 @@ class GeoreferencerJsTest {
                         .matcher(jsContent).find(),
                 "enforceFocus must not be unconditionally emptied");
     }
+
+    // --- A1: response is validated before building the overlay ---
+
+    @Test
+    void jsValidatesGeoreferenceResultBeforeOverlay() {
+        assertTrue(jsContent.contains("extentValid"),
+                "startGeoreferencing must validate the extent before building the layer");
+        assertTrue(jsContent.contains("did not return a usable result"),
+                "Must surface an error when the response lacks a usable URL/extent");
+        // The guard must run before the overlay extent/layer are constructed.
+        int guardIdx = jsContent.indexOf("did not return a usable result");
+        int transformIdx = jsContent.indexOf("transformExtent");
+        assertTrue(guardIdx != -1 && transformIdx != -1 && guardIdx < transformIdx,
+                "Result validation must precede extent transformation");
+    }
+
+    // --- A5: maxGcps default is not overwritten with undefined ---
+
+    @Test
+    void jsGuardsMaxCountConfig() {
+        assertTrue(
+                Pattern.compile("typeof config\\.gcp\\.maxCount === 'number'")
+                        .matcher(jsContent).find(),
+                "fetchBackendConfig must guard maxCount before overwriting the default");
+    }
+
+    // --- A6: POST has a client-side timeout ---
+
+    @Test
+    void jsPostHasAbortTimeout() {
+        assertTrue(jsContent.contains("new AbortController()"),
+                "POST must use an AbortController for timeout");
+        assertTrue(jsContent.contains("controller.signal"),
+                "fetch must pass the abort signal");
+        assertTrue(jsContent.contains("AbortError"),
+                "Abort/timeout must be handled with a friendly message");
+    }
+
+    // --- A3: enforceFocus patch installs exactly once ---
+
+    @Test
+    void jsEnforceFocusPatchedOnce() {
+        assertTrue(jsContent.contains("enforceFocusPatched"),
+                "enforceFocus patch must be guarded by a one-time install flag");
+        assertTrue(jsContent.contains("function patchBootstrapEnforceFocus"),
+                "enforceFocus patch must live in a named, guarded function");
+    }
+
+    // --- A2: markers anchored to an image stage element ---
+
+    @Test
+    void jsAndCssUseImageStage() {
+        assertTrue(jsContent.contains("georef-image-stage"),
+                "Markers must be appended to a .georef-image-stage wrapper");
+        assertTrue(cssContent.contains(".georef-image-stage"),
+                "CSS must define the .georef-image-stage positioning context");
+    }
 }
