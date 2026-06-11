@@ -1059,7 +1059,10 @@ function renumberGcps() {
     gcps.forEach(function (gcp) {
         var marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcp._ts + '"]');
         if (marker) {
-            marker.textContent = gcp.pointId.replace('GCP ', '');
+            var label = marker.querySelector('.georef-marker-label');
+            if (label) {
+                label.textContent = gcp.pointId.replace('GCP ', '');
+            }
         }
     });
 }
