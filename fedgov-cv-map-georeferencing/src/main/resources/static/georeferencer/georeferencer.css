@@ -67,6 +67,12 @@
     border-color: #d9534f;
 }
 
+.georef-image-stage {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
 .georef-image-container img {
     max-width: none;
     width: 100%;
