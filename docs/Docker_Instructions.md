@@ -29,26 +29,63 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 
 4. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
 
-4. Using SSL vs not using SSL:
+5. Using SSL vs not using SSL:
 
     - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the ssl.ini and keystore files will need to be updated or replaced to copy your applicable keystore information to the image. **NOTE**: The current ssl.ini and keystore files are examples only. Please update or replace before running the following command.
+      
+    BuildKit should be enabled when building the Docker image:
     ```
-    sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
+    sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
     ```
+    If running the tool without certificates, no changes are needed. Run the following command.
 
-    - If running the tool without certificates, no changes are needed. Run the following command.
+    BuildKit should be enabled when building the Docker image:
     ```
-    sudo docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
+    sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
     ```
 
 ### Run Image with SSL certificate
+For local development or short-term testing:
 ```
 sudo docker run -d -p 443:443 usdotfhwastol/connectedvcs-tools:<tag>
 ```
+For hosted or long-running deployments:
+```
+sudo docker run -d --restart unless-stopped -p 443:443 usdotfhwastol/connectedvcs-tools:<tag>
+```
 
 ### Run Image without SSL certificate
+For local development or short-term testing:
 ```
 sudo docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools:<tag>
+```
+For hosted or long-running deployments:
+```
+sudo docker run -d --restart unless-stopped -p 8080:8080 usdotfhwastol/connectedvcs-tools:<tag>
+```
+
+### Verify Docker Restart Policy
+
+The --restart unless-stopped option allows Docker to automatically restart the container if it exits unexpectedly or if the host restarts, unless the container was manually stopped. This option is recommended for hosted deployments, but is optional for local developer environments.
+
+To verify the restart policy for a running container:
+
+```
+docker inspect <container-name-or-id> --format 'Status={{.State.Status}} RestartPolicy={{.HostConfig.RestartPolicy.Name}} RestartCount={{.RestartCount}}'
+```
+For local development, a restart policy is optional and may be unset or set to `no`.
+
+For hosted deployments, the expected value is:
+```
+RestartPolicy=unless-stopped
+```
+If a hosted deployment container is already running and was started without a restart policy, update it with:
+```
+sudo docker update --restart unless-stopped <container-name-or-id>
+```
+Then verify again:
+```
+docker inspect <container-name-or-id> --format 'Status={{.State.Status}} RestartPolicy={{.HostConfig.RestartPolicy.Name}} RestartCount={{.RestartCount}}'
 ```
 
 ## Access the ConnectedVCS Tools Interface
