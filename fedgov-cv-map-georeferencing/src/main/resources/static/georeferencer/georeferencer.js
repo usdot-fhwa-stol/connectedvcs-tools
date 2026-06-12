@@ -45,7 +45,7 @@ let editingOverlayId = null;
 let editingSavedOpacity = null;
 let mapClickListenerKey = null;
 let imageZoom = 1;
-let pendingLonLat = null;
+let pendingGcpTs = null;
 let pendingFeature = null;
 
 const DEFAULTS = {
@@ -184,6 +184,13 @@ function injectModalHTML() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+// GCP Helpers
+
+/** A GCP is complete once its image (pixel) point has been picked. */
+function isGcpComplete(gcp) {
+    return gcp.imageX != null && gcp.imageY != null;
+}
+
 // GCP Map Layer
 
 /** Creates the OL vector layer and translate interaction for GCP map markers. */
@@ -216,10 +223,6 @@ function createGcpMapLayer() {
             gcp.longitude = parseFloat(lonLat[0].toFixed(options.coordPrecision));
             gcp.latitude = parseFloat(lonLat[1].toFixed(options.coordPrecision));
             refreshGcpTable();
-        } else if (pendingFeature === feature) {
-            // Marker for an in-progress pair has no GCP yet; keep the pending
-            // coordinate in sync so the finalized GCP matches the dragged position.
-            pendingLonLat = lonLat;
         }
     });
 
@@ -667,11 +670,12 @@ function enableAddGcpMode() {
 function disableAddGcpMode() {
     addGcpMode = false;
 
-    if (pendingMapClick === 'image' && pendingFeature) {
-        gcpMapLayer.getSource().removeFeature(pendingFeature);
+    // Discard any in-progress GCP that only has its map point (no image point yet).
+    if (pendingMapClick === 'image' && pendingGcpTs !== null) {
+        discardPendingGcp();
     }
     pendingMapClick = null;
-    pendingLonLat = null;
+    pendingGcpTs = null;
     pendingFeature = null;
 
     document.getElementById('georef-add-gcp').classList.remove('active');
@@ -738,19 +742,34 @@ function handleMapClick(evt) {
         const coord = evt.coordinate;
         const lonLat = ol.proj.toLonLat(coord);
 
-        const tempTs = gcpTsCounter + 1;
+        // Create the GCP immediately (image point still pending) so it appears in the
+        // table right away and stays in sync when the map marker is dragged or edited.
+        gcpTsCounter++;
+        const gcp = {
+            _ts: gcpTsCounter,
+            pointId: 'GCP ' + (gcps.length + 1),
+            imageX: null,
+            imageY: null,
+            longitude: parseFloat(lonLat[0].toFixed(options.coordPrecision)),
+            latitude: parseFloat(lonLat[1].toFixed(options.coordPrecision))
+        };
+        gcps.push(gcp);
 
         const feature = new ol.Feature({
             geometry: new ol.geom.Point(coord),
-            gcpTs: tempTs,
-            gcpLabel: String(gcps.length + 1)
+            gcpTs: gcp._ts,
+            gcpLabel: gcp.pointId.replace('GCP ', '')
         });
 
         gcpMapLayer.getSource().addFeature(feature);
 
         pendingMapClick = 'image';
-        pendingLonLat = lonLat;
+        pendingGcpTs = gcp._ts;
         pendingFeature = feature;
+
+        renumberGcps();
+        refreshGcpTable();
+        updateButtonStates();
 
         setStatus('Now click the corresponding point on the image.', 'waiting');
     }
@@ -789,27 +808,18 @@ function handleImageClick(e) {
         return;
     }
 
-    gcpTsCounter++;
-    const lonLat = pendingLonLat;
-    const gcp = {
-        _ts: gcpTsCounter,
-        pointId: 'GCP ' + (gcps.length + 1),
-        imageX: pixelX,
-        imageY: pixelY,
-        longitude: parseFloat(lonLat[0].toFixed(options.coordPrecision)),
-        latitude: parseFloat(lonLat[1].toFixed(options.coordPrecision))
-    };
-    gcps.push(gcp);
+    // Complete the in-progress GCP created on the map click by filling in its pixel point.
+    const gcp = gcps.find(g => g._ts === pendingGcpTs);
+    if (!gcp) return;
 
-    if (pendingFeature) {
-        pendingFeature.set('gcpTs', gcpTsCounter);
-    }
+    gcp.imageX = pixelX;
+    gcp.imageY = pixelY;
 
     addImageMarker(gcp, img);
     refreshGcpTable();
     updateButtonStates();
 
-    pendingLonLat = null;
+    pendingGcpTs = null;
     pendingFeature = null;
     pendingMapClick = 'map';
 
@@ -966,10 +976,12 @@ function refreshGcpTable() {
     gcps.forEach(function (gcp) {
         const row = document.createElement('tr');
         row.dataset.gcpTs = gcp._ts;
+        // Image point is pending until picked: show blank, non-editable cells for it.
+        var imagePending = !isGcpComplete(gcp);
         var fields = [
             { text: gcp.pointId, editable: false },
-            { text: gcp.imageX, editable: true, field: 'imageX' },
-            { text: gcp.imageY, editable: true, field: 'imageY' },
+            { text: imagePending ? '' : gcp.imageX, editable: !imagePending, field: 'imageX' },
+            { text: imagePending ? '' : gcp.imageY, editable: !imagePending, field: 'imageY' },
             { text: gcp.longitude, editable: true, field: 'longitude' },
             { text: gcp.latitude, editable: true, field: 'latitude' }
         ];
@@ -1074,7 +1086,8 @@ function updateImageMarkerPosition(gcpTs) {
 function updateGcpCount() {
     const countEl = document.getElementById('georef-gcp-count');
     if (countEl) {
-        countEl.textContent = gcps.length + ' GCP(s) — minimum ' + options.minGcps + ' required';
+        const completeCount = gcps.filter(isGcpComplete).length;
+        countEl.textContent = completeCount + ' GCP(s) — minimum ' + options.minGcps + ' required';
     }
 }
 
@@ -1129,16 +1142,43 @@ function deleteGcp(gcpTs) {
     const marker = document.querySelector('.georef-image-marker[data-gcp-ts="' + gcpTs + '"]');
     if (marker) marker.remove();
 
+    // If the in-progress GCP was deleted, reset the pending pair state.
+    if (gcpTs === pendingGcpTs) {
+        pendingGcpTs = null;
+        pendingFeature = null;
+        pendingMapClick = 'map';
+    }
+
     renumberGcps();
     refreshGcpTable();
     updateButtonStates();
+}
+
+/** Removes the in-progress GCP (map point picked, image point not yet) and its marker. */
+function discardPendingGcp() {
+    if (pendingGcpTs === null) return;
+
+    const idx = gcps.findIndex(g => g._ts === pendingGcpTs);
+    if (idx !== -1) {
+        gcps.splice(idx, 1);
+    }
+
+    if (pendingFeature) {
+        gcpMapLayer.getSource().removeFeature(pendingFeature);
+    }
+
+    renumberGcps();
+    refreshGcpTable();
 }
 
 // Button State Management
 
 function updateButtonStates() {
     const hasImage = selectedImage !== null;
-    const hasEnoughGcps = gcps.length >= options.minGcps;
+    const completeCount = gcps.filter(isGcpComplete).length;
+    // Block submission while any GCP is still missing its image point.
+    const allComplete = gcps.every(isGcpComplete);
+    const hasEnoughGcps = completeCount >= options.minGcps && allComplete;
 
     document.getElementById('georef-add-gcp').disabled = !hasImage;
     document.getElementById('georef-delete-gcp').disabled = !hasImage || gcps.length === 0;
@@ -1194,6 +1234,11 @@ async function startGeoreferencing() {
         setStatus('Please select an image first.', 'error');
         return;
     }
+
+    // Discard any in-progress (incomplete) GCP before validating counts.
+    disableAddGcpMode();
+    disableDeleteGcpMode();
+
     if (gcps.length < options.minGcps) {
         setStatus('Need at least ' + options.minGcps + ' GCP points. Currently have ' + gcps.length + '.', 'error');
         return;
@@ -1202,9 +1247,6 @@ async function startGeoreferencing() {
         setStatus('Maximum ' + options.maxGcps + ' GCP points allowed. Currently have ' + gcps.length + '.', 'error');
         return;
     }
-
-    disableAddGcpMode();
-    disableDeleteGcpMode();
 
     setStatus('Processing... Please wait.', 'waiting');
     document.getElementById('georef-start').disabled = true;

@@ -125,10 +125,18 @@ class GeoreferencerJsTest {
 
     @Test
     void jsUsesModuleScopePendingState() {
-        assertTrue(jsContent.contains("let pendingLonLat"),
-                "Pending lon/lat must be module-scope");
+        assertTrue(jsContent.contains("let pendingGcpTs"),
+                "Pending GCP timestamp must be module-scope");
         assertTrue(jsContent.contains("let pendingFeature"),
                 "Pending feature must be module-scope");
+    }
+
+    @Test
+    void jsTracksIncompleteGcps() {
+        assertTrue(jsContent.contains("function isGcpComplete"),
+                "Must distinguish complete vs in-progress GCPs via isGcpComplete");
+        assertTrue(jsContent.contains("imageX: null"),
+                "In-progress GCP must start with a null image point");
     }
 
     @Test
