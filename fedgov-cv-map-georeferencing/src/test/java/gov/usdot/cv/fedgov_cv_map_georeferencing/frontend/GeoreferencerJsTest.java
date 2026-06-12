@@ -52,7 +52,9 @@ class GeoreferencerJsTest {
         }
     }
 
-    // --- JS file presence and exports ---
+    // Smoke tests that the georeferencer JS and CSS assets are present on the
+    // classpath and non-empty. Also confirms the module exposes its public entry
+    // point, initGeoreferencer, so callers can bootstrap the feature.
 
     @Test
     void jsFileExistsAndIsNotEmpty() {
@@ -71,7 +73,9 @@ class GeoreferencerJsTest {
     }
 
 
-    // --- DEFAULTS config keys ---
+    // Verifies the DEFAULTS object declares every option the module relies on,
+    // such as endpoints, GCP limits, zoom bounds, and timeouts. Guards against a
+    // rename or accidental removal silently breaking configuration.
 
     @Test
     void jsDefaultsContainsRequiredKeys() {
@@ -87,7 +91,9 @@ class GeoreferencerJsTest {
         }
     }
 
-    // --- Security checks ---
+    // Checks that the module avoids leaking state through window globals and never
+    // builds DOM via innerHTML with interpolated template literals. Together these
+    // reduce the risk of global pollution and XSS.
 
     @Test
     void noWindowGlobalPollution() {
@@ -102,7 +108,9 @@ class GeoreferencerJsTest {
                 "Must not use innerHTML with template literal interpolation (XSS risk)");
     }
 
-    // --- CSS expected selectors ---
+    // Confirms the stylesheet defines the core selectors the JS depends on for the
+    // modal, overlay panel, image markers, and status area. A missing selector would
+    // leave the UI unstyled or misplaced.
 
     @Test
     void cssContainsExpectedSelectors() {
@@ -121,7 +129,10 @@ class GeoreferencerJsTest {
         }
     }
 
-    // --- Module structure checks ---
+    // Asserts key implementation details of the GCP picking workflow stay in place:
+    // module-scope pending state, the complete vs in-progress GCP distinction,
+    // event-delegated marker dragging, coordinate bounds validation, and the scoped
+    // enforceFocus override.
 
     @Test
     void jsUsesModuleScopePendingState() {
@@ -165,7 +176,10 @@ class GeoreferencerJsTest {
                 "enforceFocus must not be unconditionally emptied");
     }
 
-    // --- A1: response is validated before building the overlay ---
+    // Ensures startGeoreferencing validates the backend response (a usable image URL
+    // and a finite extent) before constructing the OpenLayers overlay. The guard must
+    // run ahead of the extent transformation so a malformed response surfaces an error
+    // instead of a broken layer.
 
     @Test
     void jsValidatesGeoreferenceResultBeforeOverlay() {
@@ -180,7 +194,8 @@ class GeoreferencerJsTest {
                 "Result validation must precede extent transformation");
     }
 
-    // --- A5: maxGcps default is not overwritten with undefined ---
+    // Ensures fetchBackendConfig only overwrites the maxGcps default when the backend
+    // supplies a valid value, so an undefined or malformed config can't clobber it.
 
     @Test
     void jsGuardsMaxCountConfig() {
@@ -190,7 +205,9 @@ class GeoreferencerJsTest {
                 "fetchBackendConfig must guard maxCount before overwriting the default");
     }
 
-    // --- A6: POST has a client-side timeout ---
+    // Verifies the georeferencing POST is bounded by an AbortController timeout and
+    // passes the abort signal to fetch. A timeout is reported to the user with a
+    // friendly message rather than hanging indefinitely.
 
     @Test
     void jsPostHasAbortTimeout() {
@@ -202,7 +219,9 @@ class GeoreferencerJsTest {
                 "Abort/timeout must be handled with a friendly message");
     }
 
-    // --- A3: enforceFocus patch installs exactly once ---
+    // Confirms the Bootstrap enforceFocus monkeypatch is installed exactly once via a
+    // guarded, named function. This prevents repeated init calls from stacking the
+    // override.
 
     @Test
     void jsEnforceFocusPatchedOnce() {
@@ -212,7 +231,9 @@ class GeoreferencerJsTest {
                 "enforceFocus patch must live in a named, guarded function");
     }
 
-    // --- A2: markers anchored to an image stage element ---
+    // Confirms image markers are anchored to a dedicated .georef-image-stage wrapper,
+    // defined in both the JS and CSS. The stage keeps markers aligned to the image
+    // regardless of scroll position or container offset.
 
     @Test
     void jsAndCssUseImageStage() {
