@@ -216,6 +216,10 @@ function createGcpMapLayer() {
             gcp.longitude = parseFloat(lonLat[0].toFixed(options.coordPrecision));
             gcp.latitude = parseFloat(lonLat[1].toFixed(options.coordPrecision));
             refreshGcpTable();
+        } else if (pendingFeature === feature) {
+            // Marker for an in-progress pair has no GCP yet; keep the pending
+            // coordinate in sync so the finalized GCP matches the dragged position.
+            pendingLonLat = lonLat;
         }
     });
 
@@ -726,6 +730,11 @@ function handleMapClick(evt) {
     if (pendingMapClick === 'map') {
         evt.stopPropagation();
 
+        if (options.maxGcps != null && gcps.length >= options.maxGcps) {
+            setStatus('Maximum of ' + options.maxGcps + ' GCPs reached. Delete a point before adding another.', 'error');
+            return;
+        }
+
         const coord = evt.coordinate;
         const lonLat = ol.proj.toLonLat(coord);
 
@@ -804,7 +813,9 @@ function handleImageClick(e) {
     pendingFeature = null;
     pendingMapClick = 'map';
 
-    if (gcps.length >= options.minGcps) {
+    if (options.maxGcps != null && gcps.length >= options.maxGcps) {
+        setStatus('GCP added. Maximum of ' + options.maxGcps + ' GCPs reached. Click "Start Georeferencing".', 'info');
+    } else if (gcps.length >= options.minGcps) {
         setStatus('GCP added. Sufficient points added. Add more or click "Start Georeferencing".', 'info');
     } else {
         setStatus('GCP added (' + gcps.length + '/' + options.minGcps + ' minimum). Click on the map to pick the next point.', 'waiting');
