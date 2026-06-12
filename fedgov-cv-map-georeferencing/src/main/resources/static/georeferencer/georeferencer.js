@@ -80,6 +80,7 @@ export function initGeoreferencer(olMapOrGetter, userOptions) {
     options = Object.assign({}, DEFAULTS, userOptions);
 
     function tryInit() {
+        if (initialized) return true; // a concurrent poll already completed init
         var resolvedMap = typeof olMapOrGetter === 'function' ? olMapOrGetter() : olMapOrGetter;
         if (!resolvedMap) {
             return false;
@@ -843,10 +844,14 @@ function handleImageClick(e) {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    // Clamp to the nearest valid pixel so an edge/near-miss click still completes the GCP
-    // instead of being silently dropped with the GCP left half-finished.
-    const pixelX = Math.max(0, Math.min(Math.round((clickX / img.clientWidth) * imageNaturalWidth), imageNaturalWidth - 1));
-    const pixelY = Math.max(0, Math.min(Math.round((clickY / img.clientHeight) * imageNaturalHeight), imageNaturalHeight - 1));
+    const pixelX = Math.round((clickX / img.clientWidth) * imageNaturalWidth);
+    const pixelY = Math.round((clickY / img.clientHeight) * imageNaturalHeight);
+
+    // Ignore clicks outside the image (the container is larger than the rendered image, e.g.
+    // the letterbox margin when zoomed out).
+    if (pixelX < 0 || pixelX >= imageNaturalWidth || pixelY < 0 || pixelY >= imageNaturalHeight) {
+        return;
+    }
 
     // Complete the in-progress GCP created on the map click by filling in its pixel point.
     const gcp = gcps.find(g => g._ts === pendingGcpTs);
