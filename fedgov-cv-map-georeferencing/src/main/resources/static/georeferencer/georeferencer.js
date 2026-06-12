@@ -47,6 +47,9 @@ let mapClickListenerKey = null;
 let imageZoom = 1;
 let pendingGcpTs = null;
 let pendingFeature = null;
+let initialized = false;
+let mapArtifactsReady = false;
+let configReady = false;
 
 const DEFAULTS = {
     georefEndpoint: '/georef/api/georeference',
@@ -71,6 +74,9 @@ const DEFAULTS = {
  * @param {Object} [userOptions] - Overrides for DEFAULTS (endpoints, GCP limits, zoom, timeouts).
  */
 export function initGeoreferencer(olMapOrGetter, userOptions) {
+    // Guard against repeat init() calls (duplicate script include, SPA re-init) that would
+    // inject a second #georef_modal and stack document-level listeners.
+    if (initialized) return;
     options = Object.assign({}, DEFAULTS, userOptions);
 
     function tryInit() {
@@ -79,9 +85,10 @@ export function initGeoreferencer(olMapOrGetter, userOptions) {
             return false;
         }
         map = resolvedMap;
+        initialized = true;
+        // Host-map artifacts (GCP layer, interactions, overlay panel) are created lazily on
+        // first open so users who never use the tool incur no host-map side-effects.
         injectModalHTML();
-        createGcpMapLayer();
-        createOverlayPanel();
         bindEvents();
         fetchBackendConfig();
         return true;
@@ -118,7 +125,28 @@ async function fetchBackendConfig() {
         }
     } catch (e) {
         console.warn('Georeferencer: could not fetch backend config, using defaults', e);
+    } finally {
+        configReady = true;
+        // Refresh anything that depends on the GCP limits now that they're known.
+        const statusEl = document.getElementById('georef-status');
+        if (statusEl) {
+            updateButtonStates();
+            updateGcpCount();
+            // Only replace the loading placeholder so we don't clobber an in-progress status
+            // if the config resolved slowly while the user was already working.
+            if (statusEl.textContent === 'Loading configuration...') {
+                restoreDefaultStatus();
+            }
+        }
     }
+}
+
+/** Lazily creates the host-map artifacts (GCP layer, interactions, overlay panel) once. */
+function ensureMapArtifacts() {
+    if (mapArtifactsReady) return;
+    mapArtifactsReady = true;
+    createGcpMapLayer();
+    createOverlayPanel();
 }
 
 // Modal HTML Injection
@@ -378,6 +406,16 @@ function removeOverlay(overlayId) {
  * @param {number} overlayId - ID of the overlay entry to edit.
  */
 function editOverlay(overlayId) {
+    // An edit session stores a single overlay's pre-edit opacity in editingSavedOpacity.
+    // Starting a second edit before finishing the first would overwrite that and strand the
+    // first overlay at opacity 0, so refuse to enter edit while one is already in progress.
+    if (editingOverlayId !== null) {
+        setStatus('Finish or cancel the current edit before editing another overlay.', 'error');
+        return;
+    }
+
+    ensureMapArtifacts();
+
     const entry = overlayEntries.find(e => e.id === overlayId);
     if (!entry) return;
 
@@ -501,9 +539,13 @@ function patchBootstrapEnforceFocus() {
 // Open / Close
 
 function openGeoreferencer() {
+    ensureMapArtifacts();
     editingOverlayId = null;
     resetState();
     $('#georef_modal').modal('show');
+    if (!configReady) {
+        setStatus('Loading configuration...', 'waiting');
+    }
 }
 
 function resetState() {
@@ -801,12 +843,10 @@ function handleImageClick(e) {
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    const pixelX = Math.round((clickX / img.clientWidth) * imageNaturalWidth);
-    const pixelY = Math.round((clickY / img.clientHeight) * imageNaturalHeight);
-
-    if (pixelX < 0 || pixelX >= imageNaturalWidth || pixelY < 0 || pixelY >= imageNaturalHeight) {
-        return;
-    }
+    // Clamp to the nearest valid pixel so an edge/near-miss click still completes the GCP
+    // instead of being silently dropped with the GCP left half-finished.
+    const pixelX = Math.max(0, Math.min(Math.round((clickX / img.clientWidth) * imageNaturalWidth), imageNaturalWidth - 1));
+    const pixelY = Math.max(0, Math.min(Math.round((clickY / img.clientHeight) * imageNaturalHeight), imageNaturalHeight - 1));
 
     // Complete the in-progress GCP created on the map click by filling in its pixel point.
     const gcp = gcps.find(g => g._ts === pendingGcpTs);
@@ -864,6 +904,9 @@ function addImageMarker(gcp, img) {
 function positionImageMarker(marker, gcp, img) {
     if (!img) img = document.getElementById('georef-preview-img');
     if (!img) return;
+    // Natural dimensions are 0 until the image's async onload; bail to avoid NaN positions.
+    // restoreImageMarkers() runs on load and will position correctly once they're known.
+    if (!imageNaturalWidth || !imageNaturalHeight) return;
 
     const displayX = (gcp.imageX / imageNaturalWidth) * img.clientWidth;
     const displayY = (gcp.imageY / imageNaturalHeight) * img.clientHeight;
@@ -1188,7 +1231,9 @@ function updateButtonStates() {
 // Status Messages
 
 function restoreDefaultStatus() {
-    if (gcps.length >= options.minGcps) {
+    // Count only complete GCPs so the status stays consistent with the count badge and the
+    // Start button, which both ignore the pending (image-point-less) GCP.
+    if (gcps.filter(isGcpComplete).length >= options.minGcps) {
         setStatus('Sufficient points selected. Add more or click "Start Georeferencing".', 'info');
     } else if (selectedImage) {
         setStatus('Click "Add/Edit GCP" to start picking control points.', 'info');
@@ -1339,8 +1384,9 @@ async function startGeoreferencing() {
                         if (xhr.status === 200) {
                             var objectUrl = URL.createObjectURL(xhr.response);
                             var imgEl = image.getImage();
-                            // Revoke once the blob has been decoded to avoid leaking object URLs.
+                            // Revoke once the blob has been decoded (or failed to) to avoid leaking object URLs.
                             imgEl.onload = function () { URL.revokeObjectURL(objectUrl); };
+                            imgEl.onerror = function () { URL.revokeObjectURL(objectUrl); };
                             imgEl.src = objectUrl;
                         } else {
                             console.error('Georeferencer: failed to load overlay image, status ' + xhr.status);
