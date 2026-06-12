@@ -73,7 +73,7 @@ To verify the restart policy for a running container:
 ```
 docker inspect <container-name-or-id> --format 'Status={{.State.Status}} RestartPolicy={{.HostConfig.RestartPolicy.Name}} RestartCount={{.RestartCount}}'
 ```
-For local development, the restart policy may be empty or `no`.
+For local development, a restart policy is optional and may be unset or set to `no`.
 
 For hosted deployments, the expected value is:
 ```
