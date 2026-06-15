@@ -8,6 +8,7 @@ A high-precision georeferencing REST API service built with Spring Boot 2.7.18 t
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Features](#features)
+  - [Frontend UI Component](#frontend-ui-component)
   - [Requirements](#requirements)
     - [Runtime Requirements](#runtime-requirements)
     - [Development Requirements](#development-requirements)
@@ -43,6 +44,24 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
 - **Enterprise Deployment**: WAR packaging for Jetty/Tomcat deployment
 - **Error Handling**: Detailed validation and error reporting
 - **Binary Image Support**: Efficient byte-array image handling
+
+## Frontend UI Component
+
+In addition to the REST API, this module ships a self-contained OpenLayers ES module served
+at `/georef/georeferencer/georeferencer.js` (and `georeferencer.css`). It adds an interactive
+image-georeferencing workflow to a host map application — currently embedded in the TIM and
+ISD Creators — and drives the same `POST /georeference` API documented below.
+
+- **GCP Picking**: Pair Ground Control Points by clicking a location on the map and the
+  matching point on the uploaded image
+- **Editable GCP Table**: Adjust pixel and longitude/latitude values inline
+- **Draggable Markers**: Reposition control points directly on the map or image
+- **Image Zoom & Pan**: Mouse-wheel zoom and middle-mouse pan of the image preview
+- **Georeferenced Overlay**: Result is overlaid on the map with per-overlay opacity control
+- **Non-Modal Dialog**: The underlying map stays interactive while the tool is open
+
+**Integration:** import and initialize the module against the host map, passing a getter so
+init can defer until the map exists.
 
 ## Requirements
 
