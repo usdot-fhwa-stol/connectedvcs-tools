@@ -18,6 +18,7 @@ package gov.usdot.cv.fedgov_cv_map_georeferencing.gdal;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -44,8 +45,11 @@ public class GdalFacade {
     private static final String GDAL_WARP = "gdalwarp";
     private static final String GDAL_INFO = "gdalinfo";
     
+    @Value("${georeference.gdal.timeout-seconds:120}")
+    private long gdalTimeoutSeconds;
+
     private final boolean gdalAvailable;
-    
+
     public GdalFacade() {
         this.gdalAvailable = checkGdalAvailability();
     }
@@ -231,10 +235,10 @@ public class GdalFacade {
                 }
             }
             
-            boolean finished = process.waitFor(120, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(gdalTimeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                throw new GdalException("gdalinfo timed out after 120 seconds");
+                throw new GdalException("gdalinfo timed out after " + gdalTimeoutSeconds + " seconds");
             }
             int exitCode = process.exitValue();
             if (exitCode != 0) {
@@ -303,10 +307,10 @@ public class GdalFacade {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process process = pb.start();
 
-            boolean finished = process.waitFor(120, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(gdalTimeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                throw new GdalException(operationDescription + " timed out after 120 seconds");
+                throw new GdalException(operationDescription + " timed out after " + gdalTimeoutSeconds + " seconds");
             }
             int exitCode = process.exitValue();
 

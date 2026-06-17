@@ -16,6 +16,8 @@ georeference:
   gcp:
     min-count: 4
     max-count: 10
+  gdal:
+    timeout-seconds: 120
   warp:
     # Transform method for gdalwarp. Options:
     #   tps    - Thin Plate Spline (smooth, interpolates through all GCPs, best for manual point picking)
