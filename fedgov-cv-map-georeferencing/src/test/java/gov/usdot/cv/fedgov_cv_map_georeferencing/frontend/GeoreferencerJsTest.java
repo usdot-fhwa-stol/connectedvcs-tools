@@ -19,8 +19,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -34,22 +36,13 @@ class GeoreferencerJsTest {
 
     @BeforeAll
     static void loadResources() throws IOException {
-        jsContent = readClasspathResource("static/georeferencer/georeferencer.js");
-        cssContent = readClasspathResource("static/georeferencer/georeferencer.css");
-    }
-
-    private static String readClasspathResource(String path) throws IOException {
-        try (InputStream is = GeoreferencerJsTest.class.getClassLoader().getResourceAsStream(path)) {
-            assertNotNull(is, "Resource not found on classpath: " + path);
-            byte[] bytes = new byte[is.available()];
-            int totalRead = 0;
-            while (totalRead < bytes.length) {
-                int read = is.read(bytes, totalRead, bytes.length - totalRead);
-                if (read == -1) break;
-                totalRead += read;
-            }
-            return new String(bytes, 0, totalRead, StandardCharsets.UTF_8);
-        }
+        Path projectRoot = Paths.get(System.getProperty("user.dir")).getParent();
+        Path jsPath = projectRoot.resolve("private-resources/js/georeferencer.js");
+        Path cssPath = projectRoot.resolve("private-resources/css/georeferencer.css");
+        assertTrue(Files.exists(jsPath), "georeferencer.js not found at " + jsPath);
+        assertTrue(Files.exists(cssPath), "georeferencer.css not found at " + cssPath);
+        jsContent = new String(Files.readAllBytes(jsPath), StandardCharsets.UTF_8);
+        cssContent = new String(Files.readAllBytes(cssPath), StandardCharsets.UTF_8);
     }
 
     // Smoke tests that the georeferencer JS and CSS assets are present on the
@@ -200,7 +193,7 @@ class GeoreferencerJsTest {
     @Test
     void jsGuardsMaxCountConfig() {
         assertTrue(
-                Pattern.compile("typeof config\\.gcp\\.maxCount === 'number'")
+                Pattern.compile("typeof config\\?\\.gcp\\?\\.maxCount === 'number'")
                         .matcher(jsContent).find(),
                 "fetchBackendConfig must guard maxCount before overwriting the default");
     }
