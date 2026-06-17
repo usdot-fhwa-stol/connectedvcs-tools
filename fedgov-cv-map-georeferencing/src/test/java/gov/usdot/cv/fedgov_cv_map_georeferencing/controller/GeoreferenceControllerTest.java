@@ -164,7 +164,7 @@ class GeoreferenceControllerTest {
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assertNotNull(responseBody);
         assertFalse((Boolean) responseBody.get("success"));
-        assertTrue(responseBody.get("message").toString().contains("Georeferencing failed"));
+        assertTrue(responseBody.get("message").toString().contains("Internal server error"));
         assertEquals("INTERNAL_SERVER_ERROR", responseBody.get("error"));
     }
 
