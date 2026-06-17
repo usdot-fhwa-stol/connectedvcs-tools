@@ -32,8 +32,9 @@
 	<link rel="stylesheet" href="css/sidebar.css" type="text/css">
 	<link rel="stylesheet" href="css/jquery-ui.css" type="text/css">
 	<link rel="stylesheet" href="css/select2.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
 
-	
+
 </head>
 
 <body>
@@ -107,6 +108,9 @@
 						</ul>
 					</li>
                 </ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="#" id="openGeoreferencer" style="cursor:pointer;">Georeferencing</a></li>
+				</ul>
             </div>
             <!-- /.navbar-collapse -->
         </div>
@@ -924,7 +928,15 @@
 	<script src="js/latlon-vincenty.js"></script>
 	<script src="js/bing.js"></script>
 	<script type="module" src="js/api.js"></script>
-	
+
+	<script type="module">
+		import * as mapping from './js/mapping.js';
+		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		initGeoreferencer(() => mapping.map, {
+			georefEndpoint: '/georef/api/georeference',
+			csrfTokenUrl: '/msp/security/api/csrf-token/'
+		});
+	</script>
 
 </body>
 </html>

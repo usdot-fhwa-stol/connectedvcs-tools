@@ -28,3 +28,5 @@ root.war
 private-resources.war
 *.log
 
+.env
+

@@ -107,8 +107,9 @@ public class GeoreferenceService {
                     + (gcps != null ? gcps.size() : 0));
         }
         
-        if(gcps.size() > georeferenceProperties.getGcp().getMaxCount()) {
-            throw new IllegalArgumentException("No more than " + georeferenceProperties.getGcp().getMaxCount()
+        Integer maxCount = georeferenceProperties.getGcp().getMaxCount();
+        if(maxCount != null && gcps.size() > maxCount) {
+            throw new IllegalArgumentException("No more than " + maxCount
                     + " ground control points are allowed. Provided: "
                     + gcps.size());
         }
@@ -163,7 +164,10 @@ public class GeoreferenceService {
             
             // Step 2: Transform VRT to Web Mercator (EPSG:3857) for web display using GDAL facade
             Path georeferencedTiffPath = tempDir.resolve("georef.tif");
-            gdalFacade.warpImage(vrtPath, georeferencedTiffPath, "EPSG:3857", "bilinear", "GTiff");
+            gdalFacade.warpImage(vrtPath, georeferencedTiffPath, "EPSG:3857",
+                    georeferenceProperties.getWarp().getResamplingMethod(),
+                    "GTiff",
+                    georeferenceProperties.getWarp().getTransformMethod());
             
             // Step 3: Convert GeoTIFF to PNG for browser display using GDAL facade
             Path finalPngPath = tempDir.resolve("georef_final.png");
@@ -468,6 +472,9 @@ public class GeoreferenceService {
      * Convert Web Mercator X coordinate to longitude
      */
     private double webMercatorXToLon(double x) {
+        if (Math.abs(x) > WEB_MERCATOR_MAX_EXTENT * 1.01) {
+            logger.warn("Web Mercator X value {} exceeds expected range, output may be incorrect", x);
+        }
         return x / WEB_MERCATOR_MAX_EXTENT * 180.0;
     }
 
@@ -475,6 +482,9 @@ public class GeoreferenceService {
      * Convert Web Mercator Y coordinate to latitude
      */
     private double webMercatorYToLat(double y) {
+        if (Math.abs(y) > WEB_MERCATOR_MAX_EXTENT * 1.01) {
+            logger.warn("Web Mercator Y value {} exceeds expected range, output may be incorrect", y);
+        }
         return Math.toDegrees(Math.atan(Math.sinh(y / WEB_MERCATOR_MAX_EXTENT * Math.PI)));
     }
 

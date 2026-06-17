@@ -1,0 +1,289 @@
+/*
+ * Copyright (C) 2026 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+.georef-modal {
+    pointer-events: none;
+}
+
+.georef-modal .modal-dialog {
+    pointer-events: auto;
+    width: 500px;
+    float: right;
+    margin-right: 20px;
+    margin-top: 60px;
+}
+
+.georef-modal .modal-content {
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.georef-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.georef-toolbar .btn.active {
+    background-color: #337ab7;
+    color: #fff;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.georef-image-container {
+    position: relative;
+    max-height: 300px;
+    overflow: auto;
+    border: 2px dashed #ccc;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.georef-image-container.georef-add-mode {
+    cursor: crosshair;
+    border-color: #337ab7;
+}
+
+.georef-map-add-mode {
+    cursor: crosshair !important;
+}
+
+.georef-map-add-mode.georef-map-marker-hover {
+    cursor: grab !important;
+}
+
+.georef-image-container.georef-delete-mode {
+    cursor: not-allowed;
+    border-color: #d9534f;
+}
+
+.georef-image-stage {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.georef-image-container img {
+    max-width: none;
+    width: 100%;
+    display: block;
+}
+
+.georef-image-container .georef-no-image {
+    padding: 40px;
+    text-align: center;
+    color: #999;
+}
+
+.georef-image-marker {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: none;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: grab;
+    z-index: 10;
+    background:
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) center top    / 3px 37% no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) center bottom / 3px 37% no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) left   center / 37% 3px no-repeat,
+        linear-gradient(rgba(255,0,0,0.8), rgba(255,0,0,0.8)) right  center / 37% 3px no-repeat;
+}
+
+.georef-image-marker::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    cursor: grab;
+}
+
+.georef-image-marker .georef-marker-label {
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #d9534f;
+    text-shadow: -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff, 1px 1px 1px #fff;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.georef-image-marker:hover {
+    background:
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) center top    / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) center bottom / 2px 35% no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) left   center / 35% 2px no-repeat,
+        linear-gradient(rgba(255,0,0,1), rgba(255,0,0,1)) right  center / 35% 2px no-repeat;
+}
+
+.georef-image-marker.georef-dragging {
+    cursor: grabbing;
+    opacity: 0.7;
+}
+
+.georef-status {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: #d9edf7;
+    color: #31708f;
+    border: 1px solid #bce8f1;
+}
+
+.georef-status.georef-status-waiting {
+    background-color: #fcf8e3;
+    color: #8a6d3b;
+    border-color: #faebcc;
+}
+
+.georef-status.georef-status-error {
+    background-color: #f2dede;
+    color: #a94442;
+    border-color: #ebccd1;
+}
+
+.georef-status.georef-status-success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border-color: #d6e9c6;
+}
+
+.georef-gcp-table {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.georef-gcp-table th {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.georef-gcp-table td[contenteditable="true"] {
+    cursor: text;
+    min-width: 60px;
+}
+
+.georef-gcp-table td[contenteditable="true"]:focus {
+    outline: 2px solid #337ab7;
+    background-color: #eef7ff;
+}
+
+.georef-gcp-table .georef-delete-btn {
+    cursor: pointer;
+    color: #d9534f;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.georef-gcp-table .georef-delete-btn:hover {
+    color: #c9302c;
+}
+
+.georef-overlay-panel {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    max-width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.georef-overlay-panel h6 {
+    margin: 0 0 6px 0;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.georef-overlay-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.georef-overlay-item:last-child {
+    border-bottom: none;
+}
+
+.georef-overlay-item .georef-overlay-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
+}
+
+.georef-overlay-item input[type="range"] {
+    width: 80px;
+}
+
+.georef-overlay-item .georef-overlay-edit,
+.georef-overlay-item .georef-overlay-remove {
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 2px;
+}
+
+.georef-overlay-item .georef-overlay-edit {
+    color: #337ab7;
+}
+
+.georef-overlay-item .georef-overlay-edit:hover {
+    color: #23527c;
+}
+
+.georef-overlay-item .georef-overlay-remove {
+    color: #d9534f;
+}
+
+.georef-overlay-item .georef-overlay-remove:hover {
+    color: #c9302c;
+}
+
+.georef-loading {
+    text-align: center;
+    padding: 20px;
+}
+
+.georef-loading .georef-spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #337ab7;
+    border-radius: 50%;
+    animation: georef-spin 1s linear infinite;
+}
+
+@keyframes georef-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

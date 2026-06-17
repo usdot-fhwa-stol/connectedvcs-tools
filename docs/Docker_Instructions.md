@@ -27,7 +27,7 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
     - Please read the [Azure Maps API Key Guidance](/docs/Esri_API_Key_Guidance.md)
     - Please read the [S3 Bucket Configuration](/docs/S3_Bucket_Configuration.md).
 
-4. Enter your keys into the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1) file (within "google.map.api.key", "azure.map.api.key", and "esri.map.api.key").
+4. Set up your API keys as environment variables. See [Environment Variables](/docs/Environment_Variables.md) for details. The quickest approach is to copy `.env.example` to `.env` and fill in your keys.
 
 5. Using SSL vs not using SSL:
 
@@ -47,7 +47,7 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 ### Run Image with SSL certificate
 For local development or short-term testing:
 ```
-sudo docker run -d -p 443:443 usdotfhwastol/connectedvcs-tools:<tag>
+sudo docker run -d -p 443:443 --env-file .env usdotfhwastol/connectedvcs-tools:<tag>
 ```
 For hosted or long-running deployments:
 ```
@@ -57,7 +57,7 @@ sudo docker run -d --restart unless-stopped -p 443:443 usdotfhwastol/connectedvc
 ### Run Image without SSL certificate
 For local development or short-term testing:
 ```
-sudo docker run -d -p 8080:8080 usdotfhwastol/connectedvcs-tools:<tag>
+sudo docker run -d -p 8080:8080 --env-file .env usdotfhwastol/connectedvcs-tools:<tag>
 ```
 For hosted or long-running deployments:
 ```
