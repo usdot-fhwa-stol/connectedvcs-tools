@@ -115,13 +115,11 @@ async function fetchBackendConfig() {
         const response = await fetch(options.georefEndpoint + '/config');
         if (response.ok) {
             const config = await response.json();
-            if (config.gcp) {
-                if (typeof config.gcp.minCount === 'number') {
-                    options.minGcps = config.gcp.minCount;
-                }
-                if (typeof config.gcp.maxCount === 'number' || config.gcp.maxCount === null) {
-                    options.maxGcps = config.gcp.maxCount; // null means no limit
-                }
+            if (typeof config?.gcp?.minCount === 'number') {
+                options.minGcps = config.gcp.minCount;
+            }
+            if (typeof config?.gcp?.maxCount === 'number' || config?.gcp?.maxCount === null) {
+                options.maxGcps = config.gcp.maxCount; // null means no limit
             }
         }
     } catch (e) {
