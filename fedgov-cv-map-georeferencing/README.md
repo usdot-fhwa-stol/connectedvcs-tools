@@ -47,8 +47,9 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
 
 ## Frontend UI Component
 
-In addition to the REST API, this module ships a self-contained OpenLayers ES module served
-at `/georef/georeferencer/georeferencer.js` (and `georeferencer.css`). It adds an interactive
+The georeferencer includes a self-contained OpenLayers ES module located in the shared
+`private-resources/` directory and served at `/private-resources/js/georeferencer.js`
+(and `/private-resources/css/georeferencer.css`). It adds an interactive
 image-georeferencing workflow to a host map application — currently embedded in the TIM and
 ISD Creators — and drives the same `POST /georeference` API documented below.
 
@@ -243,6 +244,8 @@ georeference:
   gcp:
     min-count: 6
     max-count: 10
+  gdal:
+    timeout-seconds: 120
 ```
 
 ### Log4j2 Configuration
