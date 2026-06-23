@@ -17,6 +17,8 @@ import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggle
  * three arrays at that index so they stay aligned with the geometry.
  */
 function syncParallelArraysAfterNodeDelete(laneFeat) {
+	// Skip computed lanes
+	if (laneFeat.get("computed")) return;
 	const coords = laneFeat.getGeometry().getCoordinates();
 	const max = coords.length;
 	const elev = laneFeat.get("elevation");

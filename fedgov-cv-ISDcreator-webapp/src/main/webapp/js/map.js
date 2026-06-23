@@ -67,7 +67,7 @@ document.addEventListener('keyup',   (e) => { if (e.key === 'Shift') isShiftHeld
 const getCSRFToken = () => {
   // Fetch CSRF token from the server and return the token string, or null if unavailable
   return fetch(tokenURL)
-    .then(response => {
+    .then(response => {       
       if(response.status !== 200) {
         console.error("Failed to fetch CSRF token");
         return null;
@@ -640,7 +640,19 @@ function registerDrawInteractions(){
           // at the deleted index, covering both vertex-move and vertex-delete.
           onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
 
-        }   
+          // Recalculate node_delta while editing a lane.
+          const nodeIdx = parseInt($("#node_delta").data("node-index"));
+          const laneIdx = parseInt($("#node_delta").data("lane-index"));
+          if (!isNaN(nodeIdx) && nodeIdx > 0 && !isNaN(laneIdx)) {
+            const laneCoords = lanes.getSource().getFeatures()[laneIdx]?.getGeometry().getCoordinates();
+            if (laneCoords && laneCoords.length > nodeIdx) {
+              const prevPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx - 1]));
+              const currPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx]));
+              $("#node_delta").val(getGeodesicDistance(prevPoint, currPoint).toFixed(2) + " m");
+            }
+          }
+
+        }
     });
   });
 
