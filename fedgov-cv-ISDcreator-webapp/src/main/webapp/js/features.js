@@ -9,11 +9,50 @@ import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggle
  * @event creates variables attached to the feature object and store the values
  */
 
+/**
+ * When a vertex is deleted via the Modify interaction, the geometry loses one
+ * coordinate but the elevation/laneWidth/nodeInitialized parallel arrays still
+ * hold the old count.  This function detects the deleted index by finding the
+ * first coordinate whose stored latlon no longer matches, then splices all
+ * three arrays at that index so they stay aligned with the geometry.
+ */
+function syncParallelArraysAfterNodeDelete(laneFeat) {
+	const coords = laneFeat.getGeometry().getCoordinates();
+	const max = coords.length;
+	const elev = laneFeat.get("elevation");
+	const lw   = laneFeat.get("laneWidth");
+	const ni   = laneFeat.get("nodeInitialized");
+
+	if (!elev || elev.length <= max) return;
+
+	// Find the first index where the current coordinate no longer matches the
+	// stored latlon.
+	let deletedIdx = elev.length - 1; 
+	for (let j = 0; j < max; j++) {
+		const storedLat = elev[j]?.latlon?.lat;
+		const storedLon = elev[j]?.latlon?.lon;
+		if (storedLat == null || storedLon == null) continue;
+		const lonLat = ol.proj.toLonLat(coords[j]);
+		const curLat = lonLat[1].toString().match(/^-?\d+(?:\.\d{0,11})?/)[0];
+		const curLon = lonLat[0].toString().match(/^-?\d+(?:\.\d{0,11})?/)[0];
+		if (curLat !== storedLat.toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] ||
+		    curLon !== storedLon.toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]) {
+			deletedIdx = j;
+			break;
+		}
+	}
+
+	elev.splice(deletedIdx, 1);
+	if (lw) lw.splice(deletedIdx, 1);
+	if (ni) ni.splice(deletedIdx, 1);
+}
+
 function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 	laneMarkers.getSource().clear();
 	let laneFeatures = lanes.getSource().getFeatures();
 	for(let i = 0; i < laneFeatures.length; i++){
 		let laneFeat = laneFeatures[i];
+		syncParallelArraysAfterNodeDelete(laneFeat);
 		let max = laneFeat.getGeometry().getCoordinates().length;
 		if (typeof laneFeat.get("elevation") == 'undefined') {
 			laneFeat.set("elevation", []);
