@@ -289,6 +289,7 @@ $("button[name='layerControl']").click(function (e) {
 $('.fa-question-circle').click(function () {
     var tag = $(this).attr('tag');
     var obj = $.grep(help_notes, function (e) { return e.value === tag; });
+    if (!obj.length) return;
     $('#help_modal').modal('show');
     $('#min').html(obj[0].min)
     $('#max').html(obj[0].max)
