@@ -491,6 +491,11 @@
 							  <div class="col-sm-7"><input class="form-control" id="lane_width" placeholder="-512 to 511" data-parsley-pattern="^-?[0-9]+$" data-parsley-range="[-512, 511]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_width"></i></div>
 							</div>
+							<div class="row node_delta" data-toggle="tooltip" title="in meters" style="display:none">
+							  <div class="col-sm-4"><label for="node_delta">Node Delta:</label></div>
+							  <div class="col-sm-7"><input class="form-control" id="node_delta" readonly></div>
+							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="node_delta"></i></div>
+							</div>
 							<div class="lane_info_time_restrictions"></div>
 							<div class="row master_lane_width" data-toggle="tooltip" title="in centimeters">
 							  <div class="col-sm-4"><label for="master_lane_width">Master Lane Width:</label></div>
@@ -1288,6 +1293,19 @@
 										<li>If the lane is a source lane for computed lane's a Dialog will appear warning that deleting the lane will delete all lanes computed from it. Click <strong>OK</strong> to delete the lane and all of it's computed lanes.</li>
 										<li>Unselect the <strong>Delete</strong> Control.</li>
 									</ol>
+									<li>Deleting a Lane Node</li>
+									<ol type="a">
+										<li>Click the <strong>Edit Lanes</strong>(<i class="fa fa-sliders"></i>) Control on the bottom Control Panel.</li>
+										<li>Click the lane whose node you wish to delete and vertex handles will appear on the lane.</li>
+										<li>Hold <strong>Shift</strong> and click the vertex handle you wish to remove.</li>
+										<li>The node will be deleted and the lane will be redrawn with the remaining nodes.</li>
+									</ol>
+									<li>Viewing Distance Between Two Lane Nodes (Node Delta)</li>
+									<ol type="a">
+										<li>Verify that all of the Controls on the bottom panel are unselected.</li>
+										<li>Click on any lane node other than the first node (node 0).</li>
+										<li>The <strong>Lane Configuration</strong> dialog will display a read-only <strong>Node Delta</strong> field showing the distance in meters from the previous node to the selected node.</li>
+									</ol>
 								</ol>
 								<br>
 								<p><strong>Note:</strong> When defining elevations, keep in mind that the standard defines the delta between elevations to be
@@ -1572,6 +1590,19 @@
 										<li>Click the feature (lane) you wish to delete.</li>
 										<li>If the lane is a source lane for computed lane's a Dialog will appear warning that deleting the lane will delete all lanes computed from it. Click <strong>OK</strong> to delete the lane and all of it's computed lanes.</li>
 										<li>Unselect the <strong>Delete</strong> Control.</li>
+									</ol>
+									<li>Deleting a Lane Node</li>
+									<ol type="a">
+										<li>Click the <strong>Edit Lanes</strong>(<i class="fa fa-sliders"></i>) Control on the bottom Control Panel.</li>
+										<li>Click the lane whose node you wish to delete and vertex handles will appear on the lane.</li>
+										<li>Hold <strong>Shift</strong> and click the vertex handle you wish to remove.</li>
+										<li>The node will be deleted and the lane will be redrawn with the remaining nodes.</li>
+									</ol>
+									<li>Viewing Distance Between Two Lane Nodes (Node Delta)</li>
+									<ol type="a">
+										<li>Verify that all of the Controls on the bottom panel are unselected.</li>
+										<li>Click on any lane node other than the first node (node 0).</li>
+										<li>The <strong>Lane Configuration</strong> dialog will display a read-only <strong>Node Delta</strong> field showing the distance in meters from the previous node to the selected node.</li>
 									</ol>
 								</ol>
 								<br>

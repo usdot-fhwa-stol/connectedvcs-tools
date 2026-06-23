@@ -57,11 +57,17 @@ let timeRestrictions;
 let approachTimeRestrictions;
 let connectionsTimeRestrictions;
 let csrfToken = null;
+// Tracks whether Shift is held for node deletion via the Modify interaction.
+// Module-level so both registerDrawInteractions() and registerSelectInteraction()
+// can read it.
+let isShiftHeld = false;
+document.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
+document.addEventListener('keyup',   (e) => { if (e.key === 'Shift') isShiftHeld = false; });
 
 const getCSRFToken = () => {
   // Fetch CSRF token from the server and return the token string, or null if unavailable
   return fetch(tokenURL)
-    .then(response => {
+    .then(response => {       
       if(response.status !== 200) {
         console.error("Failed to fetch CSRF token");
         return null;
@@ -345,6 +351,9 @@ function registerSelectInteraction() {
     condition: ol.events.condition.click,
     layers: [laneMarkers],
     filter: (feature, layer)=>{
+      if (isShiftHeld) {
+        return false;
+      }
       //If it is in edit mode (edit an approach), do not allow lane marker selection
       if (controls.edit?.getActive()) {
         return false;
@@ -482,6 +491,14 @@ function registerDrawInteractions(){
           return false;
         }
         return true;
+      },
+      // Delete Node: Shift+click deletes the vertex under the pointer.
+      // This is only active while the modify control is active (i.e. when the
+      // user is in lane-editing mode), so it will not fire during normal map
+      // navigation or in any other tool mode.
+      deleteCondition: function(event) {
+        const isSingleClick = ol.events.condition.singleClick(event);
+        return isShiftHeld && isSingleClick;
       }
     }),
     placeComputed: new ol.interaction.Draw({
@@ -617,6 +634,24 @@ function registerDrawInteractions(){
         if (feature.getGeometry() instanceof ol.geom.LineString) {
           temporaryLaneMarkers.getSource().clear();
           showMarkers(feature, temporaryLaneMarkers);
+
+          // Rebuild laneMarkers. syncParallelArraysAfterNodeDelete() inside
+          // onFeatureAdded() splices elevation, laneWidth, and nodeInitialized
+          // at the deleted index, covering both vertex-move and vertex-delete.
+          onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+
+          // Recalculate node_delta while editing a lane.
+          const nodeIdx = parseInt($("#node_delta").data("node-index"));
+          const laneIdx = parseInt($("#node_delta").data("lane-index"));
+          if (!isNaN(nodeIdx) && nodeIdx > 0 && !isNaN(laneIdx)) {
+            const laneCoords = lanes.getSource().getFeatures()[laneIdx]?.getGeometry().getCoordinates();
+            if (laneCoords && laneCoords.length > nodeIdx) {
+              const prevPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx - 1]));
+              const currPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx]));
+              $("#node_delta").val(getGeodesicDistance(prevPoint, currPoint).toFixed(2) + " m");
+            }
+          }
+
         }
     });
   });
