@@ -213,32 +213,41 @@ function injectModalHTML() {
 }
 
 /**
- * Injects a "Georeferencing" help tab into the host page's existing Instructions
- * modal (#instructions_modal), if present. Keeping this content in the shared
- * module means both the ISD/MAP and TIM tools document the georeferencer from a
- * single source instead of duplicating markup in each tool's index.html.
+ * Injects a "Georeferencing" help tab into each of the host page's existing
+ * Instructions modals, if present. The ISD/MAP tool exposes two such modals
+ * (#instructions_modal for MAP, #rgainstructions_modal for RGA) and the TIM tool
+ * exposes one (#instructions_modal). Keeping this content in the shared module
+ * means every tool documents the georeferencer from a single source instead of
+ * duplicating markup in each tool's index.html.
  */
 function injectInstructionsTab() {
-    const modal = document.getElementById('instructions_modal');
-    if (!modal) return; // Host has no Instructions modal; nothing to document.
+    // paneId must be unique per modal so multiple modals on the same page don't collide.
+    injectGeorefTab('instructions_modal', 'instructions_tab_georef');
+    injectGeorefTab('rgainstructions_modal', 'rgainstructions_tab_georef');
+}
+
+/** Appends the Georeferencing nav tab + pane to a single Instructions modal. */
+function injectGeorefTab(modalId, paneId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return; // Host doesn't have this modal; nothing to document.
 
     const navTabs = modal.querySelector('.nav-tabs');
     const tabContent = modal.querySelector('.tab-content');
     if (!navTabs || !tabContent) return;
 
     // Guard against double-injection (e.g. duplicate script include).
-    if (document.getElementById('instructions_tab_georef')) return;
+    if (document.getElementById(paneId)) return;
 
     const navItem = document.createElement('li');
     navItem.setAttribute('role', 'presentation');
-    navItem.innerHTML = '<a href="#instructions_tab_georef" aria-controls="georeferencing" ' +
+    navItem.innerHTML = '<a href="#' + paneId + '" aria-controls="georeferencing" ' +
         'role="tab" data-toggle="tab">Georeferencing</a>';
     navTabs.appendChild(navItem);
 
     const pane = document.createElement('div');
     pane.setAttribute('role', 'tabpanel');
     pane.className = 'tab-pane';
-    pane.id = 'instructions_tab_georef';
+    pane.id = paneId;
     pane.innerHTML = `
         <div class="container-fluid">
             <h4>Georeferencing an Image</h4>
