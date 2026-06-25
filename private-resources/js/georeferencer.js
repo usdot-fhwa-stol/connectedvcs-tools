@@ -60,7 +60,7 @@ const DEFAULTS = {
     initPollInterval: 100,
     initMaxAttempts: 150,
     zoomMin: 0.5,
-    zoomMax: 5,
+    zoomMax: 10,
     zoomStep: 0.1,
     coordPrecision: 7,
     xhrTimeout: 30000
