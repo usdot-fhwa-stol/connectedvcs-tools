@@ -1,6 +1,13 @@
 spring:
   application:
     name: fedgov-cv-map-georeferencing
+  servlet:
+    multipart:
+      # Must accommodate the georeference.image.max-size below; otherwise the
+      # servlet rejects the upload during multipart parsing (HTTP 500) before the
+      # app's own size validation runs. Request size adds headroom for the gcps part.
+      max-file-size: 50MB
+      max-request-size: 55MB
 
 server:
   port: 8080
