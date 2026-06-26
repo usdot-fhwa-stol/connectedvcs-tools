@@ -1,4 +1,4 @@
-name: connectedvcs-tools
+name: connectedvcs-tools-test
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -96,8 +96,8 @@ jobs:
             check-latest: true
         -  name: Configure network and set privileges # This action is to set newtork privileges on tomact server
            run: |
-            sed -i '/<\/Engine>/ i \ \ \ \ \  <Host name="connectedvcs-tools" appBase="webapps/connectedvcs-tools" unpackWARs="true" autoDeploy="true">\n      </Host>' tomcat/conf/server.xml
-            echo -e '127.0.0.1\connectedvcs-tools' | sudo tee -a /etc/hosts
+            sed -i '/<\/Engine>/ i \ \ \ \ \  <Host name="connectedvcs-tools-test" appBase="webapps/connectedvcs-tools-test" unpackWARs="true" autoDeploy="true">\n      </Host>' tomcat/conf/server.xml
+            echo -e '127.0.0.1\connectedvcs-tools-test' | sudo tee -a /etc/hosts
             sudo groupadd tomcat
             sudo useradd -g tomcat -m tomcat
             chmod g+r tomcat/conf/*

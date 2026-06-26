@@ -183,13 +183,15 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M9</version>
-				<configuration>
-					<argLine>@{argLine} -Xmx1024m</argLine>
-					<parallel>classes</parallel>
-					<threadCount>4</threadCount>
-					<reuseForks>true</reuseForks>
-					<useSystemClassLoader>true</useSystemClassLoader>
-				</configuration>
+		                <configuration>
+                		<argLine>@{argLine} -Xmx1024m</argLine>
+                		<forkCount>1</forkCount>
+                		<reuseForks>false</reuseForks>
+                		<useSystemClassLoader>true</useSystemClassLoader>
+                		<!-- parallel and threadCount removed: native JNI encoders
+                     		(MAP and TIM asn1c libraries) are not thread-safe.
+                     		forkCount=1 ensures all encoder tests run sequentially -->
+            			</configuration>
 			</plugin>
 		</plugins>
 	</build>
