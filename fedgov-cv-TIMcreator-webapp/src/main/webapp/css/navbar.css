@@ -115,22 +115,3 @@ footer {
 .navbar-form .form-control {
 	height: 33px;
 }
-/* Slim, always-visible tool-hint bar between the map and the bottom toolbar */
-#tool-hint-bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 60px;
-    z-index: 1900;
-    padding: 4px 14px;
-    background: rgba(245, 245, 245, 0.95);
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    color: #555;
-    font-size: 13px;
-    line-height: 18px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    pointer-events: none;
-}
