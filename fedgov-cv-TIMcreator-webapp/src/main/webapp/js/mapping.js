@@ -17,6 +17,7 @@ import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, meas
 import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
+import { setStatusHintForState } from "/private-resources/js/status-bar.js";
 
 import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
 var map;
@@ -1089,6 +1090,7 @@ function toggleControlsOn(state) {
     $("#instructions_modal").modal('show');
   } else {
     $("#instructions_modal").modal('hide');
+    setStatusHintForState(state);
     if (controls) {
       toggleControl(state);
     }

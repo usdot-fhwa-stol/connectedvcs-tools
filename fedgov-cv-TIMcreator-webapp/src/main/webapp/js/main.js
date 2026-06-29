@@ -30,6 +30,7 @@ import {
     toggleControlsOn
 
 } from './mapping.js';
+import { initStatusBar } from "/private-resources/js/status-bar.js";
 
 var hidden_drag, intersection_sidebar, deleteMode, currentControl, $imgs, itisForm, search_latlon;
 
@@ -42,6 +43,9 @@ let dragInteraction = null;  // ← place this near your globals
  */
 
 $(document).ready(function () {
+
+    // Show the initial tool-hint bar message for the TIM tool
+    initStatusBar("tim");
 
     hidden_drag = $('#hidden-drag');
     intersection_sidebar = $('#sidebar');

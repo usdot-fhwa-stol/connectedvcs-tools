@@ -1,5 +1,6 @@
 import { getCookie, unselectFeature } from "./utils.js";
 import { onFeatureAdded } from "./features.js";
+import { setStatusHintForState } from "/private-resources/js/status-bar.js";
 let isLoadMap = false;
 
 /**
@@ -410,9 +411,10 @@ function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoad
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
+		setStatusHintForState(state);
 		if(controls){
 			toggleControl(state, controls);
-		}		
+		}
 		if( state == 'modify' || state == 'del') {
 			laneMarkers.getSource().clear();
 			controls?.del?.getFeatures().clear();

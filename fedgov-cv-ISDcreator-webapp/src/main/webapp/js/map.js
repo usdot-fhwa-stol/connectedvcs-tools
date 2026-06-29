@@ -6,6 +6,7 @@ import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelec
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, createPointFeature, getElevationDelta, getGeodesicDistance, getMaxSquareDistance, getReferencePointFeature, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
+import { initStatusBar } from "/private-resources/js/status-bar.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 const tokenURL = "/msp/security/api/csrf-token/";
@@ -847,6 +848,8 @@ function initSideBar() {
   }
 
   $(document).ready(function() {
+    // Show the initial tool-hint bar message for the MAP/RGA tool
+    initStatusBar('isd');
     // Initialize Right U-Turn as disabled since rgaEnabled starts as false
     let rightUTurnImg = $('#lane_img_12');
     if (rightUTurnImg.length > 0) {
