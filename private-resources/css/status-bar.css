@@ -20,16 +20,16 @@
  */
 #tool-hint-bar {
     position: absolute;
-    left: 0;            /* horizontal position (left offset) */
-    right: 0;           /* stretches full width; set to auto to fit-to-text */
+    left: 60px;            /* horizontal position (left offset) */
+    right: auto;           /* stretches full width; set to auto to fit-to-text */
     bottom: 60px;       /* vertical position (distance above toolbar) */
     z-index: 1900;
     padding: 4px 14px;
-    background: rgba(245, 245, 245, 0.95);  /* background color + transparency (last value = alpha 0–1) */
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    color: #555;        /* font color */
-    font-size: 13px;
+    background: rgba(0, 0, 0, 0.35);  /* background color + transparency (last value = alpha 0–1) */
+    /* border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd; */
+    color: #ffffff;        /* font color */
+    font-size: 16px;
     line-height: 18px;
     white-space: nowrap;
     overflow: hidden;
