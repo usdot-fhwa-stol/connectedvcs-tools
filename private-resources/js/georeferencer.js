@@ -650,6 +650,7 @@ function resetState() {
     document.getElementById('georef-file-input').value = '';
 
     updateButtonStates();
+    updateGcpCount();
     setStatus('Open an image to begin.', 'info');
 }
 
