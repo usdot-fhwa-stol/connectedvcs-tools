@@ -22,6 +22,18 @@ RUN if [ "$USE_SSL" = "true" ]; then \
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
 USER root
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+LABEL org.opencontainers.image.title="connectedvcs-tools"
+LABEL org.opencontainers.image.description="Image for USDOT FHWA ConnectedVCS Tools"
+LABEL org.opencontainers.image.vendor="Leidos"
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.source="https://github.com/usdot-fhwa-stol/connectedvcs-tools"
+LABEL org.opencontainers.image.revision=${VCS_REF}
+LABEL org.opencontainers.image.created=${BUILD_DATE}
+LABEL org.opencontainers.image.base.name="docker.io/library/jetty:9.4.46-jre8-slim"
 
 # Install GDAL for georeferencing service and stol-j2735 runtime dependency
 RUN apt-get update && \
