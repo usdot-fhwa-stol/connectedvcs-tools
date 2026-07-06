@@ -37,6 +37,7 @@ LABEL org.opencontainers.image.base.name="docker.io/library/jetty:9.4.46-jre8-sl
 
 # Install GDAL for georeferencing service and stol-j2735 runtime dependency
 RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends gdal-bin libgdal28 curl ca-certificates gnupg && \
     echo "deb [trusted=yes] https://s3.amazonaws.com/stol-apt-repository develop focal" \
         > /etc/apt/sources.list.d/stol-apt-repository.list && \
