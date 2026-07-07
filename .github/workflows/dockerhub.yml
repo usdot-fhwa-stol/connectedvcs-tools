@@ -6,7 +6,6 @@ on:
       - "develop"
       - "master"
       - "release/*"
-      - "add_docker_scout_check"
     tags:
       - "*"
 
