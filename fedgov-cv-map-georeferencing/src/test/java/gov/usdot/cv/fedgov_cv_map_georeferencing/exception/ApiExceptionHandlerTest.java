@@ -24,12 +24,15 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ApiExceptionHandlerTest {
@@ -47,7 +50,9 @@ class ApiExceptionHandlerTest {
         // Arrange
         MethodParameter methodParameter = mock(MethodParameter.class);
         BindingResult bindingResult = mock(BindingResult.class);
-        MethodArgumentNotValidException methodArgumentNotValidException = 
+        when(bindingResult.getFieldErrors()).thenReturn(
+            Collections.singletonList(new FieldError("gcps", "imageX", "must not be null")));
+        MethodArgumentNotValidException methodArgumentNotValidException =
             new MethodArgumentNotValidException(methodParameter, bindingResult);
 
         // Act
@@ -56,14 +61,15 @@ class ApiExceptionHandlerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        
+
         Object responseBody = response.getBody();
         assertNotNull(responseBody);
         assertTrue(responseBody instanceof Map);
-        
+
         @SuppressWarnings("unchecked")
         Map<String, String> errorMap = (Map<String, String>) responseBody;
         assertEquals("validation_failed", errorMap.get("error"));
+        assertEquals("imageX: must not be null", errorMap.get("message"));
     }
 
     @Test
@@ -71,7 +77,9 @@ class ApiExceptionHandlerTest {
         // Arrange
         MethodParameter methodParameter = mock(MethodParameter.class);
         BindingResult bindingResult = mock(BindingResult.class);
-        MethodArgumentNotValidException methodArgumentNotValidException = 
+        when(bindingResult.getFieldErrors()).thenReturn(
+            Collections.singletonList(new FieldError("gcps", "imageX", "must not be null")));
+        MethodArgumentNotValidException methodArgumentNotValidException =
             new MethodArgumentNotValidException(methodParameter, bindingResult);
 
         // Act
@@ -80,12 +88,13 @@ class ApiExceptionHandlerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, String> responseBody = (Map<String, String>) response.getBody();
         assertNotNull(responseBody);
         assertTrue(responseBody.containsKey("error"));
-        assertEquals(1, responseBody.size());
+        assertTrue(responseBody.containsKey("message"));
+        assertEquals(2, responseBody.size());
     }
 
     @Test
@@ -235,7 +244,9 @@ class ApiExceptionHandlerTest {
         Exception genericException = new Exception("Generic error");
         MethodParameter methodParameter = mock(MethodParameter.class);
         BindingResult bindingResult = mock(BindingResult.class);
-        MethodArgumentNotValidException validationException = 
+        when(bindingResult.getFieldErrors()).thenReturn(
+            Collections.singletonList(new FieldError("gcps", "imageX", "must not be null")));
+        MethodArgumentNotValidException validationException =
             new MethodArgumentNotValidException(methodParameter, bindingResult);
 
         // Act

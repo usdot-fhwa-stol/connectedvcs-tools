@@ -60,7 +60,7 @@ const DEFAULTS = {
     initPollInterval: 100,
     initMaxAttempts: 150,
     zoomMin: 0.5,
-    zoomMax: 5,
+    zoomMax: 10,
     zoomStep: 0.1,
     coordPrecision: 7,
     xhrTimeout: 30000
@@ -90,6 +90,7 @@ export function initGeoreferencer(olMapOrGetter, userOptions) {
         // Host-map artifacts (GCP layer, interactions, overlay panel) are created lazily on
         // first open so users who never use the tool incur no host-map side-effects.
         injectModalHTML();
+        injectInstructionsTab();
         bindEvents();
         fetchBackendConfig();
         return true;
@@ -209,6 +210,84 @@ function injectModalHTML() {
     </div>`;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+/**
+ * Injects a "Georeferencing" help tab into each of the host page's existing
+ * Instructions modals, if present. The ISD/MAP tool exposes two such modals
+ * (#instructions_modal for MAP, #rgainstructions_modal for RGA) and the TIM tool
+ * exposes one (#instructions_modal). Keeping this content in the shared module
+ * means every tool documents the georeferencer from a single source instead of
+ * duplicating markup in each tool's index.html.
+ */
+function injectInstructionsTab() {
+    // paneId must be unique per modal so multiple modals on the same page don't collide.
+    injectGeorefTab('instructions_modal', 'instructions_tab_georef');
+    injectGeorefTab('rgainstructions_modal', 'rgainstructions_tab_georef');
+}
+
+/** Appends the Georeferencing nav tab + pane to a single Instructions modal. */
+function injectGeorefTab(modalId, paneId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return; // Host doesn't have this modal; nothing to document.
+
+    const navTabs = modal.querySelector('.nav-tabs');
+    const tabContent = modal.querySelector('.tab-content');
+    if (!navTabs || !tabContent) return;
+
+    // Guard against double-injection (e.g. duplicate script include).
+    if (document.getElementById(paneId)) return;
+
+    const navItem = document.createElement('li');
+    navItem.setAttribute('role', 'presentation');
+    navItem.innerHTML = '<a href="#' + paneId + '" aria-controls="georeferencing" ' +
+        'role="tab" data-toggle="tab">Georeferencing</a>';
+    navTabs.appendChild(navItem);
+
+    const pane = document.createElement('div');
+    pane.setAttribute('role', 'tabpanel');
+    pane.className = 'tab-pane';
+    pane.id = paneId;
+    pane.innerHTML = `
+        <div class="container-fluid">
+            <h4>Georeferencing an Image</h4>
+            <p class="help-block">Align an aerial or scanned image to the map by
+                matching points, then overlay the warped result on the map.</p>
+            <ol>
+                <li>Open the tool by clicking <strong>Georeferencing</strong> in the
+                    top-right of the navbar to bring up the <strong>Georeferencer</strong> dialog.</li>
+                <li>Click <strong>Open Image</strong> (<i class="fa fa-folder-open"></i>)
+                    and select a PNG or JPEG image from your local machine.</li>
+                <li>Adding Ground Control Points (GCPs)</li>
+                <ol type="a">
+                    <li>Click <strong>Add/Edit GCP</strong> (<i class="fa fa-plus-circle"></i>) to begin picking points.</li>
+                    <li>For each control point, click the location on the <strong>map</strong> first,
+                        then click the matching point on the <strong>image</strong>.</li>
+                    <li>A minimum of <strong>4</strong> and a maximum of <strong>10</strong> GCPs are required.</li>
+                </ol>
+                <li>Adjusting Points</li>
+                <ol type="a">
+                    <li>Drag a marker on the map to reposition it; its longitude and latitude update automatically.</li>
+                    <li>Edit the <strong>Longitude</strong>, <strong>Latitude</strong>,
+                        <strong>Image X (px)</strong>, or <strong>Image Y (px)</strong> values directly in the GCP table.</li>
+                    <li>Use the mouse wheel to zoom and middle-click drag to pan in both the map and image views.</li>
+                </ol>
+                <li>Deleting Points</li>
+                <ol type="a">
+                    <li>Click <strong>Delete GCP</strong> (<i class="fa fa-minus-circle"></i>) then click a marker, or</li>
+                    <li>Click the <strong>&times;</strong> button in the point's row in the GCP table.</li>
+                </ol>
+                <li>Click <strong>Start Georeferencing</strong> (<i class="fa fa-play"></i>)
+                    to warp the image and overlay it on the map.</li>
+                <li>Managing Overlays</li>
+                <ol type="a">
+                    <li>Use the <strong>Georeferenced Overlays</strong> panel to adjust an overlay's <strong>opacity</strong>.</li>
+                    <li>Click <strong>Edit</strong> to reopen the dialog and modify its control points.</li>
+                    <li>Click <strong>Delete</strong> to remove the overlay from the map.</li>
+                </ol>
+            </ol>
+        </div>`;
+    tabContent.appendChild(pane);
 }
 
 // GCP Helpers
@@ -571,6 +650,7 @@ function resetState() {
     document.getElementById('georef-file-input').value = '';
 
     updateButtonStates();
+    updateGcpCount();
     setStatus('Open an image to begin.', 'info');
 }
 

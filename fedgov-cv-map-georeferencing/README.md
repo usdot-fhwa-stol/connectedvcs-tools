@@ -28,11 +28,11 @@ A high-precision georeferencing REST API service built with Spring Boot 2.7.18 t
 
 ## Overview
 
-The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing images with high precision using a minimum of 6 Ground Control Points (GCPs). The service leverages GDAL's powerful geospatial capabilities through a modern Spring Boot interface, supporting various coordinate systems and providing Web Mercator projection for web mapping applications.
+The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing images with high precision using a minimum of 4 Ground Control Points (GCPs). The service leverages GDAL's powerful geospatial capabilities through a modern Spring Boot interface, supporting various coordinate systems and providing Web Mercator projection for web mapping applications.
 
 ## Features
 
-- **High-Precision Georeferencing**: Minimum 6 GCPs for enhanced accuracy
+- **High-Precision Georeferencing**: Minimum 4 GCPs for enhanced accuracy
 - **GDAL Integration**: Utilizes GDAL command-line utilities for robust geospatial processing
 - **Coordinate System Support**: 
   - Input: WGS84 (EPSG:4326)
@@ -128,7 +128,7 @@ Georeference an image using Ground Control Points.
 - **Content-Type**: `multipart/form-data`
 - **Parameters**:
   - `image` (file): Image file (PNG, JPEG, TIFF)
-  - `gcps` (JSON string): Array of at least 6 Ground Control Points
+  - `gcps` (JSON string): Array of at least 4 Ground Control Points
 
 **GCP Format:**
 ```json
@@ -147,7 +147,7 @@ Georeference an image using Ground Control Points.
     "longitude": -77.120000,
     "latitude": 38.654321
   }
-  // ... minimum 6 GCPs total
+  // ... minimum 4 GCPs total
 ]
 ```
 
@@ -182,7 +182,7 @@ Georeference an image using Ground Control Points.
 ```json
 {
   "success": false,
-  "message": "At least 6 Ground Control Points are required for high precision georeferencing, but received 4",
+  "message": "At least 4 ground control points are required for high precision georeferencing. Provided: 2",
   "error": "INVALID_GCP_COUNT"
 }
 ```
@@ -242,7 +242,7 @@ georeference:
       - image/jpg
     max-size: 50MB
   gcp:
-    min-count: 6
+    min-count: 4
     max-count: 10
   gdal:
     timeout-seconds: 120
