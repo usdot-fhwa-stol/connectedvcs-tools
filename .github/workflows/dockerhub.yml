@@ -6,6 +6,7 @@ on:
       - "develop"
       - "master"
       - "release/*"
+      - "add_docker_scout_check"
     tags:
       - "*"
 
@@ -63,7 +64,6 @@ jobs:
             BUILD_DATE=${{ needs.determine_docker_image_metadata.outputs.build_date }}
             VCS_REF=${{ needs.determine_docker_image_metadata.outputs.vcs_ref }}
             VERSION=${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}
-            TOKEN=${{ secrets.GH_PAT }}
       - name: Docker Scout Record
         if: ${{ github.ref_type == 'branch' }}
         uses: docker/scout-action@v1

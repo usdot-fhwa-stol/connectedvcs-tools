@@ -46,7 +46,6 @@ jobs:
           file: ./Dockerfile
           load: true
           build-args: |
-            TOKEN=${{ secrets.GH_PAT }}
           tags: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:pr-${{ github.event.pull_request.number }}
       
       # Compare PR image against the base branch env on Docker Scout and post results to the PR
