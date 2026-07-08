@@ -94,7 +94,7 @@
 					<artifactId>maven-enforcer-plugin</artifactId>
 					<version>3.4.1</version>
 					<executions>
-						<!-- Banded dependencies due to security vulnerabilities -->
+						<!-- Banned dependencies due to security vulnerabilities -->
 						<execution>
 							<id>enforce-banned-dependencies-due-to-security-vulnerabilities</id>
 							<goals>
