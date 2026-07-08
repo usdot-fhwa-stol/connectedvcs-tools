@@ -89,7 +89,7 @@ jobs:
             cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/isd.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
             cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/validator.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
             cp /__w/connectedvcs-tools/connectedvcs-tools/root.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
-        - uses: actions/setup-java@v4 # This action is to setup Java
+        - uses: actions/setup-java@v5 # This action is to setup Java
           with:
             distribution: 'temurin'
             java-version: '17'
