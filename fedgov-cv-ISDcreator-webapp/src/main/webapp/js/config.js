@@ -253,6 +253,14 @@ var help_notes = [
     	description: "Straight-line distance in meters from the previous node to this node."
     },
     {
+    	value: "elev_delta",
+    	title: "Elevation Delta",
+    	max: "N/A",
+    	min: "N/A",
+    	units: "Meters",
+    	description: "Change in elevation in meters from the previous node to this node."
+    },
+    {
     	value: "master_lane_width",
     	title: "Master Lane Width",
     	max: "32767",

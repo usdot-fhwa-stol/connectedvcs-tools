@@ -743,6 +743,35 @@ function getGeodesicDistance(fromPointFeature, toPointFeature) {
     return ol.sphere.getDistance(coord1, coord2);
 }
 
+/**
+ * Function to calculate the elevation delta in meters between a node and the previous node in the same lane
+ * @param {*} laneFeat Lane feature containing the parallel elevation array
+ * @param {*} nodeIndex Index of the node within the lane
+ * @param {*} refPointElev Elevation in meters of the reference point marker, used only when nodeIndex is 0
+ * @returns Elevation delta in meters, or 0 if the comparison elevation is unset
+ */
+function getElevationDelta(laneFeat, nodeIndex, refPointElev) {
+	if (!laneFeat || nodeIndex < 0) return 0;
+	const elevation = laneFeat.get("elevation");
+	const currElev = Number(elevation?.[nodeIndex]?.value);
+	const prevElev = nodeIndex === 0 ? Number(refPointElev) : Number(elevation?.[nodeIndex - 1]?.value);
+	if (Number.isNaN(currElev) || Number.isNaN(prevElev)) return 0;
+	return currElev - prevElev;
+}
+
+/**
+ * Function to find the Reference Point Marker feature among the overlay layers
+ * @param {*} overlayLayersGroup Layer group containing all map overlay layers
+ * @returns The Reference Point Marker feature, or undefined if none is found
+ */
+function getReferencePointFeature(overlayLayersGroup) {
+	for (const layer of overlayLayersGroup.getLayers().getArray()) {
+		if (!(layer instanceof ol.layer.Vector)) continue;
+		const match = layer.getSource().getFeatures().find(f => f.get("marker")?.name === "Reference Point Marker");
+		if (match) return match;
+	}
+}
+
 function selectComputedFeature(laneNum, laneMarkers) {
 	const features = laneMarkers.getSource().getFeatures();
 	for (let i = 0; i < features.length; i++) {
@@ -838,6 +867,8 @@ export {
 	selectComputedFeature,
 	movePolygon,
 	getGeodesicDistance,
+	getElevationDelta,
+	getReferencePointFeature,
 	getMaxSquareDistance,
 	calculateAngle,
 	createPointFeature,
