@@ -40,6 +40,17 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<!-- Bundles the single asn1c_jni.so (built by build_jni.sh into lib/)
+		     as a classpath resource, so NativeLoadLibrary can extract and
+		     load it without relying on java.library.path. -->
+		<resources>
+			<resource>
+				<directory>${project.basedir}/lib</directory>
+				<includes>
+					<include>libasn1c_jni.so</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

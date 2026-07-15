@@ -32,16 +32,18 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.usdot.cv.libasn1c.NativeLoadLibrary;
+
 public class Decoder {
 	private static final Logger logger = LogManager.getLogger(Decoder.class);
 
 	public Decoder() {
 	}
 
-	// Load libasn1c_decoder.so external C library
+	// Load the consolidated asn1c JNI library through the shared, guarded loader
 	static {
 		try {
-			System.loadLibrary("asn1c_decoder");
+			NativeLoadLibrary.load();
 		} catch (Exception e) {
 			logger.error("Exception trapped while trying to load the asn1c library" + e.toString());
 			e.printStackTrace();

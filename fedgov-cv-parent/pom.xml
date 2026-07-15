@@ -83,8 +83,9 @@
 				<version>3.0.0-M9</version>
 				<configuration>
 					<!-- @{argLine} preserves the JaCoCo agent arg set by prepare-agent.
-					     -Djava.library.path points to the native asn1c lib built by fedgov-cv-lib-asn1c. -->
-					<argLine>@{argLine} -Djava.library.path=${project.basedir}/../fedgov-cv-lib-asn1c/lib</argLine>
+					     The native asn1c JNI library is loaded via NativeLoadLibrary from
+					     the classpath, so java.library.path is no longer needed here. -->
+					<argLine>@{argLine}</argLine>
 				</configuration>
 			</plugin>
 		</plugins>

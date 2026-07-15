@@ -61,13 +61,11 @@ COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/root.war /var/lib/jet
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
-# Copy shared libraries with chown to jetty user
+# Copy the consolidated asn1c JNI library with chown to jetty user.
+# NativeLoadLibrary now loads this from the classpath (bundled inside each
+# WAR's WEB-INF/lib), so this copy is not required for encoding/decoding to
+# work, but is kept as a reference/fallback artifact on disk.
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/
-COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c.so /var/lib/jetty/webapps/lib/
-COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_decoder.so /var/lib/jetty/webapps/lib/
-COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/lib/
-COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_timencoder.so /var/lib/jetty/webapps/lib/
-COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_rga.so /var/lib/jetty/webapps/lib/
 
 ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/lib:/opt/carma/lib
 RUN ldconfig
