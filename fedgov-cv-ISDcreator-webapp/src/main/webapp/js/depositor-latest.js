@@ -5,6 +5,7 @@
 
 import { errorMarkerStyle } from "./style.js";
 import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
+import { getElevationDelta } from "./features.js";
 
 /**
  * DEFINE GLOBAL VARIABLES
@@ -330,6 +331,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -339,6 +341,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -616,6 +619,7 @@ function createMessageJSON()
                         "nodeLat": lonlat[1],
                         "nodeLong": lonlat[0],
                         "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                        "nodeElevDelta": getElevationDelta(laneFeat[j], m),
                         "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
                     }
                 }

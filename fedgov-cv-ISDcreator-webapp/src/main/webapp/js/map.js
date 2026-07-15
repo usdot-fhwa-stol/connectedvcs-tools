@@ -4,7 +4,7 @@ import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} fro
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
 import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
+import {buildComputedFeature, createPointFeature, getElevationDelta, getGeodesicDistance, getMaxSquareDistance, getReferencePointFeature, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
@@ -652,6 +652,14 @@ function registerDrawInteractions(){
             }
           }
 
+          // Recalculate elev_delta while editing a lane.
+          const elevNodeIdx = Number.parseInt($("#elev_delta").data("node-index"));
+          const elevLaneIdx = Number.parseInt($("#elev_delta").data("lane-index"));
+          if (!Number.isNaN(elevNodeIdx) && elevNodeIdx > 0 && !Number.isNaN(elevLaneIdx)) {
+            const laneFeat = lanes.getSource().getFeatures()[elevLaneIdx];
+            $("#elev_delta").val(getElevationDelta(laneFeat, elevNodeIdx).toFixed(2) + " m");
+          }
+
         }
     });
   });
@@ -1160,6 +1168,23 @@ function initMISC() {
     onRoadAuthorityIdChangeCallback();
   });
 
+  // Live-update the Elevation Delta field as the user edits the node's elevation.
+  $("#elev").on("input", () => {
+    const nodeIndex = Number.parseInt($("#elev_delta").data("node-index"));
+    const laneIndex = Number.parseInt($("#elev_delta").data("lane-index"));
+    if (!Number.isNaN(nodeIndex) && nodeIndex >= 0 && !Number.isNaN(laneIndex)) {
+      const laneFeat = lanes.getSource().getFeatures()[laneIndex];
+      const elevation = laneFeat?.get("elevation");
+      const prevElev = nodeIndex === 0
+        ? Number(getReferencePointFeature(overlayLayersGroup)?.get("elevation"))
+        : Number(elevation?.[nodeIndex - 1]?.value);
+      const currElev = Number($("#elev").val());
+      if (!Number.isNaN(prevElev) && !Number.isNaN(currElev)) {
+        $("#elev_delta").val((currElev - prevElev).toFixed(2) + " m");
+      }
+    }
+  });
+
   $('#revision_num').on('keyup', () => {
     revisionNumChangeCallback();
   })
@@ -1462,6 +1487,13 @@ function registerModalButtonEvents() {
         selectedMarker.set("elevation", $("#elev").val());
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].edited = true;
+
+        // Refresh elevation deltas for the whole lane so the saved map JSON stays consistent.
+        const editedLaneFeat = lanes.getSource().getFeatures()[selectedMarker.get("lane")];
+        const editedElevation = editedLaneFeat.get("elevation");
+        for (let n = 0; n < editedElevation.length; n++) {
+          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n);
+        }
 
         if (selectedMarker.get("computed")) {
           selectedMarker.set("offsetX", $("#offset-X").val());
