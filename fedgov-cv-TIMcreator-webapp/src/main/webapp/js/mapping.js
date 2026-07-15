@@ -1307,6 +1307,7 @@ function onFeatureAdded() {
       const isLegacyRoundedElevation =
           hasElevation &&
           Number.isInteger(Number(elevation[j].value));
+      buildPolyDots(i, j, dot, latlon);
       if (!elevation[j]?.edited || !found || isLegacyRoundedElevation) {
         getElevation(dot, latlon, i, j, function (elev, i, j, latlon, dot) {
           const elevationObj = {
@@ -1316,8 +1317,6 @@ function onFeatureAdded() {
           };
       
           polygons.getSource().getFeatures()[i].get('elevation')[j] = elevationObj;
-      
-          buildPolyDots(i, j, dot, latlon);
         });
       }
     }
