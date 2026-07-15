@@ -1628,6 +1628,9 @@ async function populateRefWindow(feature, lat, lon) {
     elev = await getElev(lat, lon);
     if (!feature.get("elevation")?.value) {
       $('#elev').val(elev);
+
+      // Store map elevation in feature properties
+      feature.set("elevation", elev);
     }
   }
 
