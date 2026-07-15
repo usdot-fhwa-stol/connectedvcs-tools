@@ -756,7 +756,7 @@ function getElevationDelta(laneFeat, nodeIndex, refPointElev) {
 	const currElev = Number(elevation?.[nodeIndex]?.value);
 	const prevElev = nodeIndex === 0 ? Number(refPointElev) : Number(elevation?.[nodeIndex - 1]?.value);
 	if (Number.isNaN(currElev) || Number.isNaN(prevElev)) return 0;
-	return currElev - prevElev;
+	return Math.round((currElev - prevElev) * 100) / 100;
 }
 
 /**
