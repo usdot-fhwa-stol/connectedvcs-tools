@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,16 +75,21 @@ public final class NativeLoadLibrary {
                 throw new IllegalStateException(
                         "Unable to locate " + LIBRARY_RESOURCE_NAME + " on the classpath");
             }
-            File tempLib = File.createTempFile("libasn1c_jni", ".so");
-            tempLib.deleteOnExit();
-            try (OutputStream out = Files.newOutputStream(tempLib.toPath())) {
+            // java.io.tmpdir is a shared, publicly writable directory (e.g. /tmp), so the
+            // file is created atomically with owner-only permissions -- there is no window
+            // where another local user could read or tamper with it before it's loaded.
+            FileAttribute<?> ownerOnly =
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
+            Path tempLib = Files.createTempFile("libasn1c_jni", ".so", ownerOnly);
+            tempLib.toFile().deleteOnExit();
+            try (OutputStream out = Files.newOutputStream(tempLib)) {
                 byte[] buffer = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
                 }
             }
-            return tempLib;
+            return tempLib.toFile();
         } catch (IOException e) {
             throw new UnsatisfiedLinkError(
                     "Failed to extract " + LIBRARY_RESOURCE_NAME + " to a temp file: " + e.getMessage());
