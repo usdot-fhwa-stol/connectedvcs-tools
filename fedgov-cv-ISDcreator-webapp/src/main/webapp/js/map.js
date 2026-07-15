@@ -653,9 +653,9 @@ function registerDrawInteractions(){
           }
 
           // Recalculate elev_delta while editing a lane.
-          const elevNodeIdx = parseInt($("#elev_delta").data("node-index"));
-          const elevLaneIdx = parseInt($("#elev_delta").data("lane-index"));
-          if (!isNaN(elevNodeIdx) && elevNodeIdx > 0 && !isNaN(elevLaneIdx)) {
+          const elevNodeIdx = Number.parseInt($("#elev_delta").data("node-index"));
+          const elevLaneIdx = Number.parseInt($("#elev_delta").data("lane-index"));
+          if (!Number.isNaN(elevNodeIdx) && elevNodeIdx > 0 && !Number.isNaN(elevLaneIdx)) {
             const laneFeat = lanes.getSource().getFeatures()[elevLaneIdx];
             $("#elev_delta").val(getElevationDelta(laneFeat, elevNodeIdx).toFixed(2) + " m");
           }
@@ -1170,9 +1170,9 @@ function initMISC() {
 
   // Live-update the Elevation Delta field as the user edits the node's elevation.
   $("#elev").on("input", () => {
-    const nodeIndex = parseInt($("#elev_delta").data("node-index"));
-    const laneIndex = parseInt($("#elev_delta").data("lane-index"));
-    if (!isNaN(nodeIndex) && nodeIndex >= 0 && !isNaN(laneIndex)) {
+    const nodeIndex = Number.parseInt($("#elev_delta").data("node-index"));
+    const laneIndex = Number.parseInt($("#elev_delta").data("lane-index"));
+    if (!Number.isNaN(nodeIndex) && nodeIndex >= 0 && !Number.isNaN(laneIndex)) {
       const laneFeat = lanes.getSource().getFeatures()[laneIndex];
       const elevation = laneFeat?.get("elevation");
       const prevElev = nodeIndex === 0
