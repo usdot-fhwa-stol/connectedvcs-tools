@@ -13,7 +13,7 @@ async function getElevation(dot, latlon, i, j, callback){
       if (elev == null || elev == undefined) {
         elev = -9999; // any sea value is set to -9999 by default. This brings it back to sea level as we know it
       } else {
-        elev = Math.round(elev);
+        elev = Math.round(elev * 100) / 100;
       }
       callback(elev, i, j, latlon, dot);
     } catch (error) {
@@ -30,7 +30,7 @@ async function getComputedElevation(latlon) {
         if (elev == null || elev === undefined) {
           elev = -9999;
         } else {
-          elev = Math.round(elev);
+          elev = Math.round(elev * 100) / 100;
         }
         resolve(elev);
       },
@@ -53,7 +53,7 @@ async function getElev(lat, lon) {
     if (elev == null || elev == undefined) {
       elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
     } else {
-      elev = Math.round(elev);
+      elev = Math.round(elev * 100) / 100;
     }
     return elev;
   } catch (error) {
