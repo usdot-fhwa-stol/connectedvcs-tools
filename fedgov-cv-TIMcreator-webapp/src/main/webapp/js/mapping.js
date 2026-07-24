@@ -1118,7 +1118,8 @@ function onFeatureAdded() {
 
     var added = (typeof laneWidth[coords.length - 1] === 'undefined');
 
-    coords.forEach(function (coord, j) {
+    for (let j = 0; j < coords.length; j++) {
+      const coord = coords[j];
       var dot = new ol.Feature(new ol.geom.Point(coord));
       var latlon = ol.proj.transform(coord, toProjection, fromProjection);
 
@@ -1148,7 +1149,16 @@ function onFeatureAdded() {
         }
       }
 
-      if (!elevation[j].edited || !found) {
+      const hasElevation =
+      elevation[j]?.value !== undefined &&
+      elevation[j]?.value !== null &&
+      elevation[j]?.value !== -9999;
+  
+      const isLegacyRoundedElevation =
+          hasElevation &&
+          Number.isInteger(Number(elevation[j].value));
+      
+      if (!elevation[j]?.edited || !found || isLegacyRoundedElevation) {
         getElevation(dot, latlon, i, j, function (elev, i, j, latlon, dot) {
           lanes.getSource().getFeatures()[i].get('elevation')[j] = {
             value: elev,
@@ -1158,7 +1168,7 @@ function onFeatureAdded() {
           buildLaneDots(i, j, dot, latlon);
         });
       }
-    });
+    }
   });
 
   if (laneWidths.getSource().getFeatures().length !== 0) {
@@ -1169,7 +1179,9 @@ function onFeatureAdded() {
   polyMarkers.getSource().clear();
   radiuslayer.getSource().clear();
 
-  polygons.getSource().getFeatures().forEach(function (polyFeature, i) {
+  const polyFeatures = polygons.getSource().getFeatures();
+  for (let i = 0; i < polyFeatures.length; i++) {
+    const polyFeature = polyFeatures[i];
     var geom = polyFeature.getGeometry();
     var coords = geom.getCoordinates()[0]; // exterior ring
 
@@ -1222,41 +1234,55 @@ function onFeatureAdded() {
 
     $('#editPoly').prop('disabled', polyFeature.get('title') === 'circle');
 
-    coords.forEach(function (coord, j) {
-      var dot = new ol.Feature(new ol.geom.Point(coord));
-      var latlon = ol.proj.transform(coord, toProjection, fromProjection);
-
+    for (let j = 0; j < coords.length; j++) {
+      const coord = coords[j];
+      const dot = new ol.Feature(new ol.geom.Point(coord));
+      const latlon = ol.proj.transform(coord, toProjection, fromProjection);
+    
       if (typeof elevation[j] === 'undefined') {
         elevation[j] = { value: -9999, edited: false, latlon: { lat: latlon[1], lon: latlon[0] } };
       }
-
+    
       var found = false;
+    
       for (var k = 0; k < nodeElevations.length; k++) {
         var el = nodeElevations[k];
+    
         if (!el || !el.latlon) continue;
-
+    
         var latMatch = el.latlon.lat.toFixed(8) === latlon[1].toFixed(8);
         var lonMatch = el.latlon.lon.toFixed(8) === latlon[0].toFixed(8);
+    
         if (latMatch && lonMatch && el.edited) {
           elevation[j] = el;
-          buildPolyDots(i, j, dot, latlon);
           found = true;
           break;
         }
       }
+    
+      const hasElevation =
+      elevation[j]?.value !== undefined &&
+      elevation[j]?.value !== null &&
+      elevation[j]?.value !== -9999;
 
-      if (!elevation[j].edited || !found) {
+      const isLegacyRoundedElevation =
+          hasElevation &&
+          Number.isInteger(Number(elevation[j].value));
+      buildPolyDots(i, j, dot, latlon);
+      if (!elevation[j]?.edited || !found || isLegacyRoundedElevation) {
         getElevation(dot, latlon, i, j, function (elev, i, j, latlon, dot) {
-          polygons.getSource().getFeatures()[i].get('elevation')[j] = {
+          const elevationObj = {
             value: elev,
             edited: true,
             latlon: { lat: latlon[1], lon: latlon[0] }
           };
-          buildPolyDots(i, j, dot, latlon);
+      
+          polygons.getSource().getFeatures()[i].get('elevation')[j] = elevationObj;
+          dot.set('elevation', elevationObj);
         });
       }
-    });
-  });
+    }
+  }
 }
 
 
@@ -1558,10 +1584,15 @@ function populateAttributeWindow(temp_lat, temp_lon) {
 async function populateRefWindow(feature, lat, lon) {
   // getNearestIntersectionJSON(feature, lat, lon);
   let elev = -9999;
-  if (!feature.get("elevation")) {
+  const elevObj = feature.get("elevation");
+  
+  if (!elevObj || elevObj.value === undefined || elevObj.value === -9999) {
     elev = await getElev(lat, lon);
     if (!feature.get("elevation")?.value) {
       $('#elev').val(elev);
+
+      // Store map elevation in feature properties
+      feature.set("elevation", elev);
     }
   }
 

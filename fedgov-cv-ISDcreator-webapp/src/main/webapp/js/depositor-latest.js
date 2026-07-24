@@ -205,9 +205,22 @@ function createMessageJSON()
         laneFeat[b].set('inBox', false);
     }
 
+    const sidewalkInApproach = new Set();
+    for(let i=0; i< stopFeat.length; i++){
+        for(let j=0; j< laneFeat.length; j++){
+            if(laneFeat[j].get('laneType') === "Sidewalk"){
+                let inside = stopFeat[i].getGeometry().intersectsCoordinate(
+                    lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate()
+                );
+                if(inside){
+                    sidewalkInApproach.add(j);
+                }
+            }
+        }
+    }
+
     for(let i=0; i< stopFeat.length; i++){
         let tempJ = 0;
-        let tempJC = 0;
         for(let j=0; j< laneFeat.length; j++){
 
             let inside = stopFeat[i].getGeometry().intersectsCoordinate(lanes.getSource().getFeatures()[j].getGeometry().getFirstCoordinate());
@@ -444,73 +457,6 @@ function createMessageJSON()
 
                 //since some lanes are not in the driving lane
                 tempJ++;
-            } else if(laneFeat[j].get('laneType') == "Crosswalk" || laneFeat[j].get('laneType') == "Sidewalk"){
-                //even though not in a "box" it's still allowed to be outside as a crosswalk or sidewalk - still want to be able to catch vehicle lanes outside
-                laneFeat[j].set('inBox', true);
-
-                if(!laneFeat[j].get('computed')) {
-                    for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
-                        let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                        let lonlat = ol.proj.toLonLat(coord);
-                        nodeArray[m] = {
-                            "nodeNumber": m,
-                            "nodeLat": lonlat[1],
-                            "nodeLong": lonlat[0],
-                            "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                            "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
-                        }
-                    }
-                } else {
-                    let dfRGAOffsetZ = {}
-                    if (messageType === "Frame+RGA" || messageType === "RGA"){
-                        dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
-                    }
-                    computedLane = {
-                        "referenceLaneID": laneFeat[j].get('referenceLaneID'),
-                        "offsetX": laneFeat[j].get('offsetX'),
-                        "offsetY": laneFeat[j].get('offsetY'),
-                        ...dfRGAOffsetZ,
-                        "rotation": laneFeat[j].get('rotation'),
-                        "scaleX": laneFeat[j].get('scaleX'),
-                        "scaleY": laneFeat[j].get('scaleY')
-                    }
-                }
-
-                attributeArray = [];
-                for(let k in laneFeat[j].get('lane_attributes')) {
-                    let attributeId = laneFeat[j].get('lane_attributes')[k].id;
-                    if (!(attributeId === 12 && (!(messageType === "Frame+RGA" || messageType === "RGA")))) {
-                        attributeArray.push(attributeId);
-                    }
-                }
-
-                let connectionsArray = laneFeat[j].get('connections');
-                if (!(messageType === "Frame+RGA" || messageType === "RGA") && connectionsArray?.length) {
-                    connectionsArray = connectionsArray.map(connection => ({
-                        ...connection,
-                        maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
-                    }));
-                }
-                crosswalkLaneArray[tempJC] = {
-                    "laneID": laneFeat[j].get('laneNumber'),
-                    "descriptiveName": laneFeat[j].get('descriptiveName'),
-                    "laneType": laneFeat[j].get('laneType'),
-                    "typeAttributes": laneFeat[j].get('typeAttribute'),
-                    "sharedWith": laneFeat[j].get('sharedWith'),
-                    "connections": connectionsArray,
-                    "laneManeuvers": attributeArray,
-                    "isComputed": laneFeat[j].get('computed'),
-                    ...dfRGALaneTimeRestrictions
-                };
-                if(!laneFeat[j].get('computed')) {
-                    crosswalkLaneArray[tempJC].laneNodes = nodeArray;
-                } else {
-                    crosswalkLaneArray[tempJC].computedLane = computedLane;
-                }
-
-                //since some lanes are not in the driving lane
-                tempJC++;
-
             }
             nodeArray = [];
             computedLane = "";
@@ -640,6 +586,89 @@ function createMessageJSON()
         }
 
         drivingLaneArray = [];
+    }
+
+    for(let j=0; j< laneFeat.length; j++){
+        if(laneFeat[j].get('laneType') == "Crosswalk" ||
+           (laneFeat[j].get('laneType') == "Sidewalk" && !sidewalkInApproach.has(j))){
+
+            laneFeat[j].set('inBox', true);
+
+            let dfRGALaneTimeRestrictions = {}
+            if (messageType === "Frame+RGA" || messageType === "RGA") {
+                dfRGALaneTimeRestrictions["timeRestrictions"] = {
+                    "daysOfTheWeek": laneFeat[j].get('laneInfoDaySelection'),
+                    "timePeriodType": laneFeat[j].get('laneInfoTimePeriodType'),
+                    "timePeriodValue": laneFeat[j].get('laneInfoTimePeriodValue'),
+                    "timePeriodRange": laneFeat[j].get('laneInfoTimePeriodRange')
+                };
+            }
+
+            let cwNodeArray = [];
+            let cwComputedLane = "";
+
+            if(!laneFeat[j].get('computed')) {
+                for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
+                    let coord = laneFeat[j].getGeometry().getCoordinates()[m];
+                    let lonlat = ol.proj.toLonLat(coord);
+                    cwNodeArray[m] = {
+                        "nodeNumber": m,
+                        "nodeLat": lonlat[1],
+                        "nodeLong": lonlat[0],
+                        "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                        "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
+                    }
+                }
+            } else {
+                let dfRGAOffsetZ = {}
+                if (messageType === "Frame+RGA" || messageType === "RGA"){
+                    dfRGAOffsetZ["offsetZ"] = lanes.getSource().getFeatures()[j].get('offsetZ');
+                }
+                cwComputedLane = {
+                    "referenceLaneID": laneFeat[j].get('referenceLaneID'),
+                    "offsetX": laneFeat[j].get('offsetX'),
+                    "offsetY": laneFeat[j].get('offsetY'),
+                    ...dfRGAOffsetZ,
+                    "rotation": laneFeat[j].get('rotation'),
+                    "scaleX": laneFeat[j].get('scaleX'),
+                    "scaleY": laneFeat[j].get('scaleY')
+                }
+            }
+
+            let cwAttributeArray = [];
+            for(let k in laneFeat[j].get('lane_attributes')) {
+                let attributeId = laneFeat[j].get('lane_attributes')[k].id;
+                if (!(attributeId === 12 && (!(messageType === "Frame+RGA" || messageType === "RGA")))) {
+                    cwAttributeArray.push(attributeId);
+                }
+            }
+
+            let cwConnectionsArray = laneFeat[j].get('connections');
+            if (!(messageType === "Frame+RGA" || messageType === "RGA") && cwConnectionsArray?.length) {
+                cwConnectionsArray = cwConnectionsArray.map(connection => ({
+                    ...connection,
+                    maneuvers: connection.maneuvers?.filter(maneuver => maneuver !== "12") || connection.maneuvers
+                }));
+            }
+
+            let cwLane = {
+                "laneID": laneFeat[j].get('laneNumber'),
+                "descriptiveName": laneFeat[j].get('descriptiveName'),
+                "laneType": laneFeat[j].get('laneType'),
+                "typeAttributes": laneFeat[j].get('typeAttribute'),
+                "sharedWith": laneFeat[j].get('sharedWith'),
+                "connections": cwConnectionsArray,
+                "laneManeuvers": cwAttributeArray,
+                "isComputed": laneFeat[j].get('computed'),
+                ...dfRGALaneTimeRestrictions
+            };
+            if(!laneFeat[j].get('computed')) {
+                cwLane.laneNodes = cwNodeArray;
+            } else {
+                cwLane.computedLane = cwComputedLane;
+            }
+            crosswalkLaneArray.push(cwLane);
+        }
     }
 
     approachArray[stopFeat.length] = {

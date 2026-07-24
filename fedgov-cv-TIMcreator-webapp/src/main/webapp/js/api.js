@@ -16,19 +16,28 @@
 const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
+
+function normalizeElevation(elev) {
+  if (elev == null || elev === undefined) return -9999;
+  return Math.round(elev * 100) / 100;
+}
+
+async function fetchElevation(lat, lon) {
+  const response = await fetch(`${esri_elevation_url}/${lat}/${lon}`, {
+    mode: 'cors'
+  });
+
+  if (!response.ok) {
+    throw new Error('Server response was not ok');
+  }
+
+  const result = await response.json();
+  return normalizeElevation(result?.z);
+}
+
 async function getElevation(dot, latlon, i, j, callback){
     try {
-      const response = await fetch(esri_elevation_url + "/" + latlon[1] + '/' + latlon[0]);
-      if (!response.ok) {
-        throw new Error('Server response was not ok');
-      }
-      const result = await response.json();
-      let elev = result?.z;
-      if (elev == null || elev == undefined) {
-        elev = -9999; // any sea value is set to -9999 by default. This brings it back to sea level as we know it
-      } else {
-        elev = Math.round(elev);
-      }
+      const elev = await fetchElevation(latlon[1], latlon[0]);
       callback(elev, i, j, latlon, dot);
     } catch (error) {
       callback(-9999, i, j, latlon, dot);
@@ -41,12 +50,7 @@ async function getComputedElevation(latlon) {
       url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
       success: function (result) {
         let elev = result?.z;
-        if (elev == null || elev === undefined) {
-          elev = -9999;
-        } else {
-          elev = Math.round(elev);
-        }
-        resolve(elev);
+        resolve(normalizeElevation(elev));
       },
       error: function (error) {
         console.log("ERROR GETTING ELEVATION: " + error);
@@ -58,18 +62,7 @@ async function getComputedElevation(latlon) {
 
 async function getElev(lat, lon) {
   try {
-    const response = await fetch(esri_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
-    if (!response.ok) {
-      throw new Error('Server response was not ok');
-    }
-    const result = await response.json();
-    let elev = result?.z;
-    if (elev == null || elev == undefined) {
-      elev = -9999; //any sea value is set to -9999 by default. This brings it back to sea level as we know it
-    } else {
-      elev = Math.round(elev);
-    }
-    return elev;
+    return await fetchElevation(lat, lon);
   } catch (error) {
     console.error(error);
     return -9999;

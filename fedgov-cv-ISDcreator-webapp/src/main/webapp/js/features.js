@@ -93,11 +93,17 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 					// Compare the latitude and longitude from the existing lane values to see if the node moved
 					let latMatch = ((laneFeat.get("elevation")[j]?.latlon?.lat)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lat).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
 					let lonMatch = ((laneFeat.get("elevation")[j]?.latlon?.lon)?.toString()?.match(/^-?\d+(?:\.\d{0,11})?/)[0] == (latLon.lon).toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]);
-					// If the node elevation has never been edited or has moved along either axis, get a new elevation value
-					if (!laneFeat.get("elevation")[j]?.edited || !latMatch || !lonMatch){
-						getElevation(dot, latLon, i, j, function(elev, i, j, latLon, dot){
-							laneFeat.get("elevation")[j] = {'value': elev, 'edited': true, 'latlon': latLon};
-						});
+					// Retrieve a new elevation value if:
+					// 1) no elevation edit has been recorded for this node,
+					// 2) the node coordinates have changed, or
+					// 3) the stored elevation appears to be a legacy integer value from older MAP files
+					//    that lost decimal precision and should be recalculated from ESRI.
+					const storedElev = Number(laneFeat.get("elevation")[j]?.value);
+					if (!laneFeat.get("elevation")[j]?.edited || !latMatch || !lonMatch || Number.isInteger(storedElev)){
+							getElevation(dot, latLon, i, j, function(elev, i, j, latLon, dot){
+								laneFeat.get("elevation")[j] = {'value': elev, 'edited': true, 'latlon': latLon};
+								dot.set("elevation", laneFeat.get("elevation")[j]);
+							});
 					}
 				}
 				buildDots(i, j, dot, latLon, lanes, laneMarkers);
