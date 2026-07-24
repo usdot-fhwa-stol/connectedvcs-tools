@@ -1,6 +1,36 @@
 Map Tool Release Notes
 ----------------------------
 
+Version 2.4.1, released Jul 24th, 2026
+----------------------------------------
+
+### **Summary**  
+Hotfix release fixing four defects in the MAP/RGA Tool and TIM Creator Tool: one in sidewalk lane encoding, three in elevation accuracy. No new features and no changes to the Message Validator Tool.
+
+### **<ins>Fixes in Release:</ins>**
+
+**HELPDESK-232: Sidewalk lane duplication in encoded MAP/RGA payload**  
+**Summary:**  
+Sidewalk lanes were written twice into the MAP JSON produced by Tools > Encoder. Duplication affected only sidewalk lanes with an approach box drawn around the first node to associate a Signal Group ID. Each sidewalk and crosswalk lane now appears exactly once - either under an approach's drivingLanes or under crosswalkLanes, never both. Crosswalk, vehicle, bicycle, and parking lanes are not affected.
+
+**HELPDESK-222: Elevation precision loss in MAP/RGA Tool**  
+**Summary:**  
+Elevation values from the ESRI API were rounded to whole meters. They are now preserved to two decimal places (centimeter level). Legacy files carrying integer-precision elevations are refreshed on load.
+
+**HELPDESK-239: Elevation precision loss in TIM Creator**  
+**Summary:**  
+The same rounding applied to the TIM save/load workflow, storing and rendering decimeter data at meter precision. ESRI API elevation precision is now preserved for both new and legacy TIM files.
+
+**HELPDESK-242: Doubled encoded elevation in TIM Tool**  
+**Summary:**  
+Encoded elevation was doubled for both lanes and polygons. Elevation now encodes once at the correct value.
+
+**<ins>Pull Requests:</ins>**  
+All fixes in this release were delivered in a single pull request.
+
+- [connectedvcs-tools PR #277](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/277)
+
+
 Version 2.4.0, released Mar 9th, 2026
 ----------------------------------------
 
