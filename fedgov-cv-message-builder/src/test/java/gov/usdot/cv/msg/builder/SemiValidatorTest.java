@@ -19,8 +19,6 @@ import javax.xml.bind.DatatypeConverter;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import gov.usdot.cv.msg.builder.util.SemiValidator;
@@ -55,20 +53,9 @@ public class SemiValidatorTest extends JerseyTest {
 			String messageContent = jsonObject.getString("decodedMessage");
 			System.out.println(messageContent);
 
-			// Using Java regular expression to find a match of messgae ID
-			Pattern pattern = Pattern.compile("messageId:\\s*(\\d+)");
-
-			// searching string to find pattern with messageID
-			Matcher matcher = pattern.matcher(messageContent);
-			int messageId = 0;
-			if (matcher.find()) {
-				messageId = Integer.parseInt(matcher.group(1));
-
-			}
-
-			// Comparing if messageID:18 is present in the decoded string Hex value is a MAP
-			// with messageID:18
-			Assert.assertEquals("The messageID should match", 18, messageId);
+			// A decoded MessageFrame is dumped as its concrete inner type; this hex is a MAP.
+			Assert.assertTrue("Expected the decoded content to be MapData",
+					messageContent.contains("MapData ::="));
 
 		} catch (Exception e) {
 
