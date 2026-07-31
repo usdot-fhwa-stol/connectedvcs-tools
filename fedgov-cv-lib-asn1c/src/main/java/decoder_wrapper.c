@@ -80,8 +80,6 @@ static void find_last_and_likely_failed_field(
             const char *brace = strchr(afterColon, '{');
             if (brace && (!newline || brace < newline + 1))
             {
-                /* Struct/list value -- has content only if something
-                 * non-whitespace appears between the matching braces. */
                 const char *p = brace + 1;
                 int depth = 1;
                 hasContent = 0;
@@ -99,7 +97,6 @@ static void find_last_and_likely_failed_field(
             }
             else
             {
-                /* Scalar value printed directly on the line (e.g. "42"). */
                 hasContent = (*afterColon != '\n' && *afterColon != '\0');
             }
         }
@@ -107,15 +104,10 @@ static void find_last_and_likely_failed_field(
         if (hasContent)
         {
             *lastReachedOut = name;
-            /* Decode continued past any prior gap -- that gap was legitimate
-             * absence, not a failure point. */
             *likelyFailedOut = NULL;
         }
         else
         {
-            /* Printed but empty is stronger evidence of a stalled decode than
-             * a field that was never printed at all (which is often just
-             * legitimate absence), so it always takes priority. */
             *likelyFailedOut = name;
         }
     }

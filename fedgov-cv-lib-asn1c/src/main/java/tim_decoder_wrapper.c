@@ -100,15 +100,10 @@ static void find_last_and_likely_failed_field(
 		if (hasContent)
 		{
 			*lastReachedOut = name;
-			/* Decode continued past any prior gap -- that gap was legitimate
-			 * absence, not a failure point. */
 			*likelyFailedOut = NULL;
 		}
 		else
 		{
-			/* Printed but empty is stronger evidence of a stalled decode than
-			 * a field that was never printed at all (which is often just
-			 * legitimate absence), so it always takes priority. */
 			*likelyFailedOut = name;
 		}
 	}
