@@ -111,10 +111,12 @@ public class DecodeMessageResource {
 			result.setMessage(resultMessage);
 			result.setStatus(Status.Success);
 		} catch (SemiValidatorException ex) {
+			log.warn("Decode failed for messageType={}: {}", messageType, ex.getMessage());
 
 			JSONObject returnStatusObject = new JSONObject();
 			try {
-				returnStatusObject.put("messageName", "Unknown");
+				returnStatusObject.put("messageName",
+						(!StringUtils.isBlank(messageType) ? messageType : "Unknown") + " (Error)");
 				returnStatusObject.put("decodedMessage", ex.getMessage());
 			} catch (JSONException je) {
 				log.warn("Failed to add error details to JSON response: {}", je.getMessage());
@@ -122,10 +124,12 @@ public class DecodeMessageResource {
 			result.setMessage(returnStatusObject.toString());
 			result.setStatus(Status.Error);
 		} catch (Exception ex) {
+			log.error("Unexpected error decoding messageType={}", messageType, ex);
 
 			JSONObject returnStatusObject = new JSONObject();
 			try {
-				returnStatusObject.put("messageName", "Unknown");
+				returnStatusObject.put("messageName",
+						(!StringUtils.isBlank(messageType) ? messageType : "Unknown") + " (Error)");
 				returnStatusObject.put("decodedMessage", ex.getMessage());
 			} catch (JSONException je) {
 				log.warn("Failed to add error details to JSON response: {}", je.getMessage());

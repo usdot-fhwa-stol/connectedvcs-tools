@@ -63,7 +63,8 @@ public class Decoder {
 		DecodedResult result = decodeMsg(binaryMessage.getMessage(), messageType);
 
 		if (result == null || !result.success) {
-			logger.error("Decoding failed or returned null.");
+			logger.error("Decoding failed or returned null. Detail: {}",
+					result != null ? result.decodedMessage : "null result");
 			//If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();

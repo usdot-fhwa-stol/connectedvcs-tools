@@ -31,18 +31,10 @@
 #include <stdlib.h>
 
 /*
- * Identifies, among a type's own top-level fields (from the schema's element
- * list, in declaration order), the last one with real printed content and the
- * first one that's empty or missing. This is a text-level heuristic run over
- * the same asn_fprint() dump already shown to the user, rather than reaching
- * into raw struct memory -- so it works uniformly for any field kind (list,
- * nested SEQUENCE, scalar) without needing to know each one's C layout.
- *
- * It cannot see past the first level (it won't say *which* element of a list
- * or *which* nested field failed), and "empty" is a heuristic, not certainty --
- * a field can legitimately encode as empty. But combined with an overall
- * decode failure, the first empty/missing field after some real content is a
- * reasonable place to point at.
+ * Scans a type's asn_fprint() dump for its top-level fields, in schema
+ * declaration order.
+ *   - lastReachedOut is set to the last field with real printed content
+ *   - likelyFailedOut is set to the first field after that which is empty or missing
  */
 static void find_last_and_likely_failed_field(
     const asn_TYPE_descriptor_t *asn_def,
@@ -130,13 +122,10 @@ static void find_last_and_likely_failed_field(
 }
 
 /*
- * Builds a failure message for a decode attempt. asn_dec_rval_t has no offset
- * info to draw on here, so the message stays generic beyond the type name and
- * the field-level guess above -- the real value is the dump of whatever fields
- * decoded successfully before the failure. uper_decode() never frees/clears
- * the target struct on failure (only its own scratch buffers), so partially-
- * decoded fields are still valid to print here. The caller retains ownership
- * of msg and is responsible for freeing it.
+ * Builds the failure message for a decode attempt.
+ *   - the type name and the field-level guess from find_last_and_likely_failed_field()
+ *   - a dump of whatever fields decoded successfully before the failure
+ * Caller retains ownership of msg and is responsible for freeing it.
  */
 static char *build_failure_result(const asn_dec_rval_t *rval, const asn_TYPE_descriptor_t *asn_def, void *msg)
 {
@@ -226,13 +215,13 @@ static jboolean decode_message_only(
             }
             else
             {
-                *decodedStrOut = "Failed to allocate decoded output string";
+                *decodedStrOut = strdup("Failed to allocate decoded output string");
                 *msgTypeStrOut = messageType;
             }
         }
         else
         {
-            *decodedStrOut = "Failed to allocate memory for output";
+            *decodedStrOut = strdup("Failed to allocate memory for output");
         }
 
         ASN_STRUCT_FREE(*asn_def, msg);
@@ -267,21 +256,9 @@ static const struct msgid_type_entry MSGID_TYPE_TABLE[] = {
 };
 
 /*
- * MessageFrame.value is an ASN.1 open type: asn1c decodes it into a temporary
- * that is discarded entirely if decoding fails partway (the same
- * discard-on-failure behavior as CHOICE), so a failed MessageFrame decode
- * never leaves partial payload content behind -- only messageId survives.
- * To get a real partial dump, we unwrap the envelope ourselves: decode
- * messageId, skip the open type's own length determinant (X.691 length
- * determinant encoding), and hand the remaining bytes directly to
- * decode_message_only() for the concrete type, which -- being a plain
- * SEQUENCE decode -- does leave partial fields in place on failure.
- *
- * MessageFrame's own SEQUENCE preamble is a single extensibility bit (it has
- * no OPTIONAL fields ahead of messageId), and DSRCmsgID is a fixed-width
- * 15-bit constrained INTEGER regardless of value -- both verified empirically
- * against the generated code -- so the envelope header is always exactly 16
- * bits (2 bytes), independent of message type or content.
+ * Decodes a MessageFrame by unwrapping messageId and dispatching to the
+ * concrete inner type. Falls back to decoding MessageFrame directly if the
+ * envelope can't be parsed.
  */
 static jboolean decode_message_frame(const void *buf_in, int len, const char **msgTypeStrOut, const char **decodedStrOut)
 {
@@ -360,7 +337,7 @@ static jboolean decode_message_frame(const void *buf_in, int len, const char **m
             *decodedStrOut = strdup(outputBuffer);
             return JNI_TRUE;
         }
-        *decodedStrOut = "Failed to allocate memory for output";
+        *decodedStrOut = strdup("Failed to allocate memory for output");
         return JNI_FALSE;
     }
 
@@ -444,7 +421,7 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
         else
         {
             
-            decodedStr = "Unknown message type requested.";
+            decodedStr = strdup("Unknown message type requested.");
             msgTypeStr = "UnknownMessageType";
             success = JNI_FALSE;
         }
@@ -487,8 +464,9 @@ JNIEXPORT jobject JNICALL Java_gov_usdot_cv_asn1decoder_Decoder_decodeMsg(JNIEnv
     jfieldID typeField = (*env)->GetFieldID(env, resultClass, "messageType", "Ljava/lang/String;");
     jfieldID successField = (*env)->GetFieldID(env, resultClass, "success", "Z");
 
-    // Converting the 'decodedStr' to a Java UTF string (jstring)
+    // NewStringUTF copies decodedStr; freeing the heap copy here.
     jstring jDecodedStr = (*env)->NewStringUTF(env, decodedStr);
+    free((void *)decodedStr);
     // Converting the message type to a Java UTF string (jstring)
     jstring jMsgTypeStr = (*env)->NewStringUTF(env, msgTypeStr);
 
