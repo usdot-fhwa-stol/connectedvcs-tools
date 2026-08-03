@@ -1,18 +1,19 @@
-# ISD MAP Analysis Tools
+# V2X Log Analysis Tools
 
-This folder contains tools for parsing and visualizing MAP messages embedded in ISD (Intersection Situation Data) logs.
+This folder contains tools for parsing and visualizing V2X messages embedded in ISD and TIM logs.
 
 ## Overview
 
 The tools support two primary workflows:
 
-1. **MAP Message Parsing**
+1. **V2X Message Parsing**
 
-   * Extract MAP messages from ISD logs
+   * Extract MAP and TIM messages from log files
    * Generate CSV reports for further analysis
    * Aggregate data from multiple log files
    * Remove duplicate records
-   * Collect intersection metadata and geometry statistics
+   * Collect MAP intersection metadata and geometry statistics
+   * Collect TIM location, advisory, and region information
 
 2. **MAP Geometry Visualization**
 
@@ -25,30 +26,69 @@ The tools support two primary workflows:
 
 # Scripts
 
-## 1. isd_map_parser.py
+## 1. v2x_log_parser.py
 
-Parses MAP messages from one or more ISD log files and exports selected fields to a CSV file.
+Parses MAP and TIM messages from one or more log files and exports the extracted information into CSV reports.
 
 ### Features
 
-* Supports a single ISD log file
-* Supports a folder containing multiple ISD logs
-* Recursive search for `isd.log` files
-* Aggregates all MAP messages into a single CSV
+* Supports a single log file or a folder of logs
+* Recursively searches for both `isd.log` and `tim.log`
+* Processes MAP and TIM messages in a single execution
+* Aggregates messages from multiple log files
+* Generates separate CSV reports for MAP and TIM messages
 * Optional duplicate filtering
-* Reports duplicate statistics
+* Reports processing and duplicate statistics
 * Preserves source log file information
+* Skips incomplete or malformed messages while continuing processing
 
 ---
 
 ### Input
 
-The script searches for MAP messages contained within ISD logs.
-
-Example log entry:
+The parser searches recursively for both:
 
 ```text
-2026-04-18 00:05:01 [thread] DEBUG ...
+isd.log
+tim.log
+```
+
+By default:
+
+```text
+./metrics/logfiles/
+```
+
+The parser may also be pointed at:
+
+* a single log file
+* a directory containing logs
+* a directory tree containing multiple deployments
+
+Example:
+
+```text
+metrics/
+├── logfiles/
+│   ├── deployment_1/
+│   │   ├── isd.log
+│   │   └── tim.log
+│   ├── deployment_2/
+│   │   ├── isd.log
+│   │   └── tim.log
+```
+
+---
+
+### Supported Messages
+
+The parser extracts two message types:
+
+#### MAP Messages
+
+Example:
+
+```text
 User Input:
 {
     "mapData": {...},
@@ -57,93 +97,175 @@ User Input:
 }
 ```
 
-By default, the script searches:
+#### TIM Messages
+
+Example:
 
 ```text
-./metrics/logfiles/**/isd.log
-```
-
-Example structure:
-
-```text
-metrics/
-├── logfiles/
-│   ├── collected/
-│   │   ├── deployment_1/
-│   │   │   └── jetty_logs/
-│   │   │       └── isd.log
-│   │   ├── deployment_2/
-│   │   │   └── jetty_logs/
-│   │   │       └── isd.log
+Building TIM/ADV with input data :
+{
+    "anchorPoint": {...},
+    "regions": [...],
+    "verifiedPoint": {...},
+    "messageType": "Frame+TIM"
+}
 ```
 
 ---
 
 ### Output
 
-Default CSV output:
+Two CSV reports are generated.
+
+#### MAP Report
+
+Default:
 
 ```text
 ./metrics/reports/map_messages.csv
 ```
 
-Generated CSV fields:
+Columns:
 
-| Field                      |
-| -------------------------- |
-| sourceLogFile              |
-| timestamp                  |
-| minuteOfTheYear            |
-| layerType                  |
+| Field |
+|------|
+| sourceLogFile |
+| timestamp |
+| minuteOfTheYear |
+| layerType |
 | descriptiveIntersctionName |
-| layerID                    |
-| intersectionID             |
-| regionID                   |
-| msgCount                   |
-| masterLaneWidth            |
-| referenceLat               |
-| referenceLon               |
-| referenceElevation         |
-| verifiedMapLat             |
-| verifiedMapLon             |
-| verifiedMapElevation       |
-| verifiedSurveyedLat        |
-| verifiedSurveyedLon        |
-| verifiedSurveyedElevation  |
-| numApproaches              |
-| numLanes                   |
-| numConnections             |
-| numNodes                   |
-| enableElevation            |
-| messageType                |
+| layerID |
+| intersectionID |
+| regionID |
+| msgCount |
+| masterLaneWidth |
+| referenceLat |
+| referenceLon |
+| referenceElevation |
+| verifiedMapLat |
+| verifiedMapLon |
+| verifiedMapElevation |
+| verifiedSurveyedLat |
+| verifiedSurveyedLon |
+| verifiedSurveyedElevation |
+| numApproaches |
+| numLanes |
+| numConnections |
+| numNodes |
+| enableElevation |
+| messageType |
 
+---
+
+#### TIM Report
+
+Default:
+
+```text
+./metrics/reports/tim_messages.csv
+```
+
+Columns:
+
+| Field |
+|------|
+| sourceLogFile |
+| timestamp |
+| direction |
+| mutcd |
+| infoType |
+| priority |
+| startTime |
+| endTime |
+| applicableRegion |
+| allPoints |
+| anchorPointName |
+| masterLaneWidth |
+| itisCodes |
+| itisText |
+| referenceLat |
+| referenceLon |
+| referenceElevation |
+| verifiedMapLat |
+| verifiedMapLon |
+| verifiedMapElevation |
+| verifiedSurveyedLat |
+| verifiedSurveyedLon |
+| verifiedSurveyedElevation |
+| enableElevation |
+| messageType |
 
 ---
 
 ### Duplicate Handling
 
-The parser can optionally remove duplicate MAP records.
+Duplicate filtering is optional.
 
-Default behavior:
+The parser performs duplicate detection independently for MAP and TIM messages.
 
-```text
-Duplicates Disabled = False
-```
+Typical duplicate keys:
 
-Records are considered duplicates when they share the same:
+#### MAP
 
 * timestamp
-* intersectionID
 
-Statistics are displayed after processing:
+#### TIM
+
+* timestamp
+
+Processing statistics are displayed for both message types.
+
+Example:
 
 ```text
+Processing: metrics/logfiles/.../isd.log
+
+Processing: metrics/logfiles/.../tim.log
+
 Processing Statistics
----------------------
-Processed records : 250
-Duplicate records : 42
-Final CSV rows    : 208
+==================================================
+
+MAP Messages
+------------
+Messages found    : 1706
+Processed records : 195
+Duplicate records : 1511
+Final CSV rows    : 195
+
+TIM Messages
+------------
+Messages found    : 434
+Processed records : 61
+Skipped records   : 19
+Duplicate records : 354
+Final CSV rows    : 61
+
+
+MAP CSV written to:
+./metrics/reports/map_messages.csv
+
+TIM CSV written to:
+./metrics/reports/tim_messages.csv
 ```
+
+---
+
+### Invalid or Incomplete Messages
+
+Some logs contain incomplete TIM messages, for example:
+
+```json
+{
+  "anchorPoint": null,
+  "verifiedPoint": null,
+  "regions": [],
+  "messageType": "TIM"
+}
+```
+
+These messages do not contain sufficient information for analysis.
+
+The parser reports a warning and skips them while continuing to process the remaining log entries.
 
 ---
 
@@ -152,33 +274,17 @@ Final CSV rows    : 208
 Example:
 
 ```bash
-python3 isd_map_parser.py
+python3 v2x_log_parser.py
 ```
 
 Interactive prompts:
 
 ```text
 Enter input log file/folder:
-Enter output CSV file:
-Allow duplicate timestamps? (y/N):
+Enter output folder:
+Allow duplicate messages? (y/N):
 ```
 
-Example output:
-
-```text
-Processing: metrics/logfiles/.../isd.log
-
-Processing Statistics
----------------------
-Processed records : 250
-Duplicate records : 42
-Final CSV rows    : 208
-
-CSV written to:
-./metrics/reports/map_messages.csv
-```
-
----
 
 # 2. isd_map_visualizer.py
 
