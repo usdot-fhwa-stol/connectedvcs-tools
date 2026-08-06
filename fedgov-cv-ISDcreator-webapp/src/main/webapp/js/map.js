@@ -186,6 +186,7 @@ function initMap() {
     source: laneWidthsSource,
     style: widthStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const laneConnectionsSource = new ol.source.Vector();
@@ -194,6 +195,7 @@ function initMap() {
     source: laneConnectionsSource,
     style: connectionsStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const errorsSource = new ol.source.Vector();
@@ -202,6 +204,7 @@ function initMap() {
     source: errorsSource,
     style: errorMarkerStyle,
     visible: true,
+    zIndex: 2,
   });
 
   /**

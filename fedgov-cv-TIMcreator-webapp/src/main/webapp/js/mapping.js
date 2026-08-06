@@ -1310,6 +1310,7 @@ function onFeatureAdded() {
       const isLegacyRoundedElevation =
           hasElevation &&
           Number.isInteger(Number(elevation[j].value));
+      buildPolyDots(i, j, dot, latlon);
       if (!elevation[j]?.edited || !found || isLegacyRoundedElevation) {
         getElevation(dot, latlon, i, j, function (elev, i, j, latlon, dot) {
           const elevationObj = {
@@ -1319,8 +1320,6 @@ function onFeatureAdded() {
           };
       
           polygons.getSource().getFeatures()[i].get('elevation')[j] = elevationObj;
-      
-          buildPolyDots(i, j, dot, latlon);
         });
       }
     }
@@ -1632,6 +1631,9 @@ async function populateRefWindow(feature, lat, lon) {
     elev = await getElev(lat, lon);
     if (!feature.get("elevation")?.value) {
       $('#elev').val(elev);
+
+      // Store map elevation in feature properties
+      feature.set("elevation", elev);
     }
   }
 

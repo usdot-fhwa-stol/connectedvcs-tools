@@ -1495,7 +1495,9 @@ async function startGeoreferencing() {
                     xhr.send();
                 }
             }),
-            zIndex: 50
+            // Sit just above the base map (zIndex 0) but below all user-created
+            // components (utensils), which live at zIndex >= 2.
+            zIndex: 1
         });
 
         // If editing, replace the old overlay
