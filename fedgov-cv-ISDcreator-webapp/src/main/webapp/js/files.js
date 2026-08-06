@@ -411,7 +411,8 @@ function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoad
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
-		setStatusHintForState(state);
+		const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;
+		setStatusHintForState(state, hasContent);
 		if(controls){
 			toggleControl(state, controls);
 		}

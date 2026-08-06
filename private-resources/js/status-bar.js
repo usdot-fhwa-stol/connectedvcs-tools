@@ -14,48 +14,33 @@
  * the License.
  */
 
-/**
- * Status Bar Module
- *
- * Drives the slim, always-visible tool-hint bar that sits between the map and
- * the bottom control toolbar. It shows a short, plain-English hint describing
- * what the active tool does and how to use it, updating automatically as the
- * user switches modes.
- *
- * Usage (ES module):
- *   import { initStatusBar, setStatusHintForState } from '/private-resources/js/status-bar.js';
- *   initStatusBar('isd');                 // or 'tim'
- *   setStatusHintForState('bar');         // wired into toggleControlsOn(state)
- *
- * Any new tool state can be wired in by calling setStatusHint() /
- * setStatusHintForState() at the relevant event hook.
- */
-
 // Per-app hint maps. `state` is the toolbar button's `value` attribute, which is
 // passed straight through to toggleControlsOn(state) in each webapp.
 const HINTS = {
   isd: {
-    none: 'Create or import a parent/child MAP to get started',
-    bar: 'Click and drag to draw an approach box. Double-click or release to finish',
-    edit: 'Drag the center point to move · Drag the corner point to rotate/resize · Press Escape to exit',
-    line: 'Click to add lane nodes · Double-click to finish the lane · Press Escape to cancel',
-    modify: 'Click a lane to select it · Shift+Click a node to delete it · Press Escape to deselect',
+    none: 'Use File → New Parent/Child Map to begin, then drag the Reference and Verified Point Markers onto the intersection',
+    noneLoaded: 'Choose a tool below to add approaches and lanes, or edit the map · File → Save when done',
+    bar: 'Click and drag to draw an approach (stop bar) box, sized to the stop bar · Release to finish',
+    edit: 'Drag the center point to move the approach · Drag the corner point to rotate/resize it · Press Escape to exit',
+    line: 'Click to add lane nodes · Double-click the final node to finish the lane · Press Escape to cancel',
+    modify: 'Click a lane to select it · Drag a node to reshape the lane · Shift+Click a node to delete it · Press Escape to deselect',
     del: 'Click any lane, approach, or marker to delete it',
     measure: 'Click to start measuring · Double-click to finish',
-    drag: 'Click a marker to lock or unlock it for dragging',
-    placeComputed: 'Click on the map to place the computed lanes',
+    drag: 'Click a marker to select it for dragging, locking the others in place',
+    placeComputed: 'Click the map where the computed lane should be created'
   },
   tim: {
-    none: 'Add a verified point marker to get started or import an existing TIM',
-    line: 'Click to add region nodes · Double-click to finish the region · Press Escape to cancel',
-    modify: 'Click a region to select it · Shift+Click a node to delete it · Press Escape to deselect',
+    none: 'Drag a road sign onto the map to begin, then drag the Verified Point Marker onto a known, surveyed location',
+    noneLoaded: 'Choose a tool below to add or edit regions · File → Save when done',
+    line: 'Click to add region nodes · Double-click the final node to finish the region · Press Escape to cancel',
+    modify: 'Click a region to select it · Drag a node to reshape it · Shift+Click a node to delete it · Press Escape to deselect',
     polygon: 'Click to add polygon nodes · Double-click to finish the polygon · Press Escape to cancel',
     circle: 'Click and drag to draw a circle · Release to finish',
     change: 'Drag a node to reshape the polygon · Press Escape to deselect',
     dragPoly: 'Click and drag a region to move it',
     del: 'Click any region, polygon, or marker to delete it',
     measure: 'Click to start measuring · Double-click to finish',
-    drag: 'Click a marker to lock or unlock it for dragging',
+    drag: 'Click a marker to select it for dragging, locking the others in place',
   },
 };
 
@@ -91,10 +76,18 @@ export function setStatusHint(text) {
  * Look up a hint for the given tool state and display it. Unknown states fall
  * back to the idle hint so the bar is never blank.
  * @param {string} state
+ * @param {boolean} [hasContent] - When state is 'none', pass true if a map/TIM is
+ *   already loaded (markers placed, file opened, etc.) to show the "pick a tool"
+ *   hint instead of the initial "get started" hint.
  */
-export function setStatusHintForState(state) {
+export function setStatusHintForState(state, hasContent) {
   const map = HINTS[appId] || {};
-  const text = map[state] != null ? map[state] : map.none;
+  let text;
+  if (state === 'none' && hasContent && map.noneLoaded != null) {
+    text = map.noneLoaded;
+  } else {
+    text = map[state] != null ? map[state] : map.none;
+  }
   setStatusHint(text);
 }
 
