@@ -2,10 +2,11 @@ import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnections
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
-import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
+import { boxSelectInteractionCallback, clearConnectionsHint, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
 import {buildComputedFeature, createPointFeature, getElevationDelta, getGeodesicDistance, getMaxSquareDistance, getReferencePointFeature, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
+import { initStatusBar } from "../../private-resources/js/status-bar.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 const tokenURL = "/msp/security/api/csrf-token/";
@@ -185,6 +186,7 @@ function initMap() {
     source: laneWidthsSource,
     style: widthStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const laneConnectionsSource = new ol.source.Vector();
@@ -193,6 +195,7 @@ function initMap() {
     source: laneConnectionsSource,
     style: connectionsStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const errorsSource = new ol.source.Vector();
@@ -201,6 +204,7 @@ function initMap() {
     source: errorsSource,
     style: errorMarkerStyle,
     visible: true,
+    zIndex: 2,
   });
 
   /**
@@ -400,6 +404,7 @@ function registerSelectInteraction() {
   //Add feature event on vectors layer
   vectors.getSource().on("addfeature", (event) => {
     console.log("Vectors feature added:", event.feature);
+    draggableFeature.clear(); // Ensure only one feature is draggable at a time
     draggableFeature.push(event.feature);
     selectedLayer = vectors;
     selectedMarker = vectorAddInteractionCallback(event,  selected, rgaEnabled, speedForm);
@@ -783,7 +788,11 @@ function initSideBar() {
    * Register sidebar bottom layer control events
    */
   $("button[name='layerControl']").click(function (e) {
-    clearAllInteractions();
+    // Builder is a side panel toggle, not a drawing tool - it must not clear an in-progress
+    // lane node selection (e.g. while dragging maneuver icons onto Lane Attributes/Connections).
+    if (this.value !== 'builder') {
+      clearAllInteractions();
+    }
     deleteMode = false;
     $("#dragSigns i").removeClass("fa-unlock").addClass("fa-lock");
     $(this).addClass("current").siblings().removeClass("active");
@@ -847,6 +856,8 @@ function initSideBar() {
   }
 
   $(document).ready(function() {
+    // Show the initial tool-hint bar message for the MAP/RGA tool
+    initStatusBar('isd');
     // Initialize Right U-Turn as disabled since rgaEnabled starts as false
     let rightUTurnImg = $('#lane_img_12');
     if (rightUTurnImg.length > 0) {
@@ -1287,6 +1298,8 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
+    // Explicit, rather than relying on a Select deselect event to fire for node 0.
+    clearConnectionsHint();
     laneConnections.getSource().clear();
     //Update Reference Point Configuration fields with parsley attributes
     let road_authority_id = $("#road_authority_id");
@@ -1574,6 +1587,8 @@ function registerModalButtonEvents() {
    */
 
   $(".btnClose").click(() => {
+    // Explicit, rather than relying on a Select deselect event to fire for node 0.
+    clearConnectionsHint();
     laneConnections.getSource().clear();
     $("#attributes").hide();
     $("#shared_with").multiselect("deselectAll", false);

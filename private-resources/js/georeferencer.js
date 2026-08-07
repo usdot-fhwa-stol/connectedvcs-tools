@@ -26,6 +26,8 @@
  *   initGeoreferencer(map, { georefEndpoint: '/georef/api/georeference', ... });
  */
 
+import { setStatusHint, pushStatusHint, popStatusHint } from "./status-bar.js";
+
 let map = null;
 let options = {};
 
@@ -619,6 +621,8 @@ function patchBootstrapEnforceFocus() {
 function openGeoreferencer() {
     ensureMapArtifacts();
     editingOverlayId = null;
+    // Save the current MAP/RGA tool hint so it can be restored when the modal closes.
+    pushStatusHint();
     resetState();
     $('#georef_modal').modal('show');
     if (!configReady) {
@@ -674,6 +678,9 @@ function onModalClose() {
         gcps = [];
     }
     editingOverlayId = null;
+
+    // Restore the previous MAP/RGA tool hint now that the georeferencing modal is closed.
+    popStatusHint();
 }
 
 // Image Handling
@@ -1333,6 +1340,10 @@ function setStatus(message, type) {
     if (type === 'waiting') el.classList.add('georef-status-waiting');
     else if (type === 'error') el.classList.add('georef-status-error');
     else if (type === 'success') el.classList.add('georef-status-success');
+
+    // Mirror the georeferencing status onto the shared tool-hint bar so the user
+    // sees contextual guidance there too while the modal is open.
+    setStatusHint(message);
 }
 
 // CSRF Token
@@ -1484,7 +1495,9 @@ async function startGeoreferencing() {
                     xhr.send();
                 }
             }),
-            zIndex: 50
+            // Sit just above the base map (zIndex 0) but below all user-created
+            // components (utensils), which live at zIndex >= 2.
+            zIndex: 1
         });
 
         // If editing, replace the old overlay

@@ -1,6 +1,16 @@
 import { barHighlightedStyle } from "./style.js";
 import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
+import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
+
+let connectionsHintPushed = false;
+
+export function clearConnectionsHint() {
+  if (connectionsHintPushed) {
+    popStatusHint();
+    connectionsHintPushed = false;
+  }
+}
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -182,6 +192,11 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       setRGAStatus();
       updateDisplayedLaneAttributes(selectedMarker);
       rebuildConnections(selectedMarker.get("connections"));
+
+      if (!connectionsHintPushed) {
+        pushStatusHintForState('connections');
+        connectionsHintPushed = true;
+      }
       $("#lane_attributes").show();
       $(".descriptive_name").show();
       $(".lane_type").show();
@@ -410,6 +425,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     laneConnections.getSource().clear();
     $(".node_delta").hide();
     $(".elev_delta").hide();
+    clearConnectionsHint();
     return null;
   } else {
     console.log("No lane marker feature selected, ignore");
