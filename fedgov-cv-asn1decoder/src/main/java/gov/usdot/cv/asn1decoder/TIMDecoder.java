@@ -50,7 +50,8 @@ public class TIMDecoder {
 		logger.debug("Decoding the binary message...");
 		DecodedResult result = decodeTimMsg(binaryMessage.getMessage());
 		if (result == null || !result.success) {
-			logger.error("Decoding failed or returned null.");
+			logger.error("Decoding failed or returned null. Detail: {}",
+					result != null ? result.decodedMessage : "null result");
 			// If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();
