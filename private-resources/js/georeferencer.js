@@ -26,7 +26,7 @@
  *   initGeoreferencer(map, { georefEndpoint: '/georef/api/georeference', ... });
  */
 
-import { setStatusHint, pushStatusHint, popStatusHint } from "/private-resources/js/status-bar.js";
+import { setStatusHint, pushStatusHint, popStatusHint } from "./status-bar.js";
 
 let map = null;
 let options = {};

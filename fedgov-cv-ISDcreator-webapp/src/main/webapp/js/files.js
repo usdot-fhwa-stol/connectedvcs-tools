@@ -1,7 +1,7 @@
 import { getCookie, unselectFeature } from "./utils.js";
 import { onFeatureAdded } from "./features.js";
 import { selected } from "./parent-child-latest.js";
-import { setStatusHintForState } from "/private-resources/js/status-bar.js";
+import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
 let isLoadMap = false;
 
 /**
@@ -412,7 +412,6 @@ function toggleControlsOn(state, lanes, vectors, laneMarkers, laneWidths, isLoad
 		$("#instructions_modal").modal('show');
 	} else {
 		$("#instructions_modal").modal('hide');
-dd
 		if (state !== 'builder') {
 			const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;
 			setStatusHintForState(state, hasContent, selected);

@@ -30,7 +30,7 @@ import {
     toggleControlsOn
 
 } from './mapping.js';
-import { initStatusBar } from "/private-resources/js/status-bar.js";
+import { initStatusBar } from "../../private-resources/js/status-bar.js";
 
 var hidden_drag, intersection_sidebar, deleteMode, currentControl, $imgs, itisForm, search_latlon;
 

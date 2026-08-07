@@ -1,7 +1,7 @@
 import { barHighlightedStyle } from "./style.js";
 import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
-import { pushStatusHintForState, popStatusHint } from "/private-resources/js/status-bar.js";
+import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
 
 let connectionsHintPushed = false;
 
