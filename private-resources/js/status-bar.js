@@ -18,25 +18,27 @@
 // passed straight through to toggleControlsOn(state) in each webapp.
 const HINTS = {
   isd: {
-    none: 'Use File → New Parent/Child Map to begin, then drag the Reference and Verified Point Markers onto the intersection',
+    none: 'Use File → New Parent/Child Map, then Show Builder to drag the Reference and Verified Point Markers onto the intersection',
+    noneLoadedParent: 'Click a marker to select it, then drag to reposition · Delete to remove one · File → Save when done',
     noneLoaded: 'Choose a tool below to add approaches and lanes, or edit the map · File → Save when done',
-    bar: 'Click and drag to draw an approach (stop bar) box, sized to the stop bar · Release to finish',
-    edit: 'Drag the center point to move the approach · Drag the corner point to rotate/resize it · Press Escape to exit',
-    line: 'Click to add lane nodes · Double-click the final node to finish the lane · Press Escape to cancel',
-    modify: 'Click a lane to select it · Drag a node to reshape the lane · Shift+Click a node to delete it · Press Escape to deselect',
+    bar: 'Click and drag to draw an approach (stop bar) box, sized to the stop bar · Release to finish. Click Draw Approaches again to cancel',
+    edit: 'Drag the center point to move the approach · Drag the corner point to rotate/resize it · Click Edit Approaches again to exit',
+    line: 'Click to add lane nodes · Double-click the final node to finish the lane · Click Draw Lanes again to cancel',
+    modify: 'Click a lane to select it · Drag a node to reshape the lane · Shift+Click a node to delete it · Click Edit Lanes again to exit',
     del: 'Click any lane, approach, or marker to delete it',
     measure: 'Click to start measuring · Double-click to finish',
     drag: 'Click a marker to select it for dragging, locking the others in place',
-    placeComputed: 'Click the map where the computed lane should be created'
+    placeComputed: 'Click the map where the computed lane should be created',
+    connections: 'Open the Builder, then drag a maneuver icon onto Lane Attributes or a Connections row to assign it · Click Done when finished'
   },
   tim: {
-    none: 'Drag a road sign onto the map to begin, then drag the Verified Point Marker onto a known, surveyed location',
+    none: 'Drag a Verified Point Marker onto a known, surveyed location and then drag a Road Sign onto the map to begin',
     noneLoaded: 'Choose a tool below to add or edit regions · File → Save when done',
-    line: 'Click to add region nodes · Double-click the final node to finish the region · Press Escape to cancel',
-    modify: 'Click a region to select it · Drag a node to reshape it · Shift+Click a node to delete it · Press Escape to deselect',
-    polygon: 'Click to add polygon nodes · Double-click to finish the polygon · Press Escape to cancel',
-    circle: 'Click and drag to draw a circle · Release to finish',
-    change: 'Drag a node to reshape the polygon · Press Escape to deselect',
+    line: 'Click to add region nodes · Double-click the final node to finish the region · Click the tool again to cancel',
+    modify: 'Click a region to select it · Drag a node to reshape it · Shift+Click a node to delete it · Click the tool again to exit',
+    polygon: 'Click to add polygon nodes · Click the first node again to finish the polygon · Click the tool again to cancel',
+    circle: 'Click and drag to draw a circle · Release to finish . Click the tool again to cancel',
+    change: 'Drag a node to reshape the polygon · Click the tool again to exit',
     dragPoly: 'Click and drag a region to move it',
     del: 'Click any region, polygon, or marker to delete it',
     measure: 'Click to start measuring · Double-click to finish',
@@ -79,13 +81,21 @@ export function setStatusHint(text) {
  * @param {boolean} [hasContent] - When state is 'none', pass true if a map/TIM is
  *   already loaded (markers placed, file opened, etc.) to show the "pick a tool"
  *   hint instead of the initial "get started" hint.
+ * @param {('parent'|'child')} [mapType] - ISD only. 'parent' shows the parent-map-specific
+ *   idle hint (no lane/approach tools available), otherwise the general noneLoaded hint is used.
  */
-export function setStatusHintForState(state, hasContent) {
+export function setStatusHintForState(state, hasContent, mapType) {
+  if (hintStack.length > 0) {
+    return;
+  }
   const map = HINTS[appId] || {};
   let text;
-  if (state === 'none' && hasContent && map.noneLoaded != null) {
-    text = map.noneLoaded;
-  } else {
+  if (state === 'none' && hasContent) {
+    text = (mapType === 'parent' && map.noneLoadedParent != null)
+      ? map.noneLoadedParent
+      : map.noneLoaded;
+  }
+  if (text == null) {
     text = map[state] != null ? map[state] : map.none;
   }
   setStatusHint(text);
@@ -104,6 +114,17 @@ export function pushStatusHint(text) {
   }
 }
 
+/**
+ * Save the current hint and display the hint registered for `state` in HINTS, so callers
+ * don't need to hardcode hint copy themselves. No-op display-wise (but still pushes) if
+ * `state` has no entry.
+ * @param {string} state
+ */
+export function pushStatusHintForState(state) {
+  const map = HINTS[appId] || {};
+  pushStatusHint(map[state]);
+}
+
 /** Restore the most recently saved hint. */
 export function popStatusHint() {
   if (hintStack.length) {
@@ -118,6 +139,7 @@ if (typeof window !== 'undefined') {
     setStatusHint,
     setStatusHintForState,
     pushStatusHint,
+    pushStatusHintForState,
     popStatusHint,
   };
 }

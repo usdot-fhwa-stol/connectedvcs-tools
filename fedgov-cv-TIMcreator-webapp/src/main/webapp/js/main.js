@@ -117,6 +117,18 @@ $(document).ready(function () {
 
                 var pixel = [e.pageX, e.pageY - 50];
                 clone(this, pixel);
+
+                if (currentControl === 'drag') {
+                    $('#dragSigns').removeClass('active');
+                    $("#dragSigns i").removeClass('fa-unlock').addClass('fa-lock');
+                    currentControl = 'none';
+                    deleteMode = false;
+                    if (dragInteraction) {
+                        map.removeInteraction(dragInteraction);
+                        dragInteraction = null;
+                    }
+                    toggleControlsOn('none');
+                }
             }
         }
 
