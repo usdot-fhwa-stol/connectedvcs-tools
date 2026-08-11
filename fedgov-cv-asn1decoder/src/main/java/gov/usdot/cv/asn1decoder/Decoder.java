@@ -17,6 +17,13 @@
 package gov.usdot.cv.asn1decoder;
 
 import gov.usdot.cv.libasn1decoder.DecodedResult;
+import gov.usdot.cv.asn1decoder.util.MAPBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.TIMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SPATBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.BSMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.SRMBitStringProcessor;
+import gov.usdot.cv.asn1decoder.util.PSMBitStringProcessor;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -25,16 +32,18 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.usdot.cv.libasn1c.NativeLoadLibrary;
+
 public class Decoder {
 	private static final Logger logger = LogManager.getLogger(Decoder.class);
 
 	public Decoder() {
 	}
 
-	// Load libasn1c_decoder.so external C library
+	// Load the consolidated asn1c JNI library through the shared, guarded loader
 	static {
 		try {
-			System.loadLibrary("asn1c_decoder");
+			NativeLoadLibrary.load();
 		} catch (Exception e) {
 			logger.error("Exception trapped while trying to load the asn1c library" + e.toString());
 			e.printStackTrace();
@@ -54,7 +63,8 @@ public class Decoder {
 		DecodedResult result = decodeMsg(binaryMessage.getMessage(), messageType);
 
 		if (result == null || !result.success) {
-			logger.error("Decoding failed or returned null.");
+			logger.error("Decoding failed or returned null. Detail: {}",
+					result != null ? result.decodedMessage : "null result");
 			//If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();
@@ -64,7 +74,52 @@ public class Decoder {
 			}
 		} else {
 			logger.info("Decoded Message Type: {}", result.messageType);
-			logger.debug("Decoded Message: {}", result.decodedMessage);
+			// logger.debug("Decoded Message: {}", result.decodedMessage);
+
+
+			if (result.decodedMessage != null &&
+				result.decodedMessage.contains("MapData ::=")) {
+
+				logger.info("Applying BIT STRING decoding for MAP (Java layer)");
+
+				result.decodedMessage =
+					MAPBitStringProcessor.processMapBitStrings(result.decodedMessage);
+			}
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("TravelerInformation ::=")) {
+                logger.info("Applying BIT STRING decoding for TIM (Java layer)");
+                result.decodedMessage =
+                    TIMBitStringProcessor.processTIMBitStrings(result.decodedMessage);
+            }
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("SPAT ::=")) {
+                logger.info("Applying BIT STRING decoding for SPAT (Java layer)");
+                result.decodedMessage =
+                    SPATBitStringProcessor.processSPATBitStrings(result.decodedMessage);
+            }
+
+			if (result.decodedMessage != null
+                    && result.decodedMessage.contains("BasicSafetyMessage ::=")) {
+                logger.info("Applying BIT STRING decoding for BSM (Java layer)");
+                result.decodedMessage =
+                    BSMBitStringProcessor.processBSMBitStrings(result.decodedMessage);
+            }
+
+			if (result.decodedMessage != null
+					&& result.decodedMessage.contains("SignalRequestMessage ::=")) {
+				logger.info("Applying BIT STRING decoding for SRM (Java layer)");
+				result.decodedMessage =
+					SRMBitStringProcessor.processSRMBitStrings(result.decodedMessage);
+			}
+
+			if (result.decodedMessage != null 
+				&& result.decodedMessage.contains("PersonalSafetyMessage ::=")) {
+				logger.info("Applying BIT STRING decoding for PSM (Java layer)");
+				result.decodedMessage =
+					PSMBitStringProcessor.processPSMBitStrings(result.decodedMessage);
+			}
 		}
 
 		return result;

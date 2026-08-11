@@ -8,6 +8,7 @@ A high-precision georeferencing REST API service built with Spring Boot 2.7.18 t
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Features](#features)
+  - [Frontend UI Component](#frontend-ui-component)
   - [Requirements](#requirements)
     - [Runtime Requirements](#runtime-requirements)
     - [Development Requirements](#development-requirements)
@@ -27,11 +28,11 @@ A high-precision georeferencing REST API service built with Spring Boot 2.7.18 t
 
 ## Overview
 
-The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing images with high precision using a minimum of 6 Ground Control Points (GCPs). The service leverages GDAL's powerful geospatial capabilities through a modern Spring Boot interface, supporting various coordinate systems and providing Web Mercator projection for web mapping applications.
+The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing images with high precision using a minimum of 4 Ground Control Points (GCPs). The service leverages GDAL's powerful geospatial capabilities through a modern Spring Boot interface, supporting various coordinate systems and providing Web Mercator projection for web mapping applications.
 
 ## Features
 
-- **High-Precision Georeferencing**: Minimum 6 GCPs for enhanced accuracy
+- **High-Precision Georeferencing**: Minimum 4 GCPs for enhanced accuracy
 - **GDAL Integration**: Utilizes GDAL command-line utilities for robust geospatial processing
 - **Coordinate System Support**: 
   - Input: WGS84 (EPSG:4326)
@@ -43,6 +44,25 @@ The Fedgov CV Map Georeferencing Service provides a REST API for georeferencing 
 - **Enterprise Deployment**: WAR packaging for Jetty/Tomcat deployment
 - **Error Handling**: Detailed validation and error reporting
 - **Binary Image Support**: Efficient byte-array image handling
+
+## Frontend UI Component
+
+The georeferencer includes a self-contained OpenLayers ES module located in the shared
+`private-resources/` directory and served at `/private-resources/js/georeferencer.js`
+(and `/private-resources/css/georeferencer.css`). It adds an interactive
+image-georeferencing workflow to a host map application — currently embedded in the TIM and
+ISD Creators — and drives the same `POST /georeference` API documented below.
+
+- **GCP Picking**: Pair Ground Control Points by clicking a location on the map and the
+  matching point on the uploaded image
+- **Editable GCP Table**: Adjust pixel and longitude/latitude values inline
+- **Draggable Markers**: Reposition control points directly on the map or image
+- **Image Zoom & Pan**: Mouse-wheel zoom and middle-mouse pan of the image preview
+- **Georeferenced Overlay**: Result is overlaid on the map with per-overlay opacity control
+- **Non-Modal Dialog**: The underlying map stays interactive while the tool is open
+
+**Integration:** import and initialize the module against the host map, passing a getter so
+init can defer until the map exists.
 
 ## Requirements
 
@@ -108,7 +128,7 @@ Georeference an image using Ground Control Points.
 - **Content-Type**: `multipart/form-data`
 - **Parameters**:
   - `image` (file): Image file (PNG, JPEG, TIFF)
-  - `gcps` (JSON string): Array of at least 6 Ground Control Points
+  - `gcps` (JSON string): Array of at least 4 Ground Control Points
 
 **GCP Format:**
 ```json
@@ -127,7 +147,7 @@ Georeference an image using Ground Control Points.
     "longitude": -77.120000,
     "latitude": 38.654321
   }
-  // ... minimum 6 GCPs total
+  // ... minimum 4 GCPs total
 ]
 ```
 
@@ -162,7 +182,7 @@ Georeference an image using Ground Control Points.
 ```json
 {
   "success": false,
-  "message": "At least 6 Ground Control Points are required for high precision georeferencing, but received 4",
+  "message": "At least 4 ground control points are required for high precision georeferencing. Provided: 2",
   "error": "INVALID_GCP_COUNT"
 }
 ```
@@ -222,8 +242,10 @@ georeference:
       - image/jpg
     max-size: 50MB
   gcp:
-    min-count: 6
+    min-count: 4
     max-count: 10
+  gdal:
+    timeout-seconds: 120
 ```
 
 ### Log4j2 Configuration

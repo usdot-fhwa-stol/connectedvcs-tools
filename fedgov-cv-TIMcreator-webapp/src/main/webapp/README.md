@@ -1,6 +1,6 @@
 # Connected Vehicles
 
-All js and jquery. Documentation is included in js. I'm sorry.
+All js and jquery. Documentation is included in js.
 
 * Homepage: [http://html5boilerplate.com](http://html5boilerplate.com)
 

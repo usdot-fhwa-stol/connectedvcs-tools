@@ -1,5 +1,16 @@
 import { barHighlightedStyle } from "./style.js";
 import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
+import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
+import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
+
+let connectionsHintPushed = false;
+
+export function clearConnectionsHint() {
+  if (connectionsHintPushed) {
+    popStatusHint();
+    connectionsHintPushed = false;
+  }
+}
 
 function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
     if (evt.selected?.length > 0) {
@@ -149,10 +160,43 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $(".spat_label").show();
     $(".lane_width").show();
 
+    // Node Delta: distance in meters from the previous node. Hidden for node 0.
+    const nodeIndex = selectedMarker.get("number");
+    const laneIndex = selectedMarker.get("lane");
+    if (nodeIndex > 0) {
+      $(".node_delta").show();
+      const laneCoords = laneFeatures[laneIndex]?.getGeometry().getCoordinates();
+      if (laneCoords && laneCoords.length > nodeIndex) {
+        const prevPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIndex - 1]));
+        const currPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIndex]));
+        const distMeters = getGeodesicDistance(prevPoint, currPoint).toFixed(2);
+        $("#node_delta").val(distMeters + " m")
+          .data("node-index", nodeIndex)
+          .data("lane-index", laneIndex);
+      }
+    } else {
+      $("#node_delta").val("");
+      $(".node_delta").hide();
+    }
+
+    // Elevation Delta: change in elevation in meters from the previous node.
+    // For node 0, this is measured against the reference point marker's elevation instead.
+    $(".elev_delta").show();
+    const refPointElev = getReferencePointFeature(overlayLayersGroup)?.get("elevation");
+    const elevDelta = getElevationDelta(laneFeatures[laneIndex], nodeIndex, refPointElev);
+    $("#elev_delta").val(elevDelta.toFixed(2) + " m")
+      .data("node-index", nodeIndex)
+      .data("lane-index", laneIndex);
+
     if (selectedMarker.get("number") == 0) {
       setRGAStatus();
       updateDisplayedLaneAttributes(selectedMarker);
       rebuildConnections(selectedMarker.get("connections"));
+
+      if (!connectionsHintPushed) {
+        pushStatusHintForState('connections');
+        connectionsHintPushed = true;
+      }
       $("#lane_attributes").show();
       $(".descriptive_name").show();
       $(".lane_type").show();
@@ -379,6 +423,9 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     }
     resetLaneAttributes();
     laneConnections.getSource().clear();
+    $(".node_delta").hide();
+    $(".elev_delta").hide();
+    clearConnectionsHint();
     return null;
   } else {
     console.log("No lane marker feature selected, ignore");
@@ -489,6 +536,8 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".elev").hide();
       $(".verified_elev").hide();
       $(".lane_width").hide();
+      $(".node_delta").hide();
+      $(".elev_delta").hide();
       $(".descriptive_name").hide();
       $(".lane_type").hide();
       $(".revision").hide();

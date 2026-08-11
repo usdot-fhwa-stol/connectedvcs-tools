@@ -18,6 +18,7 @@ package gov.usdot.cv.fedgov_cv_map_georeferencing.gdal;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * GDAL Facade - Provides a clean interface for all GDAL command-line utility operations.
@@ -43,8 +45,11 @@ public class GdalFacade {
     private static final String GDAL_WARP = "gdalwarp";
     private static final String GDAL_INFO = "gdalinfo";
     
+    @Value("${georeference.gdal.timeout-seconds:120}")
+    private long gdalTimeoutSeconds;
+
     private final boolean gdalAvailable;
-    
+
     public GdalFacade() {
         this.gdalAvailable = checkGdalAvailability();
     }
@@ -126,29 +131,40 @@ public class GdalFacade {
      * @param outputFormat Output format ("PNG")
      * @throws GdalException if the operation fails
      */
-    public void warpImage(Path inputPath, Path outputPath, String targetSrs, 
-                         String resamplingMethod, String outputFormat) throws GdalException {
-        logger.info("Warping image {} -> {} (SRS: {}, Format: {})", 
-                   inputPath.getFileName(), outputPath.getFileName(), targetSrs, outputFormat);
-        
+    public void warpImage(Path inputPath, Path outputPath, String targetSrs,
+                         String resamplingMethod, String outputFormat,
+                         String transformMethod) throws GdalException {
+        logger.info("Warping image {} -> {} (SRS: {}, Format: {}, Transform: {})",
+                   inputPath.getFileName(), outputPath.getFileName(), targetSrs, outputFormat, transformMethod);
+
         List<String> command = new ArrayList<>();
         command.add(GDAL_WARP);
+
+        if (transformMethod != null) {
+            if ("tps".equalsIgnoreCase(transformMethod)) {
+                command.add("-tps");
+            } else if (transformMethod.toLowerCase().startsWith("order")) {
+                command.add("-order");
+                command.add(transformMethod.substring(5));
+            }
+        }
+
         command.add("-t_srs");
         command.add(targetSrs);
-        
+
         if (resamplingMethod != null) {
             command.add("-r");
             command.add(resamplingMethod);
         }
-        
+
         if (outputFormat != null) {
             command.add("-of");
             command.add(outputFormat);
         }
-        
+
         command.add(inputPath.toString());
         command.add(outputPath.toString());
-        
+
         executeGdalCommand(command, "Image warping to " + targetSrs);
     }
     
@@ -219,11 +235,15 @@ public class GdalFacade {
                 }
             }
             
-            int exitCode = process.waitFor();
+            boolean finished = process.waitFor(gdalTimeoutSeconds, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new GdalException("gdalinfo timed out after " + gdalTimeoutSeconds + " seconds");
+            }
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
                 String error = readProcessError(process);
                 if (jsonOutput) {
-                    // Fallback: try without JSON format
                     logger.warn("JSON gdalinfo failed, trying text format for: {}", imagePath.getFileName());
                     return getImageInfo(imagePath, false, includeChecksum);
                 } else {
@@ -286,9 +306,14 @@ public class GdalFacade {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Process process = pb.start();
-            
-            int exitCode = process.waitFor();
-            
+
+            boolean finished = process.waitFor(gdalTimeoutSeconds, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new GdalException(operationDescription + " timed out after " + gdalTimeoutSeconds + " seconds");
+            }
+            int exitCode = process.exitValue();
+
             if (exitCode != 0) {
                 String error = readProcessError(process);
                 String commandStr = String.join(" ", command);

@@ -2,10 +2,11 @@ import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnections
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
-import { boxSelectInteractionCallback, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
+import { boxSelectInteractionCallback, clearConnectionsHint, laneMarkersInteractionCallback, laneSelectInteractionCallback, measureCallback, vectorAddInteractionCallback, vectorDragCallback, vectorSelectInteractionCallback} from "./interactions.js";
 import {populateAutocompleteSearchPlacesDropdown } from "./api.js";
-import {buildComputedFeature, createPointFeature, getGeodesicDistance, getMaxSquareDistance, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
+import {buildComputedFeature, createPointFeature, getElevationDelta, getGeodesicDistance, getMaxSquareDistance, getReferencePointFeature, movePolygon, onFeatureAdded, placeComputedLane, scaleAndRotatePolygon, selectComputedFeature, showMarkers } from "./features.js";
 import {onMoveEnd, onPointerMove, onWheelScrollCallback, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
+import { initStatusBar } from "../../private-resources/js/status-bar.js";
 
 const tilesetURL = "/msp/azuremap/api/proxy/tileset/";
 const tokenURL = "/msp/security/api/csrf-token/";
@@ -57,11 +58,17 @@ let timeRestrictions;
 let approachTimeRestrictions;
 let connectionsTimeRestrictions;
 let csrfToken = null;
+// Tracks whether Shift is held for node deletion via the Modify interaction.
+// Module-level so both registerDrawInteractions() and registerSelectInteraction()
+// can read it.
+let isShiftHeld = false;
+document.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
+document.addEventListener('keyup',   (e) => { if (e.key === 'Shift') isShiftHeld = false; });
 
 const getCSRFToken = () => {
   // Fetch CSRF token from the server and return the token string, or null if unavailable
   return fetch(tokenURL)
-    .then(response => {
+    .then(response => {       
       if(response.status !== 200) {
         console.error("Failed to fetch CSRF token");
         return null;
@@ -179,6 +186,7 @@ function initMap() {
     source: laneWidthsSource,
     style: widthStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const laneConnectionsSource = new ol.source.Vector();
@@ -187,6 +195,7 @@ function initMap() {
     source: laneConnectionsSource,
     style: connectionsStyle,
     visible: true,
+    zIndex: 2,
   });
 
   const errorsSource = new ol.source.Vector();
@@ -195,6 +204,7 @@ function initMap() {
     source: errorsSource,
     style: errorMarkerStyle,
     visible: true,
+    zIndex: 2,
   });
 
   /**
@@ -345,6 +355,9 @@ function registerSelectInteraction() {
     condition: ol.events.condition.click,
     layers: [laneMarkers],
     filter: (feature, layer)=>{
+      if (isShiftHeld) {
+        return false;
+      }
       //If it is in edit mode (edit an approach), do not allow lane marker selection
       if (controls.edit?.getActive()) {
         return false;
@@ -391,6 +404,7 @@ function registerSelectInteraction() {
   //Add feature event on vectors layer
   vectors.getSource().on("addfeature", (event) => {
     console.log("Vectors feature added:", event.feature);
+    draggableFeature.clear(); // Ensure only one feature is draggable at a time
     draggableFeature.push(event.feature);
     selectedLayer = vectors;
     selectedMarker = vectorAddInteractionCallback(event,  selected, rgaEnabled, speedForm);
@@ -482,6 +496,14 @@ function registerDrawInteractions(){
           return false;
         }
         return true;
+      },
+      // Delete Node: Shift+click deletes the vertex under the pointer.
+      // This is only active while the modify control is active (i.e. when the
+      // user is in lane-editing mode), so it will not fire during normal map
+      // navigation or in any other tool mode.
+      deleteCondition: function(event) {
+        const isSingleClick = ol.events.condition.singleClick(event);
+        return isShiftHeld && isSingleClick;
       }
     }),
     placeComputed: new ol.interaction.Draw({
@@ -617,6 +639,32 @@ function registerDrawInteractions(){
         if (feature.getGeometry() instanceof ol.geom.LineString) {
           temporaryLaneMarkers.getSource().clear();
           showMarkers(feature, temporaryLaneMarkers);
+
+          // Rebuild laneMarkers. syncParallelArraysAfterNodeDelete() inside
+          // onFeatureAdded() splices elevation, laneWidth, and nodeInitialized
+          // at the deleted index, covering both vertex-move and vertex-delete.
+          onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+
+          // Recalculate node_delta while editing a lane.
+          const nodeIdx = parseInt($("#node_delta").data("node-index"));
+          const laneIdx = parseInt($("#node_delta").data("lane-index"));
+          if (!isNaN(nodeIdx) && nodeIdx > 0 && !isNaN(laneIdx)) {
+            const laneCoords = lanes.getSource().getFeatures()[laneIdx]?.getGeometry().getCoordinates();
+            if (laneCoords && laneCoords.length > nodeIdx) {
+              const prevPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx - 1]));
+              const currPoint = new ol.Feature(new ol.geom.Point(laneCoords[nodeIdx]));
+              $("#node_delta").val(getGeodesicDistance(prevPoint, currPoint).toFixed(2) + " m");
+            }
+          }
+
+          // Recalculate elev_delta while editing a lane.
+          const elevNodeIdx = Number.parseInt($("#elev_delta").data("node-index"));
+          const elevLaneIdx = Number.parseInt($("#elev_delta").data("lane-index"));
+          if (!Number.isNaN(elevNodeIdx) && elevNodeIdx > 0 && !Number.isNaN(elevLaneIdx)) {
+            const laneFeat = lanes.getSource().getFeatures()[elevLaneIdx];
+            $("#elev_delta").val(getElevationDelta(laneFeat, elevNodeIdx).toFixed(2) + " m");
+          }
+
         }
     });
   });
@@ -740,7 +788,11 @@ function initSideBar() {
    * Register sidebar bottom layer control events
    */
   $("button[name='layerControl']").click(function (e) {
-    clearAllInteractions();
+    // Builder is a side panel toggle, not a drawing tool - it must not clear an in-progress
+    // lane node selection (e.g. while dragging maneuver icons onto Lane Attributes/Connections).
+    if (this.value !== 'builder') {
+      clearAllInteractions();
+    }
     deleteMode = false;
     $("#dragSigns i").removeClass("fa-unlock").addClass("fa-lock");
     $(this).addClass("current").siblings().removeClass("active");
@@ -804,6 +856,8 @@ function initSideBar() {
   }
 
   $(document).ready(function() {
+    // Show the initial tool-hint bar message for the MAP/RGA tool
+    initStatusBar('isd');
     // Initialize Right U-Turn as disabled since rgaEnabled starts as false
     let rightUTurnImg = $('#lane_img_12');
     if (rightUTurnImg.length > 0) {
@@ -1125,6 +1179,23 @@ function initMISC() {
     onRoadAuthorityIdChangeCallback();
   });
 
+  // Live-update the Elevation Delta field as the user edits the node's elevation.
+  $("#elev").on("input", () => {
+    const nodeIndex = Number.parseInt($("#elev_delta").data("node-index"));
+    const laneIndex = Number.parseInt($("#elev_delta").data("lane-index"));
+    if (!Number.isNaN(nodeIndex) && nodeIndex >= 0 && !Number.isNaN(laneIndex)) {
+      const laneFeat = lanes.getSource().getFeatures()[laneIndex];
+      const elevation = laneFeat?.get("elevation");
+      const prevElev = nodeIndex === 0
+        ? Number(getReferencePointFeature(overlayLayersGroup)?.get("elevation"))
+        : Number(elevation?.[nodeIndex - 1]?.value);
+      const currElev = Number($("#elev").val());
+      if (!Number.isNaN(prevElev) && !Number.isNaN(currElev)) {
+        $("#elev_delta").val((currElev - prevElev).toFixed(2) + " m");
+      }
+    }
+  });
+
   $('#revision_num').on('keyup', () => {
     revisionNumChangeCallback();
   })
@@ -1227,6 +1298,8 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
+    // Explicit, rather than relying on a Select deselect event to fire for node 0.
+    clearConnectionsHint();
     laneConnections.getSource().clear();
     //Update Reference Point Configuration fields with parsley attributes
     let road_authority_id = $("#road_authority_id");
@@ -1428,6 +1501,13 @@ function registerModalButtonEvents() {
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].edited = true;
 
+        // Refresh elevation deltas for the whole lane so the saved map JSON stays consistent.
+        const editedLaneFeat = lanes.getSource().getFeatures()[selectedMarker.get("lane")];
+        const editedElevation = editedLaneFeat.get("elevation");
+        for (let n = 0; n < editedElevation.length; n++) {
+          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n);
+        }
+
         if (selectedMarker.get("computed")) {
           selectedMarker.set("offsetX", $("#offset-X").val());
           selectedMarker.set("offsetY", $("#offset-Y").val());
@@ -1507,6 +1587,8 @@ function registerModalButtonEvents() {
    */
 
   $(".btnClose").click(() => {
+    // Explicit, rather than relying on a Select deselect event to fire for node 0.
+    clearConnectionsHint();
     laneConnections.getSource().clear();
     $("#attributes").hide();
     $("#shared_with").multiselect("deselectAll", false);
@@ -1648,12 +1730,13 @@ $(document).ready(() => {
 
 
 export {
+  map,
   lanes,
   vectors,
   laneMarkers,
   laneWidths,
   box,
-  errors, 
+  errors,
   rgaEnabled,
   selectedMarker
 };

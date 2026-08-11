@@ -24,14 +24,16 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.usdot.cv.libasn1c.NativeLoadLibrary;
+
 public class TIMDecoder {
 	private static final Logger logger = LogManager.getLogger(TIMDecoder.class);
 
 	static {
 		try {
-			System.loadLibrary("asn1c_timdecoder");
+			NativeLoadLibrary.load();
 		} catch (UnsatisfiedLinkError e) {
-			logger.error("Failed to load native library asn1c_timdecoder");
+			logger.error("Failed to load native library asn1c_jni");
 			throw e;
 		}
 	}
@@ -48,7 +50,8 @@ public class TIMDecoder {
 		logger.debug("Decoding the binary message...");
 		DecodedResult result = decodeTimMsg(binaryMessage.getMessage());
 		if (result == null || !result.success) {
-			logger.error("Decoding failed or returned null.");
+			logger.error("Decoding failed or returned null. Detail: {}",
+					result != null ? result.decodedMessage : "null result");
 			// If a null object is returned assigning a object with empty decoded message and messagetype
 			if (result == null) {
 				result = new DecodedResult();

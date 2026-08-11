@@ -1,6 +1,13 @@
 spring:
   application:
     name: fedgov-cv-map-georeferencing
+  servlet:
+    multipart:
+      # Must accommodate the georeference.image.max-size below; otherwise the
+      # servlet rejects the upload during multipart parsing (HTTP 500) before the
+      # app's own size validation runs. Request size adds headroom for the gcps part.
+      max-file-size: 50MB
+      max-request-size: 55MB
 
 server:
   port: 8080
@@ -14,6 +21,16 @@ georeference:
       - image/jpg
     max-size: 50MB
   gcp:
-    min-count: 6
+    min-count: 4
     max-count: 10
-  
+  gdal:
+    timeout-seconds: 120
+  warp:
+    # Transform method for gdalwarp. Options:
+    #   tps    - Thin Plate Spline (smooth, interpolates through all GCPs, best for manual point picking)
+    #   order1 - 1st-order polynomial (affine: rotation, scale, skew — no perspective)
+    #   order2 - 2nd-order polynomial (adds curvature, needs 6+ GCPs)
+    #   order3 - 3rd-order polynomial (more flexible, needs 10+ GCPs, sensitive to noise)
+    transform-method: tps
+    # Resampling method. Options: bilinear, cubic, nearest, lanczos
+    resampling-method: bilinear

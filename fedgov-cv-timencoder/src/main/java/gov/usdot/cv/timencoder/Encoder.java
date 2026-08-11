@@ -22,6 +22,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import gov.usdot.cv.asn1decoder.ByteArrayObject;
+import gov.usdot.cv.libasn1c.NativeLoadLibrary;
 
 public class Encoder {
     private static final Logger logger = LogManager.getLogger(Encoder.class);
@@ -29,12 +30,12 @@ public class Encoder {
     public Encoder() {
     }
 
-    // Load native library for TIM encoding
+    // Load the consolidated asn1c JNI library through the shared, guarded loader
     static {
         try {
-            System.loadLibrary("asn1c_timencoder");
+            NativeLoadLibrary.load();
         } catch (Exception e) {
-            logger.error("Exception while loading the asn1c_timencoder library: " + e.toString(), e);
+            logger.error("Exception while loading the asn1c_jni library: " + e.toString(), e);
         }
     }
 

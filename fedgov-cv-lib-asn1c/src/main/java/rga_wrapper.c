@@ -1039,13 +1039,13 @@ void populateIndividualSpeedLimitSettings(JNIEnv *env, jobject indvSpeedLimitSet
 	individualSpeedLimitSettings->speedLimit = (Speed_t)speedLimitValue;
 
 	// speedLimitType
-	jmethodID getSpeedLimitType = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getSpeedLimitType", "()Lgov/usdot/cv/rgaencoder/SpeedLimitTypeRGA;");
+	jmethodID getSpeedLimitType = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getSpeedLimitType", "()Lgov/usdot/cv/rgaencoder/RoadGeometryAndAttributes_SpeedLimitType;");
 	jobject speedLimitTypeObj = (*env)->CallObjectMethod(env, indvSpeedLimitSettingObj, getSpeedLimitType);
 	jclass speedLimitTypeClass = (*env)->GetObjectClass(env, speedLimitTypeObj);
 	jmethodID getSpeedLimitTypeVal = (*env)->GetMethodID(env, speedLimitTypeClass, "getSpeedLimitTypeValue", "()J");
 	jlong speedLimitTypeVal = (*env)->CallLongMethod(env, speedLimitTypeObj, getSpeedLimitTypeVal);
 
-	individualSpeedLimitSettings->speedLimitType = (SpeedLimitType_t)speedLimitTypeVal;
+	individualSpeedLimitSettings->speedLimitType = (RoadGeometryAndAttributes_SpeedLimitType_t)speedLimitTypeVal;
 
 	// vehicleTypes
 	jmethodID getVehicleTypes = (*env)->GetMethodID(env, indvSpeedLimitSettingClass, "getVehicleTypes", "()Lgov/usdot/cv/rgaencoder/SpeedLimitVehicleType;");

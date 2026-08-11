@@ -1,13 +1,10 @@
-FROM gradle:7.4.2-jdk8 AS gradle-build
-ARG USE_SSL
-RUN ls -la && pwd
 FROM maven:3.8.5-jdk-8-slim AS mvn-build
 COPY . /root
-
-# Install gettext to use envsubst
-RUN apt-get update && \
-    apt-get install -y gettext-base && \
-    apt-get clean
+WORKDIR /root/fedgov-cv-lib-asn1c
+RUN ./build_jni.sh --clean
+WORKDIR /root
+ARG USE_SSL
+RUN ./build.sh
 
 # Update the web.xml based on SSL selection
 RUN if [ "$USE_SSL" = "true" ]; then \
@@ -22,28 +19,36 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     envsubst '$SECURITY_CONSTRAINT' < /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml > /tmp/web.xml.tmp && \
     mv /tmp/web.xml.tmp /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
 
-# Run the Maven build
-COPY ./build.sh /root
-WORKDIR /root
-RUN ./build.sh
-
 FROM jetty:9.4.46-jre8-slim
 ARG USE_SSL
-
-# Switch to root for installations and configurations
 USER root
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
 
-# Install GDAL for georeferencing service
+LABEL org.opencontainers.image.title="connectedvcs-tools"
+LABEL org.opencontainers.image.description="Image for USDOT FHWA ConnectedVCS Tools"
+LABEL org.opencontainers.image.vendor="Leidos"
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.source="https://github.com/usdot-fhwa-stol/connectedvcs-tools"
+LABEL org.opencontainers.image.revision=${VCS_REF}
+LABEL org.opencontainers.image.created=${BUILD_DATE}
+LABEL org.opencontainers.image.base.name="docker.io/library/jetty:9.4.46-jre8-slim"
+
+# Install GDAL for georeferencing service and stol-j2735 runtime dependency
 RUN apt-get update && \
-    apt-get install -y gdal-bin libgdal28  \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends gdal-bin libgdal28 curl ca-certificates gnupg && \
+    echo "deb [trusted=yes] https://s3.amazonaws.com/stol-apt-repository develop focal" \
+        > /etc/apt/sources.list.d/stol-apt-repository.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends stol-j2735-2024-1 && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create third_party_lib directory and set permissions early
-RUN mkdir -p /var/lib/jetty/webapps/third_party_lib && \
+# Create lib directory and set permissions early
+RUN mkdir -p /var/lib/jetty/webapps/lib && \
     chown root:jetty /var/lib/jetty/webapps && \
     chmod 755 /var/lib/jetty/webapps
 
@@ -56,17 +61,13 @@ COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/root.war /var/lib/jet
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-services-proxy/target/*.war /var/lib/jetty/webapps/msp.war
 COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-map-georeferencing/target/*.war /var/lib/jetty/webapps/georef.war
 
-# Copy the shared libraries with chown to jetty user
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_decoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timdecoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_timencoder.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x64.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_x86.so /var/lib/jetty/webapps/third_party_lib
-COPY --from=mvn-build --chown=root:jetty  --chmod=755  /root/fedgov-cv-lib-asn1c/third_party_lib/libasn1c_rga.so /var/lib/jetty/webapps/third_party_lib
+# Copy the consolidated asn1c JNI library with chown to jetty user.
+# NativeLoadLibrary now loads this from the classpath (bundled inside each
+# WAR's WEB-INF/lib), so this copy is not required for encoding/decoding to
+# work, but is kept as a reference/fallback artifact on disk.
+COPY --from=mvn-build --chown=root:jetty --chmod=755 /root/fedgov-cv-lib-asn1c/lib/libasn1c_jni.so /var/lib/jetty/webapps/lib/
 
-# Set library path env and update ldconfig
-ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/third_party_lib
+ENV LD_LIBRARY_PATH=/var/lib/jetty/webapps/lib:/opt/carma/lib
 RUN ldconfig
 
 # Prepare Jetty base and restrict write access to config

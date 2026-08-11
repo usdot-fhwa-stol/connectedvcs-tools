@@ -57,6 +57,9 @@ class GeoreferenceServiceTest {
     @Mock
     private GeoreferenceProperties.Image imageProperties;
 
+    @Mock
+    private GeoreferenceProperties.Warp warpProperties;
+
     private GeoreferenceService georeferenceService;
 
     private MultipartFile validImageFile;
@@ -69,8 +72,11 @@ class GeoreferenceServiceTest {
         // Setup mock properties
         lenient().when(georeferenceProperties.getGcp()).thenReturn(gcpProperties);
         lenient().when(georeferenceProperties.getImage()).thenReturn(imageProperties);
-        lenient().when(gcpProperties.getMinCount()).thenReturn(6);
-        lenient().when(gcpProperties.getMaxCount()).thenReturn(10);
+        lenient().when(georeferenceProperties.getWarp()).thenReturn(warpProperties);
+        lenient().when(warpProperties.getTransformMethod()).thenReturn("tps");
+        lenient().when(warpProperties.getResamplingMethod()).thenReturn("bilinear");
+        lenient().when(gcpProperties.getMinCount()).thenReturn(4);
+        lenient().when(gcpProperties.getMaxCount()).thenReturn(Integer.valueOf(10));
         lenient().when(imageProperties.getSupportedFormatsAsSet()).thenReturn(
             new HashSet<>(Arrays.asList("image/jpg", "image/jpeg", "image/png", "image/tif", "image/tiff"))
         );
@@ -103,7 +109,7 @@ class GeoreferenceServiceTest {
             new byte[0]
         );
 
-        // Create valid GCPs (at least 6 for high precision)
+        // Create valid GCPs (at least 4 per spec requirements)
         validGcps = Arrays.asList(
             new GCP("GCP1", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
@@ -113,7 +119,7 @@ class GeoreferenceServiceTest {
             new GCP("GCP6", 600, 700, -77.128, 38.461)
         );
 
-        // Create invalid GCPs (only 3 - below minimum of 6)
+        // Create invalid GCPs (only 3 - below minimum of 4)
         invalidGcps = Arrays.asList(
             new GCP("GCP1", 100, 200, -77.123, 38.456),
             new GCP("GCP2", 300, 400, -77.124, 38.457),
@@ -136,7 +142,7 @@ class GeoreferenceServiceTest {
         }).when(gdalFacade).translateImage(any(), any(), eq("PNG"), eq("-scale"));
         
         doNothing().when(gdalFacade).createVrtWithGcps(any(), any(), any(), any());
-        doNothing().when(gdalFacade).warpImage(any(), any(), any(), any(), any());
+        doNothing().when(gdalFacade).warpImage(any(), any(), any(), any(), any(), any());
         
         Map<String, Object> mockImageInfo = new HashMap<>();
         mockImageInfo.put("gdalinfo_json", "{\"wgs84Extent\":{\"coordinates\":[[[-77.151679,38.957170],[-77.151679,38.954914],[-77.146619,38.954914],[-77.146619,38.957170],[-77.151679,38.957170]]]},\"size\":[898,516]}");
@@ -219,7 +225,8 @@ class GeoreferenceServiceTest {
             IllegalArgumentException.class,
             () -> georeferenceService.process(validImageFile, null)
         );
-        assertEquals("At least 6 ground control points are required for high precision georeferencing. Provided: 0", exception.getMessage());
+        assertTrue(exception.getMessage().contains("ground control points are required"));
+        assertTrue(exception.getMessage().contains("Provided: 0"));
     }
 
     @Test
@@ -229,7 +236,7 @@ class GeoreferenceServiceTest {
             IllegalArgumentException.class,
             () -> georeferenceService.process(validImageFile, invalidGcps)
         );
-        assertTrue(exception.getMessage().contains("At least 6 ground control points are required"));
+        assertTrue(exception.getMessage().contains("ground control points are required"));
         assertTrue(exception.getMessage().contains("Provided: 3"));
     }
 
@@ -315,5 +322,30 @@ class GeoreferenceServiceTest {
         assertTrue(extent.get("maxLongitude") >= -77.123);
         assertTrue(extent.get("minLatitude") <= 38.456);
         assertTrue(extent.get("maxLatitude") >= 38.461);
+    }
+
+    @Test
+    void testProcess_ExactlyMinGcps_Succeeds() throws Exception {
+        List<GCP> exactMinGcps = Arrays.asList(
+            new GCP("GCP1", 100, 200, -77.123, 38.456),
+            new GCP("GCP2", 300, 400, -77.124, 38.457),
+            new GCP("GCP3", 500, 600, -77.125, 38.458),
+            new GCP("GCP4", 700, 800, -77.126, 38.459)
+        );
+
+        Map<String, Object> result = georeferenceService.process(validImageFile, exactMinGcps);
+        assertNotNull(result);
+        assertEquals(4, result.get("gcpCount"));
+        assertEquals("mock_processed", result.get("status"));
+    }
+
+    @Test
+    void testProcess_NoMaxCount_AcceptsAnyNumber() throws Exception {
+        lenient().when(gcpProperties.getMaxCount()).thenReturn(null);
+        georeferenceService = new GeoreferenceService(gdalFacade, georeferenceProperties);
+
+        Map<String, Object> result = georeferenceService.process(validImageFile, validGcps);
+        assertNotNull(result);
+        assertEquals(6, result.get("gcpCount"));
     }
 }

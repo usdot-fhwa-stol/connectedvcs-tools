@@ -32,8 +32,10 @@
 	<link rel="stylesheet" href="css/sidebar.css" type="text/css">
 	<link rel="stylesheet" href="css/jquery-ui.css" type="text/css">
 	<link rel="stylesheet" href="css/select2.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/css/status-bar.css" type="text/css">
 
-	
+
 </head>
 
 <body>
@@ -107,6 +109,9 @@
 						</ul>
 					</li>
                 </ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="#" id="openGeoreferencer" style="cursor:pointer;">Georeferencing</a></li>
+				</ul>
             </div>
             <!-- /.navbar-collapse -->
         </div>
@@ -257,6 +262,11 @@
 							<div class="col-sm-4"><label for="lane_width">Lane Width Delta:</label></div>
 							<div class="col-sm-7"><input class="form-control" id="lane_width" placeholder="-512 to 511" data-parsley-pattern="^-?[0-9]+$" data-parsley-range="[-512, 511]" data-parsley-pattern-message="This value must be an integer."></div>
 							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_width"></i></div>
+						</div>
+						<div class="row node_delta" data-toggle="tooltip" title="in meters" style="display:none">
+							<div class="col-sm-4"><label for="node_delta">Node Delta:</label></div>
+							<div class="col-sm-7"><input class="form-control" id="node_delta" readonly></div>
+							<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="node_delta"></i></div>
 						</div>
 						<div class="row ssp_tim_rights">
 							<div class="col-sm-4"><label for="ssp_tim_rights">SSP TIM Rights:</label></div>
@@ -740,6 +750,19 @@
 										<li>Click the feature (region) you wish to delete.</li>
 										<li>Toggle <strong>OFF</strong> the <strong>Delete</strong> Control.</li>
 									</ul>
+									<li>Deleting a Lane Node</li>
+									<ol type="a">
+										<li>Toggle ON the <strong>Edit Regions</strong> Control on the bottom Control Panel.</li>
+										<li>Click the lane whose node you wish to delete and vertex handles will appear on the line.</li>
+										<li>Hold <strong>Shift</strong> and click the vertex handle you wish to remove.</li>
+										<li>The node will be deleted and the line will be redrawn with the remaining nodes.</li>
+									</ol>
+									<li>Viewing Distance Between Two Lane Nodes (Node Delta)</li>
+									<ol type="a">
+										<li>Verify that all of the Controls on the bottom panel are toggled <strong>OFF</strong>.</li>
+										<li>Click on any lane node other than the first node (node 0).</li>
+										<li>The <strong>Lane Info</strong> dialog will display a read-only <strong>Node Delta</strong> field showing the distance in meters from the previous node to the selected node.</li>
+									</ol>
 								</ol>
 								<br>
 								<p>Note: When defining elevations, keep in mind that the standard defines the delta between elevations to be
@@ -862,6 +885,9 @@
 	</div>
 	
 
+	<!-- Slim, always-visible tool-hint bar between the map and the bottom control toolbar -->
+	<div id="tool-hint-bar"><span id="tool-hint-text"></span></div>
+
 	<!--******************************************* SCRIPTS *******************************************-->
 
 	<!-- <script src="/private-resources/js/TIMcreator-webapp-keys.js"></script> -->
@@ -924,7 +950,15 @@
 	<script src="js/latlon-vincenty.js"></script>
 	<script src="js/bing.js"></script>
 	<script type="module" src="js/api.js"></script>
-	
+
+	<script type="module">
+		import * as mapping from './js/mapping.js';
+		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		initGeoreferencer(() => mapping.map, {
+			georefEndpoint: '/georef/api/georeference',
+			csrfTokenUrl: '/msp/security/api/csrf-token/'
+		});
+	</script>
 
 </body>
 </html>

@@ -9,11 +9,52 @@ import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggle
  * @event creates variables attached to the feature object and store the values
  */
 
+/**
+ * When a vertex is deleted via the Modify interaction, the geometry loses one
+ * coordinate but the elevation/laneWidth/nodeInitialized parallel arrays still
+ * hold the old count.  This function detects the deleted index by finding the
+ * first coordinate whose stored latlon no longer matches, then splices all
+ * three arrays at that index so they stay aligned with the geometry.
+ */
+function syncParallelArraysAfterNodeDelete(laneFeat) {
+	// Skip computed lanes
+	if (laneFeat.get("computed")) return;
+	const coords = laneFeat.getGeometry().getCoordinates();
+	const max = coords.length;
+	const elev = laneFeat.get("elevation");
+	const lw   = laneFeat.get("laneWidth");
+	const ni   = laneFeat.get("nodeInitialized");
+
+	if (!elev || elev.length <= max) return;
+
+	// Find the first index where the current coordinate no longer matches the
+	// stored latlon.
+	let deletedIdx = elev.length - 1; 
+	for (let j = 0; j < max; j++) {
+		const storedLat = elev[j]?.latlon?.lat;
+		const storedLon = elev[j]?.latlon?.lon;
+		if (storedLat == null || storedLon == null) continue;
+		const lonLat = ol.proj.toLonLat(coords[j]);
+		const curLat = lonLat[1].toString().match(/^-?\d+(?:\.\d{0,11})?/)[0];
+		const curLon = lonLat[0].toString().match(/^-?\d+(?:\.\d{0,11})?/)[0];
+		if (curLat !== storedLat.toString().match(/^-?\d+(?:\.\d{0,11})?/)[0] ||
+		    curLon !== storedLon.toString().match(/^-?\d+(?:\.\d{0,11})?/)[0]) {
+			deletedIdx = j;
+			break;
+		}
+	}
+
+	elev.splice(deletedIdx, 1);
+	if (lw) lw.splice(deletedIdx, 1);
+	if (ni) ni.splice(deletedIdx, 1);
+}
+
 function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 	laneMarkers.getSource().clear();
 	let laneFeatures = lanes.getSource().getFeatures();
 	for(let i = 0; i < laneFeatures.length; i++){
 		let laneFeat = laneFeatures[i];
+		syncParallelArraysAfterNodeDelete(laneFeat);
 		let max = laneFeat.getGeometry().getCoordinates().length;
 		if (typeof laneFeat.get("elevation") == 'undefined') {
 			laneFeat.set("elevation", []);
@@ -702,6 +743,35 @@ function getGeodesicDistance(fromPointFeature, toPointFeature) {
     return ol.sphere.getDistance(coord1, coord2);
 }
 
+/**
+ * Function to calculate the elevation delta in meters between a node and the previous node in the same lane
+ * @param {*} laneFeat Lane feature containing the parallel elevation array
+ * @param {*} nodeIndex Index of the node within the lane
+ * @param {*} refPointElev Elevation in meters of the reference point marker, used only when nodeIndex is 0
+ * @returns Elevation delta in meters, or 0 if the comparison elevation is unset
+ */
+function getElevationDelta(laneFeat, nodeIndex, refPointElev) {
+	if (!laneFeat || nodeIndex < 0) return 0;
+	const elevation = laneFeat.get("elevation");
+	const currElev = Number(elevation?.[nodeIndex]?.value);
+	const prevElev = nodeIndex === 0 ? Number(refPointElev) : Number(elevation?.[nodeIndex - 1]?.value);
+	if (Number.isNaN(currElev) || Number.isNaN(prevElev)) return 0;
+	return Math.round((currElev - prevElev) * 100) / 100;
+}
+
+/**
+ * Function to find the Reference Point Marker feature among the overlay layers
+ * @param {*} overlayLayersGroup Layer group containing all map overlay layers
+ * @returns The Reference Point Marker feature, or undefined if none is found
+ */
+function getReferencePointFeature(overlayLayersGroup) {
+	for (const layer of overlayLayersGroup.getLayers().getArray()) {
+		if (!(layer instanceof ol.layer.Vector)) continue;
+		const match = layer.getSource().getFeatures().find(f => f.get("marker")?.name === "Reference Point Marker");
+		if (match) return match;
+	}
+}
+
 function selectComputedFeature(laneNum, laneMarkers) {
 	const features = laneMarkers.getSource().getFeatures();
 	for (let i = 0; i < features.length; i++) {
@@ -797,6 +867,8 @@ export {
 	selectComputedFeature,
 	movePolygon,
 	getGeodesicDistance,
+	getElevationDelta,
+	getReferencePointFeature,
 	getMaxSquareDistance,
 	calculateAngle,
 	createPointFeature,

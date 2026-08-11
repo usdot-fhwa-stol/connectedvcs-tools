@@ -17,6 +17,7 @@ import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, meas
 import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
+import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
 
 import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
 var map;
@@ -48,6 +49,9 @@ const hybridTilesetId = "microsoft.base.hybrid.road";
 let temporaryBoxMarkers;
 let temporaryLaneMarkers;
 let measureSource = new ol.source.Vector();
+let isShiftHeld = false;
+document.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
+document.addEventListener('keyup',   (e) => { if (e.key === 'Shift') isShiftHeld = false; });
 let measureLayer = new ol.layer.Vector({
   source: measureSource,
   style: measureStyle
@@ -587,6 +591,22 @@ function registerMapEvents() {
     }
 
     const markerNumber = selected_marker.get('number');
+
+    // Node Delta: distance in meters from the previous node. Hidden for node 0.
+    if (markerNumber > 0 && laneFeature) {
+      $(".node_delta").show();
+      const laneCoords = laneFeature.getGeometry().getCoordinates();
+      if (laneCoords.length > markerNumber) {
+        const c1 = ol.proj.transform(laneCoords[markerNumber - 1], toProjection, fromProjection);
+        const c2 = ol.proj.transform(laneCoords[markerNumber], toProjection, fromProjection);
+        $("#node_delta").val(ol.sphere.getDistance(c1, c2).toFixed(2) + " m")
+          .data("node-index", markerNumber)
+          .data("lane-index", laneIndex);
+      }
+    } else {
+      $("#node_delta").val("");
+      $(".node_delta").hide();
+    }
     const widthValue = nodeLaneWidth?.[markerNumber] ?? "0";
     $("#lane_width").val(widthValue);
 
@@ -606,6 +626,7 @@ function registerMapEvents() {
 
   laneMarkerSelect.on('deselect', function (evt) {
     $("#attributes").hide();
+    $(".node_delta").hide();
     selected_marker = null;
   });
 
@@ -658,6 +679,7 @@ function registerMapEvents() {
 
     $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".direction-tab, .content-tab, .itis-tab, .road-condition-tab").hide();
+    $(".node_delta").hide();
 
     $(".lat, .long, .elev").show();
 
@@ -676,6 +698,7 @@ function registerMapEvents() {
 
   polyMarkerSelect.on('deselect', function (evt) {
     $("#attributes").hide();
+    $(".node_delta").hide();
     selected_marker = null;
   });
 
@@ -797,7 +820,9 @@ function registerDrawInteractions() {
 
     modify: new ol.interaction.Modify({
       source: lanes.getSource(),
-
+      deleteCondition: function(event) {
+        return isShiftHeld && ol.events.condition.singleClick(event);
+      }
     }),
     change: new ol.interaction.Modify({
       source: polygons.getSource()
@@ -865,12 +890,27 @@ function registerDrawInteractions() {
       }
     });
   });
-  // End modifying lanes: Update markers when a vertex is moved
+  // End modifying lanes: Update markers when a vertex is moved or deleted
   controls.modify.on('modifyend', function (event) {
     event.features.forEach(feature => {
       if (feature.getGeometry() instanceof ol.geom.LineString) {
         temporaryLaneMarkers.getSource().clear();
         showMarkers(feature, temporaryLaneMarkers);
+        // Rebuild dots and sync parallel arrays (handles both move and delete).
+        // TIM's onFeatureAdded uses coordinate matching so it self-corrects after deletion.
+        onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+
+        // Recalculate node_delta if the node sidebar is currently open.
+        const nodeIdx = parseInt($("#node_delta").data("node-index"));
+        const laneIdx = parseInt($("#node_delta").data("lane-index"));
+        if (!isNaN(nodeIdx) && nodeIdx > 0 && !isNaN(laneIdx)) {
+          const laneCoords = lanes.getSource().getFeatures()[laneIdx]?.getGeometry().getCoordinates();
+          if (laneCoords && laneCoords.length > nodeIdx) {
+            const c1 = ol.proj.transform(laneCoords[nodeIdx - 1], toProjection, fromProjection);
+            const c2 = ol.proj.transform(laneCoords[nodeIdx], toProjection, fromProjection);
+            $("#node_delta").val(ol.sphere.getDistance(c1, c2).toFixed(2) + " m");
+          }
+        }
       }
     });
   });
@@ -1050,6 +1090,11 @@ function toggleControlsOn(state) {
     $("#instructions_modal").modal('show');
   } else {
     $("#instructions_modal").modal('hide');
+
+    if (state !== 'builder') {
+      const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;
+      setStatusHintForState(state, hasContent);
+    }
     if (controls) {
       toggleControl(state);
     }
@@ -1279,6 +1324,7 @@ function onFeatureAdded() {
       
           polygons.getSource().getFeatures()[i].get('elevation')[j] = elevationObj;
           dot.set('elevation', elevationObj);
+
         });
       }
     }
