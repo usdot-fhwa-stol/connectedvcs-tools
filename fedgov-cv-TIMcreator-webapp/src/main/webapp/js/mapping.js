@@ -1323,6 +1323,8 @@ function onFeatureAdded() {
           };
       
           polygons.getSource().getFeatures()[i].get('elevation')[j] = elevationObj;
+          dot.set('elevation', elevationObj);
+
         });
       }
     }
