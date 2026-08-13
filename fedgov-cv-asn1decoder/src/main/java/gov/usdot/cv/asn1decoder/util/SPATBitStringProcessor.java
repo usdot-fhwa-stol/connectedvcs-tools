@@ -50,7 +50,7 @@ public class SPATBitStringProcessor {
 
     private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
         "\\b(status)" +
-        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)\\s*"
+        ":\\s*([0-9A-Fa-f]{2}(?:[ \\t]++[0-9A-Fa-f]{2})*+)[ \\t]*"
     );
 
     public static String processSPATBitStrings(String decoded) {

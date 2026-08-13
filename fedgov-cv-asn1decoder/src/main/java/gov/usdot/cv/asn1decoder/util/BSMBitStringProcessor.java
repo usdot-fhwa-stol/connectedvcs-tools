@@ -97,7 +97,7 @@ public class BSMBitStringProcessor {
 
     private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
         "\\b(lights|headingSlice|events|wheelBrakes)" +
-        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)\\s*" +
+        ":\\s*([0-9A-Fa-f]{2}(?:[ \\t]++[0-9A-Fa-f]{2})*+)[ \\t]*" +
         "\\((\\d+)\\s*bits?\\s*unused\\)"
     );
 

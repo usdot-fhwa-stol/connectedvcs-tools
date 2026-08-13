@@ -135,6 +135,25 @@ public class BitStringProcessorTest {
     }
 
     @Test
+    public void mapVehicleFieldDecodesWithoutUnusedBitsSuffix() {
+        // ASN1c omits the unused-bits clause for laneType's CHOICE alternatives
+        // (vehicle, crosswalk, etc.) -- confirmed against real decoded MAP output.
+        Assert.assertEquals(
+            "vehicle: { isVehicleRevocableLane isVehicleFlyOverLane }",
+            MAPBitStringProcessor.processMapBitStrings("vehicle: C0"));
+    }
+
+    @Test
+    public void mapCrosswalkFieldDecodesWithoutUnusedBitsSuffix() {
+        // 0xB0 0x00 -> bits 0, 2, 3 set. Mirrors real decoder output for laneType's
+        // CHOICE alternatives, e.g. "laneType: crosswalk: B0 00" -- asn1c never
+        // appends "(N bits unused)" for these fields.
+        Assert.assertEquals(
+            "crosswalk: { crosswalkRevocableLane isXwalkFlyOverLane fixedCycleTime }",
+            MAPBitStringProcessor.processMapBitStrings("crosswalk: B0 00"));
+    }
+
+    @Test
     public void mapSingularBitWordIsAccepted() {
         // 0x80 on BARRIER_NAMES (median) -> first name only.
         Assert.assertEquals(
@@ -793,7 +812,19 @@ public class BitStringProcessorTest {
                 + "from337-5to360-0degrees }",
             TIMBitStringProcessor.processTIMBitStrings("direction: FC 01"));
     }
- 
+
+    @Test
+    public void timDirectionDoesNotConsumeFollowingFieldName() {
+        // Real ASN1c output prints "direction: 00 00" immediately followed by
+        // "extent: ..." on the next line, with no unused-bits suffix. The hex
+        // regex must stop at the newline instead of greedily treating the
+        // leading "e" of "extent" as another hex byte.
+        Assert.assertEquals(
+            "direction: { }\nextent: 0 (useInstantlyOnly)",
+            TIMBitStringProcessor.processTIMBitStrings(
+                "direction: 00 00\nextent: 0 (useInstantlyOnly)"));
+    }
+
     // heading — HeadingSlice (16 bits), EventDescription
     @Test
     public void timHeadingNorthSector() {
