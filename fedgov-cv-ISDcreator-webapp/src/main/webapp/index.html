@@ -1121,7 +1121,9 @@
 					<div class="container-fluid">
 						<form class="form-horizontal">
 							<div class="form-group">
+								<label for="revision_num">Message Revision<span class="cti-req">*</span>:</label>
 								<input type="text" class="revision_num form-control" id="revision_num" placeholder="0-127" oninput="validateRevision()">
+								<p class="cti-legend">* = required per CTI 4501.</p>
 							</div>
 						</form>
 					</div>
@@ -1155,6 +1157,10 @@
 						<div class="row">
 							<div class="col-sm-3">Units:</div>
 							<div class="col-sm-8" id="units"></div>
+						</div>
+						<div class="row" id="cti4501_row">
+							<div class="col-sm-3">CTI 4501:</div>
+							<div class="col-sm-8" id="cti4501"></div>
 						</div>
 						<div class="row">
 							<div class="col-sm-3">Description:</div>

@@ -550,9 +550,9 @@ function updateDisplayedLaneAttributes( feature ){
 }
 
 
-function removeDisplayedLaneAttributes(){
+function removeDisplayedLaneAttributes(){   
   $('#attr_droppable').empty().append(
-      '<h4 class="list-group-item-heading">Lane Attributes</h4>' +
+      '<h4 class="list-group-item-heading">Allowed Maneuvers</h4>' +
       '<p class="help-block text-center">drop content here</p>');
 }
 
