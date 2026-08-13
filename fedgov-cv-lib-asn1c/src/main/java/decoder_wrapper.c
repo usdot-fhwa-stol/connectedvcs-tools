@@ -299,6 +299,21 @@ static jboolean decode_message_frame(const void *buf_in, int len, const char **m
                                 MSGID_TYPE_TABLE[i].messageType,
                                 &msgType,
                                 &msgDecoded);
+
+                            if (ok && msgDecoded != NULL)
+                            {
+                                size_t wrapLen = strlen(msgDecoded) + 128;
+                                char *wrapped = malloc(wrapLen);
+                                if (wrapped)
+                                {
+                                    snprintf(wrapped, wrapLen,
+                                        "MessageFrame ::= {\n    messageId: %ld,\n    value: %s\n}",
+                                        id, msgDecoded);
+                                    free((void *)msgDecoded);
+                                    msgDecoded = wrapped;
+                                }
+                            }
+
                             *msgTypeStrOut = msgType;
                             *decodedStrOut = msgDecoded;
                             return ok;
