@@ -38,6 +38,23 @@
 	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
 	<link rel="stylesheet" href="/private-resources/css/status-bar.css" type="text/css">
 
+	<!-- CTI 4501 REQUIRED-FIELD MARKERS -->
+	<style>
+		.cti-req {
+			color: #b3261e;
+			font-weight: 700;
+		}
+
+
+		.cti-legend {
+			margin-top: 10px;
+			padding-top: 6px;
+			border-top: 1px solid #ddd;
+			font-size: .8125em;
+			color: #666;
+		}
+	</style>
+
 </head>
 
 <body>
@@ -197,7 +214,7 @@
                     <div id="lane_attributes">
                         <ul class="list-group">
                             <li class="list-group-item" id="attr_droppable" >
-                                <h4 class="list-group-item-heading">Allowed Lane Attributes</h4>
+                                <h4 class="list-group-item-heading">Allowed Lane Maneuvers<span class="cti-req">*</span></h4>
                                 <p class="help-block text-center">drop content here</p>
                             </li>
                             <li class="list-group-item list-group-item-danger hidden trash_droppable" id="trash_droppable">
@@ -253,7 +270,7 @@
 										<thead>
 											<tr>
 												<th class="text-center">MAP Default</th>
-												<th class="text-center">Approach Type</th>
+												<th class="text-center">Approach Type<span class="cti-req">*</span></th>
 												<th class="text-center">Time Restrictions</th>
 												<th class="text-center">
 													<a id="add_approach_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
@@ -288,7 +305,7 @@
 					</div>
 							
                         <div class="row lane_type">
-	                        <div class="col-sm-4"><label for="lane_type">Lane Type:</label></div>
+	                        <div class="col-sm-4"><label for="lane_type">Lane Type<span class="cti-req">*</span>:</label></div>
 	                        <div class="col-sm-7"><div id="lane_type" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select a Lane Type <span class="caret"></span></a>
 	                            <ul class="dropdown-menu">
 	                                <li><a href="#">Vehicle</a></li>
@@ -358,7 +375,7 @@
                        	</div>
                                          	                       	
                  	    <div class="row shared_with">
-                        	<div class="col-sm-4"><label for="shared_with">Shared With:</label></div>
+                        	<div class="col-sm-4"><label for="shared_with">Shared With<span class="cti-req">*</span>:</label></div>
                         	<div class="col-sm-7">
 	                     	<select id="shared_with" multiple="multiple">
 		                        <option value="0">(0) Overlapping</option>
@@ -377,7 +394,7 @@
                        	</div>
 
                         <div class="row lane_number">
-                            <div class="col-sm-4"><label for="lane_number">Lane Number:</label></div>
+                            <div class="col-sm-4"><label for="lane_number">Lane Number<span class="cti-req">*</span>:</label></div>
                             <div class="col-sm-7"><div id="lane_number" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Lane Number <span class="caret"></span></a>
                                 <ul class="dropdown-menu scrollable-menu" role="menu">
 	                                <li><a href="#">01</a></li> <li><a href="#">02</a></li> <li><a href="#">03</a></li> <li><a href="#">04</a></li> <li><a href="#">05</a></li> <li><a href="#">06</a></li> <li><a href="#">07</a></li> <li><a href="#">08</a></li> 
@@ -427,17 +444,17 @@
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="intersection_name"></i></div>
 							</div>
 							<div class="row revision">
-							  <div class="col-sm-4"><label for="revision">Revision:</label></div>
+							  <div class="col-sm-4"><label for="revision">Revision<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input type="text" class="form-control" id="revision" disabled></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="revision"></i></div>
 							</div>
 							<div class="row lat" data-toggle="tooltip" title="in decimal degrees">
-							  <div class="col-sm-4"><label for="lat">Latitude:</label></div>
+							  <div class="col-sm-4"><label for="lat">Latitude<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="lat" placeholder="-90 to 90" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-90, 90]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="latitude"></i></div>
 							</div>
 							<div class="row long" data-toggle="tooltip" title="in decimal degrees">
-							  <div class="col-sm-4"><label for="long">Longitude:</label></div>
+							  <div class="col-sm-4"><label for="long">Longitude<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="long" placeholder="-180 to 180"  data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-180, 180]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="longitude"></i></div>
 							</div>
@@ -447,7 +464,7 @@
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="region_id"></i></div>
 							</div>
 							<div class="row intersection">
-							  <div class="col-sm-4"><label for="intersection">Intersection ID:</label></div>
+							  <div class="col-sm-4"><label for="intersection">Intersection ID<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="intersection" placeholder="0 to 65535" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 65535]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="intersection_id"></i></div>
 							</div>
@@ -483,7 +500,7 @@
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="content_date_time"></i></div>
 							</div>
 							<div class="row elev" data-toggle="tooltip" title="in meters">
-							  <div class="col-sm-4"><label for="elev">Elevation:</label></div>
+							  <div class="col-sm-4"><label for="elev">Elevation<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="elev" placeholder="-409.6 to 6143.9" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-409.6, 6143.9]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="elevation"></i></div>
 							</div>
@@ -504,7 +521,7 @@
 							</div>
 							<div class="lane_info_time_restrictions"></div>
 							<div class="row master_lane_width" data-toggle="tooltip" title="in centimeters">
-							  <div class="col-sm-4"><label for="master_lane_width">Master Lane Width:</label></div>
+							  <div class="col-sm-4"><label for="master_lane_width">Master Lane Width<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="master_lane_width" placeholder="0 to 32767" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 32767]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="master_lane_width"></i></div>
 							</div>
@@ -524,7 +541,7 @@
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="verified_elev"></i></div>
 							</div>
                         </div>
-
+						<p class="cti-legend">* = required per CTI 4501.</p>
                         <div class="btn-group">
                             <button type="button" class="btnDone btn btn-primary">Done</button>
                             <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -721,7 +738,7 @@
 							<hr>
 							<div class="row speed_limit_type" data-toggle="tooltip" title="in 0.02 m/s">
 								<div class="col-sm-4"><label for="speedForm_#index#_speedLimitType">
-									Speed Limit Type:</label></div>
+									Speed Limit Type<span class="cti-req">*</span>:</label></div>
 								<div class="col-sm-6 clearfix">
 									<select class="styled-select" id="speedForm_#index#_speedLimitType">
 										<option value="" selected="" disabled="">Speed Limit Type</option>
@@ -751,7 +768,7 @@
 							</div>
 
 							<div class="row velocity" data-toggle="tooltip" title="in MPH">
-								<div class="col-sm-4"><label for="speedForm_#index#_velocity">Velocity:</label></div>
+								<div class="col-sm-4"><label for="speedForm_#index#_velocity">Velocity<span class="cti-req">*</span>:</label></div>
 								<div class="col-sm-7"><input type="text" class="form-control" id="speedForm_#index#_velocity"
 															 placeholder="0 to 366" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-range="[0, 366]" data-parsley-pattern-message="This value must include numbers only."></div>
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="velocity"></i></div>
@@ -892,7 +909,7 @@
 							<br/>
 						</div>
 					</div>
-	
+					<p class="cti-legend">* = required per CTI 4501.</p>
 	                <div class="btn-group">
 	                    <button type="button" class="btnDone btn btn-primary intersection-btn">Done</button>
 	                    <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -919,14 +936,14 @@
 												Remote Intersection ID
 											</th>
 				                            <th class="text-center">
-				                                "To" Lane Number
+				                                "To" Lane Number<span class="cti-req">*</span>
 				                            </th>
 											<th class="text-center">Time Restrictions</th>
 				                            <th class="text-center">
-				                                Signal Group ID
+				                                Signal Group ID<span class="cti-req">*</span>
 				                            </th>
 				                            <th class="text-center">
-				                                Allowed Maneuvers
+				                                Allowed Maneuvers<span class="cti-req">*</span>
 				                            </th>
 				                            <th class="text-center">
 												<a id="add_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
@@ -939,6 +956,7 @@
 				            </form>
 				        </div>
 				    </div>
+					<p class="cti-legend">* = required per CTI 4501.</p>
 	                <div class="btn-group">
 	                    <button type="button" class="btnDone btn btn-primary intersection-btn">Done</button>
 	                    <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -1103,7 +1121,9 @@
 					<div class="container-fluid">
 						<form class="form-horizontal">
 							<div class="form-group">
+								<label for="revision_num">Message Revision<span class="cti-req">*</span>:</label>
 								<input type="text" class="revision_num form-control" id="revision_num" placeholder="0-127" oninput="validateRevision()">
+								<p class="cti-legend">* = required per CTI 4501.</p>
 							</div>
 						</form>
 					</div>
@@ -1273,7 +1293,7 @@
 										<li>Click on the lane node you wish to configure in order to bring up the <strong>Lane Configuration</strong> dialog.
 											<br><strong>Note:</strong> Only the first node of the lane will hold the Lane Number and Attribute information.</li>
 										<li>Define a Lane Number (node 1).  Modify any other desired settings. If desired, also fill out Days of the Week and Time Period fields, which are RGA specific fields.
-											<br><strong>Note:</strong> Lane Attributes will be explained in the next section. Furthermore, RGA only supports "Vehicle", "Crosswalk" and "Bike" lane types.</li>
+											<br><strong>Note:</strong> Lane Maneuvers will be explained in the next section. Furthermore, RGA only supports "Vehicle", "Crosswalk" and "Bike" lane types.</li>
 										<li>Click <strong>Done</strong> when finished.</li>
 									</ol>
 									<li>Repeat the above steps for each lane in each approach.</li>
@@ -1323,21 +1343,21 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="rgainstructions_tab_4">
 							<div class="container-fluid">
-								<h4>Lane Attributes</h4>
+								<h4>Lane Maneuvers</h4>
 								<ul>
-									<li>Adding Lane Attributes</li>
+									<li>Adding Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you add attributes to; this will again display the <strong>Lane Configuration</strong> dialog.</li>
 										<li>Bring up the <strong>Builder</strong> and select the <strong>Lane</strong> tab.</li>
-										<li>Click and drag the lane attributes from the <strong>Builder</strong> to the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong>.</li>
+										<li>Click and drag the lane maneuvers from the <strong>Builder</strong> to the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong>.</li>
 										<li>Let go of the mouse button to "drop" and assign the attribute to the lane.</li>
 										<li>Click <strong>Done</strong> when finished adding attributes.</li>
 									</ol>
-									<li>Removing Lane Attributes</li>
+									<li>Removing Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you remove attributes from.</li>
-										<li>From the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
-										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Lane Attributes</strong> section.</li>
+										<li>From the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
+										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Allowed Lane Maneuvers</strong> section.</li>
 										<li>Hover the attribute over the trashcan and let go of the mouse button to "drop" and remove the attribute from the lane.</li>
 										<li>Click <strong>Done</strong> when finished removing attributes.</li>
 									</ol>
@@ -1586,7 +1606,7 @@
 										<li>Click on the lane node you wish to configure in order to bring up the <strong>Lane Configuration</strong> dialog.
 											<br><strong>Note:</strong> Only the first node of the lane will hold the Lane Number and Attribute information.</li>
 										<li>Define a Lane Number (node 1).  Modify any other desired settings.
-											<br><strong>Note:</strong> Lane Attributes will be explained in the next section.</li>							
+											<br><strong>Note:</strong> Lane Maneuvers will be explained in the next section.</li>							
 											<li>Click <strong>Done</strong> when finished.</li>
 									</ol>
 									<li>Repeat the above steps for each lane in each approach.</li>
@@ -1621,22 +1641,22 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_4">
 							<div class="container-fluid">
-								<h4>Lane Attributes</h4>
+								<h4>Lane Maneuvers</h4>
 								<ul>
-									<li>Adding Lane Attributes</li>
+									<li>Adding Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you add attributes to; this will again display the <strong>Lane Configuration</strong> dialog.</li>
 										<li>Bring up the <strong>Builder</strong> and select the <strong>Lane</strong> tab.</li>
-										<li>Click and drag the lane attributes from the <strong>Builder</strong> to the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong>.</li>
+										<li>Click and drag the lane maneuvers from the <strong>Builder</strong> to the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong>.</li>
 										<li>Let go of the mouse button to "drop" and assign the attribute to the lane.</li>
 										<li>Click <strong>Done</strong> when finished adding attributes.</li>
 										<li>Note: The right u-turn maneuver is not supported in MAP, and will be greyed out and cannot be added to the lane attributes.</li>
 									</ol>
-									<li>Removing Lane Attributes</li>
+									<li>Removing Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you remove attributes from.</li>
-										<li>From the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
-										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Lane Attributes</strong> section.</li>
+										<li>From the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
+										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Allowed Lane Maneuvers</strong> section.</li>
 										<li>Hover the attribute over the trashcan and let go of the mouse button to "drop" and remove the attribute from the lane.</li>
 										<li>Click <strong>Done</strong> when finished removing attributes.</li>
 									</ol>
@@ -1848,4 +1868,3 @@
 
 </body>
 </html>
-
