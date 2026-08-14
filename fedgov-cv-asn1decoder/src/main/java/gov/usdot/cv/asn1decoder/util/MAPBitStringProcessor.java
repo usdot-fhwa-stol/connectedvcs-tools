@@ -135,7 +135,7 @@ public class MAPBitStringProcessor {
     private static final String[] LANE_SHARING_NAMES = {
         "overlappingLaneDescriptionProvided",
         "multipleLanesTreatedAsOneLane",
-        "otherNonMoterizedTrafficTypes",
+        "otherNonMotorizedTrafficTypes",
         "busVehicleTraffic",
         "taxiVehicleTraffic",
         "pedestriansTraffic",
@@ -163,19 +163,19 @@ public class MAPBitStringProcessor {
     private static final Pattern BIT_STRING_PATTERN = Pattern.compile(
         "\\b(maneuvers|maneuver|directionalUse|sharedWith|vehicle|crosswalk|bikeLane|" +
         "sidewalk|median|striping|trackedVehicle|parking)" +
-        ":\\s*([0-9A-Fa-f]{1,2}(?:\\s++[0-9A-Fa-f]{1,2})*+)\\s*" +
-        "\\((\\d+)\\s*bits?\\s*unused\\)"
+        ":[ \\t]*([0-9A-Fa-f]{2}(?:[ \\t]++[0-9A-Fa-f]{2})*+)?" +
+        "(?:\\s*\\((\\d+)\\s*bits?\\s*unused\\))?"
     );
 
     public static String processMapBitStrings(String decoded) {
         if (decoded == null) return null;
- 
+
         Matcher m = BIT_STRING_PATTERN.matcher(decoded);
         StringBuffer out = new StringBuffer();
         while (m.find()) {
             String fieldName = m.group(1);
-            String hex       = m.group(2).trim();
-            int unusedBits   = Integer.parseInt(m.group(3));
+            String hex       = (m.group(2) != null) ? m.group(2).trim() : "";
+            int unusedBits   = (m.group(3) != null) ? Integer.parseInt(m.group(3)) : 0;
             String[] names   = FIELD_TO_NAMES.get(fieldName);
  
             if (names == null) {
