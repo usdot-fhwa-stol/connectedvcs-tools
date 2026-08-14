@@ -154,6 +154,18 @@ public class BitStringProcessorTest {
     }
 
     @Test
+    public void mapVehicleFieldWithZeroLengthBitStringDecodesToEmptyBraces() {
+        // LaneAttributes-Vehicle is extensible (SIZE(8, ...)), so ASN1c can encode
+        // it as a genuine zero-bit value (OSS trace: "length: ... (decoded as 0)"),
+        // printed as bare "vehicle: " with no hex at all -- distinct from the
+        // all-zero-bits case ("vehicle: 00"). Must still normalize to "{ }" and
+        // must not swallow the following newline/field.
+        Assert.assertEquals(
+            "vehicle: { }\n}",
+            MAPBitStringProcessor.processMapBitStrings("vehicle: \n}"));
+    }
+
+    @Test
     public void mapSingularBitWordIsAccepted() {
         // 0x80 on BARRIER_NAMES (median) -> first name only.
         Assert.assertEquals(

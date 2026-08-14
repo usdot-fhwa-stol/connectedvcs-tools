@@ -25,6 +25,10 @@ class BitStringUtil {
      * count into a flag list, MSB-first.
      */
     static String decodeBitString(String hex, int unusedBits, String[] names) {
+        if (hex.isEmpty()) {
+            return "{ }";
+        }
+
         String[] bytesStr = hex.split("\\s+");
         byte[] bytes = new byte[bytesStr.length];
         for (int i = 0; i < bytesStr.length; i++) {
