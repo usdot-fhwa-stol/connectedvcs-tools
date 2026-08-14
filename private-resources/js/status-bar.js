@@ -29,7 +29,7 @@ const HINTS = {
     measure: 'Click to start measuring · Double-click to finish',
     drag: 'Click a marker to select it for dragging, locking the others in place',
     placeComputed: 'Click the map where the computed lane should be created',
-    connections: 'Open the Builder, then drag a maneuver icon onto Lane Attributes or a Connections row to assign it · Click Done when finished'
+    connections: 'Open the Builder, then drag a maneuver icon onto Allowed Maneuvers or a Connections row to assign it · Click Done when finished'
   },
   tim: {
     none: 'Drag a Verified Point Marker onto a known, surveyed location and then drag a Road Sign onto the map to begin',
