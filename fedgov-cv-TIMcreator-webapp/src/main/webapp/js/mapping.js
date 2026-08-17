@@ -357,6 +357,7 @@ function registerMapEvents() {
   lanes = new ol.layer.Vector({
     source: laneSource,
     style: laneStyle, // equivalent to laneStyleMap
+    zIndex: 2,
     properties: {
       name: "Lane Layer"
     }
@@ -414,6 +415,7 @@ function registerMapEvents() {
   polygons = new ol.layer.Vector({
     source: polygonSource,
     style: polyStyle,
+    zIndex: 2,
     properties: {
       name: "Polygon Layer"
     }
@@ -462,6 +464,7 @@ function registerMapEvents() {
   area = new ol.layer.Vector({
     source: areaSource,
     style: areaStyle,
+    zIndex: 2,
     properties: {
       name: "Deposit Area Layer"
     }
@@ -536,6 +539,7 @@ function registerMapEvents() {
   laneMarkers = new ol.layer.Vector({
     source: laneMarkerSource,
     style: laneStyle,
+    zIndex: 4,
     properties: {
       name: "Lane Marker Layer"
     }
@@ -638,6 +642,7 @@ function registerMapEvents() {
   polyMarkers = new ol.layer.Vector({
     source: polyMarkerSource,
     style: polyStyle2,
+    zIndex: 2,
     properties: {
       name: "Poly Marker Layer"
     }
@@ -755,6 +760,7 @@ function registerMapEvents() {
   laneWidths = new ol.layer.Vector({
     source: laneWidthSource,
     style: widthStyle,
+    zIndex: 2,
     properties: {
       name: "Width Layer"
     }
@@ -768,6 +774,7 @@ function registerMapEvents() {
 
   radiuslayer = new ol.layer.Vector({
     source: radiuslayerSource,
+    zIndex: 2,
     properties: {
       name: "Radius Layer"
     }
