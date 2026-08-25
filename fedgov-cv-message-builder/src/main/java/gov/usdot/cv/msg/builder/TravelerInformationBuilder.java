@@ -430,12 +430,6 @@ public class TravelerInformationBuilder {
 		return msgId;
 	}
 
-	private MinuteOfTheYear getTimestamp(TravelerInputData travInputData) {
-		MinuteOfTheYear timestamp = new MinuteOfTheYear();
-
-
-	}
-
 	private static Position3D getAnchorPointPosition(TravelerInputData travInputData) {
 		AnchorPoint anchorPoint = travInputData.anchorPoint;
 		assert (anchorPoint != null);
