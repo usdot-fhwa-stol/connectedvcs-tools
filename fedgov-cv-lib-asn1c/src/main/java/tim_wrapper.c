@@ -283,6 +283,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     jmethodID mid_getDoNotUse1 = NULL, mid_getDoNotUse2 = NULL, mid_getDoNotUse3 = NULL, mid_getDoNotUse4 = NULL;
     jmethodID mid_getFrameType = NULL, mid_getMsgId = NULL, mid_getStartTime = NULL, mid_getDurationTime = NULL;
     jmethodID mid_getPriority = NULL, mid_getRegions = NULL, mid_getContent = NULL, mid_getContentNew = NULL;
+    jmethodID mid_getTimestamp = NULL;
     // If frame exist initilize the methods to get the method IDs
     if (numberOfFrames > 0)
     {
@@ -299,7 +300,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             if ((*env)->ExceptionCheck(env) ||
                 !mid_getDoNotUse1 || !mid_getDoNotUse2 || !mid_getDoNotUse3 || !mid_getDoNotUse4 ||
                 !mid_getFrameType || !mid_getMsgId || !mid_getStartTime || !mid_getDurationTime ||
-                !mid_getPriority || !mid_getRegions || !mid_getContent || !mid_getContentNew)
+                !mid_getPriority || !mid_getRegions || !mid_getContent || !mid_getContentNew || !mid_getTimestamp)
             {
                 (*env)->ExceptionDescribe(env);
                 (*env)->ExceptionClear(env);
