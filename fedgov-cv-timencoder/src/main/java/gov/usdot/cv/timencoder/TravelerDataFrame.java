@@ -29,7 +29,6 @@ public class TravelerDataFrame {
     private MinuteOfTheYear startTime;
     private MinutesDuration durationTime;
     private SignPriority priority;
-    private MinuteOfTheYear timeStamp;
 
     // ---- Part II: regions ----
     private SSPindex doNotUse2;
@@ -131,9 +130,6 @@ public class TravelerDataFrame {
     public MinuteOfTheYear getStartTime() { return startTime; }
     public void setStartTime(MinuteOfTheYear startTime) { this.startTime = startTime; }
 
-    public MinuteOfTheYear getTimeStamp() { return timeStamp; }
-    public void setTimeStamp(MinuteOfTheYear timeStamp) { this.timeStamp = timeStamp; }
-
     public MinutesDuration getDurationTime() { return durationTime; }
     public void setDurationTime(MinutesDuration durationTime) { this.durationTime = durationTime; }
 
@@ -173,7 +169,6 @@ public class TravelerDataFrame {
             ", doNotUse4=" + doNotUse4 +
             ", content=" + content +
             ", contentNew=" + contentNew +
-            ", timeStamp=" + timeStamp +
             '}';
 }
 }

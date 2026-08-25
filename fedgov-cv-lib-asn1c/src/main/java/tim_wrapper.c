@@ -192,10 +192,28 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             memcpy(packetID->buf, bytes, length);
     
             tim.packetID = packetID;
-    
+
             (*env)->ReleaseByteArrayElements(env, jByteArrayValue, bytes, JNI_ABORT);
             (*env)->DeleteLocalRef(env, jByteArrayValue);
         }
+    }
+
+    // --- timeStamp (MinuteOfTheYear, OPTIONAL on TravelerInformation) ---
+    jmethodID getTimeStamp = (*env)->GetMethodID(env, timClass, "getTimeStamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
+    jobject timeStampObj = getTimeStamp ? (*env)->CallObjectMethod(env, timobject, getTimeStamp) : NULL;
+
+    if (timeStampObj != NULL)
+    {
+        jclass timeStampCls = (*env)->GetObjectClass(env, timeStampObj);
+        jmethodID midGetTimeStampVal = (*env)->GetMethodID(env, timeStampCls, "getValue", "()J");
+        jlong timeStampVal = midGetTimeStampVal ? (*env)->CallLongMethod(env, timeStampObj, midGetTimeStampVal) : 0;
+
+        MinuteOfTheYear_t *timeStampPtr = (MinuteOfTheYear_t *)calloc(1, sizeof(MinuteOfTheYear_t));
+        *timeStampPtr = (long)timeStampVal;
+        tim.timeStamp = timeStampPtr;
+
+        (*env)->DeleteLocalRef(env, timeStampCls);
+        (*env)->DeleteLocalRef(env, timeStampObj);
     }
 
     // ---- TravelerInformation.dataFrames (TravelerDataFrameList) ----
@@ -283,7 +301,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
     jmethodID mid_getDoNotUse1 = NULL, mid_getDoNotUse2 = NULL, mid_getDoNotUse3 = NULL, mid_getDoNotUse4 = NULL;
     jmethodID mid_getFrameType = NULL, mid_getMsgId = NULL, mid_getStartTime = NULL, mid_getDurationTime = NULL;
     jmethodID mid_getPriority = NULL, mid_getRegions = NULL, mid_getContent = NULL, mid_getContentNew = NULL;
-    jmethodID mid_getTimestamp = NULL;
     // If frame exist initilize the methods to get the method IDs
     if (numberOfFrames > 0)
     {
@@ -300,7 +317,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             if ((*env)->ExceptionCheck(env) ||
                 !mid_getDoNotUse1 || !mid_getDoNotUse2 || !mid_getDoNotUse3 || !mid_getDoNotUse4 ||
                 !mid_getFrameType || !mid_getMsgId || !mid_getStartTime || !mid_getDurationTime ||
-                !mid_getPriority || !mid_getRegions || !mid_getContent || !mid_getContentNew || !mid_getTimestamp)
+                !mid_getPriority || !mid_getRegions || !mid_getContent || !mid_getContentNew)
             {
                 (*env)->ExceptionDescribe(env);
                 (*env)->ExceptionClear(env);
@@ -351,17 +368,6 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             jint val = (*env)->CallIntMethod(env, frameType, midGetVal);
             tdf->frameType = (TravelerInfoType_t)val;
             (*env)->DeleteLocalRef(env, frameTypeCls);
-        }
-
-        mid_getTimestamp = (*env)->GetMethodID(env, frameCls, "getTimeStamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
-        jobject timeStamp = mid_getTimestamp ? (*env)->CallObjectMethod(env, frame, mid_getTimestamp) : NULL;
-        if (timeStamp)
-        {
-            jclass timestampCls = (*env)->GetObjectClass(env, timeStamp);
-            jmethodID midGetVal = (*env)->GetMethodID(env, timestampCls, "getValue", "()I");
-            jint val = (*env)->CallIntMethod(env, timeStamp, midGetVal);
-            tdf->timeStamp = (MinuteOfTheYear_t)val;
-            (*env)->DeleteLocalRef(env, timestampCls);
         }
 
         // msgId (MsgId -> RoadSignID)
