@@ -358,8 +358,8 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         if (timeStamp)
         {
             jclass timestampCls = (*env)->GetObjectClass(env, timeStamp);
-            jmethod midGetVal = (*env)->GetMethodID(env, timestampCls, "getValue", "()I");
-            jint val (*env)->CallIntMethod(env, timeStamp, midGetVal);
+            jmethodID midGetVal = (*env)->GetMethodID(env, timestampCls, "getValue", "()I");
+            jint val = (*env)->CallIntMethod(env, timeStamp, midGetVal);
             tdf->timeStamp = (MinuteOfTheYear_t)val;
             (*env)->DeleteLocalRef(env, timestampCls);
         }
