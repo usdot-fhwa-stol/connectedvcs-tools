@@ -353,7 +353,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
-        mid_getTimestamp = (*env)->GetMethodID(env, frameCls, "getTimestamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
+        mid_getTimestamp = (*env)->GetMethodID(env, frameCls, "getTimeStamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
         jobject timeStamp = mid_getTimestamp ? (*env)->CallObjectMethod(env, frame, mid_getTimestamp) : NULL;
         if (timeStamp)
         {
