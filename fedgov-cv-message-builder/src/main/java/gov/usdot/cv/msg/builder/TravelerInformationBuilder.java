@@ -158,6 +158,7 @@ public class TravelerInformationBuilder {
 		tim.setMsgCnt(tim.getDataFrames().getFrames().size());
 		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(travInputData.anchorPoint.packetID);
 		tim.setPacketID(new UniqueMSGID(buf.array()));
+		tim.setTimeStamp(tim.getTimeStamp());
 		return tim;
 	}
 
@@ -427,6 +428,12 @@ public class TravelerInformationBuilder {
 			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00, 0x00 }));
 		}
 		return msgId;
+	}
+
+	private MinuteOfTheYear getTimestamp(TravelerInputData travInputData) {
+		MinuteOfTheYear timestamp = new MinuteOfTheYear();
+
+
 	}
 
 	private static Position3D getAnchorPointPosition(TravelerInputData travInputData) {

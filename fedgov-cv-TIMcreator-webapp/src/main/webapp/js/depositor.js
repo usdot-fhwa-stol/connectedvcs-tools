@@ -173,6 +173,7 @@ function resetMessageForm() {
 
 function createMessageJSON() {
     let spatMessage = {};
+    let minuteOfTheYear = moment().diff(moment().startOf('year'), 'minutes');
 
     const laneFeat = lanes.getSource().getFeatures();
     const polyFeat = polygons.getSource().getFeatures();
@@ -340,7 +341,8 @@ function createMessageJSON() {
     spatMessage.messageType = $("#message_type").val();
     spatMessage.nodeOffsets = $("#node_offsets").val();
     spatMessage.enableElevation = $("#enable_elevation").is(":checked");
-
+    spatMessage.minuteOfTheYear = minuteOfTheYear;
+    
     return spatMessage;
 }
 

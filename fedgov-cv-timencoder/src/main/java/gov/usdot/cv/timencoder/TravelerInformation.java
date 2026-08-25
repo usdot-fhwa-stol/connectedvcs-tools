@@ -32,9 +32,10 @@ public class TravelerInformation {
     public TravelerInformation() {
     }
 
-    public TravelerInformation(int msgCnt, TravelerDataFrameList dataFrames) {
+    public TravelerInformation(int msgCnt, TravelerDataFrameList dataFrames, MinuteOfTheYear timeStamp) {
         this.msgCnt = msgCnt;
         this.dataFrames = dataFrames;
+        this.timeStamp = timeStamp;
     }
 
     public int getMsgCnt() {

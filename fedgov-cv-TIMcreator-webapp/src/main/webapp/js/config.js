@@ -257,7 +257,7 @@ var help_notes = [
         max: "N/A",
         min: "N/A",
         units: "N/A",
-        description: "Describes the type of meessage to follow in the rest of the message frame structure."
+        description: "Describes the type of meessage to follow in the rest of the message frame structure. Note that advisory is not recommended as a frameType for TIM messages"
     },
     {
         value: "revision",

@@ -352,6 +352,17 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
+        mid_getTimestamp = (*env)->GetMethodID(env, frameCls, "getTimestamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
+        jobject timeStamp = mid_getTimestamp ? (*env)->CallObjectMethod(env, frame, mid_getTimestamp) : NULL;
+        if (timeStamp)
+        {
+            jclass timestampCls = (*env)->GetObjectClass(env, timeStamp);
+            jmethod midGetVal = (*env)->GetMethodID(env, timestampCls, "getValue", "()I");
+            jint val (*env)->CallIntMethod(env, timeStamp, midGetVal);
+            tdf->timeStamp = (MinuteOfTheYear_t)val;
+            (*env)->DeleteLocalRef(env, timestampCls);
+        }
+
         // msgId (MsgId -> RoadSignID)
         mid_getMsgId = (*env)->GetMethodID(env, frameCls, "getMsgId", "()Lgov/usdot/cv/timencoder/MsgId;");
         jobject msgId = mid_getMsgId ? (*env)->CallObjectMethod(env, frame, mid_getMsgId) : NULL;
