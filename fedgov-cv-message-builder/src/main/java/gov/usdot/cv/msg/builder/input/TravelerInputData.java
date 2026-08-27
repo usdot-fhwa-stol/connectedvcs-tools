@@ -54,6 +54,7 @@ public class TravelerInputData {
 	public VerifiedPoint verifiedPoint;
 	public Deposit deposit;
 	public ApplicableRegion applicableRegion;
+	public Long timeStamp;
 	public String messageType = "TIM";
 	public OffsetEncodingType nodeOffsets = OffsetEncodingType.Standard;
 	public boolean enableElevation = true;

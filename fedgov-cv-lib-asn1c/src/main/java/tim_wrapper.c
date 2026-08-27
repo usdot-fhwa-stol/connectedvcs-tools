@@ -192,10 +192,28 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             memcpy(packetID->buf, bytes, length);
     
             tim.packetID = packetID;
-    
+
             (*env)->ReleaseByteArrayElements(env, jByteArrayValue, bytes, JNI_ABORT);
             (*env)->DeleteLocalRef(env, jByteArrayValue);
         }
+    }
+
+    // --- timeStamp (MinuteOfTheYear, OPTIONAL on TravelerInformation) ---
+    jmethodID getTimeStamp = (*env)->GetMethodID(env, timClass, "getTimeStamp", "()Lgov/usdot/cv/timencoder/MinuteOfTheYear;");
+    jobject timeStampObj = getTimeStamp ? (*env)->CallObjectMethod(env, timobject, getTimeStamp) : NULL;
+
+    if (timeStampObj != NULL)
+    {
+        jclass timeStampCls = (*env)->GetObjectClass(env, timeStampObj);
+        jmethodID midGetTimeStampVal = (*env)->GetMethodID(env, timeStampCls, "getValue", "()J");
+        jlong timeStampVal = midGetTimeStampVal ? (*env)->CallLongMethod(env, timeStampObj, midGetTimeStampVal) : 0;
+
+        MinuteOfTheYear_t *timeStampPtr = (MinuteOfTheYear_t *)calloc(1, sizeof(MinuteOfTheYear_t));
+        *timeStampPtr = (long)timeStampVal;
+        tim.timeStamp = timeStampPtr;
+
+        (*env)->DeleteLocalRef(env, timeStampCls);
+        (*env)->DeleteLocalRef(env, timeStampObj);
     }
 
     // ---- TravelerInformation.dataFrames (TravelerDataFrameList) ----
