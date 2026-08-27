@@ -158,7 +158,9 @@ public class TravelerInformationBuilder {
 		tim.setMsgCnt(tim.getDataFrames().getFrames().size());
 		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(travInputData.anchorPoint.packetID);
 		tim.setPacketID(new UniqueMSGID(buf.array()));
-		tim.setTimeStamp(new MinuteOfTheYear(travInputData.timeStamp));
+		if (travInputData.timeStamp != null) {
+			tim.setTimeStamp(new MinuteOfTheYear(travInputData.timeStamp));
+		}
 		return tim;
 	}
 
