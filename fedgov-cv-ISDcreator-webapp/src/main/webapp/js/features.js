@@ -297,6 +297,7 @@ async function placeComputedLane(newDotFeature, lanes, vectors, laneMarkers, lan
 			$(".lane_type_attributes").hide();
 			$(".lane_type_attributes btn-group").hide();
 			$("label[for='lane_type_attributes']").hide();
+			$(".subsequent-node-note").hide();
 			$(".verified_lat").hide();
 			$(".verified_long").hide();
 			$(".verified_elev").hide();

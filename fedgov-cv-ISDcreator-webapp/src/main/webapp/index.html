@@ -53,6 +53,51 @@
 			font-size: .8125em;
 			color: #666;
 		}
+
+		/* Asterisk markers on the dynamically-labelled attribute tabs (CTI 4501) */
+		#attribute-tabs .intersection-info-tab > a::after,
+		#attribute-tabs .connection-tab > a::after {
+			content: "*";
+			color: #b3261e;
+			font-weight: 700;
+			margin-left: 2px;
+		}
+
+		.cti-note {
+			font-size: .8125em;
+			color: #666;
+		}
+
+		/* Inline info button that opens a note popover (CTI 4501) */
+		.cti-info-btn {
+			padding: 0;
+			border: 0;
+			background: none;
+			color: #337ab7;
+			line-height: 1;
+			cursor: pointer;
+			margin-left: 5px;
+			vertical-align: middle;
+		}
+
+		.cti-info-btn:hover,
+		.cti-info-btn:focus {
+			color: #23527c;
+			outline: none;
+		}
+
+		.popover {
+			max-width: 320px;
+		}
+
+		.popover-title {
+			font-weight: 700;
+		}
+
+		.popover-content {
+			font-size: .8125em;
+			color: #333;
+		}
 	</style>
 
 </head>
@@ -211,6 +256,9 @@
         <div class="tab-content">
             <div class="tab-pane active" id="lane-info-tab">
                 <div class="panel-body">
+                    <div class="row subsequent-node-note" style="display:none;">
+                        <div class="col-sm-12"><p class="help-block">Add lane width delta (change in width) if applicable. Edit latitude, longitude, and elevation if needed.</p></div>
+                    </div>
                     <div id="lane_attributes">
                         <ul class="list-group">
                             <li class="list-group-item" id="attr_droppable" >
@@ -323,7 +371,7 @@
 	                     </div>
 	                     
                    	    <div class="row lane_type_attributes">
-                        	<div class="col-sm-4"><label for="lane_type_attributes">Type Attributes:</label></div>
+                        	<div class="col-sm-4"><label for="lane_type_attributes">Type Attributes<span class="cti-req">*</span>:</label><button type="button" class="cti-info-btn" id="lane_type_attributes_popover" data-toggle="popover" data-html="true" data-trigger="click" data-placement="bottom" data-container="body" title="Type Attributes" data-content="Choose the attributes that are applicable to this lane."><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
                         	<div class="col-sm-7">
 	                     	<select id="Vehicle_type_attributes" multiple="multiple">
 		                        <option value="0">(0) Vehicle Revocable Lane</option>
@@ -372,6 +420,9 @@
 	                    	</select>
                         	</div>
                         	<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_type_attributes"></i></div>
+                       	</div>
+                   	    <div class="row lane_type_attributes">
+                        	<div class="col-sm-offset-4 col-sm-7"><p class="help-block cti-note" id="lane_type_attributes_help">Choose the attributes that are applicable to this lane.</p></div>
                        	</div>
                                          	                       	
                  	    <div class="row shared_with">
@@ -468,6 +519,9 @@
 							  <div class="col-sm-7"><input class="form-control" id="intersection" placeholder="0 to 65535" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 65535]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="intersection_id"></i></div>
 							</div>
+							<div class="row intersection">
+							  <div class="col-sm-offset-4 col-sm-7"><p class="help-block cti-note">This ID should be unique for this intersection within your agency.</p></div>
+							</div>
 							<div class="row road_authority_id_type">
 								<div class="col-sm-4"><label for="road_authority_id_type">Road Authority ID Type:</label></div>
 								<div class="col-sm-7">
@@ -505,7 +559,7 @@
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="elevation"></i></div>
 							</div>
 							<div class="row lane_width" data-toggle="tooltip" title="in centimeters">
-							  <div class="col-sm-4"><label for="lane_width">Lane Width Delta:</label></div>
+							  <div class="col-sm-4"><label for="lane_width">Lane Width Delta<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="lane_width" placeholder="-512 to 511" data-parsley-pattern="^-?[0-9]+$" data-parsley-range="[-512, 511]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_width"></i></div>
 							</div>
@@ -727,8 +781,8 @@
 						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="layer_id"></i></div>
 					</div>
 
-					<div class="row lane-speed-text"> 
-						<div class="col-sm-12">Enter speed limits for all nodes in this lane</div>
+					<div class="row lane-speed-text">
+						<div class="col-sm-12">Add lane speed limit if it is different than the intersection speed limit entered at the reference point</div>
 					</div>
 
 					<!-- sheepIt Form -->
@@ -920,7 +974,7 @@
 
             <div class="tab-pane" id="connection-tab">
             	<div class="panel-body">
-					<div class="row connection-text"> 
+					<div class="row connection-text">
 						<div class="col-sm-12">Unsignalized connections default to protected unless otherwise indicated with yield or stop.</div>
 					</div>
             		<div class="row clearfix">
@@ -934,6 +988,12 @@
 											</th>
 											<th class="text-center">
 												Remote Intersection ID
+												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Remote Intersection ID"
+													data-content="The Intersection ID of the other V2X-enabled intersection a lane connects to. Add if applicable.">
+													<i class="fa fa-info-circle" aria-hidden="true"></i>
+												</button>
 											</th>
 				                            <th class="text-center">
 				                                "To" Lane Number<span class="cti-req">*</span>
@@ -941,9 +1001,21 @@
 											<th class="text-center">Time Restrictions</th>
 				                            <th class="text-center">
 				                                Signal Group ID<span class="cti-req">*</span>
+												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Signal Group ID"
+													data-content="A unique value for a combination of one or more lanes and one or more signal-controlled movements.<br><br>For example:<br>2 = Southbound Circular Signal<br>5 = Southbound Left Arrow Signal<br><br>This includes all states (e.g. green, amber, red) of that signal group. The SPaT message will indicate the state of the signal group in the MovementPhaseState element.<br><br><strong>Always use 255 for Channelized (Free-Flow) Right Turn Lanes.</strong>">
+													<i class="fa fa-info-circle" aria-hidden="true"></i>
+												</button>
 				                            </th>
 				                            <th class="text-center">
 				                                Allowed Maneuvers<span class="cti-req">*</span>
+												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Allowed Maneuvers"
+													data-content="Include right on red (if allowed) in Allowed Maneuvers.">
+													<i class="fa fa-info-circle" aria-hidden="true"></i>
+												</button>
 				                            </th>
 				                            <th class="text-center">
 												<a id="add_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
