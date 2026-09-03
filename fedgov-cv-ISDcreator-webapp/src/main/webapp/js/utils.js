@@ -252,6 +252,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $("#elev").prop('readonly', false);
   $("#lane_attributes").hide();
   $(".lane_type_attributes").hide();
+  $(".subsequent-node-note").hide();
   $(".lane_number").hide();
   $(".lane_width").hide();
   $(".lane_info_time_restrictions").hide();
@@ -485,7 +486,26 @@ function toggleLaneTypeAttributes(attribute, values) {
   $('.' + attribute + '_type_attributes').parent().show();
   $("label[for='lane_type_attributes']").show();
   $(".lane_type_attributes").show();
+  updateLaneTypeAttributesHelpText(attribute);
   return typeAttribute_object;
+}
+
+// Note shown in the info popover next to "Type Attributes", tailored to the selected lane type.
+const LANE_TYPE_ATTRIBUTES_DEFAULT_HELP = "Choose the attributes that are applicable to this lane.";
+const LANE_TYPE_ATTRIBUTES_HELP_TEXT = {
+  Vehicle: "If this lane has special conditions, indicate them (e.g. grade separated or flyover, bus-only, HOV, reversible, etc).",
+  Crosswalk: "If this crosswalk has certain features, indicate them (e.g. push-button actuation, audible pedestrian signal, fixed cycle length, bicycles allowed, etc). Bi-directional cycle time means the walk phases use different SignalGroupIDs for each direction. rfSignalRequest means wireless push button technology is available.",
+  Bike: "If this bicycle lane has certain features, indicate them (e.g. separated with barrier, pedestrians also allowed, etc). Bi-directional cycle time means a bicycle phase uses different SignalGroupIDs for each direction. unsignalizedSegmentsPresent means at least part of the lane does not correspond to a SignalGroupID.",
+  Parking: "If this parking lane has special conditions, indicate them (e.g. parallel parking, head-in parking, taxi or bus only parking, private parking)."
+};
+
+// Updates the dynamic content of the "Type Attributes" info popover. Bootstrap re-reads
+// the data-content attribute every time the popover is opened, so setting it is enough.
+function updateLaneTypeAttributesHelpText(laneType) {
+  $("#lane_type_attributes_popover").attr(
+    "data-content",
+    LANE_TYPE_ATTRIBUTES_HELP_TEXT[laneType] || LANE_TYPE_ATTRIBUTES_DEFAULT_HELP
+  );
 }
 
 function updateSharedWith(){
@@ -2368,6 +2388,7 @@ export {
   updateSharedWith,
   updateTypeAttributes,
   toggleLaneTypeAttributes,
+  updateLaneTypeAttributesHelpText,
   populateAttributeWindow,
   toggle,
   toggleBars,
