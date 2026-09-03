@@ -92,6 +92,24 @@
 			outline: none;
 		}
 
+		/* Plain info-circle button that opens a note popover */
+		.cti-icon-btn {
+			padding: 0;
+			border: 0;
+			background: none;
+			color: #337ab7;
+			line-height: 1;
+			cursor: pointer;
+			margin-left: 5px;
+			vertical-align: middle;
+		}
+
+		.cti-icon-btn:hover,
+		.cti-icon-btn:focus {
+			color: #23527c;
+			outline: none;
+		}
+
 		.popover {
 			max-width: 340px;
 		}
@@ -1014,11 +1032,11 @@
 											</th>
 											<th class="text-center">
 												Remote Intersection ID
-												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+												<button type="button" class="cti-icon-btn" data-toggle="popover" data-html="true"
 													data-trigger="click" data-placement="bottom" data-container="body"
 													title="Remote Intersection ID"
 													data-content="Remote Intersection ID is the IntersectionID of the other V2X-enabled intersection a lane connects to. Add if applicable.">
-													CTI
+													<i class="fa fa-info-circle" aria-hidden="true"></i>
 												</button>
 											</th>
 				                            <th class="text-center">
@@ -1030,7 +1048,7 @@
 												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
 													data-trigger="click" data-placement="bottom" data-container="body"
 													title="Signal Group ID"
-													data-content="<p><strong>Always use 255 for SignalGroupID for channelized (free-flow) turn lanes.</strong></p><p><strong>The SignalGroupID should match the SignalGroupID in the SPaT message for the movement(s). Traffic signal phase numbers may be different than the SPaT SignalGroupIDs.</strong></p><p>The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p><hr><p class='cti-further-label'>Further info</p><p>Every movement (or set of movements) that could have their signal timing controlled independently should have a distinct SignalGroupID, even a movement or set of movements that always runs with another in the current timing plan (e.g. overlaps, or movements controlled by a pedestrian or bicycle signal).</p><p>The SPaT message indicates the state of the signal group (e.g. green, amber, red) in the MovementPhaseState element. The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p>">
+													data-content="<p><strong>Always use 255 for SignalGroupID for channelized (free-flow) turn lanes.</strong>(Comes from the J2735 standard)</p><p><strong>The SignalGroupID should match the SignalGroupID in the SPaT message for the movement(s). Traffic signal phase numbers may be different than the SPaT SignalGroupIDs.</strong></p><p>The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p><hr><p class='cti-further-label'>Further info</p><p>Every movement (or set of movements) that could have their signal timing controlled independently should have a distinct SignalGroupID, even a movement or set of movements that always runs with another in the current timing plan (e.g. overlaps, or movements controlled by a pedestrian or bicycle signal).</p><p>The SPaT message indicates the state of the signal group (e.g. green, amber, red) in the MovementPhaseState element. The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p>">
 													CTI
 												</button>
 				                            </th>
