@@ -19,7 +19,7 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     envsubst '$SECURITY_CONSTRAINT' < /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml > /tmp/web.xml.tmp && \
     mv /tmp/web.xml.tmp /root/fedgov-cv-ISDcreator-webapp/src/main/webapp/WEB-INF/web.xml
 
-FROM jetty:9.4.46-jre8-slim
+FROM jetty:9.4.58-jre8
 ARG USE_SSL
 USER root
 ARG BUILD_DATE
@@ -33,12 +33,12 @@ LABEL org.opencontainers.image.version=${VERSION}
 LABEL org.opencontainers.image.source="https://github.com/usdot-fhwa-stol/connectedvcs-tools"
 LABEL org.opencontainers.image.revision=${VCS_REF}
 LABEL org.opencontainers.image.created=${BUILD_DATE}
-LABEL org.opencontainers.image.base.name="docker.io/library/jetty:9.4.46-jre8-slim"
+LABEL org.opencontainers.image.base.name="docker.io/library/jetty:9.4.58-jre8"
 
 # Install GDAL for georeferencing service and stol-j2735 runtime dependency
 RUN apt-get update && \
     apt-get upgrade -y --no-install-recommends && \
-    apt-get install -y --no-install-recommends gdal-bin libgdal28 curl ca-certificates gnupg && \
+    apt-get install -y --no-install-recommends gdal-bin curl ca-certificates gnupg && \
     echo "deb [trusted=yes] https://s3.amazonaws.com/stol-apt-repository develop focal" \
         > /etc/apt/sources.list.d/stol-apt-repository.list && \
     apt-get update && \
