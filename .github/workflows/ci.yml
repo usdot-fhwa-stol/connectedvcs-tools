@@ -12,7 +12,7 @@ jobs:
     Build:
       runs-on: ubuntu-latest
       container:
-        image: maven:3.8.5-jdk-8-slim
+        image: maven:3.9.16-eclipse-temurin-8-noble
         options: --user root
       steps:
         - name: Install deps
