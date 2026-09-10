@@ -281,6 +281,7 @@ function createMessageJSON() {
                 masterLaneWidth: attrs.masterLaneWidth,
                 sspTimRights: attrs.sspTimRights,
                 packetID: attrs.packetID,
+                msgCount: attrs.msgCount,
                 content: attrs.content,
                 sspTypeRights: attrs.sspTypeRights,
                 sspContentRights: attrs.sspContentRights,

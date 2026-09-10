@@ -312,6 +312,11 @@
                     	<div class="col-sm-7"><input class="form-control" id="packet_id" placeholder="0 to 999999999" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 999999999]" data-parsley-pattern-message="This value must be an integer."></div>
                    		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_id"></i></div>
                    	</div>
+					<div class="row message_count">
+                    	<div class="col-sm-4"><label for="message_count">Message Count:</label></div>
+                    	<div class="col-sm-7"><input class="form-control" id="message_count" placeholder="0 to 127" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 127]" data-parsley-pattern-message="This value must be an integer."></div>
+                   		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="message_count"></i></div>
+                   	</div>
 					<div class="row ssp_content_rights">
 						<div class="col-sm-4"><label for="ssp_content_rights">SSP Content Rights:</label></div>
 						<div class="col-sm-7"><input class="form-control" id="ssp_content_rights" placeholder="0 to 31" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 31]" data-parsley-pattern-message="This value must be an integer."></div>

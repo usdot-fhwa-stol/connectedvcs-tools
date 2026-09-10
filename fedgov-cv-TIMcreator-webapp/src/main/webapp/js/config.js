@@ -225,7 +225,15 @@ var help_notes = [
         max: "N/A",
         min: "N/A",
         units: "N/A",
-        description: "Provides a unique value which can be used to connet to other supporting messages"
+        description: "Provides a unique value which can be used to connect to other supporting messages."
+    },
+    {
+        value: "message_count",
+        title: "Message Count",
+        max: "127",
+        min: "0",
+        units: "N/A",
+        description: "Provides a sequence number within a stream of messages."
     },
     {
         value: "content",

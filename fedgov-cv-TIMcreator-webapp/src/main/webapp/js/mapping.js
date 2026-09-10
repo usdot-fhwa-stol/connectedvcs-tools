@@ -1798,6 +1798,7 @@ $(".btnDone").click(function () {
         selected_marker.set('startTime', $("#start_time input").val());
         selected_marker.set('endTime', $("#end_time input").val());
         selected_marker.set('packetID', $("#packet_id").val());
+        selected_marker.set('msgCount', $("#message_count").val());
         selected_marker.set('content', content);
         selected_marker.set('elevation', $("#elev").val());
         selected_marker.set('masterLaneWidth', $("#master_lane_width").val());
