@@ -299,6 +299,7 @@ public class TravelerInputData {
 		public short masterLaneWidth;
 		public short sspTimRights;
 		public long packetID;
+		public long msgCount;
 		public ItisContent[] content;
 		public short sspTypeRights;
 		public short sspContentRights;
@@ -339,6 +340,7 @@ public class TravelerInputData {
 					", sspContentRights=" + sspContentRights +
 					", sspLocationRights=" + sspLocationRights +
 					", packetID=" + packetID +
+					", msgCount=" + msgCount +
 					", content=" + Arrays.toString(content) +
 					", direction=" + direction +
 					", mutcd=" + mutcd +
