@@ -223,7 +223,7 @@ the License.
             $("#type-results-textarea").val("");
             $("#type-results-textarea").removeClass("success_results");
             $("#type-results-textarea").removeClass("error_results");
-            $("#button#validate").attr("disabled", false);
+            $("button#validate").attr("disabled", false);
             $("#fileselect").val("");
             
 		});
@@ -233,9 +233,9 @@ the License.
 				getData.messageType = $("#message-type option:selected").val()
 			}
 			console.log(getData);
-		$("#button#validate").attr("disabled", true);
+		$("button#validate").attr("disabled", true);
         $.ajax({
-			type    : "GET",
+			type    : "POST",
 			url     : "message/decode",
             data    : getData,
 			success : function(data, textStatus, jqXHR) {
@@ -281,7 +281,7 @@ the License.
            		}
                 $("#type-results-textarea").val(typeMessage)
                 $("#results-textarea").val(resultsMessage);
-                $("#button#validate").attr("disabled", false);
+                $("button#validate").attr("disabled", false);
 			},
             error   : function(jqXHR, textStatus, errorThrown) {
             
@@ -291,12 +291,13 @@ the License.
                 $("#results-textarea").addClass("error_results");
                 $("#type-results-textarea").removeClass(success_clazz);
                 $("#type-results-textarea").addClass(error_clazz);
-                if (errorThrown !== undefined) {
-                	$("#results-textarea").val("Error: Failed to validate message. Reason: " + errorThrown);
-                } else {
-					$("#results-textarea").val("Error: Failed to validate message. Reason: Internal Server Error.");
-               	}
-                $("#button#validate").attr("disabled", false);
+                var reason = errorThrown || textStatus;
+                if (jqXHR && jqXHR.status) {
+                	reason = jqXHR.status + " " + (reason || jqXHR.statusText || "");
+                }
+                $("#results-textarea").val("Error: Failed to validate message. Reason: "
+                	+ (reason || "Internal Server Error."));
+                $("button#validate").attr("disabled", false);
 			}
       	});
 	});
