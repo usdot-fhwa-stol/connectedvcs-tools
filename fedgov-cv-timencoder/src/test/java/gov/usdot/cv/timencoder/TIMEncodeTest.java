@@ -107,7 +107,9 @@ public class TIMEncodeTest {
 
                 // === TravelerInformation ===
                 mockTimData = mock(TravelerInformation.class);
-                when(mockTimData.getMsgCnt()).thenReturn(10);
+
+                long msgCountValue = 10;
+                when(mockTimData.getMsgCnt()).thenReturn((int) msgCountValue);
 
                 long packetIdValue = 376597980L;
 
