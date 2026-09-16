@@ -179,6 +179,9 @@ function createMessageJSON()
     let stopFeat = box.getSource().getFeatures();
     let laneFeat = lanes.getSource().getFeatures();
 
+    const refPointElev = vectors.getSource().getFeatures()
+        .find(f => f.get('marker')?.name === "Reference Point Marker")?.get('elevation');
+
     //Building of nested layers
     let approachesArray = { "approach": []};
     let drivingLanesArray = {"drivingLanes":[]};
@@ -331,7 +334,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                                "nodeElevDelta": getElevationDelta(laneFeat[j], m),
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -341,7 +344,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                                "nodeElevDelta": getElevationDelta(laneFeat[j], m),
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -619,7 +622,7 @@ function createMessageJSON()
                         "nodeLat": lonlat[1],
                         "nodeLong": lonlat[0],
                         "nodeElev": laneFeat[j].get('elevation')[m]?.value,
-                        "nodeElevDelta": getElevationDelta(laneFeat[j], m),
+                        "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                         "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
                     }
                 }
