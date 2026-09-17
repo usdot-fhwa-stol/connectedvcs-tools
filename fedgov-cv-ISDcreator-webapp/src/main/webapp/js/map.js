@@ -985,6 +985,16 @@ function initMISC() {
   $("#lane_type_check").hide();
 
   $('[data-toggle="tooltip"]').tooltip();
+  $('[data-toggle="popover"]').popover({ container: 'body' });
+  // Keep only one note popover open at a time, and close it when clicking outside.
+  $('[data-toggle="popover"]').on('show.bs.popover', function () {
+    $('[data-toggle="popover"]').not(this).popover('hide');
+  });
+  $(document).on('click.ctiPopover', function (e) {
+    if ($(e.target).closest('[data-toggle="popover"], .popover').length === 0) {
+      $('[data-toggle="popover"]').popover('hide');
+    }
+  });
   /**
    * Purpose: link to help doc in config
    * @params  click event
