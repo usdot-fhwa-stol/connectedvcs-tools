@@ -12,7 +12,7 @@ jobs:
     Build:
       runs-on: ubuntu-latest
       container:
-        image: maven:3.8.5-jdk-8-slim
+        image: maven:3.9.16-eclipse-temurin-8-noble
         options: --user root
       steps:
         - name: Install deps
@@ -84,7 +84,7 @@ jobs:
             mkdir -p tomcat/webapps/connectedvcs-tools/ROOT/WEB-INF/classes
             mv $GITHUB_WORKSPACE/root/WEB-INF/web.xml /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/ROOT/WEB-INF/
             mv $GITHUB_WORKSPACE/root/index.html /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/
-            mv -n $GITHUB_WORKSPACE/root/* /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/ROOT/
+            mv --update=none $GITHUB_WORKSPACE/root/* /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/connectedvcs-tools/ROOT/
             cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-TIMcreator-webapp/target/tim.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
             cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-ISDcreator-webapp/target/isd.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/
             cp /__w/connectedvcs-tools/connectedvcs-tools/fedgov-cv-message-validator-webapp/target/validator.war /__w/connectedvcs-tools/connectedvcs-tools/tomcat/webapps/

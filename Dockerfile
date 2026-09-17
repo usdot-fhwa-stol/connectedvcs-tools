@@ -1,4 +1,4 @@
-FROM maven:3.8.5-jdk-8-slim AS mvn-build
+FROM maven:3.9.16-eclipse-temurin-8-noble AS mvn-build
 COPY . /root
 WORKDIR /root/fedgov-cv-lib-asn1c
 RUN ./build_jni.sh --clean
