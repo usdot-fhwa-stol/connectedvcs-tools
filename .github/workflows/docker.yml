@@ -50,7 +50,7 @@ jobs:
       
       # Compare PR image against the base branch env on Docker Scout and post results to the PR
       - name: Docker Scout Compare connectedvcs-tools
-        uses: docker/scout-action@v1
+        uses: docker/scout-action@v1.12.0
         with:
           command: compare
           image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:pr-${{ github.event.pull_request.number }}
@@ -59,3 +59,9 @@ jobs:
           only-severities: critical,high
           organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}
           keep-previous-comments: true
+      - name: Docker Scout Policy Evaluation connectedvcs-tools
+        uses: docker/scout-action@v1.24.0
+        with:
+          command: policy
+          image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:pr-${{ github.event.pull_request.number }}
+          organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}
