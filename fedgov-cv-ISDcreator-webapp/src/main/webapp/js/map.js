@@ -1518,8 +1518,9 @@ function registerModalButtonEvents() {
         // Refresh elevation deltas for the whole lane so the saved map JSON stays consistent.
         const editedLaneFeat = lanes.getSource().getFeatures()[selectedMarker.get("lane")];
         const editedElevation = editedLaneFeat.get("elevation");
+        const editedRefPointElev = getReferencePointFeature(overlayLayersGroup)?.get("elevation");
         for (let n = 0; n < editedElevation.length; n++) {
-          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n);
+          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n, editedRefPointElev);
         }
 
         if (selectedMarker.get("computed")) {
