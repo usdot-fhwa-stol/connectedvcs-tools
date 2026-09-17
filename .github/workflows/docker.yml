@@ -66,5 +66,6 @@ jobs:
         uses: docker/scout-action@v1.24.0
         with:
           command: policy
+          policy-config: ${{ github.workspace }}/.github/workflows/docker-scout-policy.json
           image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:pr-${{ github.event.pull_request.number }}
           organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}
