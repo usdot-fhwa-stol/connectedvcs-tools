@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
 import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
 
@@ -131,6 +131,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     $(".lane_type_attributes").hide();
     $(".lane_type_attributes btn-group").hide();
     $("label[for='lane_type_attributes']").hide();
+    $(".subsequent-node-note").hide();
     $(".verified_lat").hide();
     $(".verified_long").hide();
     $(".verified_elev").hide();
@@ -224,6 +225,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
       $(".lane_type").hide();
       $(".lane_number").hide();
       $(".lane_info_time_restrictions").hide();
+      $(".subsequent-node-note").show();
     }
     let nodeLaneWidth;
     if(laneFeatures[selectedMarker.get("lane")]?.get("laneWidth")){
@@ -263,9 +265,11 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     
     if (! selectedMarker.get("laneType") ) {
         $('#lane_type .dropdown-toggle').html("Select a Lane Type <span class='caret'></span>");
+        updateLaneTypeAttributesHelpText(null);
     } else if (  selectedMarker.get("number") == 0 ) {
         $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
+        updateLaneTypeAttributesHelpText(selectedMarker.get("laneType"));
     }
     if (!laneFeatures[selectedMarker.get("lane")]?.get("speedLimitType")) {
       removeSpeedForm(speedForm);
@@ -522,6 +526,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".selection-panel").text('Approach Configuration');
       $("#lane_attributes").hide();
       $(".lane_type_attributes").hide();
+      $(".subsequent-node-note").hide();
       $(".lane_info_time_restrictions").hide();
       $(".lane_number").hide();
       $(".lat").hide();
