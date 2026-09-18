@@ -29,6 +29,7 @@ var circle_bounds;
 let box, laneConnections, errors;
 let overlayLayersGroup, baseLayersGroup;
 const aerialMaxZoom = 19;
+const DEFAULT_MSG_COUNT = 1;
 var layerSwitcher;
 let controls;
 let activeControlKey = null;
@@ -223,7 +224,6 @@ function init() {
   const d = new Date();
   const t = d.getTime().toString();
   $('#packet_id').val(t.slice(-9));
-  $('#message_count').val();
 
   $('option:selected').prop("selected", false);
 
@@ -1499,6 +1499,11 @@ function referencePointWindow(feature) {
   $('#start_time input').val(selected_marker.get('startTime') || '');
   $('#end_time input').val(selected_marker.get('endTime') || '');
 
+  const msgCount = selected_marker.get('msgCount');
+  $('#message_count').val(
+    msgCount === undefined || msgCount === null || msgCount === '' ? DEFAULT_MSG_COUNT : msgCount
+  );
+
   const content = selected_marker.get('content');
   if (!content) {
     removeITISForm();
@@ -2291,6 +2296,10 @@ export function setCirclesTemp(newCirclesTemp) {
 }
 
 export function setFeatureAttributes(feature) {
+  const msgCount = feature.get('msgCount');
+  if (msgCount === undefined || msgCount === null || msgCount === '') {
+    feature.set('msgCount', DEFAULT_MSG_COUNT);
+  }
   mutcd = feature.get('mutcd');
   priority = feature.get('priority');
   direction = feature.get('direction');
