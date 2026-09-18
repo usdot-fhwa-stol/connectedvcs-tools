@@ -223,6 +223,7 @@ function init() {
   const d = new Date();
   const t = d.getTime().toString();
   $('#packet_id').val(t.slice(-9));
+  $('#message_count').val();
 
   $('option:selected').prop("selected", false);
 

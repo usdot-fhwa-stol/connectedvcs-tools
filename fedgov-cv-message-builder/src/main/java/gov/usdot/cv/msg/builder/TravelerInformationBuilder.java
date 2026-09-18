@@ -155,7 +155,12 @@ public class TravelerInformationBuilder {
 	private TravelerInformation buildTravelerInformation(TravelerInputData travInputData) throws ParseException {
 		TravelerInformation tim = new TravelerInformation();
 		tim.setDataFrames(buildDataFrames(travInputData));
-		tim.setMsgCnt((int) travInputData.anchorPoint.msgCount);
+		Integer msgCountValue = Integer.valueOf((int)travInputData.anchorPoint.msgCount);
+		if (msgCountValue > 0) {
+			tim.setMsgCnt(new Integer(msgCountValue));
+		} else {
+			tim.setMsgCnt((int)0);
+		}
 		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(travInputData.anchorPoint.packetID);
 		tim.setPacketID(new UniqueMSGID(buf.array()));
 		if (travInputData.timeStamp != null) {
