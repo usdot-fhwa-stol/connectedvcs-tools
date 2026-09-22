@@ -249,7 +249,7 @@ public class IntersectionInputData {
 					"relativeToRdAuthID" , mappedGeomID,
 					"regionID", regionID,					
 					"layerID", layerID,
-					"msgCount", msgCount,
+					"msgCnt", msgCount,
 					"masterLaneWidth", masterLaneWidth,
 					"referenceLat", referenceLat,
 					"referenceLon", referenceLon,
