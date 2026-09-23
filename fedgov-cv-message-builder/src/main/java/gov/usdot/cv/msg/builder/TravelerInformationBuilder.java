@@ -389,7 +389,7 @@ public class TravelerInformationBuilder {
 		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
 		String startOfYearTime = "01/01/" + getStartYear(travInputData) + " 12:00 AM";
 		Date startOfYearDate = sdf.parse(startOfYearTime);
-		long minutes = ((startDate.getTime() - startOfYearDate.getTime()) / 60000) + 1440;
+		long minutes = ((startDate.getTime() - startOfYearDate.getTime()) / 60000);
 		return minutes;
 	}
 
