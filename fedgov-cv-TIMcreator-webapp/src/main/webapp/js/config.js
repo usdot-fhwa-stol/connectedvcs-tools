@@ -76,6 +76,14 @@ var help_notes = [
         description: "Denotes when the message should end being active."
     },
     {
+        value: "max_duration",
+        title: "Maximum Duration",
+        max: "32000",
+        min: "32000",
+        units: "Minutes",
+        description: "Denotes that the message should remain active and not end."
+    },
+    {
         value: "nwlat",
         title: "Northwest Latitude",
         max: "90.0",

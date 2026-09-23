@@ -1498,6 +1498,7 @@ function referencePointWindow(feature) {
   $('#master_lane_width').val(selected_marker.get('masterLaneWidth') || '366');
   $('#start_time input').val(selected_marker.get('startTime') || '');
   $('#end_time input').val(selected_marker.get('endTime') || '');
+  $('#max_duration input').val(selected_marker.get('maxDuration') || '');
 
   const msgCount = selected_marker.get('msgCount');
   $('#message_count').val(
@@ -1803,6 +1804,7 @@ $(".btnDone").click(function () {
       } else {
         selected_marker.set('startTime', $("#start_time input").val());
         selected_marker.set('endTime', $("#end_time input").val());
+        selected_marker.set('maxDuration', $("#max_duration").val());
         selected_marker.set('packetID', $("#packet_id").val());
         selected_marker.set('msgCount', $("#message_count").val());
         selected_marker.set('content', content);

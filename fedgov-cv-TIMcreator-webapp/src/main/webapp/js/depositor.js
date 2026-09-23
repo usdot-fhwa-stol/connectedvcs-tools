@@ -292,6 +292,7 @@ function createMessageJSON() {
                 priority: attrs.priority,
                 startTime: attrs.startTime,
                 endTime: attrs.endTime,
+                maxDuration: attrs.maxDuration,
                 heading: getHeading(attrs.heading),
                 meanVerticalVariation: attrs.meanVerticalVariation,
                 verticalVariationStdDev: attrs.verticalVariationStdDev,
