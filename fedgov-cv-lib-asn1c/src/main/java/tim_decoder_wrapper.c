@@ -123,7 +123,8 @@ static char *build_failure_result(const asn_dec_rval_t *rval, const asn_TYPE_des
 	partialBuffer[0] = '\0';
 	if (msg)
 	{
-		FILE *partialStream = fmemopen(partialBuffer, sizeof(partialBuffer), "w");
+		partialBuffer[sizeof(partialBuffer) - 1] = '\0';
+		FILE *partialStream = fmemopen(partialBuffer, sizeof(partialBuffer) - 1, "w");
 		if (partialStream)
 		{
 			asn_fprint(partialStream, asn_def, msg);
@@ -186,7 +187,11 @@ static jboolean decode_message_only(
 	if (rval.code == RC_OK && msg != NULL)
 	{
 		char outputBuffer[65536];
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		/* fmemopen writes the terminator only if there is room left, so reserve the
+		   last byte and terminate it up front; asn_fprint on a large message would
+		   otherwise leave outputBuffer unterminated for the strdup below. */
+		outputBuffer[sizeof(outputBuffer) - 1] = '\0';
+		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer) - 1, "w");
 		if (stream)
 		{
 			asn_fprint(stream, asn_def, msg);
@@ -293,7 +298,11 @@ static jboolean decode_tim_message_frame(const void *buf_in, int len, const char
 		}
 
 		char outputBuffer[65536];
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		/* fmemopen writes the terminator only if there is room left, so reserve the
+		   last byte and terminate it up front; asn_fprint on a large message would
+		   otherwise leave outputBuffer unterminated for the strdup below. */
+		outputBuffer[sizeof(outputBuffer) - 1] = '\0';
+		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer) - 1, "w");
 		if (stream)
 		{
 			asn_fprint(stream, &asn_DEF_MessageFrame, message);
