@@ -406,7 +406,7 @@ public class TravelerInformationBuilder {
 	private int getDurationTime(TravelerInputData travInputData) throws ParseException {
 		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
 		Date endDate = sdf.parse(travInputData.anchorPoint.endTime);
-		String maxDurationChecked = String(travInputData.anchorPoint.maxDuration);
+		String maxDurationChecked = (travInputData.anchorPoint.maxDuration);
 
 		long diff = endDate.getTime() - startDate.getTime();
 		int durationInMinutes = (int) (diff / 1000 / 60);
