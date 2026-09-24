@@ -1804,7 +1804,7 @@ $(".btnDone").click(function () {
       } else {
         selected_marker.set('startTime', $("#start_time input").val());
         selected_marker.set('endTime', $("#end_time input").val());
-        selected_marker.set('maxDuration', $("#max_duration").val());
+        selected_marker.set('maxDuration', $("#max_duration").isChecked());
         selected_marker.set('packetID', $("#packet_id").val());
         selected_marker.set('msgCount', $("#message_count").val());
         selected_marker.set('content', content);
