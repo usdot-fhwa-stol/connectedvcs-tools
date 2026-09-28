@@ -81,7 +81,7 @@ var help_notes = [
         max: "32000",
         min: "32000",
         units: "Minutes",
-        description: "Denotes that the message should remain active and not end."
+        description: "Denotes that the message should remain active and not end. Duration time is infinite."
     },
     {
         value: "nwlat",
