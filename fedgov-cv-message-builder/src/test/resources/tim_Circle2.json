@@ -42,6 +42,7 @@
     "priority": 6,
     "startTime": "06/07/2017 9:24 PM",
     "endTime": "06/09/2017 9:24 PM",
+    "maxDuration": false,
     "heading": []
   },
   "verifiedPoint": {

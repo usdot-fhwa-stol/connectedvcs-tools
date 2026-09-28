@@ -82,6 +82,7 @@
     "priority": 4,
     "startTime": "01/01/2026 9:52 AM",
     "endTime": "02/28/2026 9:52 AM",
+    "maxDuration": false,
     "heading": [
       0,
       1,

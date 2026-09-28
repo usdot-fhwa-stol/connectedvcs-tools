@@ -53,6 +53,7 @@
       "priority": 4,
       "startTime": "08/24/2023 12:01 PM",
       "endTime": "12/31/2023 12:04 PM",
+      "maxDuration": false,
       "heading": [
         3,
         4
