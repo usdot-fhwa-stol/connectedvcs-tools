@@ -445,8 +445,7 @@ async function populateRefWindow(feature, lat, lon)
 
 
 // Lane type menu items may carry a data-value (e.g. "TrackedVehicle") that differs from the
-// displayed text ("Tracked Vehicle"). The value is what gets stored on the lane and used in
-// element ids ('#' + value + '_type_attributes'), so it must not contain spaces.
+// displayed text ("Tracked Vehicle")
 function getLaneTypeValue(link) {
   return $(link).attr('data-value') || $(link).text();
 }
