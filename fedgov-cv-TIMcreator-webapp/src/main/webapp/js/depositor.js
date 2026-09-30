@@ -171,6 +171,136 @@ function resetMessageForm() {
  * Note: each variable is stored in the feature object model
  */
 
+function buildLaneRegionJSON(laneFeature) {
+    const coords = laneFeature.getGeometry().getCoordinates();
+    const elevs = laneFeature.get('elevation');
+    const widths = laneFeature.get('laneWidth');
+    let nodeArray = [];
+
+    coords.forEach(([x, y], m) => {
+        const [lon, lat] = ol.proj.transform([x, y], toProjection, fromProjection);
+        nodeArray.push({
+            nodeNumber: m,
+            nodeLat: lat,
+            nodeLong: lon,
+            nodeElevation: elevs?.[m]?.value || 0,
+            laneWidth: widths?.[m] || 0
+        });
+    });
+
+    let ext = "";
+    try {
+        ext = getExtent(laneFeature.get('extent'));
+    } catch { }
+
+    return {
+        regionType: "lane",
+        laneNodes: nodeArray,
+        extent: ext
+    };
+}
+
+function buildPolygonRegionJSON(polyFeature) {
+    const geom = polyFeature.getGeometry();
+    const coords = geom.getCoordinates()[0]; // exterior ring
+    const title = polyFeature.get('title');
+
+    if (title === "circle") {
+        const bounds = geom.getExtent();
+        const [minX, minY, maxX, maxY] = ol.proj.transformExtent(bounds, toProjection, fromProjection);
+        const startX = (minX + maxX) / 2;
+        const startY = (minY + maxY) / 2;
+
+        const nodeArray = [
+            { nodeLat: startY, nodeLong: startX },
+            { nodeLat: maxY, nodeLong: startX }
+        ];
+
+        return {
+            regionType: "circle",
+            radius: $('#radius').val(),
+            laneNodes: nodeArray,
+            extent: ""
+        };
+    }
+
+    const elevs = polyFeature.get('elevation');
+    let nodeArray = [];
+    for (let m = 0; m < coords.length - 1; m++) {
+        const [x, y] = coords[m];
+        const [lon, lat] = ol.proj.transform([x, y], toProjection, fromProjection);
+        nodeArray.push({
+            nodeNumber: m,
+            nodeLat: lat,
+            nodeLong: lon,
+            nodeElevation: elevs?.[m]?.value || 0
+        });
+    }
+
+    return {
+        regionType: "region",
+        laneNodes: nodeArray,
+        extent: ""
+    };
+}
+
+// Finds the region owned by the given marker, tracked by markerId (see mapping.js).
+function findOwnedRegionJSON(markerFeature, laneFeat, polyFeat) {
+    const markerId = markerFeature.get('markerId');
+    const laneMatch = laneFeat.find(f => f.get('ownerMarkerId') === markerId);
+    if (laneMatch) return buildLaneRegionJSON(laneMatch);
+
+    const polyMatch = polyFeat.find(f => f.get('ownerMarkerId') === markerId);
+    if (polyMatch) return buildPolygonRegionJSON(polyMatch);
+
+    return null;
+}
+
+function buildAnchorPointJSON(feature, marker) {
+    const attrs = feature.getProperties();
+    for (let a = 0; a < attrs.content?.length; a++) {
+        if (attrs.content[a] === 0) {
+            attrs.content[a] = (12544 + Number(attrs.speedLimit)).toString();
+        }
+    }
+
+    const anchor = {
+        name: marker.name,
+        referenceLat: attrs.LonLat?.lat,
+        referenceLon: attrs.LonLat?.lon,
+        referenceElevation: attrs.elevation,
+        masterLaneWidth: attrs.masterLaneWidth,
+        sspTimRights: attrs.sspTimRights,
+        packetID: attrs.packetID,
+        msgCount: attrs.msgCount,
+        content: attrs.content,
+        sspTypeRights: attrs.sspTypeRights,
+        sspContentRights: attrs.sspContentRights,
+        sspLocationRights: attrs.sspLocationRights,
+        direction: attrs.direction?.substring(1, 2),
+        mutcd: attrs.mutcd?.substring(1, 2),
+        infoType: attrs.infoType?.substring(1, 2),
+        priority: attrs.priority,
+        startTime: attrs.startTime,
+        endTime: attrs.endTime,
+        maxDuration: attrs.maxDuration,
+        heading: getHeading(attrs.heading),
+        meanVerticalVariation: attrs.meanVerticalVariation,
+        verticalVariationStdDev: attrs.verticalVariationStdDev,
+        meanHorizontalVariation: attrs.meanHorizontalVariation,
+        horizontalVariationStdDev: attrs.horizontalVariationStdDev,
+        road_surface: attrs.road_surface,
+        road_condition: attrs.road_condition?.substring(1, 2),
+        road_surface_type: attrs.road_surface_type
+    };
+
+    if (attrs.road_surface_type !== undefined) {
+        anchor.road_surface_type = attrs.road_surface_type;
+    }
+
+    return anchor;
+}
+
 function createMessageJSON() {
     let spatMessage = {};
     let minuteOfTheYear = moment.utc().diff(moment.utc().startOf('year'), 'minutes');
@@ -180,132 +310,19 @@ function createMessageJSON() {
     const vectorFeat = vectors.getSource().getFeatures();
     const areaFeat = area.getSource().getFeatures();
 
-    let regionsArray = { regions: [] };
-    let regionArray = regionsArray.regions;
-
-    // LANES
-    laneFeat.forEach((laneFeature, j) => {
-        const coords = laneFeature.getGeometry().getCoordinates();
-        const elevs = laneFeature.get('elevation');
-        const widths = laneFeature.get('laneWidth');
-        let nodeArray = [];
-
-        coords.forEach(([x, y], m) => {
-            const [lon, lat] = ol.proj.transform([x, y], toProjection, fromProjection);
-            nodeArray.push({
-                nodeNumber: m,
-                nodeLat: lat,
-                nodeLong: lon,
-                nodeElevation: elevs?.[m]?.value || 0,
-                laneWidth: widths?.[m] || 0
-            });
-        });
-
-        let ext = "";
-        try {
-            ext = getExtent(laneFeature.get('extent'));
-        } catch { }
-
-        regionArray.push({
-            regionType: "lane",
-            laneNodes: nodeArray,
-            extent: ext
-        });
-    });
-
-    // POLYGONS
-    polyFeat.forEach((polyFeature, j) => {
-        const geom = polyFeature.getGeometry();
-        const coords = geom.getCoordinates()[0]; // exterior ring
-        const title = polyFeature.get('title');
-        let nodeArray = [];
-        let ext = "";
-
-        if (title === "circle") {
-            const bounds = geom.getExtent();
-            const [minX, minY, maxX, maxY] = ol.proj.transformExtent(bounds, toProjection, fromProjection);
-            const startX = (minX + maxX) / 2;
-            const startY = (minY + maxY) / 2;
-
-            nodeArray = [
-                { nodeLat: startY, nodeLong: startX },
-                { nodeLat: maxY, nodeLong: startX }
-            ];
-
-            regionArray.push({
-                regionType: "circle",
-                radius: $('#radius').val(),
-                laneNodes: nodeArray,
-                extent: ext
-            });
-        } else {
-            const elevs = polyFeature.get('elevation');
-            for (let m = 0; m < coords.length - 1; m++) {
-                const [x, y] = coords[m];
-                const [lon, lat] = ol.proj.transform([x, y], toProjection, fromProjection);
-                nodeArray.push({
-                    nodeNumber: m,
-                    nodeLat: lat,
-                    nodeLong: lon,
-                    nodeElevation: elevs?.[m]?.value || 0
-                });
-            }
-
-            regionArray.push({
-                regionType: "region",
-                laneNodes: nodeArray,
-                extent: ext
-            });
-        }
-    });
-
-    // MARKERS
-    let anchor = null;
+    // FRAMES: one per TIM content marker, paired with its owned region (if any)
+    let frames = [];
     let verified = null;
     vectorFeat.forEach((feature) => {
         const marker = feature.get('marker');
 
         if (marker?.type === "TIM") {
-            const attrs = feature.getProperties();
-            for (let a = 0; a < attrs.content?.length; a++) {
-                if (attrs.content[a] === 0) {
-                    attrs.content[a] = (12544 + Number(attrs.speedLimit)).toString();
-                }
-            }
-
-            anchor = {
-                name: marker.name,
-                referenceLat: attrs.LonLat?.lat,
-                referenceLon: attrs.LonLat?.lon,
-                referenceElevation: attrs.elevation,
-                masterLaneWidth: attrs.masterLaneWidth,
-                sspTimRights: attrs.sspTimRights,
-                packetID: attrs.packetID,
-                msgCount: attrs.msgCount,
-                content: attrs.content,
-                sspTypeRights: attrs.sspTypeRights,
-                sspContentRights: attrs.sspContentRights,
-                sspLocationRights: attrs.sspLocationRights,
-                direction: attrs.direction?.substring(1, 2),
-                mutcd: attrs.mutcd?.substring(1, 2),
-                infoType: attrs.infoType?.substring(1, 2),
-                priority: attrs.priority,
-                startTime: attrs.startTime,
-                endTime: attrs.endTime,
-                maxDuration: attrs.maxDuration,
-                heading: getHeading(attrs.heading),
-                meanVerticalVariation: attrs.meanVerticalVariation,
-                verticalVariationStdDev: attrs.verticalVariationStdDev,
-                meanHorizontalVariation: attrs.meanHorizontalVariation,
-                horizontalVariationStdDev: attrs.horizontalVariationStdDev,
-                road_surface: attrs.road_surface,
-                road_condition: attrs.road_condition?.substring(1, 2),
-                road_surface_type: attrs.road_surface_type
-            };
-            
-            if (attrs.road_surface_type !== undefined) {
-                anchor.road_surface_type = attrs.road_surface_type;
-            }
+            const anchor = buildAnchorPointJSON(feature, marker);
+            const region = findOwnedRegionJSON(feature, laneFeat, polyFeat);
+            frames.push({
+                anchorPoint: anchor,
+                regions: region ? [region] : []
+            });
         }
 
         if (marker?.type === "VER") {
@@ -337,14 +354,13 @@ function createMessageJSON() {
     }
 
     // Final JSON
-    spatMessage.regions = regionArray;
-    spatMessage.anchorPoint = anchor;
+    spatMessage.frames = frames;
     spatMessage.verifiedPoint = verified;
     spatMessage.messageType = $("#message_type").val();
     spatMessage.nodeOffsets = $("#node_offsets").val();
     spatMessage.enableElevation = $("#enable_elevation").is(":checked");
     spatMessage.timeStamp = minuteOfTheYear;
-    
+
     return spatMessage;
 }
 
@@ -355,82 +371,85 @@ function createMessageJSON() {
  * @event: just checking that a marker exists, etc so that the message can build appropriately
  */
 
+function appendAlert(message) {
+    $('#alert_placeholder').append(`<div class="alert alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <span>${message}</span>
+    </div>`);
+}
+
 function errorCheck() {
     let status = false; // false means no errors
 
     const lanesFeatures = lanes.getSource().getFeatures();
     const polygonsFeatures = polygons.getSource().getFeatures();
     const vectorFeatures = vectors.getSource().getFeatures();
+    const timMarkers = vectorFeatures.filter(f => f.get('marker')?.type === "TIM");
+    const verifiedMarkers = vectorFeatures.filter(f => f.get('marker')?.type === "VER");
 
-    if (lanesFeatures.length === 0 && polygonsFeatures.length === 0) {
-        $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <span>Cannot deposit without a region defined.</span>
-        </div>`);
+    if (timMarkers.length === 0) {
+        appendAlert("At least one road sign marker is required.");
         status = true;
     }
 
-    if (vectorFeatures.length !== 2) {
-        $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <span>Missing anchor or verified points.</span>
-        </div>`);
+    if (verifiedMarkers.length !== 1) {
+        appendAlert("Missing verified point.");
         status = true;
     }
 
-    try {
-        for (let f = 0; f < vectorFeatures.length; f++) {
-            const feature = vectorFeatures[f];
-            const marker = feature.get('marker');
+    // Flag regions with no valid owning marker instead of silently dropping them.
+    const timMarkerIds = new Set(timMarkers.map(f => f.get('markerId')).filter(Boolean));
+    const orphanedRegionCount = [...lanesFeatures, ...polygonsFeatures].filter((f) => {
+        const ownerMarkerId = f.get('ownerMarkerId');
+        return !ownerMarkerId || !timMarkerIds.has(ownerMarkerId);
+    }).length;
+    if (orphanedRegionCount > 0) {
+        appendAlert(`${orphanedRegionCount} region(s) on the map are not associated with any road sign marker. Associate each with a marker, or delete it, before encoding.`);
+        status = true;
+    }
 
-            if (marker?.type === "TIM") {
-                const startTime = feature.get('startTime');
-                const endTime = feature.get('endTime');
-                const content = feature.get('content');
-                const priority = feature.get('priority');
-                const mutcd = feature.get('mutcd');
-                const road_condition = feature.get('road_condition');
+    timMarkers.forEach((feature, index) => {
+        const markerLabel = feature.get('marker')?.name || `Marker ${index + 1}`;
 
-                if (!startTime || !endTime) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>Set start and end time on the anchor point.</span>
-                    </div>`);
-                    status = true;
-                }
-
-                if ((!content || !content[0] || content[0].codes?.length === 0) && !content[0]?.text) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>ITIS information is required.</span>
-                    </div>`);
-                    status = true;
-                }
-
-                if (!priority) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>Missing priority level.</span>
-                    </div>`);
-                    status = true;
-                }
-
-                if (!mutcd) {
-                    $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <span>Missing mutcd codes.</span>
-                    </div>`);
-                    status = true;
-                }
-            }
+        const markerId = feature.get('markerId');
+        const hasRegion = lanesFeatures.some(f => f.get('ownerMarkerId') === markerId) ||
+            polygonsFeatures.some(f => f.get('ownerMarkerId') === markerId);
+        if (!hasRegion) {
+            appendAlert(`"${markerLabel}" is missing an associated region (lane, polygon, or circle).`);
+            status = true;
         }
-    } catch (err) {
-        $('#alert_placeholder').html(`<div class="alert alert-danger alert-dismissable">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <span>Missing one or more fields on anchor or verified point.</span>
-        </div>`);
-        status = true;
-    }
+
+        try {
+            const startTime = feature.get('startTime');
+            const endTime = feature.get('endTime');
+            const content = feature.get('content');
+            const priority = feature.get('priority');
+            const mutcd = feature.get('mutcd');
+
+            if (!startTime || !endTime) {
+                appendAlert(`"${markerLabel}" is missing start and end time.`);
+                status = true;
+            }
+
+            if ((!content || !content[0] || content[0].codes?.length === 0) && !content[0]?.text) {
+                appendAlert(`"${markerLabel}" is missing ITIS information.`);
+                status = true;
+            }
+
+            if (!priority) {
+                appendAlert(`"${markerLabel}" is missing a priority level.`);
+                status = true;
+            }
+
+            if (!mutcd) {
+                appendAlert(`"${markerLabel}" is missing mutcd codes.`);
+                status = true;
+            }
+        } catch (err) {
+            appendAlert(`"${markerLabel}" is missing one or more required fields.`);
+            status = true;
+        }
+    });
 
     return status;
 }

@@ -17,13 +17,23 @@ import { barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, meas
 import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from "./map-event.js";
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
-import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
+import { setStatusHintForState, setStatusHint } from "../../private-resources/js/status-bar.js";
 
 import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
 var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
 var temp_lat, temp_lon, selected_marker, selected_layer, selected_marker_limit, vectorSelect, laneMarkerSelect, polyMarkerSelect, selectLane, polygonSelect, areaSelect;
+// The TIM marker regions get drawn for; distinct from the overloaded selected_marker.
+let activeContentMarker = null;
+// Set while loadMap() restores features, so draw-time checks don't run against them.
+let suppressRegionOwnerChecks = false;
+export function setSuppressRegionOwnerChecks(value) {
+  suppressRegionOwnerChecks = value;
+}
+// An orphaned region the user clicked, waiting to be bound to the next marker placed.
+let pendingRegionForAssociation = null;
+const MAX_TIM_MARKERS = 8;
 var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_surface_type, road_condition;
 var circle_bounds;
 let box, laneConnections, errors;
@@ -367,19 +377,10 @@ function registerMapEvents() {
 
   // Handle "beforefeatureadded" + "featureadded" via 'addfeature' listener
   laneSource.on('addfeature', function (evt) {
-    const features = laneSource.getFeatures();
-
-    if (features.length > 1) {
-      alert("Service Region already defined.");
+    if (!assignRegionOwner(evt.feature)) {
       laneSource.removeFeature(evt.feature);
       return;
     }
-
-    // Disable controls on feature add
-    $('#drawPoly').prop('disabled', true);
-    $('#editPoly').prop('disabled', true);
-    $('#drawCircle').prop('disabled', true);
-    $('#dragPoly').prop('disabled', true);
   });
 
   // Simulate 'featureselected' via interaction
@@ -391,15 +392,9 @@ function registerMapEvents() {
   selectLane.on('select', function (evt) {
     const selected = evt.selected[0];
     if (deleteMode && selected) {
-
-
       deleteMarker(lanes, selected);
-
-      // Re-enable controls
-      document.getElementById('drawPoly').disabled = false;
-      document.getElementById('editPoly').disabled = false;
-      document.getElementById('drawCircle').disabled = false;
-      document.getElementById('dragPoly').disabled = false;
+    } else {
+      selectRegionForAssociation(selected);
     }
   });
 
@@ -424,16 +419,10 @@ function registerMapEvents() {
   });
 
   polygonSource.on('addfeature', function (evt) {
-    const features = polygonSource.getFeatures();
-
-    if (features.length > 1) {
-      alert("Region already defined.");
+    if (!assignRegionOwner(evt.feature)) {
       polygonSource.removeFeature(evt.feature);
       return;
     }
-
-    $('#drawLanes').prop('disabled', true);
-    $('#editLanes').prop('disabled', true);
 
     // Check if the newly added feature is a circle
     const feature = evt.feature;
@@ -453,8 +442,8 @@ function registerMapEvents() {
     const selected = evt.selected[0];
     if (deleteMode && selected) {
       deleteMarker(polygons, selected);
-      $('#drawLanes').prop('disabled', false);
-      $('#editLanes').prop('disabled', false);
+    } else {
+      selectRegionForAssociation(selected);
     }
   });
 
@@ -726,6 +715,19 @@ function registerMapEvents() {
 
   vectorSource.on('addfeature', function (evt) {
     selected_marker = evt.feature;
+    if (evt.feature.get('marker') && evt.feature.get('marker').type === 'TIM') {
+      setActiveContentMarker(evt.feature);
+      if (!suppressRegionOwnerChecks) {
+        if (pendingRegionForAssociation && isRegionOrphaned(pendingRegionForAssociation)) {
+          if (!evt.feature.get('markerId')) {
+            evt.feature.set('markerId', generateMarkerId());
+          }
+          pendingRegionForAssociation.set('ownerMarkerId', evt.feature.get('markerId'));
+        }
+        pendingRegionForAssociation = null;
+        tryAutoAssociateOrphanRegion();
+      }
+    }
     updateFeatureLocation(evt.feature);
   });
 
@@ -740,6 +742,9 @@ function registerMapEvents() {
     if (!selected) return;
 
     selected_marker = selected;
+    if (selected.get('marker') && selected.get('marker').type === 'TIM') {
+      setActiveContentMarker(selected);
+    }
 
     if (deleteMode) {
       deleteMarker(vectors, selected_marker);
@@ -1055,8 +1060,146 @@ export function Clear() {
 }
 
 
+const activeMarkerHighlightStyle = new ol.style.Style({
+  image: new ol.style.Circle({
+    radius: 26,
+    fill: new ol.style.Fill({ color: 'rgba(255, 235, 59, 0.35)' }),
+    stroke: new ol.style.Stroke({ color: '#FFC107', width: 3 })
+  })
+});
+
+// Stable id for a marker so region ownership survives save/load (never store live OL objects).
+export function generateMarkerId() {
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+// Builds the plain icon style fresh from marker.img_src, rather than caching it on the feature.
+function buildMarkerBaseStyle(marker) {
+  const markerInfo = marker && marker.get('marker');
+  if (!markerInfo || !markerInfo.img_src) return null;
+  return new ol.style.Style({
+    image: new ol.style.Icon({
+      src: markerInfo.img_src,
+      height: 50,
+      width: 50,
+      anchor: [0.5, 1],
+      anchorXUnits: 'fraction',
+      anchorYUnits: 'fraction'
+    })
+  });
+}
+
+// Switches the active marker, restyling the old one plain and highlighting the new one.
+// These are message-level fields in the encoded output, not per-marker, so keep them in sync.
+const SHARED_TIM_FIELDS = ['packetID', 'msgCount'];
+
+function getSharedTimFieldValue(field, fallback) {
+  const marker = vectors.getSource().getFeatures()
+    .find(f => f.get('marker')?.type === 'TIM' && f.get(field));
+  return marker ? marker.get(field) : fallback;
+}
+
+function syncSharedTimFields(sourceMarker) {
+  vectors.getSource().getFeatures().forEach((feature) => {
+    if (feature !== sourceMarker && feature.get('marker')?.type === 'TIM') {
+      SHARED_TIM_FIELDS.forEach((field) => feature.set(field, sourceMarker.get(field)));
+    }
+  });
+}
+
+function setActiveContentMarker(marker) {
+  if (activeContentMarker) {
+    const prevBaseStyle = buildMarkerBaseStyle(activeContentMarker);
+    if (prevBaseStyle) activeContentMarker.setStyle(prevBaseStyle);
+  }
+  activeContentMarker = marker;
+  if (activeContentMarker) {
+    const baseStyle = buildMarkerBaseStyle(activeContentMarker);
+    if (baseStyle) activeContentMarker.setStyle([activeMarkerHighlightStyle, baseStyle]);
+  }
+}
+
+// Finds the region (if any) already owned by the given marker, tracked by markerId.
+function getOwnedRegionFeature(marker) {
+  const markerId = marker && marker.get('markerId');
+  if (!markerId) return undefined;
+  const laneMatch = lanes.getSource().getFeatures().find(f => f.get('ownerMarkerId') === markerId);
+  if (laneMatch) return laneMatch;
+  return polygons.getSource().getFeatures().find(f => f.get('ownerMarkerId') === markerId);
+}
+
+// Whether a region's ownerMarkerId doesn't match any currently-placed TIM marker.
+function isRegionOrphaned(region) {
+  const ownerMarkerId = region.get('ownerMarkerId');
+  if (!ownerMarkerId) return true;
+  return !vectors.getSource().getFeatures()
+    .some(f => f.get('marker')?.type === 'TIM' && f.get('markerId') === ownerMarkerId);
+}
+
+// Arms an orphaned region to bind to the next marker placed; anything else disarms it.
+function selectRegionForAssociation(region) {
+  if (region && isRegionOrphaned(region)) {
+    pendingRegionForAssociation = region;
+    setStatusHint('Region selected, now drag a road sign marker onto the map to associate it with this region.');
+  } else {
+    pendingRegionForAssociation = null;
+  }
+}
+
+// Binds a region-less marker to an ownerless region, only when exactly one of each exists.
+function tryAutoAssociateOrphanRegion() {
+  const timMarkers = vectors.getSource().getFeatures().filter(f => f.get('marker')?.type === 'TIM');
+  const markersNeedingRegion = timMarkers.filter(m => !getOwnedRegionFeature(m));
+
+  const timMarkerIds = new Set(timMarkers.map(m => m.get('markerId')).filter(Boolean));
+  const orphanRegions = [...lanes.getSource().getFeatures(), ...polygons.getSource().getFeatures()]
+    .filter(r => !timMarkerIds.has(r.get('ownerMarkerId')));
+
+  if (markersNeedingRegion.length === 1 && orphanRegions.length === 1) {
+    const marker = markersNeedingRegion[0];
+    if (!marker.get('markerId')) {
+      marker.set('markerId', generateMarkerId());
+    }
+    orphanRegions[0].set('ownerMarkerId', marker.get('markerId'));
+  }
+}
+
+// Tags a newly drawn region with the active marker; returns false if it should be rejected.
+function assignRegionOwner(feature) {
+  // Skip these checks for features being restored by loadMap.
+  if (suppressRegionOwnerChecks) {
+    return true;
+  }
+
+  if (selected_marker && selected_marker.get('marker') && selected_marker.get('marker').type === 'VER') {
+    alert("A region cannot be associated with the Verified Point marker. Select a road sign marker first.");
+    return false;
+  }
+
+  const markerStillPlaced = activeContentMarker && vectors.getSource().getFeatures().includes(activeContentMarker);
+  if (!markerStillPlaced) {
+    alert("Select a road sign marker before drawing a region.");
+    return false;
+  }
+
+  if (getOwnedRegionFeature(activeContentMarker)) {
+    alert("This marker already has a region. Delete the existing region before drawing a new one.");
+    return false;
+  }
+
+  if (!activeContentMarker.get('markerId')) {
+    activeContentMarker.set('markerId', generateMarkerId());
+  }
+  feature.set('ownerMarkerId', activeContentMarker.get('markerId'));
+  return true;
+}
+
 function deleteMarker(layer, feature) {
   $("#attributes").hide();
+
+  if (feature === activeContentMarker) {
+    activeContentMarker = null;
+  }
 
   try {
     if (feature.attributes?.marker?.type == "TIM") {
@@ -1081,6 +1224,10 @@ function deleteMarker(layer, feature) {
 
   layer.getSource().removeFeature(feature);
   layer.changed();
+
+  if (!suppressRegionOwnerChecks) {
+    tryAutoAssociateOrphanRegion();
+  }
 }
 
 
@@ -1103,6 +1250,11 @@ function toggleControlsOn(state) {
     if (state !== 'builder') {
       const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;
       setStatusHintForState(state, hasContent);
+    }
+    const regionDrawWord = { line: 'lane', polygon: 'polygon', circle: 'circle' }[state];
+    if (regionDrawWord && activeContentMarker) {
+      const markerName = activeContentMarker.get('marker')?.name || 'the selected marker';
+      setStatusHint(`Drawing ${regionDrawWord} region for "${markerName}" · Click the tool again to cancel`);
     }
     if (controls) {
       toggleControl(state);
@@ -1143,7 +1295,7 @@ function toggleControl(selectedKey) {
 
 function unselectFeature(feature) {
 
-  if (feature.layer != null) {
+  if (feature && feature.layer != null) {
     console.log("unselecting ", feature)
     controls.none.unselect(feature);
   }
@@ -1507,7 +1659,13 @@ function referencePointWindow(feature) {
 
   const msgCount = selected_marker.get('msgCount');
   $('#message_count').val(
-    msgCount === undefined || msgCount === null || msgCount === '' ? DEFAULT_MSG_COUNT : msgCount
+    msgCount === undefined || msgCount === null || msgCount === ''
+      ? getSharedTimFieldValue('msgCount', DEFAULT_MSG_COUNT)
+      : msgCount
+  );
+
+  $('#packet_id').val(
+    selected_marker.get('packetID') || getSharedTimFieldValue('packetID', $('#packet_id').val())
   );
 
   const content = selected_marker.get('content');
@@ -1522,22 +1680,23 @@ function referencePointWindow(feature) {
   $('#ssp_content_rights').val(selected_marker.get('sspContentRights') || '');
   $('#ssp_tim_rights').val(selected_marker.get('sspTimRights') || '');
 
-  const priority = selected_marker.get('priority');
+  // Assign (not "const") - the Done handler reads these same module-level variables at save time.
+  priority = selected_marker.get('priority');
   $('#priority .dropdown-toggle').html((priority || "Select A Priority") + " <span class='caret'></span>");
 
-  const mutcd = selected_marker.get('mutcd');
+  mutcd = selected_marker.get('mutcd');
   $('#mutcd .dropdown-toggle').html((mutcd || "Select A MUTCD Code") + " <span class='caret'></span>");
 
-  const direction = selected_marker.get('direction');
+  direction = selected_marker.get('direction');
   $('#direction .dropdown-toggle').html((direction || "Select A Direction") + " <span class='caret'></span>");
 
-  const infoType = selected_marker.get('infoType');
-  $('#info-type .dropdown-toggle').html((infoType || "Select A Type") + " <span class='caret'></span>");
+  info_type = selected_marker.get('infoType');
+  $('#info-type .dropdown-toggle').html((info_type || "Select A Type") + " <span class='caret'></span>");
 
-  const road_condition = selected_marker.get('road_condition');
+  road_condition = selected_marker.get('road_condition');
   $('#road_condition .dropdown-toggle').html((road_condition || "Select A Condition") + " <span class='caret'></span>");
 
-  const road_surface = selected_marker.get('road_surface');
+  road_surface = selected_marker.get('road_surface');
   $('#road_surface .dropdown-toggle').html((road_surface || "Select A Surface") + " <span class='caret'></span>");
 
   const road_surface_type = selected_marker.get('road_surface_type');
@@ -1585,9 +1744,16 @@ function referencePointWindow(feature) {
   $('#horizontalVariationStdDev').val(selected_marker.get('horizontalVariationStdDev') ?? '');
 
 
-  if (selected_marker.get('heading')) {
-    drawCircleSlices(selected_marker.get('heading'));
+  // Re-sync the shared circles/circles_temp state to this marker so edits don't bleed across markers.
+  const defaultCircles = [];
+  for (let d = 0; d < 360; d += 22.5) {
+    drawCircle(ctx, cx, cy, cr, "black", "white", d, defaultCircles);
   }
+  circles = selected_marker.get('heading')
+    ? JSON.parse(JSON.stringify(selected_marker.get('heading')))
+    : defaultCircles;
+  circles_temp = JSON.parse(JSON.stringify(circles));
+  drawCircleSlices(circles);
 
   map.getLayers().forEach(layer => {
     if (layer instanceof ol.layer.Vector && layer.getSource().hasFeature(feature)) {
@@ -1812,6 +1978,7 @@ $(".btnDone").click(function () {
         selected_marker.set('maxDuration', $("#max_duration").prop("checked"));
         selected_marker.set('packetID', $("#packet_id").val());
         selected_marker.set('msgCount', $("#message_count").val());
+        syncSharedTimFields(selected_marker);
         selected_marker.set('content', content);
         selected_marker.set('elevation', $("#elev").val());
         selected_marker.set('masterLaneWidth', $("#master_lane_width").val());
@@ -2381,5 +2548,6 @@ export {
   selected_marker_limit,
   fromProjection,
   circle_bounds,
-  toProjection
+  toProjection,
+  MAX_TIM_MARKERS
 };
