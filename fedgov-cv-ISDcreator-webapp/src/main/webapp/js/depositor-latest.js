@@ -6,6 +6,7 @@
 import { errorMarkerStyle } from "./style.js";
 import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
 import { getElevationDelta } from "./features.js";
+import { getLaneTypeLabel } from "./utils.js";
 
 /**
  * DEFINE GLOBAL VARIABLES
@@ -719,11 +720,11 @@ function createMessageJSON()
             // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
         }
 
-        if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
+        if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk" || laneFeat[a].get('laneType') === "TrackedVehicle")) {
             if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
-                    $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');
+                    $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + getLaneTypeLabel(laneFeat[a].get('laneType')) + " lane type is not supported." + '</span></div>');
                     $('#message_alert').removeClass('alert-section-hidden');
                 }}
         }
@@ -1017,4 +1018,4 @@ function removeExplicitRGA() {
         disableOrEnableExplicitRGA(this.value);
     });
 }
-document.addEventListener("DOMContentLoaded", removeExplicitRGA);
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);

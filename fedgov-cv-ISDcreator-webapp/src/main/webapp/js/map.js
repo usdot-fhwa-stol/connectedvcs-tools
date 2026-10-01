@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -1086,7 +1086,7 @@ function initMISC() {
 
   $("#lane_type .dropdown-menu li a").click(function () {
     let selText = $(this).text();
-    laneType = selText;
+    laneType = getLaneTypeValue(this);
     $(this)
       .parents(".btn-group")
       .find(".dropdown-toggle")
@@ -1120,9 +1120,7 @@ function initMISC() {
     }
 });
 
-  $(".lane_type ul li").each(() => {
-    laneTypeOptions.push($(this).text());
-  });
+  laneTypeOptions.push(...getLaneTypeOptions());
 
   makeDroppable(null);
 
