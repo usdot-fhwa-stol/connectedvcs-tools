@@ -39,6 +39,7 @@ var circle_bounds;
 let box, laneConnections, errors;
 let overlayLayersGroup, baseLayersGroup;
 const aerialMaxZoom = 19;
+const DEFAULT_MAX_DURATION = false;
 const DEFAULT_MSG_COUNT = 1;
 var layerSwitcher;
 let controls;
@@ -1651,6 +1652,11 @@ function referencePointWindow(feature) {
   $('#start_time input').val(selected_marker.get('startTime') || '');
   $('#end_time input').val(selected_marker.get('endTime') || '');
 
+  const maxDuration = selected_marker.get('maxDuration');
+  $('#max_duration').prop("checked", 
+    (maxDuration === undefined || maxDuration === null || maxDuration === '' ? DEFAULT_MAX_DURATION : maxDuration)
+  );
+
   const msgCount = selected_marker.get('msgCount');
   $('#message_count').val(
     msgCount === undefined || msgCount === null || msgCount === ''
@@ -1969,6 +1975,7 @@ $(".btnDone").click(function () {
       } else {
         selected_marker.set('startTime', $("#start_time input").val());
         selected_marker.set('endTime', $("#end_time input").val());
+        selected_marker.set('maxDuration', $("#max_duration").prop("checked"));
         selected_marker.set('packetID', $("#packet_id").val());
         selected_marker.set('msgCount', $("#message_count").val());
         syncSharedTimFields(selected_marker);
@@ -2463,6 +2470,10 @@ export function setCirclesTemp(newCirclesTemp) {
 }
 
 export function setFeatureAttributes(feature) {
+  const maxDuration = feature.get('maxDuration');
+  if (maxDuration === undefined || maxDuration === null || maxDuration === '') {
+    feature.set('maxDuration', DEFAULT_MAX_DURATION);
+  }
   const msgCount = feature.get('msgCount');
   if (msgCount === undefined || msgCount === null || msgCount === '') {
     feature.set('msgCount', DEFAULT_MSG_COUNT);

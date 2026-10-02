@@ -123,6 +123,7 @@
       "priority": "7",
       "startTime": "06/25/2023 12:01 PM",
       "endTime": "09/01/2025 12:04 PM",
+      "maxDuration": false,
       "heading": [
         0,
         1,

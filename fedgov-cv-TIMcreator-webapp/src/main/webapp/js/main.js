@@ -239,6 +239,19 @@ $(document).ready(function () {
         return val.id;
     }
 
+    // Max Duration Checkbox
+
+    $('#max_duration').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Checked
+            $('#end_time input').attr("disabled", "disabled");
+            $('#end_time input').val('');
+        } else {
+            // Unchecked
+            $('#end_time input').removeAttr("disabled");
+        }
+    });
+
 });
 
 /**
