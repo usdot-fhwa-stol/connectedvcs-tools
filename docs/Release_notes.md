@@ -40,7 +40,7 @@ More details on this update:
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #251, connectedvcs-tools PR #252, connectedvcs-tools PR #253, connectedvcs-tools PR #254
+- [connectedvcs-tools PR #251](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/251), [connectedvcs-tools PR #252](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/252), [connectedvcs-tools PR #253](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/253), [connectedvcs-tools PR #254](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/254)
 
 **Epic CVCS-177: CVCS Message Validator BIT STRING Decoding - Implementation**
 
@@ -51,7 +51,7 @@ connectedvcs-tools PR #251, connectedvcs-tools PR #252, connectedvcs-tools PR #2
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #255, connectedvcs-tools PR #258, connectedvcs-tools PR #259, connectedvcs-tools PR #260, connectedvcs-tools PR #261, connectedvcs-tools PR #262
+- [connectedvcs-tools PR #255](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/255), [connectedvcs-tools PR #258](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/258), [connectedvcs-tools PR #259](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/259), [connectedvcs-tools PR #260](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/260), [connectedvcs-tools PR #261](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/261), [connectedvcs-tools PR #262](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/262)
 
 **Epic CVCS-178: CVCS Message Validator Additional Enhancements - Implementation**
 
@@ -60,7 +60,7 @@ connectedvcs-tools PR #255, connectedvcs-tools PR #258, connectedvcs-tools PR #2
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #264, connectedvcs-tools PR #282
+- [connectedvcs-tools PR #264](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/264), [connectedvcs-tools PR #282](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/282)
 
 **Epic CVCS-179: CVCS MAP/RGA Tool Georeferenced Image Feature - Implementation**
 
@@ -73,7 +73,7 @@ connectedvcs-tools PR #264, connectedvcs-tools PR #282
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #266, connectedvcs-tools PR #271
+- [connectedvcs-tools PR #266](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/266), [connectedvcs-tools PR #271](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/271)
 
 **Epic CVCS-72: General Enhancements**
 
@@ -86,7 +86,7 @@ connectedvcs-tools PR #266, connectedvcs-tools PR #271
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #265, connectedvcs-tools PR #268, connectedvcs-tools PR #275, connectedvcs-tools PR #284
+- [connectedvcs-tools PR #265](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/265), [connectedvcs-tools PR #268](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/268), [connectedvcs-tools PR #275](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/275), [connectedvcs-tools PR #284](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/284)
 
 
 
@@ -97,7 +97,7 @@ connectedvcs-tools PR #265, connectedvcs-tools PR #268, connectedvcs-tools PR #2
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #292, connectedvcs-tools PR #293
+- [connectedvcs-tools PR #292](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/292), [connectedvcs-tools PR #293](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/293)
 
 **HELPDESK-223: MAP Tool Elevation Delta Calculation**
 
@@ -106,7 +106,7 @@ connectedvcs-tools PR #292, connectedvcs-tools PR #293
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #274
+- [connectedvcs-tools PR #274](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/274)
 
 **HELPDESK-182 / HELPDESK-249: V2X Log Parsing and ISD MAP Analysis Utilities**
 
@@ -115,7 +115,7 @@ connectedvcs-tools PR #274
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #263, connectedvcs-tools PR #283
+- [connectedvcs-tools PR #263](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/263), [connectedvcs-tools PR #283](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/283)
 
 **HELPDESK-263 / HELPDESK-268: CTI 4501 Required-Field Guidance**
 
@@ -124,7 +124,7 @@ connectedvcs-tools PR #263, connectedvcs-tools PR #283
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #287, connectedvcs-tools PR #291
+- [connectedvcs-tools PR #287](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/287), [connectedvcs-tools PR #291](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/291)
 
 **CVCS-176 / OMDO-176: Code Quality and Container Security Workflow Improvements**
 
@@ -133,7 +133,7 @@ connectedvcs-tools PR #287, connectedvcs-tools PR #291
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #140, connectedvcs-tools PR #273
+- [connectedvcs-tools PR #140](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/140), [connectedvcs-tools PR #273](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/273)
 
 **CVCS-224: Terms of Service and Licensing Notices**
 
@@ -142,7 +142,7 @@ connectedvcs-tools PR #140, connectedvcs-tools PR #273
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #302
+- [connectedvcs-tools PR #302](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/302)
 
 
 ### **<ins>Fixes in Release:</ins>**
@@ -155,7 +155,7 @@ connectedvcs-tools PR #302
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #256
+- [connectedvcs-tools PR #256](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/256)
 
 **HELPDESK-178: MAP Encoding Error Handling for Extra Lanes**
 
@@ -164,7 +164,7 @@ connectedvcs-tools PR #256
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #257
+- [connectedvcs-tools PR #257](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/257)
 
 **CVCS-209: MessageFrame Decoding Output**
 
@@ -173,7 +173,7 @@ connectedvcs-tools PR #257
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #286
+- [connectedvcs-tools PR #286](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/286)
 
 **CVCS-210: BIT STRING and CHOICE Field Decoding Corrections**
 
@@ -182,7 +182,7 @@ connectedvcs-tools PR #286
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #288
+- [connectedvcs-tools PR #288](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/288)
 
 **CVCS-211: TIM Georeferenced Image Layering**
 
@@ -191,7 +191,7 @@ connectedvcs-tools PR #288
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #289
+- [connectedvcs-tools PR #289](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/289)
 
 
 **CVCS-218: TIM Start Time Encoded One Day Late**
@@ -201,7 +201,7 @@ connectedvcs-tools PR #289
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #302
+- [connectedvcs-tools PR #302](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/302)
 
 
 **CVCS-225: Tracked Vehicle Lane Type**
@@ -211,7 +211,7 @@ connectedvcs-tools PR #302
 
 **<ins>Pull Requests:</ins>**
 
-connectedvcs-tools PR #307
+- [connectedvcs-tools PR #307](https://github.com/usdot-fhwa-stol/connectedvcs-tools/pull/307)
 
 
 Version 2.4.1, released Jul 24th, 2026
