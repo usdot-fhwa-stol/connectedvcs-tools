@@ -231,12 +231,9 @@ public class GeoreferenceService {
             String gdalJson = (String) imageInfo.get("gdalinfo_json");
             if (gdalJson != null) {
                 
-                // Clean the GDAL JSON to handle problematic characters and sections
-                String cleanedJson = cleanGdalJson(gdalJson);
-                logger.debug(cleanedJson);
                 try {
                     ObjectMapper mapper = createTolerantObjectMapper();
-                    JsonNode infoNode = mapper.readTree(cleanedJson);
+                    JsonNode infoNode = mapper.readTree(gdalJson);
                     logger.debug("Successfully parsed GDAL JSON");
                     
                     // First try to get wgs84Extent coordinates (preferred - already in WGS84)
@@ -306,7 +303,7 @@ public class GeoreferenceService {
                     logger.warn("No valid extent coordinates found in GDAL JSON");
                 }
                 } catch (JsonProcessingException e) {
-                    logger.warn("JSON parsing failed even after cleaning: {}", e.getMessage());
+                    logger.error("Failed to parse gdalinfo JSON: {}", e.getMessage());
                     // Continue to fallback strategy
                 }
             } else {
@@ -316,8 +313,11 @@ public class GeoreferenceService {
             logger.error("Failed to extract extent from GDAL info: {}", e.getMessage(), e);
         }
         
-        // Fallback to GCP-based extent in WGS84
-        logger.info("Using GCP-based extent in WGS84 as fallback");
+        // Degraded fallback: the GCP bounding box only equals the warped image's
+        // footprint when the GCPs sit on the image corners. Otherwise the overlay
+        // is scaled to the GCP box and renders squeezed and mispositioned.
+        logger.error("Could not determine extent from gdalinfo; falling back to the GCP "
+                + "bounding box. The overlay will be misplaced unless the GCPs span the image.");
         return createExtentMetadata(gcps);
     }
 
@@ -329,143 +329,6 @@ public class GeoreferenceService {
         // Ignore unknown properties
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
-    }
-    
-    /**
-     * Clean and fix problematic JSON content from GDAL output.
-     * This fixes issues with malformed JSON that breaks Jackson parsing.
-     */
-    private String cleanGdalJson(String gdalJson) {
-        try {
-            logger.debug("Cleaning GDAL JSON. Original length: {}", gdalJson.length());
-            
-            String cleaned = gdalJson;
-            int originalLength = cleaned.length();
-            
-            // Step 1: Remove the problematic coordinateSystem section using direct string removal
-            if (cleaned.contains("\"coordinateSystem\":")) {
-                cleaned = removeCoordinateSystemDirectly(cleaned);
-            }
-            
-            if (cleaned.length() != originalLength) {
-                logger.debug("Removed coordinateSystem section. Size reduced from {} to {} chars", 
-                    originalLength, cleaned.length());
-            }
-            
-            // Step 2: The main issue is that GDAL might be returning escaped newlines as literal \n
-            // Let's convert escaped newlines to actual newlines so Jackson can parse properly
-            if (cleaned.contains("\\n")) {
-                logger.debug("Found escaped newlines, converting to actual newlines");
-                cleaned = cleaned.replace("\\n", "\n");
-            }
-            if (cleaned.contains("\\r")) {
-                logger.debug("Found escaped carriage returns, converting to actual CR");
-                cleaned = cleaned.replace("\\r", "\r");
-            }
-            if (cleaned.contains("\\t")) {
-                logger.debug("Found escaped tabs, converting to actual tabs");
-                cleaned = cleaned.replace("\\t", "\t");
-            }
-            
-            logger.debug("JSON cleaning completed successfully. Final size: {} chars", cleaned.length());
-            return cleaned;
-            
-        } catch (Exception e) {
-            logger.warn("Failed to clean GDAL JSON: {}", e.getMessage());
-        }
-        
-        logger.warn("Could not clean GDAL JSON, returning original");
-        return gdalJson; // Return original if cleaning fails
-    }
-    
-    /**
-     * Direct removal of coordinateSystem section using simple string operations
-     */
-    private String removeCoordinateSystemDirectly(String json) {
-        try {
-            logger.debug("Starting direct coordinateSystem removal");
-            
-            // Find the coordinateSystem field
-            int coordStart = json.indexOf("\"coordinateSystem\":");
-            if (coordStart == -1) {
-                logger.debug("coordinateSystem field not found");
-                return json;
-            }
-            
-            logger.debug("Found coordinateSystem at position: {}", coordStart);
-            
-            // Find the start position (include leading comma if present)
-            int startPos = coordStart;
-            while (startPos > 0 && Character.isWhitespace(json.charAt(startPos - 1))) {
-                startPos--;
-            }
-            if (startPos > 0 && json.charAt(startPos - 1) == ',') {
-                startPos--; // Include the comma
-            }
-            
-            logger.debug("Field start position: {}", startPos);
-            
-            // Find the end - look for the next field we know exists
-            int nextFieldPos = -1;
-            String[] possibleFields = {
-                "\"geoTransform\":",
-                "\"metadata\":",
-                "\"cornerCoordinates\":",
-                "\"wgs84Extent\":",
-                "\"bands\":"
-            };
-            
-            for (String field : possibleFields) {
-                int fieldPos = json.indexOf(field, coordStart);
-                if (fieldPos != -1) {
-                    if (nextFieldPos == -1 || fieldPos < nextFieldPos) {
-                        nextFieldPos = fieldPos;
-                        logger.debug("Found direct next field '{}' at position: {}", field, fieldPos);
-                    }
-                }
-            }
-            
-            if (nextFieldPos != -1) {
-                // Look backwards from next field to include the comma
-                while (nextFieldPos > 0 && Character.isWhitespace(json.charAt(nextFieldPos - 1))) {
-                    nextFieldPos--;
-                }
-                if (nextFieldPos > 0 && json.charAt(nextFieldPos - 1) == ',') {
-                    nextFieldPos--; // Include the comma
-                }
-                
-                logger.debug("Next field {} start position: {}", nextFieldPos);
-                
-                // Cut out the coordinateSystem section
-                String before = json.substring(0, startPos);
-                String after = json.substring(nextFieldPos);
-                String result = before + after;
-                
-                // Clean up any double commas
-                result = result.replaceAll(",\\s*,", ",");
-                result = result.replaceAll("\\{\\s*,", "{");
-                result = result.replaceAll(",\\s*}", "}");
-                
-                logger.debug("Direct CoordinateSystem removal successful. Size: {} -> {} chars", json.length(), result.length());
-                logger.debug("Cleaned JSON first 500 chars: {}", result.substring(0, Math.min(500, result.length())));
-                
-                return result;
-            } else {
-                logger.warn("Could not find any next field after coordinateSystem. Available fields after position {}:", coordStart);
-                // Log what fields we can find after coordinateSystem for debugging
-                for (String field : possibleFields) {
-                    int pos = json.indexOf(field, coordStart);
-                    if (pos != -1) {
-                        logger.warn("  {} at position {}", field, pos);
-                    }
-                }
-                return json;
-            }
-            
-        } catch (Exception e) {
-            logger.warn("Direct coordinateSystem removal failed: {}", e.getMessage());
-            return json;
-        }
     }
     
     /**
