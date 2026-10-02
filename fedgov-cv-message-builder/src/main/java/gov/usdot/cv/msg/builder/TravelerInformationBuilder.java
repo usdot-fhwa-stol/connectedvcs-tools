@@ -410,7 +410,7 @@ public class TravelerInformationBuilder {
 
 		long diff = endDate.getTime() - startDate.getTime();
 		int durationInMinutes = (int) (diff / 1000 / 60);
-		if (durationInMinutes > MAX_MINUTES_DURATION || maxDurationChecked == "true")
+		if (durationInMinutes > MAX_MINUTES_DURATION || maxDurationChecked.equals("true"))
 			durationInMinutes = MAX_MINUTES_DURATION;
 		return durationInMinutes;
 	}
