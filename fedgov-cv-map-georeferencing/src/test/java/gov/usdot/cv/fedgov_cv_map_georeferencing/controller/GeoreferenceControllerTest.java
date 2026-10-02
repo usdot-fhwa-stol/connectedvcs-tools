@@ -15,6 +15,7 @@
  */
 package gov.usdot.cv.fedgov_cv_map_georeferencing.controller;
 
+import gov.usdot.cv.fedgov_cv_map_georeferencing.config.GeoreferenceProperties;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.service.GeoreferenceService;
@@ -45,6 +46,15 @@ class GeoreferenceControllerTest {
     @Mock
     private GeoreferenceService georeferenceService;
 
+    @Mock
+    private GeoreferenceProperties georeferenceProperties;
+
+    @Mock
+    private GeoreferenceProperties.Gcp gcpProperties;
+
+    @Mock
+    private GeoreferenceProperties.Image imageProperties;
+
     private GeoreferenceController georeferenceController;
 
     private ObjectMapper objectMapper;
@@ -55,8 +65,18 @@ class GeoreferenceControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Create controller with mocked service
-        georeferenceController = new GeoreferenceController(georeferenceService);
+        // Setup mock properties
+        lenient().when(georeferenceProperties.getGcp()).thenReturn(gcpProperties);
+        lenient().when(georeferenceProperties.getImage()).thenReturn(imageProperties);
+        lenient().when(gcpProperties.getMinCount()).thenReturn(4);
+        lenient().when(gcpProperties.getMaxCount()).thenReturn(10);
+        lenient().when(imageProperties.getSupportedFormats()).thenReturn(
+            java.util.Arrays.asList("image/png", "image/jpeg", "image/jpg")
+        );
+        lenient().when(imageProperties.getMaxSize()).thenReturn("50MB");
+
+        // Create controller with mocked service and properties
+        georeferenceController = new GeoreferenceController(georeferenceService, georeferenceProperties);
         
         objectMapper = new ObjectMapper();
         
@@ -144,7 +164,7 @@ class GeoreferenceControllerTest {
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assertNotNull(responseBody);
         assertFalse((Boolean) responseBody.get("success"));
-        assertTrue(responseBody.get("message").toString().contains("Processing failed"));
+        assertTrue(responseBody.get("message").toString().contains("Internal server error"));
         assertEquals("INTERNAL_SERVER_ERROR", responseBody.get("error"));
     }
 
@@ -173,24 +193,24 @@ class GeoreferenceControllerTest {
         List<GCP> invalidGcps = Arrays.asList(
             new GCP("gcp1", 100, 200, -77.036, 38.895),
             new GCP("gcp2", 300, 200, -77.030, 38.895)
-        ); // Only 2 GCPs instead of 6 minimum
+        ); // Only 2 GCPs instead of 4 minimum
         String invalidGcpsJson = objectMapper.writeValueAsString(invalidGcps);
-        
+
         // Mock service to throw validation exception
         when(georeferenceService.process(eq(mockImageFile), anyList()))
-            .thenThrow(new IllegalArgumentException("At least 6 Ground Control Points are required"));
+            .thenThrow(new IllegalArgumentException("Insufficient Ground Control Points are required"));
 
         // Act
         ResponseEntity<?> response = georeferenceController.georeference(mockImageFile, invalidGcpsJson);
-        
+
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assertNotNull(responseBody);
         assertFalse((Boolean) responseBody.get("success"));
-        assertTrue(responseBody.get("message").toString().contains("At least 6 Ground Control Points are required"));
+        assertTrue(responseBody.get("message").toString().contains("Ground Control Points are required"));
         assertEquals("VALIDATION_ERROR", responseBody.get("error"));
     }
 
@@ -410,16 +430,38 @@ class GeoreferenceControllerTest {
         // This test would require access to the imageCache which is private
         // In a real scenario, you might want to make imageCache protected or add a method for testing
         // For now, we'll test the controller creation
-        GeoreferenceController controller = new GeoreferenceController(georeferenceService);
+        GeoreferenceController controller = new GeoreferenceController(georeferenceService, georeferenceProperties);
         assertNotNull(controller);
     }
 
     @Test
     void testConstructor_ValidService_CreatesController() {
         // Act
-        GeoreferenceController controller = new GeoreferenceController(georeferenceService);
-        
+        GeoreferenceController controller = new GeoreferenceController(georeferenceService, georeferenceProperties);
+
         // Assert
         assertNotNull(controller);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetConfig_ReturnsConfigValues() {
+        // Act
+        ResponseEntity<Map<String, Object>> response = georeferenceController.getConfig();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> config = response.getBody();
+        assertNotNull(config);
+
+        Map<String, Object> gcpConfig = (Map<String, Object>) config.get("gcp");
+        assertNotNull(gcpConfig);
+        assertEquals(4, gcpConfig.get("minCount"));
+        assertEquals(10, gcpConfig.get("maxCount"));
+
+        Map<String, Object> imageConfig = (Map<String, Object>) config.get("image");
+        assertNotNull(imageConfig);
+        assertNotNull(imageConfig.get("supportedFormats"));
+        assertEquals("50MB", imageConfig.get("maxSize"));
     }
 }

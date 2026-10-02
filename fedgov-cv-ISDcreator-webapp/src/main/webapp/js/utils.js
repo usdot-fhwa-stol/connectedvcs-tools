@@ -252,6 +252,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $("#elev").prop('readonly', false);
   $("#lane_attributes").hide();
   $(".lane_type_attributes").hide();
+  $(".subsequent-node-note").hide();
   $(".lane_number").hide();
   $(".lane_width").hide();
   $(".lane_info_time_restrictions").hide();
@@ -443,9 +444,28 @@ async function populateRefWindow(feature, lat, lon)
 }
 
 
+// Lane type menu items may carry a data-value (e.g. "TrackedVehicle") that differs from the
+// displayed text ("Tracked Vehicle")
+function getLaneTypeValue(link) {
+  return $(link).attr('data-value') || $(link).text();
+}
+
+function getLaneTypeOptions() {
+  return $("#lane_type .dropdown-menu li a").map(function() { return getLaneTypeValue(this); }).get();
+}
+
+function getLaneTypeLabel(value) {
+  let label = value;
+  $("#lane_type .dropdown-menu li a").each(function() {
+    if (getLaneTypeValue(this) === value) {
+      label = $(this).text();
+    }
+  });
+  return label;
+}
+
 function toggleLaneTypeAttributes(attribute, values) {
-  let laneTypeOptions = [];
-  $(".lane_type ul li").each(function() { laneTypeOptions.push($(this).text()) });
+  let laneTypeOptions = getLaneTypeOptions();
 	for (let i = 0; i < laneTypeOptions.length; i++) {
 		$('.' + laneTypeOptions[i] + '_type_attributes').parent().hide();
 	}
@@ -461,7 +481,7 @@ function toggleLaneTypeAttributes(attribute, values) {
 	        buttonClass: attribute + '_type_attributes btn btn-default',
 	        buttonText: function(options, select) {
             if (options.length === 0) {
-              return 'Select '+ attribute + ' Type Attribute'
+              return 'Select '+ getLaneTypeLabel(attribute) + ' Type Attribute'
             } else if (options.length > 1) {
               return options.length + ' selected';
             } else {
@@ -485,7 +505,27 @@ function toggleLaneTypeAttributes(attribute, values) {
   $('.' + attribute + '_type_attributes').parent().show();
   $("label[for='lane_type_attributes']").show();
   $(".lane_type_attributes").show();
+  updateLaneTypeAttributesHelpText(attribute);
   return typeAttribute_object;
+}
+
+// Note shown in the info popover next to "Type Attributes", tailored to the selected lane type.
+const LANE_TYPE_ATTRIBUTES_DEFAULT_HELP = "Choose the attributes that are applicable to this lane.";
+const LANE_TYPE_ATTRIBUTES_HELP_TEXT = {
+  Vehicle: "If this lane has special conditions, indicate them (e.g. grade separated or flyover, bus-only, HOV, reversible, etc).",
+  Crosswalk: "If this crosswalk has certain features, indicate them (e.g. push-button actuation, audible pedestrian signal, fixed cycle length, bicycles allowed, etc). Bi-directional cycle time means the walk phases use different SignalGroupIDs for each direction. rfSignalRequest means wireless push button technology is available.",
+  Bike: "If this bicycle lane has certain features, indicate them (e.g. separated with barrier, pedestrians also allowed, etc). Bi-directional cycle time means a bicycle phase uses different SignalGroupIDs for each direction. unsignalizedSegmentsPresent means at least part of the lane does not correspond to a SignalGroupID.",
+  Parking: "If this parking lane has special conditions, indicate them (e.g. parallel parking, head-in parking, taxi or bus only parking, private parking).",
+  TrackedVehicle: "If this lane carries rail or other tracked vehicles, indicate the track type (e.g. commuter, light or heavy rail), or mark it as revocable."
+};
+
+// Updates the dynamic content of the "Type Attributes" info popover. Bootstrap re-reads
+// the data-content attribute every time the popover is opened, so setting it is enough.
+function updateLaneTypeAttributesHelpText(laneType) {
+  $("#lane_type_attributes_popover").attr(
+    "data-content",
+    LANE_TYPE_ATTRIBUTES_HELP_TEXT[laneType] || LANE_TYPE_ATTRIBUTES_DEFAULT_HELP
+  );
 }
 
 function updateSharedWith(){
@@ -550,9 +590,9 @@ function updateDisplayedLaneAttributes( feature ){
 }
 
 
-function removeDisplayedLaneAttributes(){
+function removeDisplayedLaneAttributes(){   
   $('#attr_droppable').empty().append(
-      '<h4 class="list-group-item-heading">Lane Attributes</h4>' +
+      '<h4 class="list-group-item-heading">Allowed Maneuvers<span class="cti-req">*</span></h4>' +
       '<p class="help-block text-center">drop content here</p>');
 }
 
@@ -2368,6 +2408,10 @@ export {
   updateSharedWith,
   updateTypeAttributes,
   toggleLaneTypeAttributes,
+  updateLaneTypeAttributesHelpText,
+  getLaneTypeValue,
+  getLaneTypeOptions,
+  getLaneTypeLabel,
   populateAttributeWindow,
   toggle,
   toggleBars,

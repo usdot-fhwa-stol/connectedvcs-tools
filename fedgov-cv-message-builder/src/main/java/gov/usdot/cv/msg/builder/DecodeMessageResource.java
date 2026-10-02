@@ -15,7 +15,10 @@ the License.
 package gov.usdot.cv.msg.builder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -44,6 +47,23 @@ public class DecodeMessageResource {
 
 	// private static SemiValidator validator;
 	private static final Logger log = LogManager.getLogger(DecodeMessageResource.class);
+
+	/**
+	 * Accepts the message in the request body rather than the query string. A hex
+	 * encoded message is twice the size of the message itself, so anything beyond a
+	 * small map exceeds the URL length limits enforced by browsers, proxies and web
+	 * application firewalls on the GET form below.
+	 */
+	@POST
+	@Consumes("application/x-www-form-urlencoded")
+	@Produces("application/json")
+	public DecodeMessageResult decodePost(
+			@FormParam("messageVersion") String messageVersion,
+			@FormParam("encodeType") String encodingType,
+			@FormParam("encodedMsg") String encodedMsg,
+			@FormParam("messageType") String messageType) {
+		return decode(messageVersion, encodingType, encodedMsg, messageType);
+	}
 
 	@GET
 	@Produces("application/json")
@@ -111,10 +131,12 @@ public class DecodeMessageResource {
 			result.setMessage(resultMessage);
 			result.setStatus(Status.Success);
 		} catch (SemiValidatorException ex) {
+			log.warn("Decode failed for messageType={}: {}", messageType, ex.getMessage());
 
 			JSONObject returnStatusObject = new JSONObject();
 			try {
-				returnStatusObject.put("messageName", "Unknown");
+				returnStatusObject.put("messageName",
+						(!StringUtils.isBlank(messageType) ? messageType : "Unknown") + " (Error)");
 				returnStatusObject.put("decodedMessage", ex.getMessage());
 			} catch (JSONException je) {
 				log.warn("Failed to add error details to JSON response: {}", je.getMessage());
@@ -122,10 +144,12 @@ public class DecodeMessageResource {
 			result.setMessage(returnStatusObject.toString());
 			result.setStatus(Status.Error);
 		} catch (Exception ex) {
+			log.error("Unexpected error decoding messageType={}", messageType, ex);
 
 			JSONObject returnStatusObject = new JSONObject();
 			try {
-				returnStatusObject.put("messageName", "Unknown");
+				returnStatusObject.put("messageName",
+						(!StringUtils.isBlank(messageType) ? messageType : "Unknown") + " (Error)");
 				returnStatusObject.put("decodedMessage", ex.getMessage());
 			} catch (JSONException je) {
 				log.warn("Failed to add error details to JSON response: {}", je.getMessage());

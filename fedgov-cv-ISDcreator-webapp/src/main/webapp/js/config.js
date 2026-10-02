@@ -245,6 +245,22 @@ var help_notes = [
     	description: "Used to convey the delta width of a lane in LSB units of 1cm."
     },
     {
+    	value: "node_delta",
+    	title: "Node Delta",
+    	max: "327",
+    	min: "0",
+    	units: "Meters",
+    	description: "Straight-line distance in meters from the previous node to this node."
+    },
+    {
+    	value: "elev_delta",
+    	title: "Elevation Delta",
+    	max: "N/A",
+    	min: "N/A",
+    	units: "Meters",
+    	description: "Change in elevation in meters from the previous node to this node."
+    },
+    {
     	value: "master_lane_width",
     	title: "Master Lane Width",
     	max: "32767",

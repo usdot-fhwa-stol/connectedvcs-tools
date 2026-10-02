@@ -1,3 +1,5 @@
+[![GitHub Release](https://img.shields.io/github/v/release/usdot-fhwa-stol/connectedvcs-tools)](https://github.com/usdot-fhwa-stol/connectedvcs-tools/releases) [![Docker Hub Build](https://github.com/usdot-fhwa-stol/connectedvcs-tools/actions/workflows/dockerhub.yml/badge.svg?branch=develop)](https://github.com/usdot-fhwa-stol/connectedvcs-tools/actions/workflows/dockerhub.yml?query=branch%3Adevelop) [![Tests](https://github.com/usdot-fhwa-stol/connectedvcs-tools/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/usdot-fhwa-stol/connectedvcs-tools/actions/workflows/ci.yml?query=branch%3Adevelop) [![Docker Pulls](https://img.shields.io/docker/pulls/usdotfhwastol/connectedvcs-tools?label=Docker%20Pulls%20%28connectedvcs-tools%20releases%29)](https://hub.docker.com/r/usdotfhwastol/connectedvcs-tools) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=usdot-fhwa-stol_connectedvcs-tools&metric=alert_status)](https://sonarcloud.io/project/overview?id=usdot-fhwa-stol_connectedvcs-tools) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/usdot-fhwa-stol/connectedvcs-tools/blob/develop/LICENSE)
+
 # USDOT FHWA ConnectedVCS Tools
 Developed by Leidos initially in support of USDOT Safety Pilot Program
 This repository is a monorepo combining the repository histories of each of the 
@@ -20,6 +22,12 @@ Please read our [ConnectedVCS Tools Code of Conduct](Code_of_Conduct.md) which o
 The development team would like to acknowledge the people who have made direct contributions to the design and code in this repository. [ConnectedVCS Tools Attribution](ATTRIBUTION.md).
 
 ## License
+These open-source tools were developed as part of research conducted at the Saxton Transportation Operations Laboratory (the “Saxton Lab”). Users are responsible for validating the tools and their outputs for the intended use.
+
+Certain fields in the MAP / RGA tool are labeled “CTI.” Although CTI 4501 v01.01 requires filling out these fields, without modifications, the tool’s outputs are mostly but not completely CTI 4501 compliant. There are certain requirements the tool does not currently support (e.g. 20 cm of accuracy for node points, describing node points using offsets from a reference point, lane attributes for tracked vehicles, etc). Even if the tool supports a certain field, the tool does not check the accuracy of the values entered. If the user does not enter the correct value, that field in the resulting message will not be CTI 4501 v01.01 compliant.
+
+The name, trademarks, service marks, or product names of the Saxton Lab shall not be used in advertising or otherwise, including express or implied claims of Saxton Lab endorsement, to promote the sale, use or other dealings in Derivative Works (as defined in the Apache license below), or projects or services using outputs from any of these tools, without prior written authorization from the Saxton Lab, except as required for reasonable and customary use in describing the development of Derivative Works, or origin of outputs from these tools, and reproducing this notice.  
+
 By contributing to the Federal Highway Administration (FHWA) ConnectedVCS Tools, you agree that your contributions will be licensed under its Apache License 2.0 license. [ConnectedVCS Tools License](LICENSE).
 
 ## Contact

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestControllerAdvice
@@ -30,6 +31,10 @@ public class ApiExceptionHandler {
     public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", "validation_failed");
+        String detail = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        error.put("message", detail.isEmpty() ? ex.getMessage() : detail);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 

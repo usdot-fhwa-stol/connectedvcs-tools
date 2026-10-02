@@ -11,4 +11,6 @@ An account with Azure and an API Key can be created using the [Azure Maps Platfo
 
 ### **Using your API Key**
 
-Once a key is obtained, please insert your key to the end of the Geocomplete src link (indicated by "azure.map.api.key") at the [application.properties](/fedgov-cv-map-services-proxy/src/main/resources/application.properties#L1). file and build your updated ConnectedVCS Tools using either the [Local](/docs/Local_Instructions.md) or [Docker](/docs/Docker_Instructions.md) build instructions.
+Once a key is obtained, provide it via the `AZURE_MAP_API_KEY` environment variable at runtime. See [Environment Variables](/docs/Environment_Variables.md) for setup instructions.
+
+> **Important:** Do not hardcode API keys in source files. Use environment variables or a `.env` file instead.

@@ -3,16 +3,71 @@ name: Docker Hub build
 on:
   push:
     branches:
-      - develop
-      - master
+      - "develop"
+      - "master"
       - "release/*"
     tags:
-      - "*" 
+      - "*"
 
 jobs:
-  dockerhub:
-    uses: usdot-fhwa-stol/actions/.github/workflows/dockerhub.yml@main
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      GH_PAT: ${{ secrets.GH_PAT }}
+  determine_docker_org_and_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_organization: ${{ steps.docker-org-and-tag.outputs.docker_organization }}
+      docker_image_tag: ${{ steps.docker-org-and-tag.outputs.docker_image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: docker-org-and-tag
+        uses: usdot-fhwa-stol/actions/docker-org-and-tag@main
+
+  determine_docker_image_metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      build_date: ${{ steps.build-metadata.outputs.build_date }}
+      vcs_ref: ${{ steps.build-metadata.outputs.vcs_ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Determine Build Metadata
+        id: build-metadata
+        uses: usdot-fhwa-stol/actions/docker-build-metadata@main
+
+  dockerhub-connectedvcs-tools:
+    needs: [determine_docker_org_and_tag, determine_docker_image_metadata]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          sbom: true
+          provenance: true
+          tags: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}
+          build-args: |
+            BUILD_DATE=${{ needs.determine_docker_image_metadata.outputs.build_date }}
+            VCS_REF=${{ needs.determine_docker_image_metadata.outputs.vcs_ref }}
+            VERSION=${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}
+      - name: Docker Scout Record
+        if: ${{ github.ref_type == 'branch' }}
+        uses: docker/scout-action@v1
+        with:
+          command: environment
+          environment: ${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}
+          image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/connectedvcs-tools:${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}
+          organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}

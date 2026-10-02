@@ -16,7 +16,7 @@
  
 package gov.usdot.cv.mapencoder;
 
-public class SpeedLimitType {
+public class CommonSpeedLimitType {
     private byte speedLimitType;
 
     // Constants
@@ -35,10 +35,10 @@ public class SpeedLimitType {
     public static final byte VEHICLESWITHTRAILERSNIGHTMAXSPEED = 12;
 
     // Constructors
-    public SpeedLimitType() {
+    public CommonSpeedLimitType() {
     }
 
-    public SpeedLimitType(byte speedLimitType) {
+    public CommonSpeedLimitType(byte speedLimitType) {
         this.speedLimitType = speedLimitType;
     }
 

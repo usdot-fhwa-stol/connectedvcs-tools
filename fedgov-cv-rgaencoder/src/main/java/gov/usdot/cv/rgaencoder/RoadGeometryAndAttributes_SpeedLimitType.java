@@ -16,17 +16,17 @@
 
 package gov.usdot.cv.rgaencoder;
 
-public class SpeedLimitTypeRGA {
+public class RoadGeometryAndAttributes_SpeedLimitType {
     private long speedLimitTypeValue;
 
      // Constants for choice field
      public static final long REGULATORY = 0;
      public static final long ADVISORY = 1;
      
-     public SpeedLimitTypeRGA() {
+     public RoadGeometryAndAttributes_SpeedLimitType() {
      }
 
-     public SpeedLimitTypeRGA(long speedLimitTypeValue) {
+     public RoadGeometryAndAttributes_SpeedLimitType(long speedLimitTypeValue) {
         this.speedLimitTypeValue = speedLimitTypeValue;
      }
 

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -24,15 +25,13 @@
 	</repositories>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar.organization>usdot-fhwa-stol</sonar.organization>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        
-        <!-- JaCoCo Properties -->
-        <jacoco.version>0.8.8</jacoco.version>
-        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.language>java</sonar.language>		
+		<sonar.organization>usdot-fhwa-stol</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<!-- JaCoCo Properties -->
+		<jacoco.version>0.8.12</jacoco.version>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.language>java</sonar.language>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -57,10 +56,44 @@
 		</dependencies>
 	</dependencyManagement>
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M9</version>
+				<configuration>
+					<!-- @{argLine} preserves the JaCoCo agent arg set by prepare-agent.
+					     The native asn1c JNI library is loaded via NativeLoadLibrary from
+					     the classpath, so java.library.path is no longer needed here. -->
+					<argLine>@{argLine}</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
 		<pluginManagement>
 			<plugins>
 				<plugin>
 					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.4.1</version>
 					<executions>
 						<!-- Banded dependencies due to security vulnerabilities -->
 						<execution>
@@ -73,19 +106,16 @@
 									<bannedDependencies>
 										<!-- Version 3.2.1 has a CVSS 10.0 vulnerability -->
 										<excludes>
-											<exclude>commons-collections</exclude>
 											<exclude>commons-collections:commons-collections</exclude>
-											<exclude>*:commons-collections</exclude>
 										</excludes>
 										<includes>
-											<!--only 3.2.2 of commons-collections is allowed -->
+											<!-- only 3.2.2 of commons-collections is allowed -->
 											<include>commons-collections:commons-collections:3.2.2</include>
 										</includes>
 									</bannedDependencies>
 								</rules>
 								<fail>true</fail>
-								<message>There were dependencies found which should not be
-									included due to security vulnerabilities.</message>
+								<message>There were dependencies found which should not be included due to security vulnerabilities.</message>
 							</configuration>
 						</execution>
 					</executions>

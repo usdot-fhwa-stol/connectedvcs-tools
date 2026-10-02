@@ -58,4 +58,16 @@ class GeoreferencePropertiesTest {
         assertTrue(formatSet.contains("image/jpg"));
         assertEquals(3, formatSet.size());
     }
+
+    @Test
+    void testGcpMinCountLoadedFromYaml() {
+        assertNotNull(properties.getGcp());
+        assertEquals(4, properties.getGcp().getMinCount());
+    }
+
+    @Test
+    void testGcpMaxCountLoadedFromYaml() {
+        assertNotNull(properties.getGcp());
+        assertEquals(Integer.valueOf(10), properties.getGcp().getMaxCount());
+    }
 }

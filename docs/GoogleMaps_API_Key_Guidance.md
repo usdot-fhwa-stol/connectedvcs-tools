@@ -11,4 +11,6 @@ An account with Google Maps and an API Key can be created using the [Google Maps
 
 ### **Using your API Key**
 
-Once a key is obtained, please insert your key to the end of the Geocomplete src link (indicated by "YOUR_API_KEY") at the [index.html](/fedgov-cv-ISDcreator-webapp/src/main/webapp/index.html) file and build your updated ConnectedVCS Tools using either the [Local](/docs/Local_Instructions.md) or [Docker](/docs/Docker_Instructions.md) build instructions.
+Once a key is obtained, provide it via the `GOOGLE_MAP_API_KEY` environment variable at runtime. See [Environment Variables](/docs/Environment_Variables.md) for setup instructions.
+
+> **Important:** Do not hardcode API keys in source files. Use environment variables or a `.env` file instead.

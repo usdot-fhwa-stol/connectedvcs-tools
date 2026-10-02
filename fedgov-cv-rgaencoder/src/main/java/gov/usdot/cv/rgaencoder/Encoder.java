@@ -22,18 +22,19 @@
  import org.apache.logging.log4j.Logger;
 
  import gov.usdot.cv.mapencoder.ByteArrayObject;
- 
+ import gov.usdot.cv.libasn1c.NativeLoadLibrary;
+
  public class Encoder {
      private static final Logger logger = LogManager.getLogger(Encoder.class);
- 
+
      public Encoder() {
         //Will be developed at a later time
      }
- 
-     // Load libasn1c.so external C library
+
+     // Load the consolidated asn1c JNI library through the shared, guarded loader
      static {
          try {
-             System.loadLibrary("asn1c_rga");
+             NativeLoadLibrary.load();
          } catch (Exception e) {
              logger.error("Exception trapped while trying to load the asn1c library", e);
          }

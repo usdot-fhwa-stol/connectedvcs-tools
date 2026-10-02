@@ -39,7 +39,9 @@ public class TIMValidator {
             decodedResult = messageDecoder.decodeTim(byteArrayObject);
 
             if (!decodedResult.success) {
-                throw new SemiValidatorException("Couldn't decode message using Decoder");
+                throw new SemiValidatorException(!StringUtils.isBlank(decodedResult.decodedMessage)
+                        ? decodedResult.decodedMessage
+                        : "Couldn't decode message using Decoder");
             }
 
             return decodedResult.decodedMessage;

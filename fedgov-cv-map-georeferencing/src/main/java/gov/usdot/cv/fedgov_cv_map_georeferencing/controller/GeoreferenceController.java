@@ -15,6 +15,7 @@
  */
 package gov.usdot.cv.fedgov_cv_map_georeferencing.controller;
 
+import gov.usdot.cv.fedgov_cv_map_georeferencing.config.GeoreferenceProperties;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GCP;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse;
 import gov.usdot.cv.fedgov_cv_map_georeferencing.dto.GeoreferenceResponse.GeoreferenceDetails;
@@ -52,16 +53,18 @@ public class GeoreferenceController {
     private static final Logger logger = LoggerFactory.getLogger(GeoreferenceController.class);
     
     private final GeoreferenceService georeferenceService;
+    private final GeoreferenceProperties georeferenceProperties;
     private final ObjectMapper objectMapper;
-    
+
     // Store processed images temporarily (in production, use a proper cache or file storage)
     private final Cache<String, byte[]> imageCache = CacheBuilder.newBuilder()
             .maximumSize(100)
             .expireAfterAccess(1, java.util.concurrent.TimeUnit.DAYS)
             .build();
 
-    public GeoreferenceController(GeoreferenceService georeferenceService) {
+    public GeoreferenceController(GeoreferenceService georeferenceService, GeoreferenceProperties georeferenceProperties) {
         this.georeferenceService = georeferenceService;
+        this.georeferenceProperties = georeferenceProperties;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -223,14 +226,36 @@ public class GeoreferenceController {
             logger.warn("Image not found for ID: {}", imageId);
             return ResponseEntity.notFound().build();
         }
-        
+
         ByteArrayResource resource = new ByteArrayResource(imageData);
-        
+
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
             .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(imageData.length))
             .header(HttpHeaders.CACHE_CONTROL, "max-age=3600") // Cache for 1 hour
             .body(resource);
+    }
+
+    @GetMapping(value = "/config", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        summary = "Get georeferencing configuration",
+        description = "Returns the current GCP and image configuration settings"
+    )
+    @ApiResponse(responseCode = "200", description = "Configuration returned successfully")
+    public ResponseEntity<Map<String, Object>> getConfig() {
+        Map<String, Object> gcpConfig = new HashMap<>();
+        gcpConfig.put("minCount", georeferenceProperties.getGcp().getMinCount());
+        gcpConfig.put("maxCount", georeferenceProperties.getGcp().getMaxCount());
+
+        Map<String, Object> imageConfig = new HashMap<>();
+        imageConfig.put("supportedFormats", georeferenceProperties.getImage().getSupportedFormats());
+        imageConfig.put("maxSize", georeferenceProperties.getImage().getMaxSize());
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("gcp", gcpConfig);
+        config.put("image", imageConfig);
+
+        return ResponseEntity.ok(config);
     }
 
 }

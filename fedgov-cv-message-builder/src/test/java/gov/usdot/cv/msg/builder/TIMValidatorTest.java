@@ -19,11 +19,7 @@ import static org.junit.Assert.fail;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,21 +50,9 @@ public class TIMValidatorTest {
         assertTrue("Decoded message should not be empty",
                 decodedMessage != null && !decodedMessage.isEmpty());
 
-        // Ensure ASN.1 structure exists
-        assertTrue("Decoded message should contain MessageFrame",
-                decodedMessage.contains("MessageFrame"));
-
-        // Extract messageId from ASN.1 text
-        Pattern pattern = Pattern.compile("messageId:\\s*(\\d+)");
-        Matcher matcher = pattern.matcher(decodedMessage);
-
-        int messageId = -1;
-        if (matcher.find()) {
-            messageId = Integer.parseInt(matcher.group(1));
-        }
-
-        // TIM Message ID = 31
-        Assert.assertEquals("TIM messageId should be 31", 31, messageId);
+        // A decoded MessageFrame is dumped as its concrete inner type.
+        assertTrue("Decoded message should contain TravelerInformation",
+                decodedMessage.contains("TravelerInformation"));
     }
 
     @Test

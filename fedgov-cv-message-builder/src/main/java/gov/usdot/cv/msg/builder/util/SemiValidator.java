@@ -43,7 +43,9 @@ public class SemiValidator {
             // Getting message name from decoder
             messageName = decodedResult.messageType;
             if (!decodedResult.success) {
-                throw new SemiValidatorException("Couldn't decode message using Decoder");
+                throw new SemiValidatorException(!StringUtils.isBlank(decodedResult.decodedMessage)
+                        ? decodedResult.decodedMessage
+                        : "Couldn't decode message using Decoder");
             }
 
             return formatResult(messageName, decodedResult.decodedMessage);

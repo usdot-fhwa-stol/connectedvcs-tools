@@ -5,6 +5,8 @@
 
 import { errorMarkerStyle } from "./style.js";
 import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
+import { getElevationDelta } from "./features.js";
+import { getLaneTypeLabel } from "./utils.js";
 
 /**
  * DEFINE GLOBAL VARIABLES
@@ -178,6 +180,9 @@ function createMessageJSON()
     let stopFeat = box.getSource().getFeatures();
     let laneFeat = lanes.getSource().getFeatures();
 
+    const refPointElev = vectors.getSource().getFeatures()
+        .find(f => f.get('marker')?.name === "Reference Point Marker")?.get('elevation');
+
     //Building of nested layers
     let approachesArray = { "approach": []};
     let drivingLanesArray = {"drivingLanes":[]};
@@ -330,6 +335,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -339,6 +345,7 @@ function createMessageJSON()
                                 "nodeLat": lonlat[1],
                                 "nodeLong": lonlat[0],
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                                "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
                                 "speedLimitType": currentSpeedLimits
                             }
@@ -616,6 +623,7 @@ function createMessageJSON()
                         "nodeLat": lonlat[1],
                         "nodeLong": lonlat[0],
                         "nodeElev": laneFeat[j].get('elevation')[m]?.value,
+                        "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                         "laneWidthDelta": laneFeat[j].get('laneWidth')[m]
                     }
                 }
@@ -712,39 +720,59 @@ function createMessageJSON()
             // $('#alert_placeholder').append('<div id="spat-alert" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "SPaT message empty for lane " + laneFeat[a].get('laneNumber') + "." +'</span></div>');
         }
 
-        if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk")) {
+        if (laneFeat[a].get('laneType') != null && (laneFeat[a].get('laneType') === "Parking" || laneFeat[a].get('laneType') === "Sidewalk" || laneFeat[a].get('laneType') === "TrackedVehicle")) {
             if (messageType === "Frame+RGA" || messageType === "RGA") {
                 let existingAlert = $('#alert_placeholder').find('#rga-alert-' + laneFeat[a].get('laneNumber'));
                 if (existingAlert.length === 0) {
-                    $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + laneFeat[a].get('laneType') + " lane type is not supported." + '</span></div>');
+                    $('#alert_placeholder').append('<div id="rga-alert-' + laneFeat[a].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + "Lane number " + laneFeat[a].get('laneNumber') + " cannot be encoded for RGA, as " + getLaneTypeLabel(laneFeat[a].get('laneType')) + " lane type is not supported." + '</span></div>');
                     $('#message_alert').removeClass('alert-section-hidden');
                 }}
         }
     }
     errors.getSource().clear();
     
+    let inBoxErrorCounter = 0;
+    let laneNumberErrorCounter = 0;
 
-    for(let j=0; j< laneFeat.length; j++){        
-        let coords = laneFeat[j].getGeometry().getFirstCoordinate();
-        let errorMarker = new ol.Feature({
-            geometry: new ol.geom.Point(coords)
-        });
-        errorMarker.setStyle(errorMarkerStyle);
-        if (!laneFeat[j].get("inBox")){
+    for (let j = 0; j < laneFeat.length; j++) {
+        const makeMarker = () => {
+            const m = new ol.Feature({
+                geometry: new ol.geom.Point(laneFeat[j].getGeometry().getFirstCoordinate())
+            });
+            m.setStyle(errorMarkerStyle);
+            return m;
+        };
+
+        if (!laneFeat[j].get("inBox")) {
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane " + laneFeat[j].get('laneNumber') + " exists outside of an approach." +'</span></div>');
-            $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            inBoxErrorCounter++;
+            errors.getSource().addFeature(makeMarker());
         }
         if (!laneFeat[j].get('laneNumber')) {
-            // lat lon repeated otherwise the first transform if lane exists outside approach will transform coordinates
-            let latlon = ol.proj.toLonLat(laneFeat[j].getGeometry().getFirstCoordinate());
             $("#message_deposit").prop('disabled', true);
-            $('#alert_placeholder').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Lane at " + latlon[1] + ", " + latlon[0] + " is not assigned a lane number. Check overlapping points." +'</span></div>');
-            $('#message_alert').removeClass('alert-section-hidden');
-            errors.getSource().addFeature(errorMarker);
+            laneNumberErrorCounter++;
+            errors.getSource().addFeature(makeMarker());
         }
     }
+
+    if (inBoxErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> ' + inBoxErrorCounter + ' lane(s) exist outside of an approach. Check error markers.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
+
+    if (laneNumberErrorCounter > 0) {
+        $('#alert_placeholder').append(
+            '<div class="alert alert-danger alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+            '<span> ' + laneNumberErrorCounter + ' lane(s) exist without a assigned lane number. Check overlapping points.</span></div>'
+        );
+        $('#message_alert').removeClass('alert-section-hidden');
+    }
+
     let vectorFeatures = vectors.getSource().getFeatures();
     for (let f = 0; f < vectorFeatures.length; f++) {
         let feature = vectorFeatures[f];
@@ -990,4 +1018,4 @@ function removeExplicitRGA() {
         disableOrEnableExplicitRGA(this.value);
     });
 }
-document.addEventListener("DOMContentLoaded", removeExplicitRGA);
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);

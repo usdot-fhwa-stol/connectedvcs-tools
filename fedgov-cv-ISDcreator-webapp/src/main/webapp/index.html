@@ -35,6 +35,114 @@
 	<link rel="stylesheet" href="external/ol_v10.4.0/ol.css">
 	<link rel="stylesheet" href="external/ol-layerswitcher.css">
 	<link rel="stylesheet" href="css/verticalscroll.css">
+	<link rel="stylesheet" href="/private-resources/css/georeferencer.css" type="text/css">
+	<link rel="stylesheet" href="/private-resources/css/status-bar.css" type="text/css">
+
+	<!-- CTI 4501 REQUIRED-FIELD MARKERS -->
+	<style>
+		.cti-req {
+			color: #b3261e;
+			font-weight: 700;
+		}
+
+
+		.cti-legend {
+			margin-top: 10px;
+			padding-top: 6px;
+			border-top: 1px solid #ddd;
+			font-size: .8125em;
+			color: #666;
+		}
+
+		/* Asterisk markers on the dynamically-labelled attribute tabs (CTI 4501) */
+		#attribute-tabs .intersection-info-tab > a::after,
+		#attribute-tabs .connection-tab > a::after {
+			content: "*";
+			color: #b3261e;
+			font-weight: 700;
+			margin-left: 2px;
+		}
+
+		.cti-note {
+			font-size: .8125em;
+			color: #666;
+		}
+
+		/* Small "CTI" badge that opens a note popover (CTI 4501) */
+		.cti-info-btn {
+			display: inline-block;
+			padding: 1px 5px;
+			border: 0;
+			border-radius: 4px;
+			background: #0a2266;
+			color: #fff;
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: .5px;
+			line-height: 1.4;
+			cursor: pointer;
+			margin-left: 6px;
+			vertical-align: middle;
+		}
+
+		.cti-info-btn:hover,
+		.cti-info-btn:focus {
+			background: #0d2e85;
+			color: #fff;
+			outline: none;
+		}
+
+		/* Plain info-circle button that opens a note popover */
+		.cti-icon-btn {
+			padding: 0;
+			border: 0;
+			background: none;
+			color: #337ab7;
+			line-height: 1;
+			cursor: pointer;
+			margin-left: 5px;
+			vertical-align: middle;
+		}
+
+		.cti-icon-btn:hover,
+		.cti-icon-btn:focus {
+			color: #23527c;
+			outline: none;
+		}
+
+		.popover {
+			max-width: 340px;
+		}
+
+		.popover-title {
+			font-weight: 700;
+		}
+
+		.popover-content {
+			font-size: .8125em;
+			color: #333;
+		}
+
+		.popover-content p {
+			margin-bottom: 8px;
+		}
+
+		.popover-content p:last-child {
+			margin-bottom: 0;
+		}
+
+		.popover-content hr {
+			margin: 8px 0;
+			border-top: 1px solid #ccc;
+		}
+
+		.popover-content .cti-further-label {
+			text-transform: uppercase;
+			letter-spacing: .5px;
+			font-size: .9em;
+			color: #666;
+		}
+	</style>
 
 </head>
 
@@ -122,10 +230,14 @@
 							<li><a href="#instructions_modal" data-toggle="modal" data-target="#instructions_modal">MAP Instructions</a></li>
 							<li class="divider"></li>
 							<li><a href="#" onclick="alert('To request support or report problems please email\nthe CAV Support Services at: CAVSupportServices@dot.gov.');">Support</a></li>
-							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('MAP Builder Tool for J2735 9/2024 (UPER encoding) and RGA Builder Tool for J2945/A 10/2024 (UPER encoding)\n\n\t  Version 2.4.1, Released on 07/24/2026');">About</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#" onclick="alert('MAP Builder Tool for J2735 9/2024 (UPER encoding) and RGA Builder Tool for J2945/A 10/2024 (UPER encoding)\n\n\t  Version 2.5.0, Released on 10/02/2026');">About</a></li>
+							<li><a href="#TOS_modal" data-toggle="modal" data-target="#TOS_modal">Terms of Service</a></li>
 						</ul>
 					</li>
                 </ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="#" id="openGeoreferencer" style="cursor:pointer;">Georeferencing</a></li>
+				</ul>
             </div>
             <!-- /.navbar-collapse -->
         </div>
@@ -189,10 +301,13 @@
         <div class="tab-content">
             <div class="tab-pane active" id="lane-info-tab">
                 <div class="panel-body">
+                    <div class="row subsequent-node-note" style="display:none;">
+                        <div class="col-sm-12"><p class="help-block">Add lane width delta (change in width) if applicable. Edit latitude, longitude, and elevation if needed.</p></div>
+                    </div>
                     <div id="lane_attributes">
                         <ul class="list-group">
                             <li class="list-group-item" id="attr_droppable" >
-                                <h4 class="list-group-item-heading">Allowed Lane Attributes</h4>
+                                <h4 class="list-group-item-heading">Allowed Lane Maneuvers<span class="cti-req">*</span></h4>
                                 <p class="help-block text-center">drop content here</p>
                             </li>
                             <li class="list-group-item list-group-item-danger hidden trash_droppable" id="trash_droppable">
@@ -248,7 +363,7 @@
 										<thead>
 											<tr>
 												<th class="text-center">MAP Default</th>
-												<th class="text-center">Approach Type</th>
+												<th class="text-center">Approach Type<span class="cti-req">*</span></th>
 												<th class="text-center">Time Restrictions</th>
 												<th class="text-center">
 													<a id="add_approach_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
@@ -283,7 +398,7 @@
 					</div>
 							
                         <div class="row lane_type">
-	                        <div class="col-sm-4"><label for="lane_type">Lane Type:</label></div>
+	                        <div class="col-sm-4"><label for="lane_type">Lane Type<span class="cti-req">*</span>:</label></div>
 	                        <div class="col-sm-7"><div id="lane_type" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select a Lane Type <span class="caret"></span></a>
 	                            <ul class="dropdown-menu">
 	                                <li><a href="#">Vehicle</a></li>
@@ -291,6 +406,7 @@
 	                                <li><a href="#">Bike</a></li>
 	                                <li><a href="#">Sidewalk</a></li>
 	                                <li><a href="#">Parking</a></li>
+	                                <li><a href="#" data-value="TrackedVehicle">Tracked Vehicle</a></li>
 	                            </ul>
 	                        </div>
 	                            <ul id="lane_type_check" class="parsley-errors-list">
@@ -301,7 +417,7 @@
 	                     </div>
 	                     
                    	    <div class="row lane_type_attributes">
-                        	<div class="col-sm-4"><label for="lane_type_attributes">Type Attributes:</label></div>
+                        	<div class="col-sm-4"><label for="lane_type_attributes">Type Attributes<span class="cti-req">*</span>:</label><button type="button" class="cti-info-btn" id="lane_type_attributes_popover" data-toggle="popover" data-html="true" data-trigger="click" data-placement="bottom" data-container="body" title="Type Attributes" data-content="CTI 4501 required if applicable.">CTI</button></div>
                         	<div class="col-sm-7">
 	                     	<select id="Vehicle_type_attributes" multiple="multiple">
 		                        <option value="0">(0) Vehicle Revocable Lane</option>
@@ -348,12 +464,22 @@
 		                        <option value="5">(5) Parking For Taxi Use</option>
 		                        <option value="6">(6) No Public Parking Use</option>
 	                    	</select>
+							<select id="TrackedVehicle_type_attributes" multiple="multiple">
+		                        <option value="0">(0) Revocable Lane</option>
+		                        <option value="1">(1) Commuter Railroad Track</option>
+		                        <option value="2">(2) Light Railroad Track</option>
+		                        <option value="3">(3) Heavy Railroad Track</option>
+		                        <option value="4">(4) Other Rail Type</option>
+	                    	</select>
                         	</div>
                         	<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_type_attributes"></i></div>
                        	</div>
+                   	    <div class="row lane_type_attributes">
+                        	<div class="col-sm-offset-4 col-sm-7"><p class="help-block cti-note" id="lane_type_attributes_help">Choose the attributes that are applicable to this lane.</p></div>
+                       	</div>
                                          	                       	
                  	    <div class="row shared_with">
-                        	<div class="col-sm-4"><label for="shared_with">Shared With:</label></div>
+                        	<div class="col-sm-4"><label for="shared_with">Shared With<span class="cti-req">*</span>:</label></div>
                         	<div class="col-sm-7">
 	                     	<select id="shared_with" multiple="multiple">
 		                        <option value="0">(0) Overlapping</option>
@@ -372,7 +498,7 @@
                        	</div>
 
                         <div class="row lane_number">
-                            <div class="col-sm-4"><label for="lane_number">Lane Number:</label></div>
+                            <div class="col-sm-4"><label for="lane_number">Lane Number<span class="cti-req">*</span>:</label></div>
                             <div class="col-sm-7"><div id="lane_number" class="btn-group"> <a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Lane Number <span class="caret"></span></a>
                                 <ul class="dropdown-menu scrollable-menu" role="menu">
 	                                <li><a href="#">01</a></li> <li><a href="#">02</a></li> <li><a href="#">03</a></li> <li><a href="#">04</a></li> <li><a href="#">05</a></li> <li><a href="#">06</a></li> <li><a href="#">07</a></li> <li><a href="#">08</a></li> 
@@ -422,17 +548,17 @@
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="intersection_name"></i></div>
 							</div>
 							<div class="row revision">
-							  <div class="col-sm-4"><label for="revision">Revision:</label></div>
+							  <div class="col-sm-4"><label for="revision">Revision<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input type="text" class="form-control" id="revision" disabled></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="revision"></i></div>
 							</div>
 							<div class="row lat" data-toggle="tooltip" title="in decimal degrees">
-							  <div class="col-sm-4"><label for="lat">Latitude:</label></div>
+							  <div class="col-sm-4"><label for="lat">Latitude<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="lat" placeholder="-90 to 90" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-90, 90]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="latitude"></i></div>
 							</div>
 							<div class="row long" data-toggle="tooltip" title="in decimal degrees">
-							  <div class="col-sm-4"><label for="long">Longitude:</label></div>
+							  <div class="col-sm-4"><label for="long">Longitude<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="long" placeholder="-180 to 180"  data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-180, 180]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="longitude"></i></div>
 							</div>
@@ -442,9 +568,12 @@
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="region_id"></i></div>
 							</div>
 							<div class="row intersection">
-							  <div class="col-sm-4"><label for="intersection">Intersection ID:</label></div>
+							  <div class="col-sm-4"><label for="intersection">Intersection ID<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="intersection" placeholder="0 to 65535" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 65535]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="intersection_id"></i></div>
+							</div>
+							<div class="row intersection">
+							  <div class="col-sm-offset-4 col-sm-7"><p class="help-block cti-note">This ID should be unique for this intersection within your agency.</p></div>
 							</div>
 							<div class="row road_authority_id_type">
 								<div class="col-sm-4"><label for="road_authority_id_type">Road Authority ID Type:</label></div>
@@ -478,18 +607,28 @@
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="content_date_time"></i></div>
 							</div>
 							<div class="row elev" data-toggle="tooltip" title="in meters">
-							  <div class="col-sm-4"><label for="elev">Elevation:</label></div>
+							  <div class="col-sm-4"><label for="elev">Elevation<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="elev" placeholder="-409.6 to 6143.9" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-required="true" data-parsley-range="[-409.6, 6143.9]" data-parsley-pattern-message="This value must include numbers only."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="elevation"></i></div>
 							</div>
 							<div class="row lane_width" data-toggle="tooltip" title="in centimeters">
-							  <div class="col-sm-4"><label for="lane_width">Lane Width Delta:</label></div>
+							  <div class="col-sm-4"><label for="lane_width">Lane Width Delta<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="lane_width" placeholder="-512 to 511" data-parsley-pattern="^-?[0-9]+$" data-parsley-range="[-512, 511]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="lane_width"></i></div>
 							</div>
+							<div class="row node_delta" data-toggle="tooltip" title="in meters" style="display:none">
+							  <div class="col-sm-4"><label for="node_delta">Node Delta:</label></div>
+							  <div class="col-sm-7"><input class="form-control" id="node_delta" readonly></div>
+							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="node_delta"></i></div>
+							</div>
+							<div class="row elev_delta" data-toggle="tooltip" title="in meters" style="display:none">
+							  <div class="col-sm-4"><label for="elev_delta">Elevation Delta:</label></div>
+							  <div class="col-sm-7"><input class="form-control" id="elev_delta" readonly></div>
+							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="elev_delta"></i></div>
+							</div>
 							<div class="lane_info_time_restrictions"></div>
 							<div class="row master_lane_width" data-toggle="tooltip" title="in centimeters">
-							  <div class="col-sm-4"><label for="master_lane_width">Master Lane Width:</label></div>
+							  <div class="col-sm-4"><label for="master_lane_width">Master Lane Width<span class="cti-req">*</span>:</label></div>
 							  <div class="col-sm-7"><input class="form-control" id="master_lane_width" placeholder="0 to 32767" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 32767]" data-parsley-pattern-message="This value must be an integer."></div>
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="master_lane_width"></i></div>
 							</div>
@@ -509,7 +648,7 @@
 							  <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="verified_elev"></i></div>
 							</div>
                         </div>
-
+						<p class="cti-legend">* = required per CTI 4501.</p>
                         <div class="btn-group">
                             <button type="button" class="btnDone btn btn-primary">Done</button>
                             <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -695,8 +834,8 @@
 						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="layer_id"></i></div>
 					</div>
 
-					<div class="row lane-speed-text"> 
-						<div class="col-sm-12">Enter speed limits for all nodes in this lane</div>
+					<div class="row lane-speed-text">
+						<div class="col-sm-12">Add lane speed limit if it is different than the intersection speed limit entered at the reference point</div>
 					</div>
 
 					<!-- sheepIt Form -->
@@ -706,7 +845,7 @@
 							<hr>
 							<div class="row speed_limit_type" data-toggle="tooltip" title="in 0.02 m/s">
 								<div class="col-sm-4"><label for="speedForm_#index#_speedLimitType">
-									Speed Limit Type:</label></div>
+									Speed Limit Type<span class="cti-req">*</span>:</label></div>
 								<div class="col-sm-6 clearfix">
 									<select class="styled-select" id="speedForm_#index#_speedLimitType">
 										<option value="" selected="" disabled="">Speed Limit Type</option>
@@ -736,7 +875,7 @@
 							</div>
 
 							<div class="row velocity" data-toggle="tooltip" title="in MPH">
-								<div class="col-sm-4"><label for="speedForm_#index#_velocity">Velocity:</label></div>
+								<div class="col-sm-4"><label for="speedForm_#index#_velocity">Velocity<span class="cti-req">*</span>:</label></div>
 								<div class="col-sm-7"><input type="text" class="form-control" id="speedForm_#index#_velocity"
 															 placeholder="0 to 366" data-parsley-pattern="^-?[0-9]*(\.)?[0-9]+$" data-parsley-range="[0, 366]" data-parsley-pattern-message="This value must include numbers only."></div>
 								<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="velocity"></i></div>
@@ -877,7 +1016,7 @@
 							<br/>
 						</div>
 					</div>
-	
+					<p class="cti-legend">* = required per CTI 4501.</p>
 	                <div class="btn-group">
 	                    <button type="button" class="btnDone btn btn-primary intersection-btn">Done</button>
 	                    <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -888,7 +1027,7 @@
 
             <div class="tab-pane" id="connection-tab">
             	<div class="panel-body">
-					<div class="row connection-text"> 
+					<div class="row connection-text">
 						<div class="col-sm-12">Unsignalized connections default to protected unless otherwise indicated with yield or stop.</div>
 					</div>
             		<div class="row clearfix">
@@ -902,16 +1041,34 @@
 											</th>
 											<th class="text-center">
 												Remote Intersection ID
+												<button type="button" class="cti-icon-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Remote Intersection ID"
+													data-content="Remote Intersection ID is the IntersectionID of the other V2X-enabled intersection a lane connects to. Add if applicable.">
+													<i class="fa fa-info-circle" aria-hidden="true"></i>
+												</button>
 											</th>
 				                            <th class="text-center">
-				                                "To" Lane Number
+				                                "To" Lane Number<span class="cti-req">*</span>
 				                            </th>
 											<th class="text-center">Time Restrictions</th>
 				                            <th class="text-center">
-				                                Signal Group ID
+				                                Signal Group ID<span class="cti-req">*</span>
+												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Signal Group ID"
+													data-content="<p><strong>Always use 255 for SignalGroupID for channelized (free-flow) turn lanes.</strong>(Comes from the J2735 standard)</p><p><strong>The SignalGroupID should match the SignalGroupID in the SPaT message for the movement(s). Traffic signal phase numbers may be different than the SPaT SignalGroupIDs.</strong></p><p>The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p><hr><p class='cti-further-label'>Further info</p><p>Every movement (or set of movements) that could have their signal timing controlled independently should have a distinct SignalGroupID, even a movement or set of movements that always runs with another in the current timing plan (e.g. overlaps, or movements controlled by a pedestrian or bicycle signal).</p><p>The SPaT message indicates the state of the signal group (e.g. green, amber, red) in the MovementPhaseState element. The SignalGroupID remains the same for that signal group no matter what the signal is displaying.</p>">
+													CTI
+												</button>
 				                            </th>
 				                            <th class="text-center">
-				                                Allowed Maneuvers
+				                                Allowed Maneuvers<span class="cti-req">*</span>
+												<button type="button" class="cti-info-btn" data-toggle="popover" data-html="true"
+													data-trigger="click" data-placement="bottom" data-container="body"
+													title="Allowed Maneuvers"
+													data-content="<strong>Include right on red (if allowed) in Allowed Maneuvers.</strong>">
+													CTI
+												</button>
 				                            </th>
 				                            <th class="text-center">
 												<a id="add_row" class="btn btn-default pull-left" alt="Add Row"><i class="fa fa-plus fa-lg" ></i></a>
@@ -924,6 +1081,7 @@
 				            </form>
 				        </div>
 				    </div>
+					<p class="cti-legend">* = required per CTI 4501.</p>
 	                <div class="btn-group">
 	                    <button type="button" class="btnDone btn btn-primary intersection-btn">Done</button>
 	                    <button type="button" class="btnClose btn btn-primary">Cancel</button>
@@ -1088,7 +1246,9 @@
 					<div class="container-fluid">
 						<form class="form-horizontal">
 							<div class="form-group">
+								<label for="revision_num">Message Revision<span class="cti-req">*</span>:</label>
 								<input type="text" class="revision_num form-control" id="revision_num" placeholder="0-127" oninput="validateRevision()">
+								<p class="cti-legend">* = required per CTI 4501.</p>
 							</div>
 						</form>
 					</div>
@@ -1258,7 +1418,7 @@
 										<li>Click on the lane node you wish to configure in order to bring up the <strong>Lane Configuration</strong> dialog.
 											<br><strong>Note:</strong> Only the first node of the lane will hold the Lane Number and Attribute information.</li>
 										<li>Define a Lane Number (node 1).  Modify any other desired settings. If desired, also fill out Days of the Week and Time Period fields, which are RGA specific fields.
-											<br><strong>Note:</strong> Lane Attributes will be explained in the next section. Furthermore, RGA only supports "Vehicle", "Crosswalk" and "Bike" lane types.</li>
+											<br><strong>Note:</strong> Lane Maneuvers will be explained in the next section. Furthermore, RGA only supports "Vehicle", "Crosswalk" and "Bike" lane types.</li>
 										<li>Click <strong>Done</strong> when finished.</li>
 									</ol>
 									<li>Repeat the above steps for each lane in each approach.</li>
@@ -1284,6 +1444,19 @@
 										<li>If the lane is a source lane for computed lane's a Dialog will appear warning that deleting the lane will delete all lanes computed from it. Click <strong>OK</strong> to delete the lane and all of it's computed lanes.</li>
 										<li>Unselect the <strong>Delete</strong> Control.</li>
 									</ol>
+									<li>Deleting a Lane Node</li>
+									<ol type="a">
+										<li>Click the <strong>Edit Lanes</strong>(<i class="fa fa-sliders"></i>) Control on the bottom Control Panel.</li>
+										<li>Click the lane whose node you wish to delete and vertex handles will appear on the lane.</li>
+										<li>Hold <strong>Shift</strong> and click the vertex handle you wish to remove.</li>
+										<li>The node will be deleted and the lane will be redrawn with the remaining nodes.</li>
+									</ol>
+									<li>Viewing Distance Between Two Lane Nodes (Node Delta)</li>
+									<ol type="a">
+										<li>Verify that all of the Controls on the bottom panel are unselected.</li>
+										<li>Click on any lane node other than the first node (node 0).</li>
+										<li>The <strong>Lane Configuration</strong> dialog will display a read-only <strong>Node Delta</strong> field showing the distance in meters from the previous node to the selected node.</li>
+									</ol>
 								</ol>
 								<br>
 								<p><strong>Note:</strong> When defining elevations, keep in mind that the standard defines the delta between elevations to be
@@ -1295,21 +1468,21 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="rgainstructions_tab_4">
 							<div class="container-fluid">
-								<h4>Lane Attributes</h4>
+								<h4>Lane Maneuvers</h4>
 								<ul>
-									<li>Adding Lane Attributes</li>
+									<li>Adding Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you add attributes to; this will again display the <strong>Lane Configuration</strong> dialog.</li>
 										<li>Bring up the <strong>Builder</strong> and select the <strong>Lane</strong> tab.</li>
-										<li>Click and drag the lane attributes from the <strong>Builder</strong> to the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong>.</li>
+										<li>Click and drag the lane maneuvers from the <strong>Builder</strong> to the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong>.</li>
 										<li>Let go of the mouse button to "drop" and assign the attribute to the lane.</li>
 										<li>Click <strong>Done</strong> when finished adding attributes.</li>
 									</ol>
-									<li>Removing Lane Attributes</li>
+									<li>Removing Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you remove attributes from.</li>
-										<li>From the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
-										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Lane Attributes</strong> section.</li>
+										<li>From the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
+										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Allowed Lane Maneuvers</strong> section.</li>
 										<li>Hover the attribute over the trashcan and let go of the mouse button to "drop" and remove the attribute from the lane.</li>
 										<li>Click <strong>Done</strong> when finished removing attributes.</li>
 									</ol>
@@ -1558,7 +1731,7 @@
 										<li>Click on the lane node you wish to configure in order to bring up the <strong>Lane Configuration</strong> dialog.
 											<br><strong>Note:</strong> Only the first node of the lane will hold the Lane Number and Attribute information.</li>
 										<li>Define a Lane Number (node 1).  Modify any other desired settings.
-											<br><strong>Note:</strong> Lane Attributes will be explained in the next section.</li>							
+											<br><strong>Note:</strong> Lane Maneuvers will be explained in the next section.</li>							
 											<li>Click <strong>Done</strong> when finished.</li>
 									</ol>
 									<li>Repeat the above steps for each lane in each approach.</li>
@@ -1568,6 +1741,19 @@
 										<li>Click the feature (lane) you wish to delete.</li>
 										<li>If the lane is a source lane for computed lane's a Dialog will appear warning that deleting the lane will delete all lanes computed from it. Click <strong>OK</strong> to delete the lane and all of it's computed lanes.</li>
 										<li>Unselect the <strong>Delete</strong> Control.</li>
+									</ol>
+									<li>Deleting a Lane Node</li>
+									<ol type="a">
+										<li>Click the <strong>Edit Lanes</strong>(<i class="fa fa-sliders"></i>) Control on the bottom Control Panel.</li>
+										<li>Click the lane whose node you wish to delete and vertex handles will appear on the lane.</li>
+										<li>Hold <strong>Shift</strong> and click the vertex handle you wish to remove.</li>
+										<li>The node will be deleted and the lane will be redrawn with the remaining nodes.</li>
+									</ol>
+									<li>Viewing Distance Between Two Lane Nodes (Node Delta)</li>
+									<ol type="a">
+										<li>Verify that all of the Controls on the bottom panel are unselected.</li>
+										<li>Click on any lane node other than the first node (node 0).</li>
+										<li>The <strong>Lane Configuration</strong> dialog will display a read-only <strong>Node Delta</strong> field showing the distance in meters from the previous node to the selected node.</li>
 									</ol>
 								</ol>
 								<br>
@@ -1580,22 +1766,22 @@
 						</div>
 						<div role="tabpanel" class="tab-pane" id="instructions_tab_4">
 							<div class="container-fluid">
-								<h4>Lane Attributes</h4>
+								<h4>Lane Maneuvers</h4>
 								<ul>
-									<li>Adding Lane Attributes</li>
+									<li>Adding Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you add attributes to; this will again display the <strong>Lane Configuration</strong> dialog.</li>
 										<li>Bring up the <strong>Builder</strong> and select the <strong>Lane</strong> tab.</li>
-										<li>Click and drag the lane attributes from the <strong>Builder</strong> to the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong>.</li>
+										<li>Click and drag the lane maneuvers from the <strong>Builder</strong> to the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong>.</li>
 										<li>Let go of the mouse button to "drop" and assign the attribute to the lane.</li>
 										<li>Click <strong>Done</strong> when finished adding attributes.</li>
 										<li>Note: The right u-turn maneuver is not supported in MAP, and will be greyed out and cannot be added to the lane attributes.</li>
 									</ol>
-									<li>Removing Lane Attributes</li>
+									<li>Removing Lane Maneuvers</li>
 									<ol type="a">
 										<li>Click on the first node of the lane you wish you remove attributes from.</li>
-										<li>From the <strong>Lane Attributes</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
-										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Lane Attributes</strong> section.</li>
+										<li>From the <strong>Allowed Lane Maneuvers</strong> section of the <strong>Lane Configuration</strong> dialog, click and begin to drag the attribute you wish to remove.</li>
+										<li>Once the dragging begins, a red trashcan will appear at the bottom of the <strong>Allowed Lane Maneuvers</strong> section.</li>
 										<li>Hover the attribute over the trashcan and let go of the mouse button to "drop" and remove the attribute from the lane.</li>
 										<li>Click <strong>Done</strong> when finished removing attributes.</li>
 									</ol>
@@ -1729,6 +1915,105 @@
 		</div>
 	</div>
 	<!-- End Instructions Modal -->
+
+
+	<!-- Terms of Service Modal -->
+	<div class="modal fade" id="TOS_modal" tabindex="-1" role="dialog" aria-labelledby="TOS_modal_label" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header"> 
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="TOS_modal_label">Terms of Service</h4>
+					<p class="CTI-TOS">Certain fields in the MAP / RGA tool are labeled “CTI.” Although CTI 4501 v01.01 requires filling out these fields, without modifications, the tool’s outputs are mostly but not completely CTI 4501 compliant. There are certain requirements the tool does not currently support (e.g. 20 cm of accuracy for 
+						node points, describing node points using offsets from a reference point, lane attributes for tracked vehicles, etc). Even if the tool supports a certain field, the tool does not check the accuracy of the values entered. If the user does 
+						not enter the correct value, that field in the resulting message will not be CTI 4501 v01.01 compliant.</p>
+					<p class="TOS">
+						This is the demonstration website for the Connected Vehicle Core Services   
+tools and uses code available in the Saxton Transportation Operations   
+Laboratory (the “Saxton Lab”) GitHub repository. While the website and tools   
+are periodically updated, users are responsible for validating the tools and   
+their outputs (for example, messages) for their intended use. This includes   
+but is not limited to ensuring messages are correct and contain accurate 
+information before use. The Saxton Lab assumes no liability for the use of   
+this demonstration site or its outputs.</p> 
+<p>The name, trademarks, service marks, or product names of the Saxton Lab   
+shall not be used in advertising or otherwise, including express or implied   
+claims of Saxton Lab endorsement, to promote the sale, use or other   
+dealings in projects or services using outputs from any of these tools, without  
+prior written authorization from the Saxton Lab, except as required for   
+reasonable and customary use in describing the origin of Software, code, or   
+outputs from these tools, and reproducing this notice.</p>
+<p>The following license also applies to use of this online tool:</p>
+<p>"License" shall mean the terms and conditions for use, reproduction, and   
+distribution as defined by these Terms of Service.</p>
+<p>"Licensor" shall mean the copyright owner or entity authorized by the   
+copyright owner that is granting the License.</p>
+<p>"Legal Entity" shall mean the union of the acting entity and all other entities   
+that control, are controlled by, or are under common control with that entity.   
+For the purposes of this definition, "control" means (i) the power, direct or   
+indirect, to cause the direction or management of such entity, whether by   
+contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the   
+outstanding shares, or (iii) beneficial ownership of such entity. </p>
+<p>"You" (or "Your") shall mean an individual or Legal Entity exercising   
+permissions granted by this License.</p>
+<p>"Work" shall mean the work of authorship, including the website, tools, and   
+code made available under the License, as indicated by the notice that is   
+included in or attached to the work.</p>
+<p>"Derivative Works" shall mean any work of software or code, that is based on  
+(or derived from) the Work and for which the editorial revisions, annotations,   
+elaborations, or other modifications represent an original work of authorship.   
+For the purposes of this License, Derivative Works shall not include works   
+that remain separable from, or merely link (or bind by name) to the   
+interfaces of, the Work and Derivative Works thereof. Derivative Works do not  
+include use of or outputs from the website or tools unmodified from the   
+Licensor’s current version in GitHub and/or on the Licensor’s website.</p>
+<p>"Contribution" shall mean any work of authorship, including the original   
+version of the Work and any modifications or additions to that Work or 
+Derivative Works thereof, that is intentionally submitted to Licensor for   
+inclusion in the Work by the copyright owner or by an individual or Legal   
+Entity authorized to submit on behalf of the copyright owner. For the   
+purposes of this definition, "submitted" means any form of electronic, verbal,  
+or written communication sent to the Licensor or its representatives,   
+including but not limited to communication on electronic mailing lists, source  
+code control systems, and issue tracking systems that are managed by, or   
+on behalf of, the Licensor for the purpose of discussing and improving the   
+Work, but excluding communication that is conspicuously marked or   
+otherwise designated in writing by the copyright owner as "Not a   
+Contribution."</p>
+<p>"Contributor" shall mean Licensor and any individual or Legal Entity on   
+behalf of whom a Contribution has been received by Licensor and   
+subsequently incorporated within the Work.</p>
+<p><strong>Trademarks.</strong>This License does not grant permission to use the trade   
+names, trademarks, service marks, or product names of the Licensor, except   
+as required for reasonable and customary use in describing the origin of the   
+Work or outputs produced using the Work, and reproducing the content of   
+this License.</p>
+<p><strong>Disclaimer of Warranty.</strong> Unless required by applicable law or agreed to in   
+writing, Licensor provides the Work (and each Contributor provides its   
+Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR   
+CONDITIONS OF ANY KIND, either express or implied, including, without   
+limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT,   
+MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely   
+responsible for determining the appropriateness of using or redistributing the  
+Work or outputs produced using the Work and assume any risks associated   
+with Your exercise of permissions under this License. </p>
+<p><strong>Limitation of Liability.</strong> In no event and under no legal theory, whether in   
+tort (including negligence), contract, or otherwise, unless required by   
+applicable law (such as deliberate and grossly negligent acts) or agreed to in   
+writing, shall any Contributor be liable to You for damages, including any   
+direct, indirect, special, incidental, or consequential damages of any   
+character arising as a result of this License or out of the use or inability to   
+use the Work or outputs produced using the Work (including but not limited   
+to damages for loss of goodwill, work stoppage, computer failure or   
+malfunction, or any and all other commercial damages or losses), even if   
+such Contributor has been advised of the possibility of such damages.</p>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
 	
 	<div id="control-toolbar" class="container">
 		<div class="btn-toolbar" aria-label="Toolbar with button groups" role="toolbar" data-toggle="buttons">
@@ -1752,6 +2037,8 @@
 			</div>
 		</div>
 	</div>
+	<!-- Slim, always-visible tool-hint bar between the map and the bottom control toolbar -->
+	<div id="tool-hint-bar"><span id="tool-hint-text"></span></div>
 	<!-- DOM element for creating map object that is not displayed -->
 	<div id="myHiddenMap" style="position:relative;width:10px;height:10px;display:none"></div>
 
@@ -1794,6 +2081,14 @@
 	<script type="module" src="js/depositor-latest.js"></script>
 	<script src="js/bing.js"></script>
 
+	<script type="module">
+		import * as mapModule from './js/map.js';
+		import { initGeoreferencer } from '/private-resources/js/georeferencer.js';
+		initGeoreferencer(() => mapModule.map, {
+			georefEndpoint: '/georef/api/georeference',
+			csrfTokenUrl: '/msp/security/api/csrf-token/'
+		});
+	</script>
+
 </body>
 </html>
-
