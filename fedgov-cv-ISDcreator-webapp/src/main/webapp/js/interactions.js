@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, getLaneTypeLabel, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
 import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
 
@@ -267,7 +267,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
         $('#lane_type .dropdown-toggle').html("Select a Lane Type <span class='caret'></span>");
         updateLaneTypeAttributesHelpText(null);
     } else if (  selectedMarker.get("number") == 0 ) {
-        $('#lane_type .dropdown-toggle').html(selectedMarker.get("laneType")  + " <span class='caret'></span>");
+        $('#lane_type .dropdown-toggle').html(getLaneTypeLabel(selectedMarker.get("laneType"))  + " <span class='caret'></span>");
         toggleLaneTypeAttributes(selectedMarker.get("laneType") );
         updateLaneTypeAttributesHelpText(selectedMarker.get("laneType"));
     }
