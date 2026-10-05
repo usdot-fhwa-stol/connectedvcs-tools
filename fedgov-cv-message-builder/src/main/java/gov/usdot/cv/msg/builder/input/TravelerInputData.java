@@ -46,11 +46,12 @@ public class TravelerInputData {
 		}
 	}
 
+	private static final int MAX_FRAMES = 8;
+
 	private static final Logger logger = LogManager.getLogger(TravelerInputData.class);
 	SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
 
-	public Region[] regions;
-	public AnchorPoint anchorPoint;
+	public Frame[] frames;
 	public VerifiedPoint verifiedPoint;
 	public Deposit deposit;
 	public ApplicableRegion applicableRegion;
@@ -78,10 +79,42 @@ public class TravelerInputData {
  * Throws IllegalArgumentException if any value is invalid.
  */
 	public void validate() {
-		if (regions == null || regions.length == 0) {
+		if (frames == null || frames.length == 0) {
+			throw new IllegalArgumentException("frames cannot be null/empty");
+		}
+		if (frames.length > MAX_FRAMES) {
+			throw new IllegalArgumentException("frames cannot contain more than " + MAX_FRAMES + " entries");
+		}
+		for (Frame frame : frames) {
+			validateFrame(frame);
+		}
+		if (verifiedPoint == null) {
+			throw new IllegalArgumentException("verifiedPoint cannot be null");
+		} else {
+			validateLat("verifiedPoint.verifiedMapLat", verifiedPoint.verifiedMapLat);
+			validateLon("verifiedPoint.verifiedMapLon", verifiedPoint.verifiedMapLon);
+			validateLat("verifiedPoint.verifiedSurveyedLat",
+					verifiedPoint.verifiedSurveyedLat);
+			validateLon("verifiedPoint.verifiedSurveyedLon",
+					verifiedPoint.verifiedSurveyedLon);
+		}
+
+		if (deposit != null) {
+
+			if (deposit.timeToLive != -1) {
+				if (!validTTLs.contains((long) deposit.timeToLive)) {
+					throw new IllegalArgumentException("Invalid timeToLive value: " +
+							deposit.timeToLive + " valid values are: " + validTTLs);
+				}
+			}
+		}
+	}
+
+	private void validateFrame(Frame frame) {
+		if (frame.regions == null || frame.regions.length == 0) {
 			throw new IllegalArgumentException("regions cannot be null/empty");
 		} else {
-			for (Region region : regions) {
+			for (Region region : frame.regions) {
 				if (region.regionType == null) {
 					throw new IllegalArgumentException("regionType is required");
 				} else {
@@ -107,9 +140,10 @@ public class TravelerInputData {
 				}
 			}
 		}
-		if (anchorPoint == null) {
+		if (frame.anchorPoint == null) {
 			throw new IllegalArgumentException("anchorPoint cannot be null");
 		} else {
+			AnchorPoint anchorPoint = frame.anchorPoint;
 			validateLat("anchorPoint.referenceLat", anchorPoint.referenceLat);
 			validateLon("anchorPoint.referenceLon", anchorPoint.referenceLon);
 
@@ -156,26 +190,6 @@ public class TravelerInputData {
 						anchorPoint.infoType + " valid values are: " + validInfoTypes);
 			}
 		}
-		if (verifiedPoint == null) {
-			throw new IllegalArgumentException("verifiedPoint cannot be null");
-		} else {
-			validateLat("verifiedPoint.verifiedMapLat", verifiedPoint.verifiedMapLat);
-			validateLon("verifiedPoint.verifiedMapLon", verifiedPoint.verifiedMapLon);
-			validateLat("verifiedPoint.verifiedSurveyedLat",
-					verifiedPoint.verifiedSurveyedLat);
-			validateLon("verifiedPoint.verifiedSurveyedLon",
-					verifiedPoint.verifiedSurveyedLon);
-		}
-
-		if (deposit != null) {
-
-			if (deposit.timeToLive != -1) {
-				if (!validTTLs.contains((long) deposit.timeToLive)) {
-					throw new IllegalArgumentException("Invalid timeToLive value: " +
-							deposit.timeToLive + " valid values are: " + validTTLs);
-				}
-			}
-		}
 	}
 
 	private void validateLat(String name, double lat) {
@@ -202,25 +216,29 @@ public class TravelerInputData {
 		logger.debug("lonOffset: " + lonOffset);
 		logger.debug("elevOffset: " + elevOffset);
 
-		anchorPoint.referenceLat += latOffset;
-		anchorPoint.referenceLon += lonOffset;
-		anchorPoint.referenceElevation += elevOffset;
-		for (Region region : regions) {
-			if (region.laneNodes != null) {
-				for (LaneNode laneNode : region.laneNodes) {
-					laneNode.nodeLat += latOffset;
-					laneNode.nodeLong += lonOffset;
-					laneNode.nodeElevation += elevOffset;
+		for (Frame frame : frames) {
+			frame.anchorPoint.referenceLat += latOffset;
+			frame.anchorPoint.referenceLon += lonOffset;
+			frame.anchorPoint.referenceElevation += elevOffset;
+			for (Region region : frame.regions) {
+				if (region.laneNodes != null) {
+					for (LaneNode laneNode : region.laneNodes) {
+						laneNode.nodeLat += latOffset;
+						laneNode.nodeLong += lonOffset;
+						laneNode.nodeElevation += elevOffset;
+					}
 				}
 			}
 		}
 	}
 
 	public void initialzeReferencePoints() {
-		GeoPoint point = new GeoPoint(anchorPoint.referenceLat, anchorPoint.referenceLon);
-		for (Region region : regions) {
-			if (region.laneNodes != null)
-				region.refPoint = point;
+		for (Frame frame : frames) {
+			GeoPoint point = new GeoPoint(frame.anchorPoint.referenceLat, frame.anchorPoint.referenceLon);
+			for (Region region : frame.regions) {
+				if (region.laneNodes != null)
+					region.refPoint = point;
+			}
 		}
 	}
 
@@ -241,6 +259,18 @@ public class TravelerInputData {
 					+ ", nodeLong=" + nodeLong
 					+ ", nodeElevation=" + nodeElevation
 					+ ", laneWidth=" + laneWidth
+					+ "]";
+		}
+	}
+
+	public static class Frame {
+		public AnchorPoint anchorPoint;
+		public Region[] regions;
+
+		@Override
+		public String toString() {
+			return "Frame [anchorPoint=" + anchorPoint
+					+ ", regions=" + Arrays.toString(regions)
 					+ "]";
 		}
 	}
@@ -416,7 +446,7 @@ public class TravelerInputData {
 	}
 
 	public static void main(String args[]) throws JsonParseException, JsonMappingException, IOException {
-		String travJson = "{\r\n    \"regions\": [\r\n        {\r\n            \"laneWidth\": \"366\",\r\n            \"laneNodes\": [\r\n                {\r\n                    \"nodeNumber\": 0,\r\n                    \"nodeLat\": 42.33757684267676,\r\n                    \"nodeLong\": -83.05125328295235\r\n                },\r\n                {\r\n                    \"nodeNumber\": 1,\r\n                    \"nodeLat\": 42.33688687290945,\r\n                    \"nodeLong\": -83.05078657858425\r\n                }\r\n            ],\r\n            \"extent\": \"5\"\r\n        }\r\n    ],\r\n    \"anchorPoint\": {\r\n        \"name\": \"Work Zone\",\r\n        \"referenceLat\": 42.337656942112716,\r\n        \"referenceLon\": -83.05142065277923,\r\n        \"referenceElevation\": \"184\",\r\n        \"content\": \"testing\",\r\n        \"direction\": \"0\",\r\n        \"mutcd\": \"2\",\r\n        \"priority\": \"5\",\r\n        \"startTime\": \"05/26/2015 10:56 AM\",\r\n        \"endTime\": \"05/30/2015 10:56 AM\",\r\n        \"heading\": [\r\n            \"0001\",\r\n            \"0080\",\r\n            \"0100\",\r\n            \"8000\"\r\n        ],\r\n        \"infoType\": \"2\"\r\n    },\r\n    \"verifiedPoint\": {\r\n        \"verifiedMapLat\": 42.33791859880715,\r\n        \"verifiedMapLon\": -83.05089362151372,\r\n        \"verifiedMapElevation\": 180,\r\n        \"verifiedSurveyedLat\": \"42.13791859880715\",\r\n        \"verifiedSurveyedLon\": -83.01089362151372,\r\n        \"verifiedSurveyedElevation\": \"184\"\r\n    }\r\n}";
+		String travJson = "{\r\n    \"frames\": [\r\n        {\r\n            \"regions\": [\r\n                {\r\n                    \"laneWidth\": \"366\",\r\n                    \"laneNodes\": [\r\n                        {\r\n                            \"nodeNumber\": 0,\r\n                            \"nodeLat\": 42.33757684267676,\r\n                            \"nodeLong\": -83.05125328295235\r\n                        },\r\n                        {\r\n                            \"nodeNumber\": 1,\r\n                            \"nodeLat\": 42.33688687290945,\r\n                            \"nodeLong\": -83.05078657858425\r\n                        }\r\n                    ],\r\n                    \"extent\": \"5\"\r\n                }\r\n            ],\r\n            \"anchorPoint\": {\r\n                \"name\": \"Work Zone\",\r\n                \"referenceLat\": 42.337656942112716,\r\n                \"referenceLon\": -83.05142065277923,\r\n                \"referenceElevation\": \"184\",\r\n                \"content\": \"testing\",\r\n                \"direction\": \"0\",\r\n                \"mutcd\": \"2\",\r\n                \"priority\": \"5\",\r\n                \"startTime\": \"05/26/2015 10:56 AM\",\r\n                \"endTime\": \"05/30/2015 10:56 AM\",\r\n                \"heading\": [\r\n                    \"0001\",\r\n                    \"0080\",\r\n                    \"0100\",\r\n                    \"8000\"\r\n                ],\r\n                \"infoType\": \"2\"\r\n            }\r\n        }\r\n    ],\r\n    \"verifiedPoint\": {\r\n        \"verifiedMapLat\": 42.33791859880715,\r\n        \"verifiedMapLon\": -83.05089362151372,\r\n        \"verifiedMapElevation\": 180,\r\n        \"verifiedSurveyedLat\": \"42.13791859880715\",\r\n        \"verifiedSurveyedLon\": -83.01089362151372,\r\n        \"verifiedSurveyedElevation\": \"184\"\r\n    }\r\n}";
 		TravelerInputData trav = JSONMapper.jsonStringToPojo(travJson, TravelerInputData.class);
 		System.out.println(trav);
 	}

@@ -28,16 +28,16 @@ public class TravelerInputDataJsonMappingTest {
                 TravelerInputData.class);
 
         assertNotNull(data);
-        assertNotNull(data.anchorPoint);
+        assertNotNull(data.frames[0].anchorPoint);
 
         // road-surface fields
-        assertEquals("ASPHALT_OR_TAR", data.anchorPoint.road_surface);
-        assertEquals(1, data.anchorPoint.road_surface_type);
-        assertEquals("0", data.anchorPoint.road_condition);
-        assertEquals(6L, data.anchorPoint.meanVerticalVariation);
-        assertEquals(3L, data.anchorPoint.verticalVariationStdDev);
-        assertEquals(10L, data.anchorPoint.meanHorizontalVariation);
-        assertEquals(4L, data.anchorPoint.horizontalVariationStdDev);
+        assertEquals("ASPHALT_OR_TAR", data.frames[0].anchorPoint.road_surface);
+        assertEquals(1, data.frames[0].anchorPoint.road_surface_type);
+        assertEquals("0", data.frames[0].anchorPoint.road_condition);
+        assertEquals(6L, data.frames[0].anchorPoint.meanVerticalVariation);
+        assertEquals(3L, data.frames[0].anchorPoint.verticalVariationStdDev);
+        assertEquals(10L, data.frames[0].anchorPoint.meanHorizontalVariation);
+        assertEquals(4L, data.frames[0].anchorPoint.horizontalVariationStdDev);
 
         // messageType / generateType
         assertEquals("TIM", data.messageType);
