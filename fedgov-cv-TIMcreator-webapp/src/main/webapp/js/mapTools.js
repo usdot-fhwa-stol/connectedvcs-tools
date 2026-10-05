@@ -31,7 +31,9 @@ import {
     setFeatureAttributes,
     getCookie,
     drawCircleSlices,
-    circles_reset
+    circles_reset,
+    generateMarkerId,
+    setSuppressRegionOwnerChecks
 
 } from './mapping.js';
 
@@ -179,9 +181,38 @@ function loadMap(data) {
     );
 
 
+    // Drop stale ownerMarker/baseStyle blobs from files saved by a since-fixed bug.
+    vectorFeatures.forEach((feature) => feature.unset('baseStyle', true));
+    lanesFeatures.forEach((feature) => feature.unset('ownerMarker', true));
+    polygonsFeatures.forEach((feature) => feature.unset('ownerMarker', true));
+
+    // Assign a markerId to markers from files saved before multi-marker support.
+    vectorFeatures.forEach((feature) => {
+        if (feature.get('marker') && !feature.get('markerId')) {
+            feature.set('markerId', generateMarkerId());
+        }
+    });
+
+    // Auto-associate legacy files only when unambiguous (exactly one marker, one region).
+    const orphanRegions = [...lanesFeatures, ...polygonsFeatures].filter(f => !f.get('ownerMarkerId'));
+    const timMarkersNeedingRegion = vectorFeatures.filter((f) => {
+        const markerId = f.get('markerId');
+        return f.get('marker')?.type === 'TIM' &&
+            !lanesFeatures.some(r => r.get('ownerMarkerId') === markerId) &&
+            !polygonsFeatures.some(r => r.get('ownerMarkerId') === markerId);
+    });
+    if (orphanRegions.length === 1 && timMarkersNeedingRegion.length === 1) {
+        orphanRegions[0].set('ownerMarkerId', timMarkersNeedingRegion[0].get('markerId'));
+    }
+
     vectors.getSource().addFeatures(vectorFeatures);
-    lanes.getSource().addFeatures(lanesFeatures);
-    polygons.getSource().addFeatures(polygonsFeatures);
+    setSuppressRegionOwnerChecks(true);
+    try {
+        lanes.getSource().addFeatures(lanesFeatures);
+        polygons.getSource().addFeatures(polygonsFeatures);
+    } finally {
+        setSuppressRegionOwnerChecks(false);
+    }
     area.getSource().addFeatures(areaFeatures);
     laneMarkers.getSource().addFeatures(laneMarkersFeatures);
     polyMarkers.getSource().addFeatures(polyMarkersFeatures);
@@ -200,7 +231,7 @@ function loadMap(data) {
             feature.setStyle(new ol.style.Style({
                 image: new ol.style.Icon({
                     src: attrs.img_src,
-                    height: 50, 
+                    height: 50,
                     width: 50,
                     anchor: [0.5,1],
                     anchorXUnits: 'fraction',
