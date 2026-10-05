@@ -1534,7 +1534,7 @@ public class IntersectionSituationDataBuilder {
 			laneAttributesStriping.setLaneAttributesStriping((short) stripingBitString);
 			laneTypeAttributes.setChoice((byte) LaneTypeAttributes.STRIPING);
 			laneTypeAttributes.setStriping(laneAttributesStriping);
-		} else if (type.equals("trackedVehicle")) {
+		} else if (type.equals("trackedvehicle")) {
 			LaneAttributesTrackedVehicle laneAttributesTrackedVehicle = new LaneAttributesTrackedVehicle();
 			int trackedVehicleBitString = BitStringHelper.getBitString(SMALL_BIT_STRING, SMALL_BIT_STRING_LENGTH, typeAttributes);
 			laneAttributesTrackedVehicle.setLaneAttributesTrackedVehicle((short) trackedVehicleBitString);

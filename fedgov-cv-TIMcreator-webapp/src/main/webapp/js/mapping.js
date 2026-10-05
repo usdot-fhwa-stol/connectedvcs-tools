@@ -242,6 +242,10 @@ function init() {
     title: "Azure Aerial",
     source: new ol.source.XYZ({
       url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
+      // Azure microsoft.imagery has no tiles above z19 (returns 204 No Content).
+      // Capping the source lets OpenLayers upscale z19 for deeper zooms instead
+      // of requesting tiles that cannot exist.
+      maxZoom: aerialMaxZoom,
       tileLoadFunction: customTileLoadFunction
     }),
     type: "base",
