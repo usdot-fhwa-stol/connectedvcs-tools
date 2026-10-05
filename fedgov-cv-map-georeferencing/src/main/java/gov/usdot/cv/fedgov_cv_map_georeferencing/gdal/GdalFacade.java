@@ -231,7 +231,7 @@ public class GdalFacade {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\\n");
+                    output.append(line).append("\n");
                 }
             }
             
@@ -338,7 +338,7 @@ public class GdalFacade {
             StringBuilder error = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                error.append(line).append("\\n");
+                error.append(line).append("\n");
             }
             return error.toString();
         } catch (IOException e) {

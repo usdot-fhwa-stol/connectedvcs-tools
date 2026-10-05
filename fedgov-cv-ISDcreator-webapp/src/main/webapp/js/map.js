@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -111,6 +111,10 @@ function initMap() {
     title: "Aerial",
     source: new ol.source.XYZ({
       url: tilesetURL + aerialTilesetId + "/{z}/{x}/{y}",
+      // Azure microsoft.imagery has no tiles above z19 (returns 204 No Content).
+      // Capping the source lets OpenLayers upscale z19 for deeper zooms instead
+      // of requesting tiles that cannot exist.
+      maxZoom: aerialMaxZoom,
       tileLoadFunction: customTileLoadFunction
     }),
     type: "base",
@@ -1082,7 +1086,7 @@ function initMISC() {
 
   $("#lane_type .dropdown-menu li a").click(function () {
     let selText = $(this).text();
-    laneType = selText;
+    laneType = getLaneTypeValue(this);
     $(this)
       .parents(".btn-group")
       .find(".dropdown-toggle")
@@ -1116,9 +1120,7 @@ function initMISC() {
     }
 });
 
-  $(".lane_type ul li").each(() => {
-    laneTypeOptions.push($(this).text());
-  });
+  laneTypeOptions.push(...getLaneTypeOptions());
 
   makeDroppable(null);
 
@@ -1514,8 +1516,9 @@ function registerModalButtonEvents() {
         // Refresh elevation deltas for the whole lane so the saved map JSON stays consistent.
         const editedLaneFeat = lanes.getSource().getFeatures()[selectedMarker.get("lane")];
         const editedElevation = editedLaneFeat.get("elevation");
+        const editedRefPointElev = getReferencePointFeature(overlayLayersGroup)?.get("elevation");
         for (let n = 0; n < editedElevation.length; n++) {
-          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n);
+          editedElevation[n].delta = getElevationDelta(editedLaneFeat, n, editedRefPointElev);
         }
 
         if (selectedMarker.get("computed")) {
