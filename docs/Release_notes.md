@@ -1,7 +1,7 @@
 Map Tool Release Notes
 ----------------------------
 
-Version 2.5.0, released TBD
+Version 2.5.0, released Oct 2nd 2026
 ----------------------------------------
 
 ### **Summary**
