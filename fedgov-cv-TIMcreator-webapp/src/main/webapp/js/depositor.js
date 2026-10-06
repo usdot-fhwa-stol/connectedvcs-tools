@@ -283,6 +283,7 @@ function buildAnchorPointJSON(feature, marker) {
         priority: attrs.priority,
         startTime: attrs.startTime,
         endTime: attrs.endTime,
+        maxDuration: attrs.maxDuration,
         heading: getHeading(attrs.heading),
         meanVerticalVariation: attrs.meanVerticalVariation,
         verticalVariationStdDev: attrs.verticalVariationStdDev,
@@ -421,12 +422,18 @@ function errorCheck() {
         try {
             const startTime = feature.get('startTime');
             const endTime = feature.get('endTime');
+            const maxDuration = feature.get('maxDuration');
             const content = feature.get('content');
             const priority = feature.get('priority');
             const mutcd = feature.get('mutcd');
 
-            if (!startTime || !endTime) {
-                appendAlert(`"${markerLabel}" is missing start and end time.`);
+            if (!startTime) {
+                appendAlert(`"${markerLabel}" is missing start time.`);
+                status = true;
+            }
+
+            if ((!maxDuration || maxDuration !== true) && !endTime) {
+                appendAlert(`"${markerLabel}" is missing end time.`);
                 status = true;
             }
 

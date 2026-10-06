@@ -309,6 +309,7 @@ public class TravelerInputData {
 		public int priority;
 		public String startTime;
 		public String endTime;
+		public String maxDuration;
 		public int[] heading;
 		public int infoType;
 
@@ -347,6 +348,7 @@ public class TravelerInputData {
 					", priority=" + priority +
 					", startTime=" + startTime +
 					", endTime=" + endTime +
+					", maxDuration=" + maxDuration +
 					", heading=" + Arrays.toString(heading) +
 					", infoType=" + infoType +
 					", road_surface=" + road_surface +
