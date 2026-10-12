@@ -36,3 +36,10 @@
     text-overflow: ellipsis;
     pointer-events: none;
 }
+
+/* Applied only while showing an actionable message, e.g. "Undo delete". */
+#tool-hint-bar.clickable {
+    pointer-events: auto;
+    cursor: pointer;
+    text-decoration: underline;
+}

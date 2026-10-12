@@ -19,7 +19,7 @@ import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from 
 import { deleteTrace } from "./mapTools.js"
 import { setStatusHintForState, setStatusHint } from "../../private-resources/js/status-bar.js";
 
-import { deleteMode, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
+import { deleteMode, currentControl, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
 var map;
 var vectors, lanes, laneMarkers, area, polygons, polyMarkers, radiuslayer, trace, laneWidths;
 var fromProjection, toProjection;
@@ -33,6 +33,8 @@ export function setSuppressRegionOwnerChecks(value) {
 }
 // An orphaned region the user clicked, waiting to be bound to the next marker placed.
 let pendingRegionForAssociation = null;
+// The single most recently deleted marker/region, restorable via Ctrl+Z or the undo toast.
+let lastDeleted = null;
 const MAX_TIM_MARKERS = 8;
 var mutcd, priority, direction, extent, info_type, ttl, road_surface, road_surface_type, road_condition;
 var circle_bounds;
@@ -1032,6 +1034,8 @@ function copyTextToClipboard(text) {
 
 export function Clear() {
   if (confirm("Clear all of the map features?")) {
+    lastDeleted = null;
+    hideUndoToast();
     lanes.getSource().clear();
     laneMarkers.getSource().clear();
     vectors.getSource().clear();
@@ -1144,6 +1148,7 @@ function isRegionOrphaned(region) {
 function selectRegionForAssociation(region) {
   if (region && isRegionOrphaned(region)) {
     pendingRegionForAssociation = region;
+    deactivateUndoHint();
     setStatusHint('Region selected, now drag a road sign marker onto the map to associate it with this region.');
   } else {
     pendingRegionForAssociation = null;
@@ -1228,7 +1233,77 @@ function deleteMarker(layer, feature) {
 
   layer.getSource().removeFeature(feature);
   layer.changed();
+
+  lastDeleted = { layer, feature };
+  showUndoToast(feature.get('marker')?.name || 'Region');
 }
+
+// Restores the last deleted feature, bypassing draw-time checks so its ownerMarkerId stays intact.
+function undoLastDelete() {
+  if (!lastDeleted) return;
+  const { layer, feature } = lastDeleted;
+  lastDeleted = null;
+  hideUndoToast();
+
+  setSuppressRegionOwnerChecks(true);
+  try {
+    layer.getSource().addFeature(feature);
+  } finally {
+    setSuppressRegionOwnerChecks(false);
+  }
+
+  if (layer === lanes || layer === polygons) {
+    onFeatureAdded();
+  }
+}
+
+// Plain setStatusHint (not push/pop) so it's naturally replaced by the next real hint, not stuck.
+let undoHintActive = false;
+
+function showUndoToast(label) {
+  setStatusHint(`${label} deleted. Press Ctrl+Z to undo, or click here.`);
+  undoHintActive = true;
+
+  const bar = document.getElementById('tool-hint-bar');
+  if (bar) {
+    bar.classList.add('clickable');
+    bar.onclick = undoLastDelete;
+  }
+}
+
+// Drops the clickable styling/handler; call wherever else the status hint gets overwritten.
+function deactivateUndoHint() {
+  if (!undoHintActive) return;
+  undoHintActive = false;
+  const bar = document.getElementById('tool-hint-bar');
+  if (bar) {
+    bar.classList.remove('clickable');
+    bar.onclick = null;
+  }
+}
+
+function hideUndoToast() {
+  if (!undoHintActive) return;
+  deactivateUndoHint();
+
+  // Restore the current tool's hint instead of leaving the bar blank.
+  const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;
+  setStatusHintForState(currentControl, hasContent);
+}
+
+document.addEventListener('keydown', function (e) {
+  const isUndoShortcut = (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z';
+  if (!isUndoShortcut) return;
+
+  const target = e.target;
+  const isTypingInField = target && (
+    target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+  );
+  if (isTypingInField) return;
+
+  e.preventDefault();
+  undoLastDelete();
+});
 
 
 
@@ -1246,6 +1321,7 @@ function toggleControlsOn(state) {
     $("#instructions_modal").modal('show');
   } else {
     $("#instructions_modal").modal('hide');
+    deactivateUndoHint();
 
     if (state !== 'builder') {
       const hasContent = vectors?.getSource()?.getFeatures()?.length > 0;

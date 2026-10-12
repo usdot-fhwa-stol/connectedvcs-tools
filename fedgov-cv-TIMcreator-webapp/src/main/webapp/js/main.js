@@ -437,6 +437,7 @@ function rebuildITISForm(contentArray) {
 
 export {
     deleteMode,
+    currentControl,
     addITISForm,
     removeITISForm,
     rebuildITISForm
