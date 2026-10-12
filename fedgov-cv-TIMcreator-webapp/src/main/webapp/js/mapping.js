@@ -1228,10 +1228,6 @@ function deleteMarker(layer, feature) {
 
   layer.getSource().removeFeature(feature);
   layer.changed();
-
-  if (!suppressRegionOwnerChecks) {
-    tryAutoAssociateOrphanRegion();
-  }
 }
 
 
