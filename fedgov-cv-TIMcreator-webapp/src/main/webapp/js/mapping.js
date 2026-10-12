@@ -506,7 +506,7 @@ function registerMapEvents() {
     $("#selat").prop('readonly', true);
     $("#selong").prop('readonly', true);
 
-    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
+    $(".lat, .long, .elev, .radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .max_duration, .info-type, .extent, .lane_width, .master_lane_width, .speed_limit, .direction-tab, .content-tab, .itis-tab, .road-condition-tab, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".nwlat, .nwlong, .selat, .selong").show();
 
     const geom = selected_marker.getGeometry().getCoordinates()[0];
@@ -569,7 +569,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev').hide();
+    $('.radius, .verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .max_duration, .info-type, .nwlat, .nwlong, .selat, .selong, .speed_limit, .master_lane_width, .ssp_tim_rights, .ssp_loc_rights, .ssp_type_rights, .ssp_content_rights, .road_condition, .road_surface, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev').hide();
     $('.direction-tab, .content-tab, .itis-tab, .road-condition-tab').hide();
 
     $(".lat, .long, .elev, .lane_width").show();
@@ -679,7 +679,7 @@ function registerMapEvents() {
 
     $("#lat, #long, #elev").prop('readonly', false);
 
-    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
+    $(".verified_lat, .verified_long, .verified_elev, .start_time, .end_time, .max_duration, .info-type, .nwlat, .nwlong, .selat, .selong, .lane_width, .master_lane_width, .extent, .speed_limit, .regionFeatures br, .ssp_tim_rights, .ssp_type_rights, .ssp_content_rights, .ssp_loc_rights, .road_surface, .road_condition, .meanVerticalVariation, .verticalVariationStdDev, .meanHorizontalVariation, .horizontalVariationStdDev").hide();
     $(".direction-tab, .content-tab, .itis-tab, .road-condition-tab").hide();
     $(".node_delta").hide();
 
@@ -1670,6 +1670,7 @@ function referencePointWindow(feature) {
 
   $(".start_time").show();
   $(".end_time").show();
+  $(".max_duration").show();
   $(".lat").show();
   $(".long").show();
   $(".intersection").show();
@@ -1696,6 +1697,7 @@ function referencePointWindow(feature) {
     $(".selection-panel").text('Verified Point Configuration');
     $(".start_time").hide();
     $(".end_time").hide();
+    $(".max_duration").hide();
     $(".intersection").hide();
     $(".lane_width").hide();
     $(".info-type").hide();

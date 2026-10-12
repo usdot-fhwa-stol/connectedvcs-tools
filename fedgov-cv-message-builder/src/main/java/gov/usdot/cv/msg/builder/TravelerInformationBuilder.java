@@ -413,13 +413,16 @@ public class TravelerInformationBuilder {
 	}
 
 	private int getDurationTime(AnchorPoint anchorPoint) throws ParseException {
+		if ("true".equals(anchorPoint.maxDuration)) {
+			return MAX_MINUTES_DURATION;
+		}
+
 		Date startDate = sdf.parse(anchorPoint.startTime);
 		Date endDate = sdf.parse(anchorPoint.endTime);
-		String maxDurationChecked = anchorPoint.maxDuration;
 
 		long diff = endDate.getTime() - startDate.getTime();
 		int durationInMinutes = (int) (diff / 1000 / 60);
-		if (durationInMinutes > MAX_MINUTES_DURATION || maxDurationChecked.equals("true"))
+		if (durationInMinutes > MAX_MINUTES_DURATION)
 			durationInMinutes = MAX_MINUTES_DURATION;
 		return durationInMinutes;
 	}

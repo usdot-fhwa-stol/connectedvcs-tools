@@ -168,14 +168,17 @@ public class TravelerInputData {
 			}
 
 			Date endDate = null;
-			if (anchorPoint.endTime == null || anchorPoint.endTime.isEmpty()) {
-				throw new IllegalArgumentException("endTime cannot be null/empty");
-			} else {
-				try {
-					endDate = sdf.parse(anchorPoint.endTime);
-				} catch (ParseException e) {
-					throw new IllegalArgumentException(
-							"endTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
+			boolean hasMaxDuration = "true".equals(anchorPoint.maxDuration);
+			if (!hasMaxDuration) {
+				if (anchorPoint.endTime == null || anchorPoint.endTime.isEmpty()) {
+					throw new IllegalArgumentException("endTime cannot be null/empty");
+				} else {
+					try {
+						endDate = sdf.parse(anchorPoint.endTime);
+					} catch (ParseException e) {
+						throw new IllegalArgumentException(
+								"endTime must use the format \"MM/dd hh:mm a yyyy\" error: " + e);
+					}
 				}
 			}
 
