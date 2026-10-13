@@ -1,0 +1,878 @@
+{
+  "frames": [
+    {
+      "anchorPoint": {
+        "name": "Advisory",
+        "referenceLat": 38.95629403355392,
+        "referenceLon": -77.14932281728488,
+        "referenceElevation": 39.5,
+        "masterLaneWidth": "2000",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "4868"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "3",
+        "mutcd": "2",
+        "infoType": "1",
+        "priority": 5,
+        "startTime": "01/20/2025 12:00 AM",
+        "endTime": "02/11/2025 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "",
+        "verticalVariationStdDev": "",
+        "meanHorizontalVariation": "",
+        "horizontalVariationStdDev": ""
+      },
+      "regions": [
+        {
+          "regionType": "region",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95631071959059,
+              "nodeLong": -77.14937109704637,
+              "nodeElevation": 39.5
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.95647291582836,
+              "nodeLong": -77.14928734939072,
+              "nodeElevation": 39.4
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.95658603863791,
+              "nodeLong": -77.1492289399687,
+              "nodeElevation": 39.1
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.9566757256724,
+              "nodeLong": -77.14924503322321,
+              "nodeElevation": 39.3
+            },
+            {
+              "nodeNumber": 4,
+              "nodeLat": 38.95673621221289,
+              "nodeLong": -77.14932281728456,
+              "nodeElevation": 39.2
+            },
+            {
+              "nodeNumber": 5,
+              "nodeLat": 38.956763249798655,
+              "nodeLong": -77.1494137898735,
+              "nodeElevation": 38.7
+            },
+            {
+              "nodeNumber": 6,
+              "nodeLat": 38.95677883163273,
+              "nodeLong": -77.14946621763927,
+              "nodeElevation": 38.7
+            },
+            {
+              "nodeNumber": 7,
+              "nodeLat": 38.95679658967245,
+              "nodeLong": -77.14952596763784,
+              "nodeElevation": 38.5
+            },
+            {
+              "nodeNumber": 8,
+              "nodeLat": 38.95682417935231,
+              "nodeLong": -77.1496187979214,
+              "nodeElevation": 38.2
+            },
+            {
+              "nodeNumber": 9,
+              "nodeLat": 38.95683681512105,
+              "nodeLong": -77.14966131317833,
+              "nodeElevation": 38.2
+            },
+            {
+              "nodeNumber": 10,
+              "nodeLat": 38.956888471207435,
+              "nodeLong": -77.14983511920666,
+              "nodeElevation": 37.5
+            },
+            {
+              "nodeNumber": 11,
+              "nodeLat": 38.95695312903683,
+              "nodeLong": -77.14980293269849,
+              "nodeElevation": 37.3
+            },
+            {
+              "nodeNumber": 12,
+              "nodeLat": 38.95692432620416,
+              "nodeLong": -77.149708540979,
+              "nodeElevation": 37.6
+            },
+            {
+              "nodeNumber": 13,
+              "nodeLat": 38.95689722577819,
+              "nodeLong": -77.14961972836741,
+              "nodeElevation": 38
+            },
+            {
+              "nodeNumber": 14,
+              "nodeLat": 38.95686638988337,
+              "nodeLong": -77.14952285668063,
+              "nodeElevation": 38.3
+            },
+            {
+              "nodeNumber": 15,
+              "nodeLat": 38.956828948959924,
+              "nodeLong": -77.14940908851716,
+              "nodeElevation": 38.7
+            },
+            {
+              "nodeNumber": 16,
+              "nodeLat": 38.956775841297684,
+              "nodeLong": -77.14924771543187,
+              "nodeElevation": 38.9
+            },
+            {
+              "nodeNumber": 17,
+              "nodeLat": 38.95672786924462,
+              "nodeLong": -77.1491887068337,
+              "nodeElevation": 39.1
+            },
+            {
+              "nodeNumber": 18,
+              "nodeLat": 38.9566757256724,
+              "nodeLong": -77.14915383811687,
+              "nodeElevation": 39.1
+            },
+            {
+              "nodeNumber": 19,
+              "nodeLat": 38.956573524159325,
+              "nodeLong": -77.14915115590735,
+              "nodeElevation": 39.1
+            },
+            {
+              "nodeNumber": 20,
+              "nodeLat": 38.95643826421448,
+              "nodeLong": -77.14921497567583,
+              "nodeElevation": 39.2
+            },
+            {
+              "nodeNumber": 21,
+              "nodeLat": 38.95628360477838,
+              "nodeLong": -77.14928794856685,
+              "nodeElevation": 39.5
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Work Zone",
+        "referenceLat": 38.955820565608974,
+        "referenceLon": -77.14886952396088,
+        "referenceElevation": 39.7,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7989"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "1",
+        "mutcd": "3",
+        "infoType": "2",
+        "priority": 4,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          15
+        ],
+        "meanVerticalVariation": "34",
+        "verticalVariationStdDev": "4",
+        "meanHorizontalVariation": "6",
+        "horizontalVariationStdDev": "7",
+        "road_surface": "Portland Cement",
+        "road_condition": "0",
+        "road_surface_type": 1
+      },
+      "regions": [
+        {
+          "regionType": "lane",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95586853827601,
+              "nodeLong": -77.14905727859193,
+              "nodeElevation": 39.8,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.955812222533154,
+              "nodeLong": -77.14886952396088,
+              "nodeElevation": 39.7,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.955760078286914,
+              "nodeLong": -77.14870054479294,
+              "nodeElevation": 39.7,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.95571836286226,
+              "nodeLong": -77.14855570550614,
+              "nodeElevation": 40.1,
+              "laneWidth": 0
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Speed Limit",
+        "referenceLat": 38.9554388688839,
+        "referenceLon": -77.14777786489181,
+        "referenceElevation": 40.8,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7991"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "3",
+        "mutcd": "1",
+        "infoType": "1",
+        "priority": 6,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "1",
+        "verticalVariationStdDev": "3",
+        "meanHorizontalVariation": "4",
+        "horizontalVariationStdDev": "5",
+        "road_surface": "Asphalt or Tar",
+        "road_condition": "1",
+        "road_surface_type": 0
+      },
+      "regions": [
+        {
+          "regionType": "region",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95558278756269,
+              "nodeLong": -77.14804876800231,
+              "nodeElevation": 40.6
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.955503528036616,
+              "nodeLong": -77.14779127593688,
+              "nodeElevation": 40.8
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.955436783103806,
+              "nodeLong": -77.1476142501419,
+              "nodeElevation": 40.8
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.95537838123599,
+              "nodeLong": -77.14747745748214,
+              "nodeElevation": 40.5
+            },
+            {
+              "nodeNumber": 4,
+              "nodeLat": 38.95529077834408,
+              "nodeLong": -77.14740503783874,
+              "nodeElevation": 40.3
+            },
+            {
+              "nodeNumber": 5,
+              "nodeLat": 38.9551656311678,
+              "nodeLong": -77.14737553353957,
+              "nodeElevation": 40.1
+            },
+            {
+              "nodeNumber": 6,
+              "nodeLat": 38.955157288014846,
+              "nodeLong": -77.14744527097396,
+              "nodeElevation": 40.3
+            },
+            {
+              "nodeNumber": 7,
+              "nodeLat": 38.9553053788336,
+              "nodeLong": -77.14749623294524,
+              "nodeElevation": 40.5
+            },
+            {
+              "nodeNumber": 8,
+              "nodeLat": 38.955367952325986,
+              "nodeLong": -77.14761156793288,
+              "nodeElevation": 40.6
+            },
+            {
+              "nodeNumber": 9,
+              "nodeLat": 38.95543469732365,
+              "nodeLong": -77.14780468698194,
+              "nodeElevation": 40.8
+            },
+            {
+              "nodeNumber": 10,
+              "nodeLat": 38.95550769959283,
+              "nodeLong": -77.14800853486709,
+              "nodeElevation": 40.7
+            },
+            {
+              "nodeNumber": 11,
+              "nodeLat": 38.95552021425999,
+              "nodeLong": -77.14808095451049,
+              "nodeElevation": 40.8
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Exit Service",
+        "referenceLat": 38.95592693973984,
+        "referenceLon": -77.15121109243083,
+        "referenceElevation": 41.2,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7989"
+            ],
+            "text": ""
+          },
+          {
+            "codes": [],
+            "text": "Exit Right"
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "1",
+        "mutcd": "5",
+        "infoType": "1",
+        "priority": 2,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "2",
+        "verticalVariationStdDev": "3",
+        "meanHorizontalVariation": "4",
+        "horizontalVariationStdDev": "5",
+        "road_surface": "Cinders",
+        "road_condition": "1",
+        "road_surface_type": 0
+      },
+      "regions": [
+        {
+          "regionType": "lane",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.955887310180344,
+              "nodeLong": -77.15124596114802,
+              "nodeElevation": 41.2,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.9559895126834,
+              "nodeLong": -77.15114403720544,
+              "nodeElevation": -9999,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.95608128623405,
+              "nodeLong": -77.15105820651698,
+              "nodeElevation": 40.8,
+              "laneWidth": 0
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Generic",
+        "referenceLat": 38.95464835382788,
+        "referenceLon": -77.14813996310875,
+        "referenceElevation": 38.8,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7991"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "3",
+        "mutcd": "5",
+        "infoType": "1",
+        "priority": 2,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "25000",
+        "verticalVariationStdDev": "2500",
+        "meanHorizontalVariation": "25000",
+        "horizontalVariationStdDev": "2500",
+        "road_surface": "Gravel",
+        "road_condition": "0",
+        "road_surface_type": 1
+      },
+      "regions": [
+        {
+          "regionType": "region",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95459620872526,
+              "nodeLong": -77.14844573493644,
+              "nodeElevation": 39.1
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.95464001061404,
+              "nodeLong": -77.14827139135046,
+              "nodeElevation": 38.8
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.95469841309031,
+              "nodeLong": -77.14799512382194,
+              "nodeElevation": 38.6
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.954777673516844,
+              "nodeLong": -77.14768130536719,
+              "nodeElevation": 38.4
+            },
+            {
+              "nodeNumber": 4,
+              "nodeLat": 38.95472970011136,
+              "nodeLong": -77.14764375444099,
+              "nodeElevation": 38.2
+            },
+            {
+              "nodeNumber": 5,
+              "nodeLat": 38.95466445719947,
+              "nodeLong": -77.14790390273194,
+              "nodeElevation": 38.4
+            },
+            {
+              "nodeNumber": 6,
+              "nodeLat": 38.95458786550529,
+              "nodeLong": -77.1482606625144,
+              "nodeElevation": 39
+            },
+            {
+              "nodeNumber": 7,
+              "nodeLat": 38.95454614939064,
+              "nodeLong": -77.1484350061004,
+              "nodeElevation": 39.1
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Work Zone",
+        "referenceLat": 38.95495248395716,
+        "referenceLon": -77.1490399106364,
+        "referenceElevation": 40,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7991"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "3",
+        "mutcd": "3",
+        "infoType": "1",
+        "priority": 4,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "1",
+        "verticalVariationStdDev": "3",
+        "meanHorizontalVariation": "5",
+        "horizontalVariationStdDev": "7",
+        "road_surface": "Rock",
+        "road_condition": "0",
+        "road_surface_type": 0
+      },
+      "regions": [
+        {
+          "regionType": "circle",
+          "radius": "13.122058184962869",
+          "laneNodes": [
+            {
+              "nodeLat": 38.954952483858904,
+              "nodeLong": -77.14904527505442
+            },
+            {
+              "nodeLat": 38.95507049320031,
+              "nodeLong": -77.14904527505442
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Speed Limit",
+        "referenceLat": 38.95493788339496,
+        "referenceLon": -77.1481279595714,
+        "referenceElevation": 41.1,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "268"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "3",
+        "mutcd": "2",
+        "infoType": "2",
+        "priority": 5,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "01/31/2027 12:00 AM",
+        "maxDuration": false,
+        "heading": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "4",
+        "verticalVariationStdDev": "5",
+        "meanHorizontalVariation": "6",
+        "horizontalVariationStdDev": "7",
+        "road_surface": "Portland Cement",
+        "road_condition": "0",
+        "road_surface_type": 1
+      },
+      "regions": [
+        {
+          "regionType": "region",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95494414077913,
+              "nodeLong": -77.14842300256302,
+              "nodeElevation": 41
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.954990028246186,
+              "nodeLong": -77.14794020494035,
+              "nodeElevation": 41
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.95501714355365,
+              "nodeLong": -77.14774172147325,
+              "nodeElevation": 40.9
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.95495456975152,
+              "nodeLong": -77.14773903926424,
+              "nodeElevation": 41
+            },
+            {
+              "nodeNumber": 4,
+              "nodeLat": 38.95488991009796,
+              "nodeLong": -77.14823524793198,
+              "nodeElevation": 41.1
+            },
+            {
+              "nodeNumber": 5,
+              "nodeLat": 38.95488156691255,
+              "nodeLong": -77.14842300256302,
+              "nodeElevation": 41
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    },
+    {
+      "anchorPoint": {
+        "name": "Advisory",
+        "referenceLat": 38.95577845372077,
+        "referenceLon": -77.15065996488133,
+        "referenceElevation": 39.5,
+        "masterLaneWidth": "366",
+        "sspTimRights": "",
+        "packetID": "500",
+        "msgCount": "2",
+        "content": [
+          {
+            "codes": [
+              "7989"
+            ],
+            "text": ""
+          }
+        ],
+        "sspTypeRights": "",
+        "sspContentRights": "",
+        "sspLocationRights": "",
+        "direction": "1",
+        "mutcd": "2",
+        "infoType": "1",
+        "priority": 5,
+        "startTime": "01/01/2027 12:00 AM",
+        "endTime": "",
+        "maxDuration": true,
+        "heading": [
+          0,
+          1,
+          14,
+          15
+        ],
+        "meanVerticalVariation": "12",
+        "verticalVariationStdDev": "13",
+        "meanHorizontalVariation": "14",
+        "horizontalVariationStdDev": "15",
+        "road_surface": "Snow",
+        "road_condition": "1",
+        "road_surface_type": 1
+      },
+      "regions": [
+        {
+          "regionType": "lane",
+          "laneNodes": [
+            {
+              "nodeNumber": 0,
+              "nodeLat": 38.95583894102714,
+              "nodeLong": -77.15083967288528,
+              "nodeElevation": 40.2,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 1,
+              "nodeLat": 38.95581808334114,
+              "nodeLong": -77.15074311336075,
+              "nodeElevation": 39.7,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 2,
+              "nodeLat": 38.9557680248696,
+              "nodeLong": -77.15062509616409,
+              "nodeElevation": 39.3,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 3,
+              "nodeLat": 38.95573673830694,
+              "nodeLong": -77.15057145198378,
+              "nodeElevation": 39.1,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 4,
+              "nodeLat": 38.955699194413484,
+              "nodeLong": -77.15051512559448,
+              "nodeElevation": 38.9,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 5,
+              "nodeLat": 38.95565330740564,
+              "nodeLong": -77.1504668458322,
+              "nodeElevation": 38.8,
+              "laneWidth": 0
+            },
+            {
+              "nodeNumber": 6,
+              "nodeLat": 38.95560324881774,
+              "nodeLong": -77.15042929490599,
+              "nodeElevation": 38.5,
+              "laneWidth": 0
+            }
+          ],
+          "extent": ""
+        }
+      ]
+    }
+  ],
+  "verifiedPoint": {
+    "verifiedMapLat": 38.95606460014278,
+    "verifiedMapLon": -77.1493818258827,
+    "verifiedMapElevation": 39.5,
+    "verifiedSurveyedLat": "38.956064604728155",
+    "verifiedSurveyedLon": "-77.14938183662201",
+    "verifiedSurveyedElevation": "38"
+  },
+  "messageType": "TIM",
+  "nodeOffsets": "Explicit",
+  "enableElevation": true,
+  "timeStamp": 411572
+}
