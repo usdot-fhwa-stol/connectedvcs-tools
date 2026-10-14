@@ -1731,9 +1731,14 @@ function referencePointWindow(feature) {
   $('#end_time input').val(selected_marker.get('endTime') || '');
 
   const maxDuration = selected_marker.get('maxDuration');
-  $('#max_duration').prop("checked", 
-    (maxDuration === undefined || maxDuration === null || maxDuration === '' ? DEFAULT_MAX_DURATION : maxDuration)
-  );
+  const isMaxDuration = (maxDuration === undefined || maxDuration === null || maxDuration === '' ? DEFAULT_MAX_DURATION : maxDuration);
+  $('#max_duration').prop("checked", isMaxDuration);
+  // .prop() doesn't fire 'change', so sync #end_time's disabled state here too.
+  if (isMaxDuration) {
+    $('#end_time input').attr("disabled", "disabled");
+  } else {
+    $('#end_time input').removeAttr("disabled");
+  }
 
   const msgCount = selected_marker.get('msgCount');
   $('#message_count').val(
