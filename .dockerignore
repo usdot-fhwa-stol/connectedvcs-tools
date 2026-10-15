@@ -7,3 +7,6 @@ target/
 .project
 .classpath
 fedgov-cv-lib-asn1c/build
+keystore
+ssl.ini
+ssl-config

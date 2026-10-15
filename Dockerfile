@@ -1,3 +1,7 @@
+# Operator-supplied SSL files (keystore and ssl.ini). Empty unless overridden with
+# --build-context ssl-config=/path/to/dir. See docs/Docker_Instructions.md.
+FROM scratch AS ssl-config
+
 FROM maven:3.9.16-eclipse-temurin-8-noble AS mvn-build
 COPY . /root
 WORKDIR /root/fedgov-cv-lib-asn1c
@@ -80,24 +84,17 @@ RUN mkdir -p /var/lib/jetty/etc /var/lib/jetty/start.d /var/lib/jetty/logs /var/
     chown -R jetty:jetty /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
     chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
 
-# Prepare files for SSL (restrict write; allow jetty read of keystore only)
-COPY --chown=root:jetty --chmod=640 keystore* /tmp/
-COPY --chown=root:root  --chmod=644 ssl.ini /tmp/
-
 # Create Jetty base structure and modules as root, then lock down
 RUN echo 'log4j2.version=2.23.1' >> /var/lib/jetty/start.d/logging-log4j2.ini && \
     java -jar "$JETTY_HOME"/start.jar --create-files
 
-# Conditionally add SSL or non-SSL based on the USE_SSL environment variable
-RUN if [ "$USE_SSL" = "true" ]; then \
-        if [ -f /tmp/ssl.ini ]; then \
-            java -jar "$JETTY_HOME"/start.jar --add-to-start=https; \
-            cp /tmp/keystore* /var/lib/jetty/etc/; \
-            cp /tmp/ssl.ini /var/lib/jetty/start.d/; \
-        else \
-            echo "SSL is enabled, but keystore or ssl.ini files are missing."; \
-            exit 1; \
-        fi; \
+# Conditionally add SSL or non-SSL based on the USE_SSL environment variable.
+# SSL files are bind-mounted from the ssl-config build context so they never
+# land in an image layer; they are validated and installed root:jetty 640.
+RUN --mount=type=bind,from=ssl-config,target=/run/ssl-config \
+    --mount=type=bind,source=docker/install-ssl-config.sh,target=/run/install-ssl-config.sh \
+    if [ "$USE_SSL" = "true" ]; then \
+        java -jar "$JETTY_HOME"/start.jar --add-to-start=https; \
     else \
         java -jar "$JETTY_HOME"/start.jar --add-to-start=http; \
     fi && \
@@ -105,7 +102,10 @@ RUN if [ "$USE_SSL" = "true" ]; then \
     chown -R root:root /var/lib/jetty/etc /var/lib/jetty/start.d && \
     chmod -R 755 /var/lib/jetty/etc /var/lib/jetty/start.d && \
     chown -R jetty:jetty /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
-    chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work
+    chmod -R 750 /var/lib/jetty/logs /var/lib/jetty/tmp /var/lib/jetty/work && \
+    if [ "$USE_SSL" = "true" ]; then \
+        sh /run/install-ssl-config.sh /run/ssl-config; \
+    fi
 
 # Drop privileges for runtime
 USER jetty
