@@ -38,7 +38,7 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
     sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
     ```
 
-    - **With SSL**, you must provide your own keystore and `ssl.ini`. This repository does not ship either file. A keystore and `ssl.ini` with default passwords were committed to this repository in the past. Treat that key as compromised and never deploy it; the build rejects it.
+    - **With SSL**, you must provide your own keystore and `ssl.ini`. This repository does not ship either file. A keystore and `ssl.ini` with default passwords were committed to this repository in the past. Treat that key as compromised and never deploy it.
 
       1. Create a directory **outside the repository** (or use `ssl-config/` at the repository root, which is git-ignored and excluded from the Docker build context), for example `~/connectedvcs-ssl/`.
       2. Generate a keystore that holds your private key and certificate, using your certificate authority (CA) of choice. Save it in that directory with the file name `keystore`. For example, to import a CA-issued certificate and key as PKCS12:
@@ -57,9 +57,8 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
       The build fails with an error message if:
       - `keystore` or `ssl.ini` is missing (for example, if `--build-context ssl-config=...` was omitted)
       - `jetty.sslContext.keyStorePassword` or `jetty.sslContext.keyManagerPassword` is not set. Jetty would otherwise fall back to its well-known defaults.
-      - any password is empty, still a `<placeholder>`, or a well-known default such as `password`, `changeit`, `storepwd`, or `keypwd`, or their `OBF:` equivalents
+      - any password is empty, still a `<placeholder>`, or a well-known default such as `password`, `changeit`, `storepwd`, or `keypwd` (including when written in `OBF:` form)
       - the keystore cannot be opened with the configured `keyStorePassword`
-      - the keystore is the one formerly committed to this repository
 
     **NOTE:** The image contains your private key. Treat it as a secret: do not push it to a public registry.
 

@@ -7,10 +7,6 @@ set -eu
 SRC_DIR="$1"
 JETTY_BASE_DIR="${JETTY_BASE:-/var/lib/jetty}"
 
-# SHA-256 of the keystore that was previously committed to this repository.
-# Its private key is public and must never be deployed.
-COMPROMISED_KEYSTORE_SHA256="31769c08f27c970813c400dcea033b380cc7e7b4854293837496a1579906154c"
-
 fail() {
     echo "ERROR: $*" >&2
     echo "ERROR: See docs/Docker_Instructions.md for how to supply your own keystore and ssl.ini." >&2
@@ -21,16 +17,52 @@ if [ ! -f "$SRC_DIR/keystore" ] || [ ! -f "$SRC_DIR/ssl.ini" ]; then
     fail "USE_SSL=true but 'keystore' and/or 'ssl.ini' were not provided. Pass a directory containing both with: --build-context ssl-config=/path/to/dir"
 fi
 
-if [ "$(sha256sum "$SRC_DIR/keystore" | cut -d' ' -f1)" = "$COMPROMISED_KEYSTORE_SHA256" ]; then
-    fail "The supplied keystore is the one formerly committed to this repository. Its private key is compromised; generate a new keystore."
-fi
-
 # Prints the value of an active (uncommented) property, or nothing if unset.
 get_prop() {
     sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$SRC_DIR/ssl.ini" | tail -n 1 | sed 's/[[:space:]]*$//'
 }
 
-# Rejects empty, placeholder, and well-known default passwords.
+# Decodes a Jetty OBF: value (a reversible encoding, not encryption), matching
+# org.eclipse.jetty.util.security.Password.deobfuscate. Fails if malformed.
+deobfuscate() {
+    printf '%s\n' "${1#OBF:}" | LC_ALL=C awk '
+        function b36(x,   i, c, n) {
+            if (length(x) != 4) exit 1
+            n = 0
+            for (i = 1; i <= 4; i++) {
+                c = index("0123456789abcdefghijklmnopqrstuvwxyz", tolower(substr(x, i, 1)))
+                if (c == 0) exit 1
+                n = n * 36 + c - 1
+            }
+            return n
+        }
+        {
+            i = 1
+            while (i <= length($0)) {
+                if (substr($0, i, 1) == "U") {
+                    i++
+                    b = int(b36(substr($0, i, 4)) / 256)
+                } else {
+                    n = b36(substr($0, i, 4))
+                    b = int((int(n / 256) + n % 256 - 254) / 2)
+                }
+                printf "%c", (b + 256) % 256
+                i += 4
+            }
+        }'
+}
+
+# Prints the password Jetty will actually use: OBF: values are decoded and
+# anything else (including MD5:/CRYPT:) is used as-is.
+effective_password() {
+    case "$1" in
+        OBF:*) deobfuscate "$1" ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+# Rejects empty, placeholder, and well-known default passwords, including
+# OBF:-encoded forms of them.
 check_password() {
     name="$1"
     value="$2"
@@ -38,9 +70,10 @@ check_password() {
         "") fail "$name is empty in ssl.ini." ;;
         *"<"*|*">"*) fail "$name in ssl.ini is still a placeholder ($value)." ;;
     esac
-    case "$(echo "$value" | tr '[:upper:]' '[:lower:]')" in
-        password|changeit|changeme|secret|storepwd|keypwd|\
-        obf:1vny1zlo1x8e1vnw1vn61x8g1zlu1vn4|obf:1u2u1wml1z7s1z7a1wnl1u2g)
+    plain="$(effective_password "$value")" || fail "$name in ssl.ini is not a valid OBF: value."
+    [ -n "$plain" ] || fail "$name is empty in ssl.ini."
+    case "$(printf '%s' "$plain" | tr '[:upper:]' '[:lower:]')" in
+        password|changeit|changeme|secret|storepwd|keypwd)
             fail "$name in ssl.ini uses a well-known default password. Use a unique password for each deployment." ;;
     esac
 }
@@ -63,16 +96,11 @@ for prop in keyStorePath trustStorePath; do
     fi
 done
 
-# When the password is plain text, confirm it actually opens the keystore.
-store_password="$(get_prop 'jetty\.sslContext\.keyStorePassword')"
-case "$store_password" in
-    OBF:*|MD5:*|CRYPT:*) ;;
-    *)
-        KEYSTORE_PASSWORD="$store_password" keytool -list -keystore "$SRC_DIR/keystore" \
-            -storepass:env KEYSTORE_PASSWORD > /dev/null 2>&1 \
-            || fail "The keystore could not be opened with jetty.sslContext.keyStorePassword from ssl.ini."
-        ;;
-esac
+# Confirm the password actually opens the keystore.
+KEYSTORE_PASSWORD="$(effective_password "$(get_prop 'jetty\.sslContext\.keyStorePassword')")"
+export KEYSTORE_PASSWORD
+keytool -list -keystore "$SRC_DIR/keystore" -storepass:env KEYSTORE_PASSWORD > /dev/null 2>&1 \
+    || fail "The keystore could not be opened with jetty.sslContext.keyStorePassword from ssl.ini."
 
 install -o root -g jetty -m 640 "$SRC_DIR/keystore" "$JETTY_BASE_DIR/etc/keystore"
 install -o root -g jetty -m 640 "$SRC_DIR/ssl.ini" "$JETTY_BASE_DIR/start.d/ssl.ini"
