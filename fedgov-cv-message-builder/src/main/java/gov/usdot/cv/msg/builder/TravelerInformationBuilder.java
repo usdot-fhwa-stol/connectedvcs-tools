@@ -155,8 +155,9 @@ public class TravelerInformationBuilder {
 	private TravelerInformation buildTravelerInformation(TravelerInputData travInputData) throws ParseException {
 		TravelerInformation tim = new TravelerInformation();
 		tim.setDataFrames(buildDataFrames(travInputData));
-		tim.setMsgCnt((int) travInputData.anchorPoint.msgCount);
-		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(travInputData.anchorPoint.packetID);
+		AnchorPoint firstAnchorPoint = travInputData.frames[0].anchorPoint;
+		tim.setMsgCnt((int) firstAnchorPoint.msgCount);
+		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(firstAnchorPoint.packetID);
 		tim.setPacketID(new UniqueMSGID(buf.array()));
 		if (travInputData.timeStamp != null) {
 			tim.setTimeStamp(new MinuteOfTheYear(travInputData.timeStamp));
@@ -166,36 +167,44 @@ public class TravelerInformationBuilder {
 
 	private TravelerDataFrameList buildDataFrames(TravelerInputData travInputData) throws ParseException {
 		TravelerDataFrameList dataFrames = new TravelerDataFrameList();
-		TravelerDataFrame dataFrame = new TravelerDataFrame();
-
-		// -- Part I, Frame header
-		dataFrame.setDoNotUse1(new SSPindex(travInputData.anchorPoint.sspTimRights));
-
-		dataFrame.setFrameType(TravelerInfoType.fromValue(travInputData.anchorPoint.infoType));
-		dataFrame.setMsgId(getMessageId(travInputData));
-		dataFrame.setStartYear(new DYear(getStartYear(travInputData))); //optional
-		dataFrame.setStartTime(new MinuteOfTheYear(getStartTime(travInputData)));
-		dataFrame.setDurationTime(new MinutesDuration(getDurationTime(travInputData)));
-		dataFrame.setPriority(new SignPriority(travInputData.anchorPoint.priority));
-
-		// -- Part II, Applicable Regions of Use
-		dataFrame.setDoNotUse2(new SSPindex(travInputData.anchorPoint.sspTypeRights));
-		// To Do: Build regions
-		dataFrame.setRegions(buildRegions(travInputData));
-
-		// -- Part III, Content
-		dataFrame.setDoNotUse3(new SSPindex(travInputData.anchorPoint.sspContentRights)); // allowed message types
-		dataFrame.setDoNotUse4(new SSPindex(travInputData.anchorPoint.sspLocationRights)); // allowed message content
-		dataFrame.setContent(buildContent(travInputData));
-		dataFrame.setContentNew(buiildContentNew(travInputData));
-
-		dataFrames.addFrame(dataFrame);
+		for (TravelerInputData.Frame frame : travInputData.frames) {
+			dataFrames.addFrame(buildDataFrame(travInputData, frame));
+		}
 		return dataFrames;
 	}
 
-	private Content buildContent(TravelerInputData travInputData) {
-		String contentType = travInputData.anchorPoint.name;
-		ItisContent[] codes = travInputData.anchorPoint.content;
+	private TravelerDataFrame buildDataFrame(TravelerInputData travInputData, TravelerInputData.Frame frame) throws ParseException {
+		TravelerDataFrame dataFrame = new TravelerDataFrame();
+		AnchorPoint anchorPoint = frame.anchorPoint;
+		Region[] regions = frame.regions;
+
+		// -- Part I, Frame header
+		dataFrame.setDoNotUse1(new SSPindex(anchorPoint.sspTimRights));
+
+		dataFrame.setFrameType(TravelerInfoType.fromValue(anchorPoint.infoType));
+		dataFrame.setMsgId(getMessageId(travInputData, anchorPoint));
+		dataFrame.setStartYear(new DYear(getStartYear(anchorPoint))); //optional
+		dataFrame.setStartTime(new MinuteOfTheYear(getStartTime(anchorPoint)));
+		dataFrame.setDurationTime(new MinutesDuration(getDurationTime(anchorPoint)));
+		dataFrame.setPriority(new SignPriority(anchorPoint.priority));
+
+		// -- Part II, Applicable Regions of Use
+		dataFrame.setDoNotUse2(new SSPindex(anchorPoint.sspTypeRights));
+		// To Do: Build regions
+		dataFrame.setRegions(buildRegions(travInputData, anchorPoint, regions));
+
+		// -- Part III, Content
+		dataFrame.setDoNotUse3(new SSPindex(anchorPoint.sspContentRights)); // allowed message types
+		dataFrame.setDoNotUse4(new SSPindex(anchorPoint.sspLocationRights)); // allowed message content
+		dataFrame.setContent(buildContent(anchorPoint));
+		dataFrame.setContentNew(buiildContentNew(anchorPoint));
+
+		return dataFrame;
+	}
+
+	private Content buildContent(AnchorPoint anchorPoint) {
+		String contentType = anchorPoint.name;
+		ItisContent[] codes = anchorPoint.content;
 		Content content = new Content();
 		System.out.println("Content Type: " + contentType);
 		if ("Advisory".equals(contentType)) {
@@ -217,9 +226,9 @@ public class TravelerInformationBuilder {
 		return content;
 	}
 
-	private TravelerDataFrameNewPartIIIContent buiildContentNew(TravelerInputData travInputData) {
+	private TravelerDataFrameNewPartIIIContent buiildContentNew(AnchorPoint anchorPoint) {
 		TravelerDataFrameNewPartIIIContent contentNew = new TravelerDataFrameNewPartIIIContent();
-		FrictionInformation frictionInformation = buildFrictionInformation(travInputData);
+		FrictionInformation frictionInformation = buildFrictionInformation(anchorPoint);
 		contentNew.setFrictionInformation(frictionInformation);
 		return contentNew;
 	}
@@ -388,42 +397,45 @@ public class TravelerInformationBuilder {
 		return gs;
 	}
 
-	private long getStartTime(TravelerInputData travInputData) throws ParseException {
-		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
-		String startOfYearTime = "01/01/" + getStartYear(travInputData) + " 12:00 AM";
+	private long getStartTime(AnchorPoint anchorPoint) throws ParseException {
+		Date startDate = sdf.parse(anchorPoint.startTime);
+		String startOfYearTime = "01/01/" + getStartYear(anchorPoint) + " 12:00 AM";
 		Date startOfYearDate = sdf.parse(startOfYearTime);
 		long minutes = ((startDate.getTime() - startOfYearDate.getTime()) / 60000);
 		return minutes;
 	}
 
-	private int getStartYear(TravelerInputData travInputData) throws ParseException {
-		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
+	private int getStartYear(AnchorPoint anchorPoint) throws ParseException {
+		Date startDate = sdf.parse(anchorPoint.startTime);
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(startDate);
 		return cal.get(Calendar.YEAR);
 	}
 
-	private int getDurationTime(TravelerInputData travInputData) throws ParseException {
-		Date startDate = sdf.parse(travInputData.anchorPoint.startTime);
-		Date endDate = sdf.parse(travInputData.anchorPoint.endTime);
-		String maxDurationChecked = (travInputData.anchorPoint.maxDuration);
+	private int getDurationTime(AnchorPoint anchorPoint) throws ParseException {
+		if ("true".equals(anchorPoint.maxDuration)) {
+			return MAX_MINUTES_DURATION;
+		}
+
+		Date startDate = sdf.parse(anchorPoint.startTime);
+		Date endDate = sdf.parse(anchorPoint.endTime);
 
 		long diff = endDate.getTime() - startDate.getTime();
 		int durationInMinutes = (int) (diff / 1000 / 60);
-		if (durationInMinutes > MAX_MINUTES_DURATION || maxDurationChecked.equals("true"))
+		if (durationInMinutes > MAX_MINUTES_DURATION)
 			durationInMinutes = MAX_MINUTES_DURATION;
 		return durationInMinutes;
 	}
 
-	private MsgId getMessageId(TravelerInputData travInputData) {
+	private MsgId getMessageId(TravelerInputData travInputData, AnchorPoint anchorPoint) {
 		MsgId msgId = new MsgId();
 		// always using RoadSign for now
 		boolean isRoadSign = true;
 		if (isRoadSign) {
 			RoadSignID roadSignID = new RoadSignID();
-			roadSignID.setPosition(getAnchorPointPosition(travInputData));
-			roadSignID.setViewAngle(getHeadingSlice(travInputData));
-			roadSignID.setMutcdCode(getMutcdFromInt(travInputData.anchorPoint.mutcd));
+			roadSignID.setPosition(getAnchorPointPosition(travInputData, anchorPoint));
+			roadSignID.setViewAngle(getHeadingSlice(anchorPoint));
+			roadSignID.setMutcdCode(getMutcdFromInt(anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
 		} else {
 			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as
@@ -433,8 +445,7 @@ public class TravelerInformationBuilder {
 		return msgId;
 	}
 
-	private static Position3D getAnchorPointPosition(TravelerInputData travInputData) {
-		AnchorPoint anchorPoint = travInputData.anchorPoint;
+	private static Position3D getAnchorPointPosition(TravelerInputData travInputData, AnchorPoint anchorPoint) {
 		assert (anchorPoint != null);
 		Position3D anchorPos = new Position3D();
 		anchorPos.setLongitude(J2735TIMHelper.convertGeoCoordinateToInt(anchorPoint.referenceLon));
@@ -446,8 +457,8 @@ public class TravelerInformationBuilder {
 		return anchorPos;
 	}
 
-	private HeadingSlice getHeadingSlice(TravelerInputData travInputData) {
-		int[] heading = travInputData.anchorPoint.heading;
+	private HeadingSlice getHeadingSlice(AnchorPoint anchorPoint) {
+		int[] heading = anchorPoint.heading;
 
 		// If heading is null or empty, return headingSlide as 0
 		if (heading == null || heading.length == 0) {
@@ -461,24 +472,24 @@ public class TravelerInformationBuilder {
 		return headingSlice;
 	}
 
-	private List<GeographicalPath> buildRegions(TravelerInputData travInputData) {
+	private List<GeographicalPath> buildRegions(TravelerInputData travInputData, AnchorPoint anchorPoint, Region[] regions) {
 		List<GeographicalPath> regionList = new ArrayList<>();
 
 		OffsetEncoding offsetEncoding = new OffsetEncoding(travInputData.nodeOffsets);
 
 		if (offsetEncoding.type != OffsetEncodingType.Tight) {
-			offsetEncoding.size = getOffsetEncodingSize(offsetEncoding.type, travInputData.regions, travInputData.anchorPoint);
+			offsetEncoding.size = getOffsetEncodingSize(offsetEncoding.type, regions, anchorPoint);
 		}
 
-		for (Region inputRegion : travInputData.regions) {
+		for (Region inputRegion : regions) {
 			GeographicalPath geoPath = new GeographicalPath();
 
-			geoPath.setAnchor(getAnchorPointPosition(travInputData));
+			geoPath.setAnchor(getAnchorPointPosition(travInputData, anchorPoint));
 
-			if (travInputData.anchorPoint.direction != 0) {
+			if (anchorPoint.direction != 0) {
 				// Our values for direction are off by 1 since the GUI doesn't support
 				// "unavailable" DirectionOfUse
-				int directionOfUse = travInputData.anchorPoint.direction;// + 1;
+				int directionOfUse = anchorPoint.direction;// + 1;
 				geoPath.setDirectionality(DirectionOfUse.valueOf(directionOfUse));
 			}
 
@@ -486,23 +497,23 @@ public class TravelerInformationBuilder {
 			if (inputRegion.regionType.equals("circle")) {
 				GeometricProjection geometry = new GeometricProjection();
 
-				geometry.setHeadingSlice(getHeadingSlice(travInputData));
+				geometry.setHeadingSlice(getHeadingSlice(anchorPoint));
 
 				geometry.setExtent(Extent.fromValue(inputRegion.extent));
 
-				if (travInputData.anchorPoint.masterLaneWidth != 0) {
-					geometry.setLaneWidth((int) travInputData.anchorPoint.masterLaneWidth);
+				if (anchorPoint.masterLaneWidth != 0) {
+					geometry.setLaneWidth((int) anchorPoint.masterLaneWidth);
 				}
 
 				geometry.setCircle(buildCircle(travInputData, inputRegion));
 
 				description.setGeometry(geometry);
 			} else {
-				if (travInputData.anchorPoint.masterLaneWidth != 0) {
-					geoPath.setLaneWidth((int) travInputData.anchorPoint.masterLaneWidth);
+				if (anchorPoint.masterLaneWidth != 0) {
+					geoPath.setLaneWidth((int) anchorPoint.masterLaneWidth);
 				}
 
-				geoPath.setDirection(getHeadingSlice(travInputData));
+				geoPath.setDirection(getHeadingSlice(anchorPoint));
 
 				if (inputRegion.regionType.equals("lane")) {
 					geoPath.setClosedPath(false);
@@ -511,7 +522,7 @@ public class TravelerInformationBuilder {
 				}
 
 				OffsetSystem path = new OffsetSystem();
-				path.setOffset(buildOffset(travInputData, inputRegion, offsetEncoding));
+				path.setOffset(buildOffset(travInputData, anchorPoint, inputRegion, offsetEncoding));
 				description.setPath(path);
 			}
 			geoPath.setDescription(description);
@@ -654,14 +665,14 @@ public class TravelerInformationBuilder {
 		circle.setUnits(distanceUnits);
 	}
 
-	private NodeListXY buildNodeList(TravelerInputData travInputData, Region inputRegion, OffsetEncoding offsetEncoding) {
+	private NodeListXY buildNodeList(TravelerInputData travInputData, AnchorPoint anchorPoint, Region inputRegion, OffsetEncoding offsetEncoding) {
 		LaneNode[] laneNodes = inputRegion.laneNodes;
 
 		NodeListXY nodeList = new NodeListXY();
 		nodeList.setChoice(NodeListXY.NODE_SET_XY);
 
 		NodeSetXY nodeSetXY = new NodeSetXY();
-		double curElevation = travInputData.anchorPoint.referenceElevation;
+		double curElevation = anchorPoint.referenceElevation;
 		GeoPoint refPoint = inputRegion.refPoint;
 
 		NodeXY[] nodeXyArray = new NodeXY[laneNodes.length];
@@ -718,21 +729,21 @@ public class TravelerInformationBuilder {
 		return nodeList;
 	}
 
-	private Offset buildOffset(TravelerInputData travInputData, Region inputRegion, OffsetEncoding offsetEncoding) {
+	private Offset buildOffset(TravelerInputData travInputData, AnchorPoint anchorPoint, Region inputRegion, OffsetEncoding offsetEncoding) {
 		Offset offset = new Offset();
 		offset.setChoice(Choice.xy_chosen);
-		offset.setXy_chosen(buildNodeList(travInputData, inputRegion, offsetEncoding));
+		offset.setXy_chosen(buildNodeList(travInputData, anchorPoint, inputRegion, offsetEncoding));
 
 		return offset;
 	}
 
-	private FrictionInformation buildFrictionInformation(TravelerInputData travInputData) {
+	private FrictionInformation buildFrictionInformation(AnchorPoint anchorPoint) {
 		FrictionInformation fInformation = new FrictionInformation();
 		DescriptionOfRoadSurface roadSurface = null;
 		boolean hasData = false;
 
-		String surfaceValue = travInputData.anchorPoint.road_surface;
-		int type_value = travInputData.anchorPoint.road_surface_type;
+		String surfaceValue = anchorPoint.road_surface;
+		int type_value = anchorPoint.road_surface_type;
 
 		if (surfaceValue != null) {
 
@@ -771,17 +782,17 @@ public class TravelerInformationBuilder {
 			hasData = true;
 		}
 
-		String dry_wet_value = travInputData.anchorPoint.road_condition;
+		String dry_wet_value = anchorPoint.road_condition;
 		if (dry_wet_value!= null) {
 			int dry_wet= Integer.parseInt(dry_wet_value);
 			fInformation.setDryOrWet(RoadSurfaceCondition.fromInt(dry_wet));
 			hasData = true;
 		}
 
-		long meanHorizontalVariationValue = travInputData.anchorPoint.meanHorizontalVariation;
-		long stdevHorizontalVariationValue = travInputData.anchorPoint.horizontalVariationStdDev;
-		long meanVerticalVariationValue = travInputData.anchorPoint.meanVerticalVariation;
-		long stdevVerticalVariationValue = travInputData.anchorPoint.verticalVariationStdDev;
+		long meanHorizontalVariationValue = anchorPoint.meanHorizontalVariation;
+		long stdevHorizontalVariationValue = anchorPoint.horizontalVariationStdDev;
+		long meanVerticalVariationValue = anchorPoint.meanVerticalVariation;
+		long stdevVerticalVariationValue = anchorPoint.verticalVariationStdDev;
 
 		boolean hasRoughness = meanHorizontalVariationValue != 0 || stdevHorizontalVariationValue != 0 ||
 				meanVerticalVariationValue != 0 || stdevVerticalVariationValue != 0;

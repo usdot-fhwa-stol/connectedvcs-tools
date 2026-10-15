@@ -25,7 +25,7 @@
     bottom: 60px;       /* vertical position (distance above toolbar) */
     z-index: 1900;
     padding: 4px 14px;
-    background: rgba(0, 0, 0, 0.35);  /* background color + transparency (last value = alpha 0–1) */
+    background: rgba(0, 0, 0, 1);  /* solid black - must stay fully opaque for WCAG/508 text contrast */
     /* border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd; */
     color: #ffffff;        /* font color */
@@ -35,4 +35,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none;
+}
+
+/* Applied only while showing an actionable message, e.g. "Undo delete". */
+#tool-hint-bar.clickable {
+    pointer-events: auto;
+    cursor: pointer;
+    text-decoration: underline;
 }
