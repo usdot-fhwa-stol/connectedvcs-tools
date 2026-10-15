@@ -244,6 +244,14 @@ var help_notes = [
         description: "Provides a sequence number within a stream of messages."
     },
     {
+        value: "further_info_id",
+        title: "Further Info ID",
+        max: "999999999",
+        min: "0",
+        units: "N/A",
+        description: "Provides a link number to other messages which relate to the same event."
+    },
+    {
         value: "content",
         title: "Content",
         max: "N/A",
