@@ -31,18 +31,37 @@ git clone https://github.com/usdot-fhwa-stol/connectedvcs-tools.git
 
 5. Using SSL vs not using SSL:
 
-    - If using SSL certificates, you may look up instructions to generate a keystore and SSL certficiates with your certificate authority (CA) of choice. In this case, the ssl.ini and keystore files will need to be updated or replaced to copy your applicable keystore information to the image. **NOTE**: The current ssl.ini and keystore files are examples only. Please update or replace before running the following command.
-      
-    BuildKit should be enabled when building the Docker image:
-    ```
-    sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true .
-    ```
-    If running the tool without certificates, no changes are needed. Run the following command.
+    BuildKit must be enabled when building the Docker image (it is the default in current Docker releases).
 
-    BuildKit should be enabled when building the Docker image:
+    - **Without SSL**, no SSL files are needed. Run the following command:
     ```
     sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=false .
     ```
+
+    - **With SSL**, you must provide your own keystore and `ssl.ini`. This repository does not ship either file. A keystore and `ssl.ini` with default passwords were committed to this repository in the past. Treat that key as compromised and never deploy it; the build rejects it.
+
+      1. Create a directory **outside the repository** (or use `ssl-config/` at the repository root, which is git-ignored and excluded from the Docker build context), for example `~/connectedvcs-ssl/`.
+      2. Generate a keystore that holds your private key and certificate, using your certificate authority (CA) of choice. Save it in that directory with the file name `keystore`. For example, to import a CA-issued certificate and key as PKCS12:
+         ```
+         openssl pkcs12 -export -in <certificate.crt> -inkey <private.key> -certfile <ca-chain.crt> -name jetty -out ~/connectedvcs-ssl/keystore
+         ```
+      3. Copy [Sample_ssl.ini](/docs/Sample_ssl.ini) to that directory as `ssl.ini`. Replace every `<placeholder>` with your keystore passwords. Leave `keyStorePath` and `trustStorePath` set to `etc/keystore`. Passwords must be strong and unique to each deployment.
+      4. Restrict access to the directory, for example `chmod 700 ~/connectedvcs-ssl && chmod 600 ~/connectedvcs-ssl/*`.
+      5. Build the image and pass the directory as the `ssl-config` build context:
+      ```
+      sudo DOCKER_BUILDKIT=1 docker build -t usdotfhwastol/connectedvcs-tools:<tag> --build-arg USE_SSL=true --build-context ssl-config=$HOME/connectedvcs-ssl .
+      ```
+
+      The files are bind-mounted during the build. They never enter the main build context or an intermediate layer. In the image they are installed at `/var/lib/jetty/etc/keystore` and `/var/lib/jetty/start.d/ssl.ini`, owned by `root:jetty` with mode `640`.
+
+      The build fails with an error message if:
+      - `keystore` or `ssl.ini` is missing (for example, if `--build-context ssl-config=...` was omitted)
+      - `jetty.sslContext.keyStorePassword` or `jetty.sslContext.keyManagerPassword` is not set. Jetty would otherwise fall back to its well-known defaults.
+      - any password is empty, still a `<placeholder>`, or a well-known default such as `password`, `changeit`, `storepwd`, or `keypwd`, or their `OBF:` equivalents
+      - the keystore cannot be opened with the configured `keyStorePassword`
+      - the keystore is the one formerly committed to this repository
+
+    **NOTE:** The image contains your private key. Treat it as a secret: do not push it to a public registry.
 
 ### Run Image with SSL certificate
 For local development or short-term testing:
