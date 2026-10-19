@@ -292,14 +292,18 @@ static jboolean decode_tim_message_frame(const void *buf_in, int len, const char
 			break;
 		}
 
-		char outputBuffer[65536];
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		char *outputBuffer = NULL;
+		size_t outputSize = 0;
+		FILE *stream = open_memstream(&outputBuffer, &outputSize);
 		if (stream)
 		{
 			asn_fprint(stream, &asn_DEF_MessageFrame, message);
-			fclose(stream);
-			*decodedStrOut = strdup(outputBuffer);
-			return JNI_TRUE;
+			fclose(stream);                 /* flushes and finalizes outputBuffer (NUL-terminated) */
+			if (outputBuffer)
+			{
+				*decodedStrOut = outputBuffer;   /* malloc'd; the JNI function frees it */
+				return JNI_TRUE;
+			}
 		}
 		*decodedStrOut = strdup("Failed to allocate memory for output");
 		return JNI_FALSE;
