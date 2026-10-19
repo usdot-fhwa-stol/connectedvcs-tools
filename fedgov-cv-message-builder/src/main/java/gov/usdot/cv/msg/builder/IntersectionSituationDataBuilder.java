@@ -85,7 +85,9 @@ import gov.usdot.cv.msg.builder.message.IntersectionMessage;
 import gov.usdot.cv.msg.builder.util.BitStringHelper;
 import gov.usdot.cv.msg.builder.util.GeoPoint;
 import gov.usdot.cv.msg.builder.util.J2735Helper;
+import gov.usdot.cv.msg.builder.util.J2735MAPHelper;
 import gov.usdot.cv.msg.builder.util.J2945Helper;
+import gov.usdot.cv.msg.builder.util.J2945RGAHelper;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
 import gov.usdot.cv.msg.builder.util.ObjectPrinter;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding;
@@ -227,14 +229,15 @@ public class IntersectionSituationDataBuilder {
 					// Removing the first 8 characters from the MessageFrame provides the MAP message
 					// This was tested manually by removing the characters from MessageFrame and testing using the decoder
 					hexString = (J2735Helper.getHexString(md)).substring(8);
-					readableString = md.toString();
+					readableString = readableOrFallback(J2735MAPHelper::getReadableMAP, md);
 					break;
 				case RGA:
 					isdInputData.validatePoints();
 					rd = buildRGAData(isdInputData);
 					logger.debug("in RGA: ");
-					hexString = J2945Helper.getHexString(rd).substring(8);
-					readableString = rd.toString();
+					String rgaFramedHex = J2945Helper.getHexString(rd);
+					hexString = rgaFramedHex.substring(8);
+					readableString = readableOrFallback(J2945RGAHelper::getReadableRGA, rgaFramedHex);
 					break;
 				case SPaT:
 					break;
@@ -243,14 +246,14 @@ public class IntersectionSituationDataBuilder {
 					md = buildMapData(isdInputData);
 					logger.debug("in FramePlusMap: ");
 					hexString = J2735Helper.getHexString(md);
-					readableString = md.toString();
+					readableString = readableOrFallback(J2735MAPHelper::getReadableMAPplusFrame, md);
 					break;
 				case FramePlusRGA:
 					isdInputData.validatePoints();
 					rd = buildRGAData(isdInputData);
 					logger.debug("in RGA: ");
 					hexString = J2945Helper.getHexString(rd);
-					readableString = rd.toString();
+					readableString = readableOrFallback(J2945RGAHelper::getReadableRGAplusFrame, hexString);
 					break;
 				case FramePlusSPaT:
 					break;
@@ -276,6 +279,17 @@ public class IntersectionSituationDataBuilder {
 			requestId = 0;
 		}
 		return ++requestId;
+	}
+
+	// Package-private so tests can reach it. The ASN.1 text is a convenience: if it cannot be
+	// produced, the encode must still return the hex.
+	<T> String readableOrFallback(java.util.function.Function<T, String> decode, T input) {
+		try {
+			return decode.apply(input);
+		} catch (Exception e) {
+			logger.warn("Could not produce readable ASN.1", e);
+			return "ASN.1 text unavailable: " + e.getMessage();
+		}
 	}
 
 	private MapData buildMapData(IntersectionInputData isdInputData) {
