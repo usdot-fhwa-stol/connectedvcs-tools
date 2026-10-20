@@ -16,6 +16,7 @@
 const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
+const gnis_lookup_url = "/msp/gnis/api/lookup";
 
 function normalizeElevation(elev) {
   if (elev == null || elev === undefined) return -9999;
@@ -66,6 +67,23 @@ async function getElev(lat, lon) {
   } catch (error) {
     console.error(error);
     return -9999;
+  }
+}
+
+/***
+ * Purpose: Get the GNIS features (place, county subdivision, county, state) containing a point.
+ * @returns array of {gnisId, name, type, state}, most specific first; empty array on failure
+ */
+async function fetchGnisFeatures(lat, lon) {
+  try {
+    const response = await fetch(`${gnis_lookup_url}/${lat}/${lon}`);
+    if (!response.ok || response.status === 204) {
+      return [];
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching GNIS codes", error);
+    return [];
   }
 }
 
@@ -187,5 +205,6 @@ export {
   getElev,
   getNearestIntersectionJSON,
   populateAutocompleteSearchPlacesDropdown,
-  getComputedElevation
+  getComputedElevation,
+  fetchGnisFeatures
 }

@@ -228,12 +228,28 @@ var help_notes = [
         description: "The verified geographic elevation of an object."
     },
     {
+        value: "packet_gnis",
+        title: "GNIS Location",
+        max: "16777215",
+        min: "0",
+        units: "N/A",
+        description: "The USGS GNIS feature ID for the TIM location: either the place, county subdivision, county, or state that contains it, or a nearby named place or crossing (listed closest first). Encoded as the first 3 bytes of the Packet ID."
+    },
+    {
+        value: "packet_unique",
+        title: "Unique ID",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "A random 6-byte value that makes the Packet ID unique. Encoded as the last 6 bytes of the Packet ID. Use the refresh button to generate a new value."
+    },
+    {
         value: "packet_id",
         title: "Packet ID",
         max: "N/A",
         min: "N/A",
         units: "N/A",
-        description: "Provides a unique value which can be used to connect to other supporting messages."
+        description: "A unique 9-byte value (shown in hex) which can be used to connect to other supporting messages. The first 3 bytes are the GNIS code of the TIM location and the last 6 bytes are a random unique ID."
     },
     {
         value: "message_count",
@@ -498,4 +514,4 @@ var itis_list = [
         value: 13610,
         text: "(13610) Left Hand Curve"
     }
-];
+];

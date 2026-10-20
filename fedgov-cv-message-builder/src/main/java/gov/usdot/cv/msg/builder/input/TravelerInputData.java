@@ -1,6 +1,7 @@
 package gov.usdot.cv.msg.builder.input;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,6 +22,9 @@ public class TravelerInputData {
 	private static final List<Long> validMutcds = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L);
 	private static final List<Long> validInfoTypes = Arrays.asList(0L, 1L, 2L, 3L);
 	private static final List<Long> validTTLs = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L);
+	private static final int PACKET_ID_LENGTH = 9;
+	private static final String PACKET_ID_HEX_PATTERN = "^[0-9A-Fa-f]{18}$";
+	private static final String PACKET_ID_LEGACY_PATTERN = "^[0-9]{1,17}$";
 	private static final List<Long> validExtents = Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L,13L, 14L, 15L);
 	
 	public enum GenerateType {
@@ -188,6 +192,8 @@ public class TravelerInputData {
 				}
 			}
 
+			anchorPoint.getPacketIDBytes();
+
 			if (!validInfoTypes.contains((long) anchorPoint.infoType)) {
 				throw new IllegalArgumentException("Invalid infoType value: " +
 						anchorPoint.infoType + " valid values are: " + validInfoTypes);
@@ -331,7 +337,12 @@ public class TravelerInputData {
 		public double referenceElevation;
 		public short masterLaneWidth;
 		public short sspTimRights;
-		public long packetID;
+		/*
+		 * 9-byte UniqueMSGID as 18 hex characters: 3-byte GNIS feature ID of the
+		 * TIM location followed by a 6-byte random identifier. Legacy files may
+		 * still carry a decimal value, which is encoded as before.
+		 */
+		public String packetID;
 		public long msgCount;
 		public ItisContent[] content;
 		public short sspTypeRights;
@@ -359,6 +370,24 @@ public class TravelerInputData {
 
 		public short getReferenceElevation() {
 			return IntersectionInputData.convertElevation(referenceElevation);
+		}
+
+		public byte[] getPacketIDBytes() {
+			if (packetID == null || packetID.isEmpty()) {
+				return new byte[PACKET_ID_LENGTH];
+			}
+			if (packetID.matches(PACKET_ID_HEX_PATTERN)) {
+				byte[] bytes = new byte[PACKET_ID_LENGTH];
+				for (int i = 0; i < PACKET_ID_LENGTH; i++) {
+					bytes[i] = (byte) Integer.parseInt(packetID.substring(i * 2, i * 2 + 2), 16);
+				}
+				return bytes;
+			}
+			if (packetID.matches(PACKET_ID_LEGACY_PATTERN)) {
+				return ByteBuffer.allocate(PACKET_ID_LENGTH).put((byte) 0).putLong(Long.parseLong(packetID)).array();
+			}
+			throw new IllegalArgumentException("Invalid packetID value: " + packetID
+					+ " must be " + PACKET_ID_LENGTH * 2 + " hex characters");
 		}
 
 		@Override
