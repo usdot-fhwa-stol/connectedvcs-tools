@@ -348,7 +348,7 @@ function registerSelectInteraction() {
   });
 
   laneSelectInteraction.on("select", (event) => {
-    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected);
+    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, { laneWidths, vectors }, laneMarkers, deleteMode, selected);
   });
   map.addInteraction(laneSelectInteraction);
 

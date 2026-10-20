@@ -1,7 +1,7 @@
 import { getComputedElevation, getElevation } from "./api.js";
 import { toggleControlsOn } from "./files.js";
 import { laneStyle, pointStyle } from "./style.js";
-import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
+import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, refreshLaneWidths } from "./utils.js";
 /*********************************************************************************************************************/
 /**
  * Purpose: dot functions that bind the metadata to the feature object
@@ -166,9 +166,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 		}
 	};
 
-	if (laneWidths.getSource().getFeatures().length != 0) {
-		toggleWidthArray(lanes, vectors, laneWidths);
-	}
+	refreshLaneWidths(lanes, vectors, laneWidths);
 }
 
 
