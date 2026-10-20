@@ -396,6 +396,7 @@ function registerMapEvents() {
 
 
       deleteMarker(lanes, selected);
+      refreshLaneWidths();
 
       // Re-enable controls
       document.getElementById('drawPoly').disabled = false;
@@ -1227,10 +1228,7 @@ function onFeatureAdded() {
     }
   });
 
-  if (laneWidths.getSource().getFeatures().length !== 0) {
-    laneWidths.getSource().clear();
-    toggleWidthArray();
-  }
+  refreshLaneWidths();
 
   polyMarkers.getSource().clear();
   radiuslayer.getSource().clear();
@@ -2150,15 +2148,30 @@ function changePriority(mutcd) {
   }
 }
 
-
-
+/**
+ * Show menu item "Lane Widths": ticks or unticks it. The state is the visibility of the widths layer,
+ * the same way the Regions and Markers items work.
+ */
 export function toggleWidthArray() {
+  const show = !laneWidths.getVisible();
+  laneWidths.setVisible(show);
+  document.getElementById("laneWidthIcon").className = show ? "fa fa-check-square-o" : "fa fa-square-o";
+  refreshLaneWidths();
+}
+
+/**
+ * Redraws the lane widths so they match the current lanes (this is the former body of toggleWidthArray).
+ * Nothing is drawn while the Lane Widths item is unticked.
+ */
+function refreshLaneWidths() {
   const laneFeatures = lanes.getSource().getFeatures();
   const vectorFeatures = vectors.getSource().getFeatures();
   const laneWidthSource = laneWidths.getSource();
   var isNegative = { value: false, node: "", lane: "" };
 
-  if (laneWidthSource.getFeatures().length === 0) {
+  laneWidthSource.clear();
+
+  if (laneWidths.getVisible()) {
     let masterWidth;
 
     for (let f = 0; f < vectorFeatures.length; f++) {
@@ -2166,6 +2179,9 @@ export function toggleWidthArray() {
       if (attr.marker?.type === "TIM") {
         masterWidth = parseFloat(attr.masterLaneWidth);
       }
+    }
+    if (!Number.isFinite(masterWidth)) {
+      return; // no TIM marker with a master lane width yet
     }
 
 
@@ -2245,8 +2261,6 @@ export function toggleWidthArray() {
         }
       }
     }
-  } else {
-    laneWidthSource.clear();
   }
 
   if (isNegative.value) {
