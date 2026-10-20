@@ -31,7 +31,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -60,6 +59,9 @@ public class GnisLookupService {
     // Largest value that fits the 3-byte GNIS portion of a TIM packetID
     private static final long MAX_GNIS_ID = 0xFFFFFFL;
     private static final long LOOKUP_TIMEOUT_SECONDS = 15;
+    // Nearby features are searched within this radius, and only the closest are offered
+    private static final double NEARBY_RADIUS_MILES = 5;
+    private static final int NEARBY_MAX_RESULTS = 25;
     private static final double EARTH_RADIUS_MILES = 3958.8;
     // Census geocoder layer name, its GNIS code field, and the label shown to the user (most specific first)
     private static final String[][] LAYERS = {
@@ -78,12 +80,6 @@ public class GnisLookupService {
     }
     private Logger logger = LogManager.getLogger(GnisLookupService.class);
     private final OkHttpClient client = new OkHttpClient();
-
-    @Value("${gnis.nearby.radius.miles:5}")
-    private double nearbyRadiusMiles = 5;
-
-    @Value("${gnis.nearby.max.results:25}")
-    private int nearbyMaxResults = 25;
 
     public String composeFullURL(double latitude, double longitude) {
         StringBuilder layers = new StringBuilder();
@@ -109,7 +105,7 @@ public class GnisLookupService {
             .addQueryParameter("geometryType", "esriGeometryPoint")
             .addQueryParameter("inSR", "4326")
             .addQueryParameter("spatialRel", "esriSpatialRelIntersects")
-            .addQueryParameter("distance", Double.toString(nearbyRadiusMiles))
+            .addQueryParameter("distance", Double.toString(NEARBY_RADIUS_MILES))
             .addQueryParameter("units", "esriSRUnit_StatuteMile")
             .addQueryParameter("outFields", "gaz_id,gaz_name,gaz_featureclass,state_alpha,county_name")
             .addQueryParameter("returnGeometry", "true")
@@ -162,7 +158,7 @@ public class GnisLookupService {
         nearby.sort(Comparator.comparingDouble(GnisFeature::getDistanceMiles));
         int added = 0;
         for (GnisFeature feature : nearby) {
-            if (added >= nearbyMaxResults) {
+            if (added >= NEARBY_MAX_RESULTS) {
                 break;
             }
             if (seen.add(feature.getGnisId())) {
