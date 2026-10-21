@@ -21,19 +21,16 @@ public class GnisFeature {
     private String type;
     private String county;
     private String state;
-    // Distance from the requested point, or null when the feature contains the point
-    private Double distanceMiles;
 
     public GnisFeature() {
     }
 
-    public GnisFeature(long gnisId, String name, String type, String county, String state, Double distanceMiles) {
+    public GnisFeature(long gnisId, String name, String type, String county, String state) {
         this.gnisId = gnisId;
         this.name = name;
         this.type = type;
         this.county = county;
         this.state = state;
-        this.distanceMiles = distanceMiles;
     }
 
     public long getGnisId() {
@@ -56,13 +53,9 @@ public class GnisFeature {
         return state;
     }
 
-    public Double getDistanceMiles() {
-        return distanceMiles;
-    }
-
     @Override
     public String toString() {
         return "GnisFeature [gnisId=" + gnisId + ", name=" + name + ", type=" + type + ", county=" + county
-            + ", state=" + state + ", distanceMiles=" + distanceMiles + "]";
+            + ", state=" + state + "]";
     }
 }

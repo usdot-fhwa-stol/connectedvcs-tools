@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.usdot.cv.gnis.models.GnisFeature;
@@ -44,6 +45,24 @@ public class GnisController {
         List<GnisFeature> response = gnisLookupService.getGnisFeatures(latitude, longitude);
         if (response == null || response.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<>(response, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<GnisFeature>> searchGnisFeatures(@RequestParam String name,
+            @RequestParam(required = false) String state) {
+        String trimmedName = name.trim();
+        String trimmedState = state == null || state.trim().isEmpty() ? null : state.trim();
+        if (!trimmedName.matches(GnisLookupService.SEARCH_NAME_PATTERN)
+                || (trimmedState != null && !trimmedState.matches(GnisLookupService.SEARCH_STATE_PATTERN))) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        List<GnisFeature> response = gnisLookupService.searchGnisFeatures(trimmedName, trimmedState);
+        if (response == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -47,36 +48,57 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * Looks up GNIS feature IDs for a point:
- * - the state, county and places that contain it, from the Census geocoder
+ * Looks up GNIS feature IDs:
+ * - the place, county and state that contain a point, from the Census geocoder
  *   (which publishes GNIS IDs as ANSI/NS codes), and
- * - named places and crossings within a radius, from the USGS GNIS (geonames) service.
+ * - states and counties matching a name, from Census TIGERweb, and
+ * - localities matching a name, from the USGS GNIS (geonames) service.
  */
 @Service
 public class GnisLookupService {
     private static final String URL_BASE = "https://geocoding.geo.census.gov/geocoder/geographies/coordinates";
-    private static final String NEARBY_URL_BASE = "https://carto.nationalmap.gov/arcgis/rest/services/geonames/MapServer/%d/query";
+    private static final String SEARCH_URL_BASE = "https://carto.nationalmap.gov/arcgis/rest/services/geonames/MapServer/%d/query";
+    private static final String TIGERWEB_URL_BASE = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/%d/query";
+    private static final int TIGERWEB_STATES_LAYER = 80;
+    private static final int TIGERWEB_COUNTIES_LAYER = 82;
     // Largest value that fits the 3-byte GNIS portion of a TIM packetID
     private static final long MAX_GNIS_ID = 0xFFFFFFL;
     private static final long LOOKUP_TIMEOUT_SECONDS = 15;
-    // Nearby features are searched within this radius, and only the closest are offered
-    private static final double NEARBY_RADIUS_MILES = 5;
-    private static final int NEARBY_MAX_RESULTS = 25;
-    private static final double EARTH_RADIUS_MILES = 3958.8;
+    // Search names are limited to characters that appear in place names, so they are safe in a LIKE clause
+    public static final String SEARCH_NAME_PATTERN = "^[A-Za-z0-9 .'-]{2,50}$";
+    public static final String SEARCH_STATE_PATTERN = "^[A-Za-z]{2}$";
+    private static final int SEARCH_RESULTS_PER_LAYER = 50;
+    private static final int SEARCH_MAX_RESULTS = 30;
+    // GNIS names official places like "City of Springfield" or "Bethesda Census Designated Place"
+    private static final String SEARCH_NAME_PREFIXES = "^(CITY|TOWN|VILLAGE|BOROUGH|TOWNSHIP|MUNICIPALITY) OF ";
+    // ...and counties like "Washington County" or "Orleans Parish"; this wording is ignored when ranking
+    private static final String SEARCH_NAME_SUFFIXES =
+        " (CENSUS DESIGNATED PLACE|CDP|COUNTY|PARISH|CITY AND BOROUGH|BOROUGH|CENSUS AREA|MUNICIPALITY|MUNICIPIO)$";
     // Census geocoder layer name, its GNIS code field, and the label shown to the user (most specific first)
     private static final String[][] LAYERS = {
-        { "Incorporated Places", "PLACENS", "Place" },
-        { "Census Designated Places", "PLACENS", "Place" },
-        { "County Subdivisions", "COUSUBNS", "County Subdivision" },
+        { "Incorporated Places", "PLACENS", "Incorporated Place" },
+        { "Census Designated Places", "PLACENS", "Census Designated Place" },
         { "Counties", "COUNTYNS", "County" },
         { "States", "STATENS", "State" },
     };
-    // USGS geonames layers: Incorporated Places, Unincorporated Places, Populated Places, Crossings
-    private static final int[] NEARBY_LAYERS = { 1, 2, 3, 10 };
-    private static final Map<String, String> NEARBY_FEATURE_CLASSES = new LinkedHashMap<>();
+    // USGS geonames layers: Incorporated Places, Unincorporated Places, Populated Places
+    private static final int[] SEARCH_LAYERS = { 1, 2, 3 };
+    private static final Map<String, String> SEARCH_FEATURE_CLASSES = new LinkedHashMap<>();
     static {
-        NEARBY_FEATURE_CLASSES.put("Civil", "Incorporated Place");
-        NEARBY_FEATURE_CLASSES.put("Census", "Census Designated Place");
+        SEARCH_FEATURE_CLASSES.put("Civil", "Incorporated Place");
+        SEARCH_FEATURE_CLASSES.put("Census", "Census Designated Place");
+    }
+    // Census returns counties with the state's FIPS code; these codes are fixed by federal standard
+    private static final Map<String, String> STATE_FIPS = new LinkedHashMap<>();
+    static {
+        String[] states = { "01:AL", "02:AK", "04:AZ", "05:AR", "06:CA", "08:CO", "09:CT", "10:DE", "11:DC", "12:FL",
+            "13:GA", "15:HI", "16:ID", "17:IL", "18:IN", "19:IA", "20:KS", "21:KY", "22:LA", "23:ME", "24:MD", "25:MA",
+            "26:MI", "27:MN", "28:MS", "29:MO", "30:MT", "31:NE", "32:NV", "33:NH", "34:NJ", "35:NM", "36:NY", "37:NC",
+            "38:ND", "39:OH", "40:OK", "41:OR", "42:PA", "44:RI", "45:SC", "46:SD", "47:TN", "48:TX", "49:UT", "50:VT",
+            "51:VA", "53:WA", "54:WV", "55:WI", "56:WY", "60:AS", "66:GU", "69:MP", "72:PR", "78:VI" };
+        for (String state : states) {
+            STATE_FIPS.put(state.substring(0, 2), state.substring(3));
+        }
     }
     private Logger logger = LogManager.getLogger(GnisLookupService.class);
     private final OkHttpClient client = new OkHttpClient();
@@ -99,74 +121,145 @@ public class GnisLookupService {
             .build().toString();
     }
 
-    public String composeNearbyURL(int layerId, double latitude, double longitude) {
-        return HttpUrl.parse(String.format(NEARBY_URL_BASE, layerId)).newBuilder()
-            .addQueryParameter("geometry", longitude + "," + latitude)
-            .addQueryParameter("geometryType", "esriGeometryPoint")
-            .addQueryParameter("inSR", "4326")
-            .addQueryParameter("spatialRel", "esriSpatialRelIntersects")
-            .addQueryParameter("distance", Double.toString(NEARBY_RADIUS_MILES))
-            .addQueryParameter("units", "esriSRUnit_StatuteMile")
+    /**
+     * @param name  must match SEARCH_NAME_PATTERN
+     * @param state two-letter state code, or null to search every state
+     */
+    public String composeSearchURL(int layerId, String name, String state) {
+        validateSearch(name, state);
+        String where = nameLikeClause("gaz_name", name);
+        if (state != null) {
+            where += " AND state_alpha = '" + state.toUpperCase(Locale.US) + "'";
+        }
+        return HttpUrl.parse(String.format(SEARCH_URL_BASE, layerId)).newBuilder()
+            .addQueryParameter("where", where)
             .addQueryParameter("outFields", "gaz_id,gaz_name,gaz_featureclass,state_alpha,county_name")
-            .addQueryParameter("returnGeometry", "true")
-            .addQueryParameter("outSR", "4326")
+            .addQueryParameter("returnGeometry", "false")
+            .addQueryParameter("orderByFields", "gaz_name")
+            .addQueryParameter("resultRecordCount", Integer.toString(SEARCH_RESULTS_PER_LAYER))
             .addQueryParameter("f", "json")
             .build().toString();
     }
 
     /**
-     * @return features containing the point (most specific first) followed by the
-     *         nearest features within the configured radius, or null if both lookups fail
+     * States are matched by name or postal code, and are never limited to one state.
+     * @param name must match SEARCH_NAME_PATTERN
      */
-    public List<GnisFeature> getGnisFeatures(double latitude, double longitude) {
-        CompletableFuture<String> containingCall = fetch(composeFullURL(latitude, longitude));
-        List<CompletableFuture<String>> nearbyCalls = new ArrayList<>();
-        for (int layerId : NEARBY_LAYERS) {
-            nearbyCalls.add(fetch(composeNearbyURL(layerId, latitude, longitude)));
-        }
-
-        List<GnisFeature> containing = parseGnisResponse(await(containingCall));
-        List<GnisFeature> nearby = new ArrayList<>();
-        boolean nearbyFound = false;
-        for (CompletableFuture<String> call : nearbyCalls) {
-            List<GnisFeature> layerFeatures = parseNearbyResponse(await(call), latitude, longitude);
-            if (layerFeatures != null) {
-                nearbyFound = true;
-                nearby.addAll(layerFeatures);
-            }
-        }
-        if (containing == null && !nearbyFound) {
-            return null;
-        }
-        return mergeFeatures(containing, nearby);
+    public String composeStateSearchURL(String name) {
+        validateSearch(name, null);
+        String where = nameLikeClause("NAME", name) + " OR UPPER(STUSAB) = '" + name.toUpperCase(Locale.US).replace("'", "''") + "'";
+        return composeTigerwebURL(TIGERWEB_STATES_LAYER, where, "NAME,STATENS,STUSAB");
     }
 
     /**
-     * Keeps every containing feature, then the closest nearby features that are not
-     * already listed, up to the configured maximum.
+     * @param name  must match SEARCH_NAME_PATTERN
+     * @param state two-letter state code, or null to search every state
+     * @return the query URL, or null when the state has no counties
      */
-    public List<GnisFeature> mergeFeatures(List<GnisFeature> containing, List<GnisFeature> nearby) {
-        List<GnisFeature> features = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
-        if (containing != null) {
-            for (GnisFeature feature : containing) {
-                if (seen.add(feature.getGnisId())) {
-                    features.add(feature);
+    public String composeCountySearchURL(String name, String state) {
+        validateSearch(name, state);
+        String where = nameLikeClause("NAME", name);
+        if (state != null) {
+            String fips = null;
+            for (Map.Entry<String, String> entry : STATE_FIPS.entrySet()) {
+                if (entry.getValue().equalsIgnoreCase(state)) {
+                    fips = entry.getKey();
                 }
             }
+            if (fips == null) {
+                return null;
+            }
+            where += " AND STATE = '" + fips + "'";
         }
-        nearby.sort(Comparator.comparingDouble(GnisFeature::getDistanceMiles));
-        int added = 0;
-        for (GnisFeature feature : nearby) {
-            if (added >= NEARBY_MAX_RESULTS) {
+        return composeTigerwebURL(TIGERWEB_COUNTIES_LAYER, where, "NAME,COUNTYNS,STATE");
+    }
+
+    private String composeTigerwebURL(int layerId, String where, String outFields) {
+        return HttpUrl.parse(String.format(TIGERWEB_URL_BASE, layerId)).newBuilder()
+            .addQueryParameter("where", where)
+            .addQueryParameter("outFields", outFields)
+            .addQueryParameter("returnGeometry", "false")
+            .addQueryParameter("orderByFields", "NAME")
+            .addQueryParameter("resultRecordCount", Integer.toString(SEARCH_RESULTS_PER_LAYER))
+            .addQueryParameter("f", "json")
+            .build().toString();
+    }
+
+    private void validateSearch(String name, String state) {
+        if (!name.matches(SEARCH_NAME_PATTERN) || (state != null && !state.matches(SEARCH_STATE_PATTERN))) {
+            throw new IllegalArgumentException("Invalid GNIS search name or state");
+        }
+    }
+
+    private String nameLikeClause(String field, String name) {
+        return "UPPER(" + field + ") LIKE '%" + name.toUpperCase(Locale.US).replace("'", "''") + "%'";
+    }
+
+    /**
+     * @return the place, county and state containing the point (most specific first), or null on failure
+     */
+    public List<GnisFeature> getGnisFeatures(double latitude, double longitude) {
+        return parseGnisResponse(await(fetch(composeFullURL(latitude, longitude))));
+    }
+
+    /**
+     * @return states, counties and localities whose name contains the search text, best matches first,
+     *         or null on failure. Counties and localities are limited to the given state, if any.
+     */
+    public List<GnisFeature> searchGnisFeatures(String name, String state) {
+        String term = name.trim();
+        List<CompletableFuture<List<GnisFeature>>> calls = new ArrayList<>();
+        calls.add(fetch(composeStateSearchURL(term)).thenApply(this::parseStateSearchResponse));
+        String countyURL = composeCountySearchURL(term, state);
+        if (countyURL != null) {
+            calls.add(fetch(countyURL).thenApply(this::parseCountySearchResponse));
+        }
+        for (int layerId : SEARCH_LAYERS) {
+            calls.add(fetch(composeSearchURL(layerId, term, state)).thenApply(this::parseSearchResponse));
+        }
+        List<GnisFeature> features = new ArrayList<>();
+        boolean found = false;
+        for (CompletableFuture<List<GnisFeature>> call : calls) {
+            List<GnisFeature> layerFeatures = await(call);
+            if (layerFeatures != null) {
+                found = true;
+                features.addAll(layerFeatures);
+            }
+        }
+        return found ? rankSearchResults(features, term) : null;
+    }
+
+    /**
+     * Orders exact name matches first (or a state's postal code), then names starting with the search
+     * text, then the rest; ties go to states, then counties, then localities. Duplicates are dropped
+     * and at most SEARCH_MAX_RESULTS are kept. "City of"/"County"/"Census Designated Place" wording is
+     * ignored, so official names rank with their plain names.
+     */
+    public List<GnisFeature> rankSearchResults(List<GnisFeature> features, String name) {
+        String term = name.toUpperCase(Locale.US);
+        features.sort(Comparator
+            .comparingInt((GnisFeature f) -> {
+                if ("State".equals(f.getType()) && term.equalsIgnoreCase(f.getState())) {
+                    return 0;
+                }
+                String featureName = f.getName().toUpperCase(Locale.US)
+                    .replaceFirst(SEARCH_NAME_PREFIXES, "").replaceFirst(SEARCH_NAME_SUFFIXES, "");
+                return featureName.equals(term) ? 0 : featureName.startsWith(term) ? 1 : 2;
+            })
+            .thenComparingInt((GnisFeature f) -> "State".equals(f.getType()) ? 0 : "County".equals(f.getType()) ? 1 : 2)
+            .thenComparing(GnisFeature::getName)
+            .thenComparing(GnisFeature::getState));
+        List<GnisFeature> ranked = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (GnisFeature feature : features) {
+            if (ranked.size() >= SEARCH_MAX_RESULTS) {
                 break;
             }
             if (seen.add(feature.getGnisId())) {
-                features.add(feature);
-                added++;
+                ranked.add(feature);
             }
         }
-        return features;
+        return ranked;
     }
 
     private CompletableFuture<String> fetch(String url) {
@@ -197,7 +290,7 @@ public class GnisLookupService {
         return future;
     }
 
-    private String await(CompletableFuture<String> future) {
+    private <T> T await(CompletableFuture<T> future) {
         try {
             return future.get(LOOKUP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
@@ -218,18 +311,25 @@ public class GnisLookupService {
             }
             String state = geographies.path("States").path(0).path("STUSAB").asText("");
             String county = geographies.path("Counties").path(0).path("NAME").asText("");
-            List<GnisFeature> features = new ArrayList<>();
+            // Keyed by GNIS ID: one feature can fill several roles (DC is both the county and the state)
+            Map<Long, GnisFeature> features = new LinkedHashMap<>();
             for (String[] layer : LAYERS) {
                 for (JsonNode geo : geographies.path(layer[0])) {
                     Long gnisId = parseGnisId(geo.path(layer[1]).asText(""));
                     if (gnisId == null) {
                         continue;
                     }
+                    GnisFeature existing = features.get(gnisId);
+                    if (existing != null) {
+                        features.put(gnisId, new GnisFeature(gnisId, existing.getName(),
+                            existing.getType() + " / " + layer[2], existing.getCounty(), state));
+                        continue;
+                    }
                     String featureCounty = "State".equals(layer[2]) ? "" : county;
-                    features.add(new GnisFeature(gnisId, geo.path("NAME").asText(""), layer[2], featureCounty, state, null));
+                    features.put(gnisId, new GnisFeature(gnisId, geo.path("NAME").asText(""), layer[2], featureCounty, state));
                 }
             }
-            return features;
+            return new ArrayList<>(features.values());
         } catch (IllegalArgumentException ex) {
             logger.error("Failed to parse response: " + response + ". Detailed error: " + ex.getMessage());
         } catch (JsonProcessingException ex) {
@@ -238,7 +338,7 @@ public class GnisLookupService {
         return null;
     }
 
-    public List<GnisFeature> parseNearbyResponse(String response, double latitude, double longitude) {
+    public List<GnisFeature> parseSearchResponse(String response) {
         try {
             ObjectMapper objMapper = new ObjectMapper();
             JsonNode root = objMapper.readTree(response);
@@ -250,16 +350,51 @@ public class GnisLookupService {
             for (JsonNode feature : root.path("features")) {
                 JsonNode attrs = feature.path("attributes");
                 Long gnisId = parseGnisId(attrs.path("gaz_id").asText(""));
-                double[] point = parsePoint(feature.path("geometry"));
-                if (gnisId == null || point == null) {
+                if (gnisId == null) {
                     continue;
                 }
                 String featureClass = attrs.path("gaz_featureclass").asText("");
-                String type = NEARBY_FEATURE_CLASSES.getOrDefault(featureClass, featureClass);
-                double distance = distanceMiles(latitude, longitude, point[1], point[0]);
-                features.add(new GnisFeature(gnisId, attrs.path("gaz_name").asText(""), type,
-                    attrs.path("county_name").asText(""), attrs.path("state_alpha").asText(""),
-                    Math.round(distance * 10) / 10.0));
+                features.add(new GnisFeature(gnisId, attrs.path("gaz_name").asText(""),
+                    SEARCH_FEATURE_CLASSES.getOrDefault(featureClass, featureClass),
+                    attrs.path("county_name").asText(""), attrs.path("state_alpha").asText("")));
+            }
+            return features;
+        } catch (IllegalArgumentException ex) {
+            logger.error("Failed to parse response: " + response + ". Detailed error: " + ex.getMessage());
+        } catch (JsonProcessingException ex) {
+            logger.error("Failed to parse response: " + response + ". Detailed error: " + ex.getMessage());
+        }
+        return null;
+    }
+
+    public List<GnisFeature> parseStateSearchResponse(String response) {
+        return parseTigerwebResponse(response, "STATENS", "State");
+    }
+
+    public List<GnisFeature> parseCountySearchResponse(String response) {
+        return parseTigerwebResponse(response, "COUNTYNS", "County");
+    }
+
+    private List<GnisFeature> parseTigerwebResponse(String response, String gnisField, String type) {
+        try {
+            ObjectMapper objMapper = new ObjectMapper();
+            JsonNode root = objMapper.readTree(response);
+            if (!root.has("features")) {
+                logger.error("Empty results from response: " + response);
+                return null;
+            }
+            List<GnisFeature> features = new ArrayList<>();
+            for (JsonNode feature : root.path("features")) {
+                JsonNode attrs = feature.path("attributes");
+                Long gnisId = parseGnisId(attrs.path(gnisField).asText(""));
+                if (gnisId == null) {
+                    continue;
+                }
+                String featureName = attrs.path("NAME").asText("");
+                String state = attrs.has("STUSAB") ? attrs.path("STUSAB").asText("")
+                    : STATE_FIPS.getOrDefault(attrs.path("STATE").asText(""), "");
+                String county = "County".equals(type) ? featureName : "";
+                features.add(new GnisFeature(gnisId, featureName, type, county, state));
             }
             return features;
         } catch (IllegalArgumentException ex) {
@@ -280,25 +415,5 @@ public class GnisLookupService {
             return null;
         }
         return gnisId;
-    }
-
-    // Geonames layers return multipoint geometry; accept a plain point as well
-    private double[] parsePoint(JsonNode geometry) {
-        JsonNode xy = geometry.path("points").path(0);
-        if (xy.size() >= 2) {
-            return new double[] { xy.get(0).asDouble(), xy.get(1).asDouble() };
-        }
-        if (geometry.has("x") && geometry.has("y")) {
-            return new double[] { geometry.get("x").asDouble(), geometry.get("y").asDouble() };
-        }
-        return null;
-    }
-
-    private double distanceMiles(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        return EARTH_RADIUS_MILES * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 }

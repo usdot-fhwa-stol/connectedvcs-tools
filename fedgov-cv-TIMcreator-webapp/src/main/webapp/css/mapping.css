@@ -114,3 +114,22 @@ p.parsley-error {
 
 
 
+
+/* GNIS Location dropdown: list the marker's codes first with the name search box below them */
+#packet_gnis_container .select2-dropdown {
+	display: flex;
+	flex-direction: column;
+}
+
+#packet_gnis_container .select2-results {
+	order: 1;
+}
+
+#packet_gnis_container .select2-results > .select2-results__options {
+	max-height: 320px;
+}
+
+#packet_gnis_container .select2-search--dropdown {
+	order: 2;
+	border-top: 1px solid #aaa;
+}

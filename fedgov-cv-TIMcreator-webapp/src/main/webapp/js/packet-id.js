@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-import { fetchGnisFeatures } from "./api.js";
+import { fetchGnisFeatures, searchGnisFeatures } from "./api.js";
 
 /**
  * TIM packetID is a 9-byte UniqueMSGID, stored as 18 hex characters:
@@ -22,8 +22,17 @@ import { fetchGnisFeatures } from "./api.js";
 const PACKET_ID_PATTERN = /^[0-9A-F]{18}$/i;
 const GNIS_HEX_LENGTH = 6;
 const UNIQUE_ID_BYTES = 6;
+// Matches the names the proxy accepts, with an optional ", ST" to search another state
+const GNIS_SEARCH_PATTERN = /^([A-Za-z0-9 .'-]{2,50}?)\s*(?:,\s*([A-Za-z]{2}))?$/;
+const GNIS_SEARCH_PLACEHOLDER = 'Search a state, county or place, e.g. Texas or Springfield, IL';
 
 let gnisLookupSeq = 0;
+let gnisSearchSeq = 0;
+// Place, county and state containing the current marker, and that state's code
+let locationFeatures = [];
+let locationState = null;
+// Labels of every GNIS code shown this session, so a saved code chosen from a search keeps its name
+const gnisLabels = new Map();
 
 function toHex(value, length) {
   return value.toString(16).toUpperCase().padStart(length, '0');
@@ -48,15 +57,13 @@ function gnisLabel(feature) {
   const parts = [feature.name];
   if (feature.county && feature.county !== feature.name) parts.push(feature.county);
   if (feature.type !== 'State') parts.push(feature.state);
-  const details = feature.distanceMiles == null ? feature.type : `${feature.type}, ${feature.distanceMiles} mi`;
-  return `${parts.join(', ')} (${details}) - GNIS ${feature.gnisId}`;
+  const label = `${parts.join(', ')} (${feature.type}) - GNIS ${feature.gnisId}`;
+  gnisLabels.set(feature.gnisId, label);
+  return label;
 }
 
-function appendGnisGroup(select, label, features) {
-  if (!features.length) return;
-  const group = $('<optgroup>').attr('label', label);
-  features.forEach(f => group.append(new Option(gnisLabel(f), f.gnisId)));
-  select.append(group);
+function toSelect2Item(feature) {
+  return { id: String(feature.gnisId), text: gnisLabel(feature) };
 }
 
 function updatePacketId() {
@@ -65,32 +72,76 @@ function updatePacketId() {
 }
 
 /**
- * Purpose: fill the GNIS dropdown with the features containing lat/lon, then nearby features by distance
- * @params preferredGnisId stays selected even if it is outside this area (packetID is
- *         shared by every frame); otherwise the most specific feature is selected
+ * Purpose: supply Select2 with the location's codes, followed by state, county and place search results
+ *          once the user types
+ */
+function gnisSearchTransport(params, success) {
+  const term = (params.data.term || '').trim();
+  const results = [];
+  if (locationFeatures.length) {
+    results.push({ text: 'This location', children: locationFeatures.map(toSelect2Item) });
+  }
+  if (term.length < 2) {
+    success({ results });
+    return;
+  }
+
+  const match = term.match(GNIS_SEARCH_PATTERN);
+  if (!match) {
+    results.push({ text: 'Search results', children: [
+      { id: '', text: 'Use letters, numbers, spaces, periods, apostrophes or hyphens', disabled: true }] });
+    success({ results });
+    return;
+  }
+
+  const name = match[1];
+  const state = match[2]?.toUpperCase() ?? locationState;
+  const heading = state
+    ? `States, and counties and places in ${state} (add ", ST" for another state)`
+    : 'States, counties and places';
+  const seq = ++gnisSearchSeq;
+  searchGnisFeatures(name, state)
+    .then(features => features.length
+      ? features.map(toSelect2Item)
+      : [{ id: '', text: `Nothing named "${name}" found`, disabled: true }])
+    .catch(() => [{ id: '', text: 'GNIS search is unavailable, try again later', disabled: true }])
+    .then(children => {
+      // Only the latest search updates the list
+      if (seq !== gnisSearchSeq) return;
+      results.push({ text: heading, children });
+      success({ results });
+    });
+}
+
+/**
+ * Purpose: load the place, county and state GNIS codes containing lat/lon
+ * @params preferredGnisId stays selected even if it is not one of them (it may have come from a
+ *         search, and packetID is shared by every frame); otherwise the most specific code is selected
  */
 async function loadGnisOptions(lat, lon, preferredGnisId) {
   const select = $('#packet_gnis');
   const seq = ++gnisLookupSeq;
-  select.empty().append(new Option('Loading GNIS codes...', preferredGnisId ?? ''));
-  select.prop('disabled', true);
+  locationFeatures = [];
+  select.empty().append(new Option('Loading GNIS codes...', preferredGnisId ?? '', true, true));
+  select.prop('disabled', true).trigger('change.select2');
   updatePacketId();
 
   const features = await fetchGnisFeatures(lat, lon);
   // A newer lookup started while this one was in flight
   if (seq !== gnisLookupSeq) return;
 
+  locationFeatures = features;
+  locationState = features.find(f => f.state)?.state ?? null;
   select.empty();
-  appendGnisGroup(select, 'Contains this location', features.filter(f => f.distanceMiles == null));
-  appendGnisGroup(select, 'Nearby (closest first)', features.filter(f => f.distanceMiles != null));
+  features.forEach(f => select.append(new Option(gnisLabel(f), f.gnisId)));
   if (preferredGnisId && !features.some(f => f.gnisId === preferredGnisId)) {
-    select.append(new Option(`GNIS ${preferredGnisId} (saved)`, preferredGnisId));
+    select.append(new Option(gnisLabels.get(preferredGnisId) ?? `GNIS ${preferredGnisId} (saved)`, preferredGnisId));
   }
   if (!select.find('option').length) {
-    select.append(new Option('No GNIS codes found for this location', ''));
+    select.append(new Option('No GNIS codes found for this location, search by name', ''));
   }
   select.val(preferredGnisId || features[0]?.gnisId || '');
-  select.prop('disabled', false);
+  select.prop('disabled', false).trigger('change.select2');
   updatePacketId();
 }
 
@@ -104,7 +155,17 @@ function loadPacketIdFields(packetID, lat, lon) {
 }
 
 function initPacketIdControls() {
-  $('#packet_gnis').on('change', updatePacketId);
+  $('#packet_gnis').select2({
+    width: '100%',
+    dropdownParent: $('#packet_gnis_container'),
+    minimumInputLength: 0,
+    ajax: {
+      delay: 300,
+      transport: gnisSearchTransport
+    }
+  }).on('select2:open', () => {
+    $('#packet_gnis_container .select2-search__field').attr('placeholder', GNIS_SEARCH_PLACEHOLDER);
+  }).on('change', updatePacketId);
 
   $('#regenerate_packet_unique').on('click', () => {
     $('#packet_unique').val(generatePacketUniqueId());

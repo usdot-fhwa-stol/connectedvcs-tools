@@ -233,7 +233,7 @@ var help_notes = [
         max: "16777215",
         min: "0",
         units: "N/A",
-        description: "The USGS GNIS feature ID for the TIM location: either the place, county subdivision, county, or state that contains it, or a nearby named place or crossing (listed closest first). Encoded as the first 3 bytes of the Packet ID."
+        description: "The USGS GNIS feature ID for the TIM location. The dropdown lists the city or place, county, and state that contain the marker; type in the search box below them to find any other state, county, or place by name or a state by its postal code (counties and places are searched in the marker's state; add \", ST\" to search a different state). Encoded as the first 3 bytes of the Packet ID."
     },
     {
         value: "packet_unique",
