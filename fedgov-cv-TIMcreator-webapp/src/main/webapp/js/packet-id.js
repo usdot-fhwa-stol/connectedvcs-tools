@@ -219,7 +219,10 @@ async function convertLegacyPacketId(timMarkers) {
   const gnisNote = gnisId ? '' : ' Its GNIS code could not be looked up, so choose one in a marker\'s Packet ID fields.';
   $('#packet_id_notice_text').text(`This file's Packet ID (${legacyId}) uses the old format and has been replaced `
     + `with a new one: ${newId}.${gnisNote} Save the file to keep the new ID.`);
-  $('#packet_id_notice_modal').modal('show');
+  const notice = document.getElementById('packet_id_notice_dialog');
+  if (notice && !notice.open) {
+    notice.showModal();
+  }
 
   if (shownLocation) {
     loadPacketIdFields(newId, shownLocation.lat, shownLocation.lon);

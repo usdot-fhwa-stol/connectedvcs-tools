@@ -133,3 +133,16 @@ p.parsley-error {
 	order: 2;
 	border-top: 1px solid #aaa;
 }
+
+/* Old-format Packet ID notice: a native <dialog> styled like the Bootstrap modals */
+dialog.packet-id-notice {
+	width: 600px;
+	max-width: 90vw;
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
+dialog.packet-id-notice::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
