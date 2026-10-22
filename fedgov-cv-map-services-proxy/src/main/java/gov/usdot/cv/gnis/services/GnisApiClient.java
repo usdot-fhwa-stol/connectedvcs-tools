@@ -42,7 +42,7 @@ import okhttp3.ResponseBody;
 @Component
 public class GnisApiClient {
     static final long DEFAULT_TIMEOUT_SECONDS = 5;
-    static final int DEFAULT_MAX_CONCURRENT_CALLS = 10;
+    static final int DEFAULT_MAX_CONCURRENT_CALLS = 50;
     private static final Logger logger = LogManager.getLogger(GnisApiClient.class);
 
     private final OkHttpClient client;
