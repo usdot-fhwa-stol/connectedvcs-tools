@@ -43,7 +43,11 @@ public class GnisController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         List<GnisFeature> response = gnisLookupService.getGnisFeatures(latitude, longitude);
-        if (response == null || response.isEmpty()) {
+        // 502 when the Census service could not be reached, so the UI can tell an outage from "no codes here"
+        if (response == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
+        }
+        if (response.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         HttpHeaders headers = new HttpHeaders();

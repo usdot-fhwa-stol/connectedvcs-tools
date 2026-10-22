@@ -23,12 +23,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 
 import gov.usdot.cv.gnis.models.GnisFeature;
+import gov.usdot.cv.gnis.services.GnisApiClient;
 import gov.usdot.cv.gnis.services.GnisLookupService;
 
 public class GnisLookupServiceTest {
-    private final GnisLookupService service = new GnisLookupService();
+    private final GnisLookupService service = new GnisLookupService(new GnisApiClient(), new ConcurrentMapCacheManager());
 
     @Test
     void composeFullURLReturn() {
@@ -225,5 +227,12 @@ public class GnisLookupServiceTest {
             new GnisFeature(1L, "Vaughn", "Populated Place", "Guadalupe", "NM"),
             new GnisFeature(2L, "Virginia", "State", "", "VA")));
         assertEquals("Virginia", service.rankSearchResults(features, "va").get(0).getName());
+    }
+
+    @Test
+    void featureToStringIncludesFields() {
+        String text = new GnisFeature(1714934L, "Maryland", "State", "", "MD").toString();
+        assertTrue(text.contains("gnisId=1714934"));
+        assertTrue(text.contains("state=MD"));
     }
 }

@@ -73,19 +73,18 @@ async function getElev(lat, lon) {
 
 /***
  * Purpose: Get the GNIS features (place, county, state) containing a point.
- * @returns array of {gnisId, name, type, state}, most specific first; empty array on failure
+ * @returns array of {gnisId, name, type, county, state}, most specific first; empty array when the
+ *          point has no codes. Throws when the lookup is unavailable, so the UI can say so.
  */
 async function fetchGnisFeatures(lat, lon) {
-  try {
-    const response = await fetch(`${gnis_lookup_url}/${lat}/${lon}`);
-    if (!response.ok || response.status === 204) {
-      return [];
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching GNIS codes", error);
+  const response = await fetch(`${gnis_lookup_url}/${lat}/${lon}`);
+  if (response.status === 204) {
     return [];
   }
+  if (!response.ok) {
+    throw new Error(`GNIS lookup failed: ${response.status}`);
+  }
+  return await response.json();
 }
 
 /***
