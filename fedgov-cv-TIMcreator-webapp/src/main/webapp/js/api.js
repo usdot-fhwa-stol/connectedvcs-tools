@@ -16,6 +16,8 @@
 const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
 const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
+const gnis_lookup_url = "/msp/gnis/api/lookup";
+const gnis_search_url = "/msp/gnis/api/search";
 
 function normalizeElevation(elev) {
   if (elev == null || elev === undefined) return -9999;
@@ -67,6 +69,36 @@ async function getElev(lat, lon) {
     console.error(error);
     return -9999;
   }
+}
+
+/***
+ * Purpose: Get the GNIS features (place, county, state) containing a point.
+ * @returns array of {gnisId, name, type, county, state}, most specific first; empty array when the
+ *          point has no codes. Throws when the lookup is unavailable, so the UI can say so.
+ */
+async function fetchGnisFeatures(lat, lon) {
+  const response = await fetch(`${gnis_lookup_url}/${lat}/${lon}`);
+  if (response.status === 204) {
+    return [];
+  }
+  if (!response.ok) {
+    throw new Error(`GNIS lookup failed: ${response.status}`);
+  }
+  return await response.json();
+}
+
+/***
+ * Purpose: Search GNIS localities by name, optionally within one state.
+ * @returns array of {gnisId, name, type, county, state}, best matches first; throws on failure
+ */
+async function searchGnisFeatures(name, state) {
+  const params = new URLSearchParams({ name });
+  if (state) params.set('state', state);
+  const response = await fetch(`${gnis_search_url}?${params}`);
+  if (!response.ok) {
+    throw new Error(`GNIS search failed: ${response.status}`);
+  }
+  return await response.json();
 }
 
 async function getNearestIntersectionJSON(feature, lat, lon) {
@@ -187,5 +219,7 @@ export {
   getElev,
   getNearestIntersectionJSON,
   populateAutocompleteSearchPlacesDropdown,
-  getComputedElevation
+  getComputedElevation,
+  fetchGnisFeatures,
+  searchGnisFeatures
 }

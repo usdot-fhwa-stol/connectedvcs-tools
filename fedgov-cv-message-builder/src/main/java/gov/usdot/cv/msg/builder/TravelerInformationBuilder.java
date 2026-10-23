@@ -15,7 +15,6 @@
  */
 package gov.usdot.cv.msg.builder;
 
-import java.nio.ByteBuffer;
 import java.text.ParseException;
 import gov.usdot.cv.msg.builder.exception.MessageEncodeException;
 import java.text.SimpleDateFormat;
@@ -157,8 +156,7 @@ public class TravelerInformationBuilder {
 		tim.setDataFrames(buildDataFrames(travInputData));
 		AnchorPoint firstAnchorPoint = travInputData.frames[0].anchorPoint;
 		tim.setMsgCnt((int) firstAnchorPoint.msgCount);
-		ByteBuffer buf = ByteBuffer.allocate(9).put((byte)0).putLong(firstAnchorPoint.packetID);
-		tim.setPacketID(new UniqueMSGID(buf.array()));
+		tim.setPacketID(new UniqueMSGID(firstAnchorPoint.getPacketIDBytes()));
 		if (travInputData.timeStamp != null) {
 			tim.setTimeStamp(new MinuteOfTheYear(travInputData.timeStamp));
 		}

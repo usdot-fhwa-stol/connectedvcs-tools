@@ -180,4 +180,28 @@ public class TravelerInputValidationTest {
         data.deposit.timeToLive = 3;
         data.validate();
     }
+
+    @Test
+    public void packetID_hexEncodesGnisAndRandomBytes() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "2474D9A1B2C3D4E5F6";
+        data.validate();
+        byte[] expected = { 0x24, 0x74, (byte) 0xD9, (byte) 0xA1, (byte) 0xB2, (byte) 0xC3, (byte) 0xD4, (byte) 0xE5, (byte) 0xF6 };
+        org.junit.Assert.assertArrayEquals(expected, data.frames[0].anchorPoint.getPacketIDBytes());
+    }
+
+    @Test
+    public void packetID_legacyDecimalStillEncodes() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "466651996";
+        byte[] expected = java.nio.ByteBuffer.allocate(9).put((byte) 0).putLong(466651996L).array();
+        org.junit.Assert.assertArrayEquals(expected, data.frames[0].anchorPoint.getPacketIDBytes());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void validate_invalidPacketID() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "ZZZZ";
+        data.validate();
+    }
 }

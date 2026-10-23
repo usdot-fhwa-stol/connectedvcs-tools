@@ -15,6 +15,8 @@
  */
 package gov.usdot.cv.config;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -22,6 +24,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+
+import gov.usdot.cv.gnis.services.GnisLookupService;
 
 @Configuration
 @EnableCaching
@@ -31,6 +35,11 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("mapTilesCache");
         cacheManager.setCaffeine(Caffeine.newBuilder().recordStats());
+        // GNIS codes rarely change, so lookups and searches are kept for a day to avoid repeat outside calls
+        cacheManager.registerCustomCache(GnisLookupService.LOOKUP_CACHE,
+            Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(1, TimeUnit.DAYS).recordStats().build());
+        cacheManager.registerCustomCache(GnisLookupService.SEARCH_CACHE,
+            Caffeine.newBuilder().maximumSize(5000).expireAfterWrite(1, TimeUnit.DAYS).recordStats().build());
         return cacheManager;
     }
 }

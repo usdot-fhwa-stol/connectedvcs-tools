@@ -36,6 +36,7 @@ import {
     setSuppressRegionOwnerChecks
 
 } from './mapping.js';
+import { convertLegacyPacketId } from './packet-id.js';
 
 const geojsonFormat = new ol.format.GeoJSON();
 const fromLonLat = ol.proj.fromLonLat;
@@ -254,6 +255,9 @@ function loadMap(data) {
             setFeatureAttributes(feature);
         }
     });
+
+    convertLegacyPacketId(vectorFeatures.filter(f => f.get('marker')?.type === 'TIM'))
+        .catch(error => console.error('Unable to convert the packet ID', error));
 
     // Process elevation for lanes
     lanesFeatures.forEach((feature) => {
