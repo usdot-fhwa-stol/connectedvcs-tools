@@ -433,11 +433,15 @@ public class TravelerInformationBuilder {
 		// boolean isRoadSign = true;
 		long isFurtherInfoID = (anchorPoint.furtherInfoID);
 		// if (isRoadSign) {
+		// if (isFurtherInfoID == null && isFurtherInfoID > 0) { PICK UP HERE
 		if (isFurtherInfoID > 0) {
 			System.out.println("The FurtherInfoID is " + isFurtherInfoID);
-			String furtherInfoIDhex = Long.toHexString(isFurtherInfoID);
+			byte[] furtherInfoIDBytes = new byte[] {
+				(byte) ((isFurtherInfoID >> 8) & 0xFF),  // high byte
+				(byte) (isFurtherInfoID & 0xFF)          // low byte
+			};
 			FurtherInfoID furtherInfoID = new FurtherInfoID();
-			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] bytes = furtherInfoIDhex));
+			msgId.setFurtherInfoID(new FurtherInfoID(furtherInfoIDBytes));
 		} else {
 			System.out.println("The FurtherInfoID is " + isFurtherInfoID + " (default)");
 			RoadSignID roadSignID = new RoadSignID();

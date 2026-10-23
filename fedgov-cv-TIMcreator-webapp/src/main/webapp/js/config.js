@@ -246,7 +246,7 @@ var help_notes = [
     {
         value: "further_info_id",
         title: "Further Info ID",
-        max: "999999999",
+        max: "65535",
         min: "0",
         units: "N/A",
         description: "Provides a link number to other messages which relate to the same event."
