@@ -1228,7 +1228,7 @@ function onFeatureAdded() {
     }
   });
 
-  refreshLaneWidths();
+  const laneWidthCheck = refreshLaneWidths(); // returned at the end, for the node Done handler
 
   polyMarkers.getSource().clear();
   radiuslayer.getSource().clear();
@@ -1338,6 +1338,7 @@ function onFeatureAdded() {
       }
     }
   }
+  return laneWidthCheck;
 }
 
 
@@ -1680,6 +1681,7 @@ async function populateRefWindow(feature, lat, lon) {
 //  */
 
 $(".btnDone").click(function () {
+  let savedLaneWidth = false; // set when a lane node's Lane Width Delta is saved
   $('#attributes').parsley().validate();
   let error_count = 0;
   const code_check = /^(n((1-((4|8|10|16)th|3rd|2)|3-4)|[1-9]\d*)|\d+)$/;
@@ -1751,6 +1753,7 @@ $(".btnDone").click(function () {
       nodeLaneWidth[selected_marker.get('number')] = $("#lane_width").val();
       feature.set('laneWidth', nodeLaneWidth);
       nodeLaneWidth = [];
+      savedLaneWidth = true;
     }
 
     if (layerName === "Poly Marker Layer") {
@@ -1875,7 +1878,10 @@ $(".btnDone").click(function () {
     }
   }
 
-  onFeatureAdded();
+  const laneWidthCheck = onFeatureAdded();
+  if (savedLaneWidth) {
+    warnIfLaneWidthNegative(laneWidthCheck); // once, when the node that causes it is saved
+  }
 });
 
 function mapSubtypeToValue(type, text) {
@@ -2161,7 +2167,8 @@ export function toggleWidthArray() {
 
 /**
  * Redraws the lane widths so they match the current lanes (this is the former body of toggleWidthArray).
- * Nothing is drawn while the Lane Widths item is unticked.
+ * The widths are always worked out and drawn into the widths layer; the Lane Widths item only shows or
+ * hides that layer, so the result (and the width warning) is the same whether the widths are shown or not.
  */
 function refreshLaneWidths() {
   const laneFeatures = lanes.getSource().getFeatures();
@@ -2171,7 +2178,7 @@ function refreshLaneWidths() {
 
   laneWidthSource.clear();
 
-  if (laneWidths.getVisible()) {
+  if (laneFeatures.length > 0) {
     let masterWidth;
 
     for (let f = 0; f < vectorFeatures.length; f++) {
@@ -2264,8 +2271,18 @@ function refreshLaneWidths() {
   }
 
   if (isNegative.value) {
-    const laneNum = laneFeatures[isNegative.lane].get("laneNumber");
-    alert(`Width deltas sum to less than zero on lane ${laneNum} at node ${isNegative.node}!`);
+    isNegative.lane = laneFeatures[isNegative.lane].get("laneNumber");
+  }
+  return isNegative;
+}
+
+/**
+ * Shows the "width deltas sum to less than zero" warning for a refreshLaneWidths result, if it found one.
+ * Called once from the node Done handler, not after every redraw.
+ */
+function warnIfLaneWidthNegative(result) {
+  if (result?.value) {
+    alert(`Width deltas sum to less than zero on lane ${result.lane} at node ${result.node}!`);
   }
 }
 
