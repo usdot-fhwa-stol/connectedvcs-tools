@@ -1232,15 +1232,12 @@ function refreshLaneWidths(lanes, vectors, laneWidths) {
 }
 
 /**
- * Show menu item "Lane Widths": ticks or unticks it. The state is the visibility of the widths layer,
- * the same way the Lanes, Approaches and Reference Points items work.
+ * Show menu item "Lane Widths": ticks or unticks it by flipping the widths layer's visibility. The layer's
+ * change:visible listener (map.js) then redraws the widths and updates the menu icon, so this item and the
+ * layer panel's "Width Layer" checkbox always agree.
  */
-function toggleWidthArray(lanes, vectors, laneWidths) {
-  const show = !laneWidths.getVisible();
-  laneWidths.setVisible(show);
-  document.getElementById("laneWidthIcon").className = show ? "fa fa-check-square-o" : "fa fa-square-o";
-
-  refreshLaneWidths(lanes, vectors, laneWidths);
+function toggleWidthArray(laneWidths) {
+  laneWidths.setVisible(!laneWidths.getVisible());
 }
 
 /**
