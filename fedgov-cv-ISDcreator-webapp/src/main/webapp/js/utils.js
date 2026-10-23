@@ -1214,16 +1214,15 @@ function drawLaneWidths(lanes, vectors, laneWidths) {
 
 /**
  * Redraws the lane widths so they match the current lanes. Call this whenever lanes change.
- * The widths are only drawn while the "Lane Widths" menu item is ticked (layer visible).
+ * The widths are always worked out and drawn into the widths layer. The "Lane Widths" menu item and the
+ * layer panel's "Width Layer" checkbox only show or hide that layer, like the other Show items, so the
+ * result (and the width warning) is the same whether the widths are shown or not.
  * A problem while drawing is logged, and does not stop the lane editing that called this.
  *
- * @returns the result of drawLaneWidths, or undefined when nothing was drawn
+ * @returns the result of drawLaneWidths, or undefined if drawing failed
  */
 function refreshLaneWidths(lanes, vectors, laneWidths) {
   laneWidths.getSource().clear();
-  if (!laneWidths.getVisible()) {
-    return undefined;
-  }
   try {
     return drawLaneWidths(lanes, vectors, laneWidths);
   } catch (e) {
@@ -1241,8 +1240,15 @@ function toggleWidthArray(lanes, vectors, laneWidths) {
   laneWidths.setVisible(show);
   document.getElementById("laneWidthIcon").className = show ? "fa fa-check-square-o" : "fa fa-square-o";
 
-  const result = refreshLaneWidths(lanes, vectors, laneWidths);
-  if (show && result?.value) {
+  refreshLaneWidths(lanes, vectors, laneWidths);
+}
+
+/**
+ * Shows the "width deltas sum to less than zero" warning for a refreshLaneWidths result, if it found one.
+ * Called once from the node Done handler, not after every redraw.
+ */
+function warnIfLaneWidthNegative(result) {
+  if (result?.value) {
     alert("Width deltas sum to less than zero on lane " + result.lane + " at node " + result.node + "!");
   }
 }
@@ -2457,6 +2463,7 @@ export {
   togglePoints ,
   toggleWidthArray,
   refreshLaneWidths,
+  warnIfLaneWidthNegative,
   directVincenty,
   inverseVincenty,
   toDeg,

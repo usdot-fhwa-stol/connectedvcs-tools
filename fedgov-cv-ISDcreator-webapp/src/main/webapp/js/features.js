@@ -166,7 +166,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 		}
 	};
 
-	refreshLaneWidths(lanes, vectors, laneWidths);
+	return refreshLaneWidths(lanes, vectors, laneWidths);
 }
 
 
