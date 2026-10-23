@@ -1119,93 +1119,134 @@ function togglePoints(vectors){
 }
 
 
-function toggleWidthArray(lanes, vectors, laneWidths) {
+/**
+ * Draws the lane width polygons into the lane widths layer.
+ * Does nothing if there is no reference point with a master lane width yet.
+ *
+ * @returns {{value: boolean, node: (number|string), lane: (number|string)}}
+ *   value is true when the width deltas of a lane sum to less than zero (node and lane say where).
+ */
+function drawLaneWidths(lanes, vectors, laneWidths) {
   let isNegative = {"value": false, "node": "", "lane": ""};
-  if (laneWidths.getSource().getFeatures().length == 0) {
-    let masterWidth;
-    let vectorFeatures = vectors.getSource().getFeatures();
-    for (let vectorFeature of vectorFeatures) {
-      console.log(vectorFeature)
-      if (vectorFeature.get("marker").name == "Reference Point Marker") {
-          masterWidth = parseFloat(vectorFeature.get("masterLaneWidth"));
-      }
+  let masterWidth;
+  let vectorFeatures = vectors.getSource().getFeatures();
+  for (let vectorFeature of vectorFeatures) {
+    if (vectorFeature.get("marker")?.name == "Reference Point Marker") {
+      masterWidth = parseFloat(vectorFeature.get("masterLaneWidth"));
     }
-    let laneFeatures = lanes.getSource().getFeatures();
-    for (let i = 0; i < laneFeatures.length; i++) {
-      let widthList = [];
-      let widthDeltaTotal = 0;
-      let flipped = false;
-
-      for (let j = 0; j < laneFeatures[i].getGeometry().getCoordinates().length; j++) {
-        let point1 = '';
-        let point2 = '';
-        if (j < laneFeatures[i].getGeometry().getCoordinates().length - 1) {
-            if (laneFeatures[i].getGeometry().getCoordinates()[j][0] == laneFeatures[i].getGeometry().getCoordinates()[j + 1][0] && laneFeatures[i].getGeometry().getCoordinates()[j][1] == laneFeatures[i].getGeometry().getCoordinates()[j + 1][1]) {
-                j++; //to prevent dots that are the exact same.
-            }
-        }
-
-        if (j < laneFeatures[i].getGeometry().getCoordinates().length - 1) {
-          point1 = new ol.proj.toLonLat(laneFeatures[i].getGeometry().getCoordinates()[j]);
-          point2 = new ol.proj.toLonLat(laneFeatures[i].getGeometry().getCoordinates()[j+1]);
-        } else {
-          point1 = new ol.proj.toLonLat(laneFeatures[i].getGeometry().getCoordinates()[j]);
-          if (laneFeatures[i].getGeometry().getCoordinates()[j][0] == laneFeatures[i].getGeometry().getCoordinates()[j-1][0] && laneFeatures[i].getGeometry().getCoordinates()[j][1] == laneFeatures[i].getGeometry().getCoordinates()[j-1][1]) {
-            point2 = new ol.proj.toLonLat(laneFeatures[i].getGeometry()[j - 2]);
-            flipped = true;
-          } else {
-            point2 = new ol.proj.toLonLat(laneFeatures[i].getGeometry().getCoordinates()[j - 1]);
-          }
-        }
-        let widthDelta = parseFloat(laneFeatures[i].get("laneWidth")[j]);
-        if (isNaN(widthDelta) || widthDelta == null || typeof widthDelta == "undefined") {
-            widthDelta = 0
-        }
-
-        widthDeltaTotal = widthDeltaTotal + widthDelta;
-
-        if (masterWidth + widthDeltaTotal < 0){
-            console.log(masterWidth + widthDeltaTotal)
-            isNegative = {"value": true, "node": j+1, "lane": i};
-            widthDeltaTotal = 0 - masterWidth;
-        }
-
-        let inverse = inverseVincenty(point1[1], point1[0], point2[1], point2[0]);
-
-        let direct1 = directVincenty(point1[1], point1[0], inverse.bearing + 90, (((masterWidth + widthDeltaTotal) / 2) / 100));
-        let direct2 = directVincenty(point1[1], point1[0], inverse.bearing - 90, (((masterWidth + widthDeltaTotal) / 2) / 100));
-
-        let newPoint1 = new ol.geom.Point(ol.proj.fromLonLat([direct1.lon, direct1.lat]));
-        let newPoint2 = new ol.geom.Point(ol.proj.fromLonLat([direct2.lon, direct2.lat]));
-
-        if (j == laneFeatures[i].getGeometry().getCoordinates().length - 1) {
-            j++; //flips the j value since it's the last lane point and we need to build in reverse
-        }
-
-        if (isOdd(j) && !flipped) {
-          widthList.push(newPoint1, newPoint2);
-          let coordinates = widthList.map(point => point.getCoordinates());
-          let widthBox = new ol.geom.LinearRing(coordinates);
-          laneWidths.getSource().addFeature(new ol.Feature(new ol.geom.Polygon([widthBox.getCoordinates()])));
-          widthList = [];
-          widthList.push(newPoint1, newPoint2);
-        } else {
-          widthList.push(newPoint2, newPoint1);
-          let coordinates = widthList.map(point => point.getCoordinates());
-          let widthBox =new  ol.geom.LinearRing(coordinates);
-          laneWidths.getSource().addFeature(new ol.Feature(new ol.geom.Polygon([widthBox.getCoordinates()])));
-          widthList = [];
-          widthList.push(newPoint2, newPoint1);
-          flipped = false;
-        }
-      }
-    }
-  } else {
-      laneWidths.getSource().clear();
+  }
+  if (!Number.isFinite(masterWidth)) {
+    return isNegative;
   }
 
-  if (isNegative.value){
-      alert("Width deltas sum to less than zero on lane " + laneFeatures[isNegative.lane].attributes.laneNumber + " at node " + isNegative.node + "!");
+  let laneFeatures = lanes.getSource().getFeatures();
+  for (const lane of laneFeatures) {
+    let widthList = [];
+    let widthDeltaTotal = 0;
+    let flipped = false;
+
+    for (let j = 0; j < lane.getGeometry().getCoordinates().length; j++) {
+      let point1 = '';
+      let point2 = '';
+      if (j < lane.getGeometry().getCoordinates().length - 1) {
+          if (lane.getGeometry().getCoordinates()[j][0] == lane.getGeometry().getCoordinates()[j + 1][0] && lane.getGeometry().getCoordinates()[j][1] == lane.getGeometry().getCoordinates()[j + 1][1]) {
+              j++; //to prevent dots that are the exact same.
+          }
+      }
+
+      if (j < lane.getGeometry().getCoordinates().length - 1) {
+        point1 = new ol.proj.toLonLat(lane.getGeometry().getCoordinates()[j]);
+        point2 = new ol.proj.toLonLat(lane.getGeometry().getCoordinates()[j+1]);
+      } else {
+        point1 = new ol.proj.toLonLat(lane.getGeometry().getCoordinates()[j]);
+        if (lane.getGeometry().getCoordinates()[j][0] == lane.getGeometry().getCoordinates()[j-1][0] && lane.getGeometry().getCoordinates()[j][1] == lane.getGeometry().getCoordinates()[j-1][1]) {
+          // was getGeometry()[j - 2], which is undefined and made the whole redraw throw
+          point2 = new ol.proj.toLonLat(lane.getGeometry().getCoordinates()[j - 2]);
+          flipped = true;
+        } else {
+          point2 = new ol.proj.toLonLat(lane.getGeometry().getCoordinates()[j - 1]);
+        }
+      }
+      let widthDelta = Number.parseFloat((lane.get("laneWidth") || [])[j]);
+      if (isNaN(widthDelta) || widthDelta == null || typeof widthDelta == "undefined") {
+          widthDelta = 0
+      }
+
+      widthDeltaTotal = widthDeltaTotal + widthDelta;
+
+      if (masterWidth + widthDeltaTotal < 0){
+          isNegative = {"value": true, "node": j+1, "lane": lane.get("laneNumber")};
+          widthDeltaTotal = 0 - masterWidth;
+      }
+
+      let inverse = inverseVincenty(point1[1], point1[0], point2[1], point2[0]);
+
+      let direct1 = directVincenty(point1[1], point1[0], inverse.bearing + 90, (((masterWidth + widthDeltaTotal) / 2) / 100));
+      let direct2 = directVincenty(point1[1], point1[0], inverse.bearing - 90, (((masterWidth + widthDeltaTotal) / 2) / 100));
+
+      let newPoint1 = new ol.geom.Point(ol.proj.fromLonLat([direct1.lon, direct1.lat]));
+      let newPoint2 = new ol.geom.Point(ol.proj.fromLonLat([direct2.lon, direct2.lat]));
+
+      if (j == lane.getGeometry().getCoordinates().length - 1) {
+          j++; //flips the j value since it's the last lane point and we need to build in reverse
+      }
+
+      if (isOdd(j) && !flipped) {
+        widthList.push(newPoint1, newPoint2);
+        let coordinates = widthList.map(point => point.getCoordinates());
+        let widthBox = new ol.geom.LinearRing(coordinates);
+        laneWidths.getSource().addFeature(new ol.Feature(new ol.geom.Polygon([widthBox.getCoordinates()])));
+        widthList = [];
+        widthList.push(newPoint1, newPoint2);
+      } else {
+        widthList.push(newPoint2, newPoint1);
+        let coordinates = widthList.map(point => point.getCoordinates());
+        let widthBox = new ol.geom.LinearRing(coordinates);
+        laneWidths.getSource().addFeature(new ol.Feature(new ol.geom.Polygon([widthBox.getCoordinates()])));
+        widthList = [];
+        widthList.push(newPoint2, newPoint1);
+        flipped = false;
+      }
+    }
+  }
+  return isNegative;
+}
+
+/**
+ * Redraws the lane widths so they match the current lanes. Call this whenever lanes change.
+ * The widths are always worked out and drawn into the widths layer. The "Lane Widths" menu item and the
+ * layer panel's "Width Layer" checkbox only show or hide that layer, like the other Show items, so the
+ * result (and the width warning) is the same whether the widths are shown or not.
+ * A problem while drawing is logged, and does not stop the lane editing that called this.
+ *
+ * @returns the result of drawLaneWidths, or undefined if drawing failed
+ */
+function refreshLaneWidths(lanes, vectors, laneWidths) {
+  laneWidths.getSource().clear();
+  try {
+    return drawLaneWidths(lanes, vectors, laneWidths);
+  } catch (e) {
+    console.error("Could not draw the lane widths", e);
+    return undefined;
+  }
+}
+
+/**
+ * Show menu item "Lane Widths": ticks or unticks it by flipping the widths layer's visibility. The layer's
+ * change:visible listener (map.js) then redraws the widths and updates the menu icon, so this item and the
+ * layer panel's "Width Layer" checkbox always agree.
+ */
+function toggleWidthArray(laneWidths) {
+  laneWidths.setVisible(!laneWidths.getVisible());
+}
+
+/**
+ * Shows the "width deltas sum to less than zero" warning for a refreshLaneWidths result, if it found one.
+ * Called once from the node Done handler, not after every redraw.
+ */
+function warnIfLaneWidthNegative(result) {
+  if (result?.value) {
+    alert("Width deltas sum to less than zero on lane " + result.lane + " at node " + result.node + "!");
   }
 }
 
@@ -2418,6 +2459,8 @@ export {
   toggleLanes,
   togglePoints ,
   toggleWidthArray,
+  refreshLaneWidths,
+  warnIfLaneWidthNegative,
   directVincenty,
   inverseVincenty,
   toDeg,
