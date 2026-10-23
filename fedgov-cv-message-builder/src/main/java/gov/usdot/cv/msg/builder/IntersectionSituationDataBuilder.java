@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -283,7 +284,7 @@ public class IntersectionSituationDataBuilder {
 
 	// Package-private so tests can reach it. The ASN.1 text is a convenience: if it cannot be
 	// produced, the encode must still return the hex.
-	<T> String readableOrFallback(java.util.function.Function<T, String> decode, T input) {
+	<T> String readableOrFallback(Function<T, String> decode, T input) {
 		try {
 			return decode.apply(input);
 		} catch (Exception e) {

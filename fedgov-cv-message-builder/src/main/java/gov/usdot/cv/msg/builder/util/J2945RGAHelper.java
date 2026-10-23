@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 LEIDOS.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package gov.usdot.cv.msg.builder.util;
 
 import java.util.regex.Matcher;
@@ -23,6 +39,9 @@ public class J2945RGAHelper {
     public static String getReadableRGAplusFrame(String framedHex) {
         try {
             byte[] framed = Hex.decodeHex(framedHex.toCharArray());
+
+            // TIMValidator decodes any MessageFrame, not just TIM.
+            // TODO: rename TIMValidator/TIMDecoder (and the JNI wrapper) to a generic frame decoder.
             return new TIMValidator().validateTIM(framed);
         } catch (DecoderException | SemiValidatorException e) {
             throw new IllegalArgumentException("Failed to decode RGA message: " + e.getMessage(), e);
