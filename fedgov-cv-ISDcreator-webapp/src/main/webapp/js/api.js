@@ -1,8 +1,14 @@
+import { getSimGroundZ, isSimMode } from "./sim-overlay.js";
 
 const esri_elevation_url = "/msp/esrimap/api/elevation";
 const google_places_autocomplete_url = "/msp/googlemap/api/places/autocomplete";
-const google_places_searchText_url = "/msp/googlemap/api/places/searchText"; 
+const google_places_searchText_url = "/msp/googlemap/api/places/searchText";
+// In sim mode all elevations come from the sim ground plane instead of Esri.
 async function getElevation(dot, latlon, i, j, callback){
+    if (isSimMode()) {
+      callback(getSimGroundZ(), i, j, latlon, dot);
+      return;
+    }
     try {
       const response = await fetch(esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon);
       if (!response.ok) {
@@ -22,6 +28,9 @@ async function getElevation(dot, latlon, i, j, callback){
   }
 
 async function getComputedElevation(latlon) {
+  if (isSimMode()) {
+    return getSimGroundZ();
+  }
   return new Promise((resolve, reject) => {
     $.ajax({
       url: esri_elevation_url + "/" + latlon.lat + '/' + latlon.lon,
@@ -43,6 +52,9 @@ async function getComputedElevation(latlon) {
 }
 
 async function getElev(lat, lon) {
+  if (isSimMode()) {
+    return getSimGroundZ();
+  }
   try {
     const response = await fetch(esri_elevation_url + "/" + lat + '/' + lon,{mode: 'cors'});
     if (!response.ok) {

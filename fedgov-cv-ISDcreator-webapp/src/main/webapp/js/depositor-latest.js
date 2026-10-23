@@ -7,6 +7,7 @@ import { errorMarkerStyle } from "./style.js";
 import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
 import { getElevationDelta } from "./features.js";
 import { getLaneTypeLabel } from "./utils.js";
+import { displayToSimLatLon, displayToSimLonLat } from "./sim-overlay.js";
 
 /**
  * DEFINE GLOBAL VARIABLES
@@ -242,7 +243,7 @@ function createMessageJSON()
                 if (!lanes.getSource().getFeatures()[j].get('computed')) {
                     for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
                         let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                        let lonlat = ol.proj.toLonLat(coord);
+                        let lonlat = displayToSimLonLat(ol.proj.toLonLat(coord));
 
                         let currentSpeedLimits = [];
                         if(laneFeat[j].get('speedLimitType')) {
@@ -614,7 +615,7 @@ function createMessageJSON()
             if(!laneFeat[j].get('computed')) {
                 for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
                     let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                    let lonlat = ol.proj.toLonLat(coord);
+                    let lonlat = displayToSimLonLat(ol.proj.toLonLat(coord));
                     cwNodeArray[m] = {
                         "nodeNumber": m,
                         "nodeLat": lonlat[1],
@@ -780,6 +781,7 @@ function createMessageJSON()
                 $('#message_alert').removeClass('alert-section-hidden');
                 $("#message_deposit").prop('disabled', true);
             }
+            const refLatLon = displayToSimLatLon(feature.get('LonLat').lat, feature.get('LonLat').lon);
             reference = {
                 "descriptiveIntersctionName": feature.get('intersectionName'),
                 "layerID": feature.get('layerID'),
@@ -787,8 +789,8 @@ function createMessageJSON()
                 "regionID": feature.get('regionID'),
                 "msgCount": feature.get('revisionNum'),
                 "masterLaneWidth": feature.get('masterLaneWidth'),
-                "referenceLat": feature.get('LonLat').lat,
-                "referenceLon": feature.get('LonLat').lon,
+                "referenceLat": refLatLon.lat,
+                "referenceLon": refLatLon.lon,
                 "referenceElevation": feature.get('elevation'),
                 "roadAuthorityId": feature.get('roadAuthorityId')?.split(".").map(num => parseInt(num, 10)),
                 "roadAuthorityIdType": feature.get('roadAuthorityIdType'),
@@ -850,12 +852,15 @@ function createMessageJSON()
         }
 
         if (feature.get('marker').name == "Verified Point Marker") {
+            const mapLatLon = displayToSimLatLon(feature.get('LonLat').lat, feature.get('LonLat').lon);
+            // Surveyed values are typed in display coordinates, so convert them the same way.
+            const surveyedLatLon = displayToSimLatLon(feature.get('verifiedLat'), feature.get('verifiedLon'));
             verified = {
-                "verifiedMapLat": feature.get('LonLat').lat,
-                "verifiedMapLon": feature.get('LonLat').lon,
+                "verifiedMapLat": mapLatLon.lat,
+                "verifiedMapLon": mapLatLon.lon,
                 "verifiedMapElevation": feature.get('elevation'),
-                "verifiedSurveyedLat": feature.get('verifiedLat'),
-                "verifiedSurveyedLon": feature.get('verifiedLon'),
+                "verifiedSurveyedLat": surveyedLatLon.lat,
+                "verifiedSurveyedLon": surveyedLatLon.lon,
                 "verifiedSurveyedElevation": feature.get('verifiedElev')
             };
 

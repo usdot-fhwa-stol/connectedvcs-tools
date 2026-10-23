@@ -2,6 +2,7 @@ import { getCookie, unselectFeature } from "./utils.js";
 import { onFeatureAdded } from "./features.js";
 import { selected } from "./parent-child-latest.js";
 import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
+import { getSimModeState, restoreSimMode } from "./sim-overlay.js";
 let isLoadMap = false;
 
 /**
@@ -158,6 +159,10 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		c = true;
 	}
   
+	if (c === true && data.simMode) {
+		restoreSimMode(data.simMode);
+	}
+
 	if (c === true && loadType == "load") {
     	vectors.setSource(vectorsSource);
 		lanes.setSource(lanesSource);
@@ -486,6 +491,10 @@ function saveMap(vectors, box, lanes, laneMarkers, selected)
 					"lanes" : new ol.format.GeoJSON().writeFeatures(lanesFeatures, true),
 					"laneMarkers" : new ol.format.GeoJSON().writeFeatures(laneMarkersFeatures, true)
 				};
+				const simMode = getSimModeState();
+				if (simMode) {
+					layers.simMode = simMode;
+				}
 				saveFile( layers, vectors, selected );
 		} else {
 			alert("Must enter a number value.");
