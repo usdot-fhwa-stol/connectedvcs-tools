@@ -237,7 +237,17 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     } else {
       $("#lane_width").val("0");
     }
-    
+
+    // Speed Limit Delta: change in speed limit from the previous node. Hidden for node 0
+    // (which holds the lane's base speed limits) and for computed lanes (which have no nodes of their own).
+    if (selectedMarker.get("number") > 0 && !selectedMarker.get("computed")) {
+      $(".speed_limit_delta").show();
+      $("#speed_limit_delta").val(laneFeatures[selectedMarker.get("lane")]?.get("speedLimitDelta")?.[selectedMarker.get("number")] ?? "");
+    } else {
+      $("#speed_limit_delta").val("");
+      $(".speed_limit_delta").hide();
+    }
+
     if (! selectedMarker.get("elevation")?.value){
       $("#elev").val("");
     } else {
@@ -427,6 +437,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     }
     resetLaneAttributes();
     laneConnections.getSource().clear();
+    $(".speed_limit_delta").hide();
     $(".node_delta").hide();
     $(".elev_delta").hide();
     clearConnectionsHint();
@@ -541,6 +552,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".elev").hide();
       $(".verified_elev").hide();
       $(".lane_width").hide();
+      $(".speed_limit_delta").hide();
       $(".node_delta").hide();
       $(".elev_delta").hide();
       $(".descriptive_name").hide();

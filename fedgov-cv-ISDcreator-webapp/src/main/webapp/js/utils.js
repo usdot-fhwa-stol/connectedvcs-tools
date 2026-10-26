@@ -255,6 +255,7 @@ function referencePointWindow(feature, selected, rgaEnabled, speedForm){
   $(".subsequent-node-note").hide();
   $(".lane_number").hide();
   $(".lane_width").hide();
+  $(".speed_limit_delta").hide();
   $(".lane_info_time_restrictions").hide();
   $(".descriptive_name").hide();
   $(".lane_type").hide();
