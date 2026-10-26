@@ -102,9 +102,9 @@ export function displayToSimLonLat(lonLat) {
  */
 export function displayToSimLatLon(lat, lon) {
     if (!sim.active) return { lat, lon };
-    const latNum = parseFloat(lat);
-    const lonNum = parseFloat(lon);
-    if (!isFinite(latNum) || !isFinite(lonNum)) return { lat, lon };
+    const latNum = Number.parseFloat(lat);
+    const lonNum = Number.parseFloat(lon);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) return { lat, lon };
     const [simLon, simLat] = displayToSimLonLat([lonNum, latNum]);
     return { lat: simLat, lon: simLon };
 }
@@ -124,14 +124,14 @@ export function getSimModeState() {
 
 /** Re-enter sim mode from a saved map file so its features encode correctly. */
 export function restoreSimMode(state) {
-    const anchor = state && state.anchor;
-    if (!anchor || !isFinite(anchor.lat) || !isFinite(anchor.lon)) return;
+    const anchor = state?.anchor;
+    if (!anchor || !Number.isFinite(anchor.lat) || !Number.isFinite(anchor.lon)) return;
     if (laneLayer && (anchor.lat !== sim.anchor.lat || anchor.lon !== sim.anchor.lon)) {
         // Loaded sim lanes were placed at the old anchor.
         removeSimLayers();
     }
     sim.anchor = { lat: anchor.lat, lon: anchor.lon };
-    if (isFinite(state.groundZ)) sim.groundZ = state.groundZ;
+    if (Number.isFinite(state.groundZ)) sim.groundZ = state.groundZ;
     sim.active = true;
     refreshPanel();
 }
@@ -157,7 +157,8 @@ export function initSimOverlay(mapGetter, userOptions) {
         exitSimMode();
     });
     $('#sim-map-load').on('click', function () {
-        loadFromModal();
+        // loadFromModal reports its own errors in the modal.
+        void loadFromModal();
     });
 }
 
@@ -171,7 +172,8 @@ function setModalStatus(message, type) {
     const el = document.getElementById('sim-map-status');
     if (!el) return;
     el.textContent = message;
-    el.className = message ? 'alert alert-' + (type === 'error' ? 'danger' : 'info') : '';
+    const alertType = type === 'error' ? 'danger' : 'info';
+    el.className = message ? 'alert alert-' + alertType : '';
 }
 
 async function loadFromModal() {
@@ -180,7 +182,7 @@ async function loadFromModal() {
         setModalStatus('Select the sim OSM file.', 'error');
         return;
     }
-    if (!sim.active && options.hasUserFeatures && options.hasUserFeatures()) {
+    if (!sim.active && options.hasUserFeatures?.()) {
         const ok = confirm('The map already has drawn features. In sim mode they will be encoded as sim coordinates, '
             + 'relative to the sim map. Continue?');
         if (!ok) return;
@@ -247,38 +249,49 @@ function parseOsm(text, anchor) {
         throw new Error('The selected file is not a valid OSM XML file.');
     }
 
-    const nodes = new Map();
-    for (const node of doc.getElementsByTagName('node')) {
-        const lat = parseFloat(node.getAttribute('lat'));
-        const lon = parseFloat(node.getAttribute('lon'));
-        if (isFinite(lat) && isFinite(lon)) {
-            nodes.set(node.getAttribute('id'), localToMapCoord(simLonLatToLocal([lon, lat]), anchor));
-        }
-    }
-
+    const nodes = parseOsmNodes(doc, anchor);
     const features = [];
     for (const way of doc.getElementsByTagName('way')) {
-        const coords = [];
-        for (const nd of way.getElementsByTagName('nd')) {
-            const coord = nodes.get(nd.getAttribute('ref'));
-            if (coord) coords.push(coord);
-        }
-        if (coords.length < 2) continue;
-        const tags = {};
-        for (const tag of way.getElementsByTagName('tag')) {
-            tags[tag.getAttribute('k')] = tag.getAttribute('v');
-        }
-        features.push(new ol.Feature({
-            geometry: new ol.geom.LineString(coords),
-            osmId: way.getAttribute('id'),
-            type: tags.type,
-            subtype: tags.subtype
-        }));
+        const feature = osmWayToFeature(way, nodes);
+        if (feature) features.push(feature);
     }
     if (features.length === 0) {
         throw new Error('The OSM file contains no ways to draw.');
     }
     return features;
+}
+
+/** Map of OSM node id -> map coordinate, skipping nodes without a valid lat/lon. */
+function parseOsmNodes(doc, anchor) {
+    const nodes = new Map();
+    for (const node of doc.getElementsByTagName('node')) {
+        const lat = Number.parseFloat(node.getAttribute('lat'));
+        const lon = Number.parseFloat(node.getAttribute('lon'));
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            nodes.set(node.getAttribute('id'), localToMapCoord(simLonLatToLocal([lon, lat]), anchor));
+        }
+    }
+    return nodes;
+}
+
+/** LineString feature for an OSM way, or null when fewer than 2 of its nodes are known. */
+function osmWayToFeature(way, nodes) {
+    const coords = [];
+    for (const nd of way.getElementsByTagName('nd')) {
+        const coord = nodes.get(nd.getAttribute('ref'));
+        if (coord) coords.push(coord);
+    }
+    if (coords.length < 2) return null;
+    const tags = {};
+    for (const tag of way.getElementsByTagName('tag')) {
+        tags[tag.getAttribute('k')] = tag.getAttribute('v');
+    }
+    return new ol.Feature({
+        geometry: new ol.geom.LineString(coords),
+        osmId: way.getAttribute('id'),
+        type: tags.type,
+        subtype: tags.subtype
+    });
 }
 
 const laneStyles = {
@@ -364,8 +377,8 @@ function createPanel() {
     }
 
     document.getElementById('sim-ground-z').addEventListener('change', function () {
-        const z = parseFloat(this.value);
-        if (isFinite(z)) {
+        const z = Number.parseFloat(this.value);
+        if (Number.isFinite(z)) {
             sim.groundZ = z;
         } else {
             this.value = sim.groundZ;
