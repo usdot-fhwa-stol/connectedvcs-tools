@@ -1250,6 +1250,15 @@ function warnIfLaneWidthNegative(result) {
   }
 }
 
+/**
+ * Whether a node's Lane Width Delta really changed. The values are compared the way the widths are drawn,
+ * where an empty or invalid delta counts as 0, so "0", 0, "" and a missing value are all the same delta.
+ */
+function laneWidthDeltaChanged(oldDelta, newDelta) {
+  const asDrawn = (delta) => Number.parseFloat(delta) || 0;
+  return asDrawn(oldDelta) !== asDrawn(newDelta);
+}
+
 /*!
  * JavaScript function to calculate the geodetic distance between two points specified by latitude/longitude using the Vincenty inverse formula for ellipsoids.
  *
@@ -2461,6 +2470,7 @@ export {
   toggleWidthArray,
   refreshLaneWidths,
   warnIfLaneWidthNegative,
+  laneWidthDeltaChanged,
   directVincenty,
   inverseVincenty,
   toDeg,

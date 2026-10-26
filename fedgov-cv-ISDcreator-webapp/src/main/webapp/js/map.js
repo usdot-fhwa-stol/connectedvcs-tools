@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, warnIfLaneWidthNegative, refreshLaneWidths, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, warnIfLaneWidthNegative, laneWidthDeltaChanged, refreshLaneWidths, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -1316,7 +1316,7 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
-    let savedLaneWidth = false; // set when a lane node's Lane Width Delta is saved
+    let savedLaneWidth = false; // set when a lane node's Lane Width Delta is changed
     // Explicit, rather than relying on a Select deselect event to fire for node 0.
     clearConnectionsHint();
     laneConnections.getSource().clear();
@@ -1513,9 +1513,10 @@ function registerModalButtonEvents() {
         });
 
         nodeLaneWidth = $("#lane_width").val();
+        // Only a delta that really changed can bring up the width warning, at the end of this handler
+        savedLaneWidth = laneWidthDeltaChanged(lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")], nodeLaneWidth);
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")] = nodeLaneWidth
         nodeLaneWidth = 0;
-        savedLaneWidth = true;
 
         selectedMarker.set("elevation", $("#elev").val());
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
