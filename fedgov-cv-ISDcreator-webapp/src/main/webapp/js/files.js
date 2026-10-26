@@ -2,7 +2,7 @@ import { getCookie, unselectFeature } from "./utils.js";
 import { onFeatureAdded } from "./features.js";
 import { selected } from "./parent-child-latest.js";
 import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
-import { getSimModeState, restoreSimMode } from "./sim-overlay.js";
+import { clearSimMode, getSimModeState, restoreSimMode } from "./sim-overlay.js";
 let isLoadMap = false;
 
 /**
@@ -161,6 +161,8 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
   
 	if (c === true && data.simMode) {
 		restoreSimMode(data.simMode);
+	} else if (c === true && loadType == "load") {
+		clearSimMode();
 	}
 
 	if (c === true && loadType == "load") {

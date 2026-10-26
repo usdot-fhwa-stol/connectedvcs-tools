@@ -215,6 +215,12 @@ function exitSimMode() {
     const ok = confirm('Exit sim mode? Features already drawn will be encoded with their displayed coordinates '
         + 'instead of sim coordinates.');
     if (!ok) return;
+    clearSimMode();
+}
+
+/** Leave sim mode without asking, e.g. when a map file without sim state replaces all features. */
+export function clearSimMode() {
+    if (!sim.active) return;
     removeSimLayers();
     sim.active = false;
     // The next sim map is anchored at the map center at that time.
