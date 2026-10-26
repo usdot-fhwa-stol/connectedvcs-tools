@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, getLaneTypeLabel, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, getLaneTypeLabel, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches, refreshLaneWidths } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
 import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
 
@@ -12,7 +12,8 @@ export function clearConnectionsHint() {
   }
 }
 
-function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
+function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, widthLayers, laneMarkers, deleteMode, selected){
+    const { laneWidths, vectors } = widthLayers; // the lane widths layer, and the layer with the reference point
     if (evt.selected?.length > 0) {
       console.log('Lane feature selected:', evt.selected[0]);  
     }else{
@@ -44,7 +45,7 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
             for(let i = 0; i < dependentLanes.length; i++) {
               deleteMarker(laneLayer, dependentLanes[i], lanes, selected);
             }
-            laneWidths.getSource().clear();
+            refreshLaneWidths(lanes, vectors, laneWidths);
           }
           else {
             // controls.del.unselect(selectedLane);
@@ -69,11 +70,11 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
 
           // Delete this computed lane
           deleteMarker(laneLayer,selectedLane,lanes, selected);
-          laneWidths.getSource().clear();
+          refreshLaneWidths(lanes, vectors, laneWidths);
         }
         else {
           deleteMarker(laneLayer, selectedLane,lanes, selected);
-          laneWidths.getSource().clear();
+          refreshLaneWidths(lanes, vectors, laneWidths);
         }
     }
 }

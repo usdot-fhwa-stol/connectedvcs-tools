@@ -1,4 +1,4 @@
-import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
+import {addLaneInfoTimeRestrictions, addApproachTimeRestrictions, addConnectionsTimeRestrictions, addRow, addApproachRow, isSpeedLimitTypePassengerVehicleMaxSpeedSelected, isSpeedLimitTypePassengerVehicleMinSpeedSelected, deleteRow, deleteApproachRow, getCookie, getLaneInfoDaySelection, getLaneInfoTimePeriod, getLaneTypeOptions, getLaneTypeValue, hideRGAFields, hideRGAFieldsAssociatedToSpeedLimits, updateDeleteButtonStates, makeDroppable, onMappedGeomIdChangeCallback, onRegionIdChangeCallback, onRoadAuthorityIdChangeCallback, rebuildConnections, rebuildApproaches, revisionNumChangeCallback, addToSpeedFormIndexArray, removeFromSpeedFormIndexArray, removeSpeedForm, resetRGAStatus, resetSpeedDropdowns, saveApproaches, saveConnections, saveSpeedForm, setLaneAttributes, setRGAStatus, toggle, toggleBars, toggleLanes, toggleLaneTypeAttributes, togglePoints, toggleWidthArray, warnIfLaneWidthNegative, laneWidthDeltaChanged, refreshLaneWidths, unselectFeature, updateSharedWith, updateTimeRestrictionsHTML, updateApproachTimeRestrictionsHTML, updateConnectionsTimeRestrictionsHTML, updateSpeedTimeRestrictionsHTML, updateTypeAttributes} from "./utils.js";
 import {newChildMap, newParentMap, openChildMap, openParentMap, selected, updateChildParent}  from "./parent-child-latest.js"
 import {deleteTrace, loadKMLTrace, loadRSMTrace, saveMap, toggleControlsOn,} from "./files.js";
 import {barHighlightedStyle, barStyle, connectionsStyle, errorMarkerStyle, laneStyle, measureStyle, pointStyle, vectorStyle, widthStyle} from "./style.js";
@@ -348,7 +348,7 @@ function registerSelectInteraction() {
   });
 
   laneSelectInteraction.on("select", (event) => {
-    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected);
+    laneSelectInteractionCallback(event, overlayLayersGroup, lanes, { laneWidths, vectors }, laneMarkers, deleteMode, selected);
   });
   map.addInteraction(laneSelectInteraction);
 
@@ -785,7 +785,13 @@ function initSideBar() {
     toggle(lanes, vectors, laneMarkers, laneWidths, laneConnections);
   });
   $("#toggleLaneWidth").click(() => {
-    toggleWidthArray(lanes, vectors, laneWidths);
+    toggleWidthArray(laneWidths);
+  });
+  // Both the Show menu item and the layer panel's "Width Layer" checkbox change this visibility:
+  // whichever one was used, redraw the widths and update the menu icon.
+  laneWidths.on("change:visible", () => {
+    document.getElementById("laneWidthIcon").className = laneWidths.getVisible() ? "fa fa-check-square-o" : "fa fa-square-o";
+    refreshLaneWidths(lanes, vectors, laneWidths);
   });
 
   /***
@@ -1310,6 +1316,7 @@ function registerModalButtonEvents() {
    * with issues red, otherwise, it allows the data object to be created and saved to the feature
    */
   $(".btnDone").click(() => {
+    let savedLaneWidth = false; // set when a lane node's Lane Width Delta is changed
     // Explicit, rather than relying on a Select deselect event to fire for node 0.
     clearConnectionsHint();
     laneConnections.getSource().clear();
@@ -1506,6 +1513,8 @@ function registerModalButtonEvents() {
         });
 
         nodeLaneWidth = $("#lane_width").val();
+        // Only a delta that really changed can bring up the width warning, at the end of this handler
+        savedLaneWidth = laneWidthDeltaChanged(lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")], nodeLaneWidth);
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")] = nodeLaneWidth
         nodeLaneWidth = 0;
 
@@ -1587,7 +1596,10 @@ function registerModalButtonEvents() {
       computingLane = false;
       computedLaneSource = null;
     }
-    onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+    const laneWidthCheck = onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, false);
+    if (savedLaneWidth) {
+      warnIfLaneWidthNegative(laneWidthCheck); // once, when the node that causes it is saved
+    }
     //unselect the current marker
   });
 
