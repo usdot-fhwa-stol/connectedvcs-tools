@@ -2283,7 +2283,9 @@ function refreshLaneWidths() {
  */
 function warnIfLaneWidthNegative(result) {
   if (result?.value) {
-    alert(`Width deltas sum to less than zero on lane ${result.lane} at node ${result.node}!`);
+    // TIM lanes usually have no lane number, so the lane is only named when it has one
+    const onLane = [undefined, null, ""].includes(result.lane) ? "" : ` on lane ${result.lane}`;
+    alert(`Width deltas sum to less than zero${onLane} at node ${result.node}!`);
   }
 }
 
