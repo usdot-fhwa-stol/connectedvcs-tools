@@ -1681,7 +1681,7 @@ async function populateRefWindow(feature, lat, lon) {
 //  */
 
 $(".btnDone").click(function () {
-  let savedLaneWidth = false; // set when a lane node's Lane Width Delta is saved
+  let savedLaneWidth = false; // set when a lane node's Lane Width Delta is changed
   $('#attributes').parsley().validate();
   let error_count = 0;
   const code_check = /^(n((1-((4|8|10|16)th|3rd|2)|3-4)|[1-9]\d*)|\d+)$/;
@@ -1750,10 +1750,11 @@ $(".btnDone").click(function () {
       };
       feature.set('elevation', elevation);
 
+      // Only a delta that really changed can bring up the width warning, at the end of this handler
+      savedLaneWidth = laneWidthDeltaChanged(nodeLaneWidth[selected_marker.get('number')], $("#lane_width").val());
       nodeLaneWidth[selected_marker.get('number')] = $("#lane_width").val();
       feature.set('laneWidth', nodeLaneWidth);
       nodeLaneWidth = [];
-      savedLaneWidth = true;
     }
 
     if (layerName === "Poly Marker Layer") {
@@ -2284,6 +2285,15 @@ function warnIfLaneWidthNegative(result) {
   if (result?.value) {
     alert(`Width deltas sum to less than zero on lane ${result.lane} at node ${result.node}!`);
   }
+}
+
+/**
+ * Whether a node's Lane Width Delta really changed. The values are compared the way the widths are drawn,
+ * where an empty or invalid delta counts as 0, so "0", 0, "" and a missing value are all the same delta.
+ */
+function laneWidthDeltaChanged(oldDelta, newDelta) {
+  const asDrawn = (delta) => Number.parseFloat(delta) || 0;
+  return asDrawn(oldDelta) !== asDrawn(newDelta);
 }
 
 function isOdd(num) { return (num % 2) == 1; }
