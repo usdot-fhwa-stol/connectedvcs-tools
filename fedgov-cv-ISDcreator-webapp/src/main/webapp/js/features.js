@@ -75,7 +75,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 		}
 		if (!Array.isArray(laneFeat.get("speedLimitDelta"))) {
 			// Maps saved before Speed Limit Delta existed have no deltas, so every node is empty
-			laneFeat.set("speedLimitDelta", new Array(max).fill([]));
+			laneFeat.set("speedLimitDelta", []);
 		}
 		if(!laneFeat.get("computed"))
 		{
