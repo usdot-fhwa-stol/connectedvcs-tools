@@ -252,6 +252,16 @@ function createMessageJSON()
                     // Running total of the Speed Limit Deltas entered on this lane's nodes
                     let cumulativeSpeedLimitDelta = 0;
                     const usesIntersectionSpeedLimits = !hasSpeedLimits(laneFeat[j].get('speedLimitType'));
+                    // A Speed Limit Delta needs a base speed limit from the lane or the intersection
+                    const hasSpeedLimitDelta = (laneFeat[j].get('speedLimitDelta') || []).some(
+                        (delta, nodeIndex) => nodeIndex > 0 && String(delta ?? "").trim() !== ""
+                    );
+                    if (hasSpeedLimitDelta && usesIntersectionSpeedLimits && !hasSpeedLimits(intersectionSpeedLimits) &&
+                        $('#speed-limit-delta-base-alert-' + laneFeat[j].get('laneNumber')).length === 0) {
+                        $("#message_deposit").prop('disabled', true);
+                        $('#alert_placeholder').append('<div id="speed-limit-delta-base-alert-' + laneFeat[j].get('laneNumber') + '" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Speed Limit Delta entered in lane " + laneFeat[j].get('laneNumber') + " but no speed limit is defined on the lane's first node or the reference point marker." +'</span></div>');
+                        $('#message_alert').removeClass('alert-section-hidden');
+                    }
                     for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
                         let coord = laneFeat[j].getGeometry().getCoordinates()[m];
                         let lonlat = ol.proj.toLonLat(coord);
