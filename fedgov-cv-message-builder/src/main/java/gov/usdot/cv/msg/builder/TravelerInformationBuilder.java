@@ -431,19 +431,20 @@ public class TravelerInformationBuilder {
 		MsgId msgId = new MsgId();
 		// always using RoadSign for now
 		// boolean isRoadSign = true;
-		long isFurtherInfoID = (anchorPoint.furtherInfoID);
 		// if (isRoadSign) {
-		// if (isFurtherInfoID == null && isFurtherInfoID > 0) { PICK UP HERE
-		if (isFurtherInfoID > 0) {
-			System.out.println("The FurtherInfoID is " + isFurtherInfoID);
-			byte[] furtherInfoIDBytes = new byte[] {
-				(byte) ((isFurtherInfoID >> 8) & 0xFF),  // high byte
-				(byte) (isFurtherInfoID & 0xFF)          // low byte
-			};
+
+		long furtherInfoIDValue = (anchorPoint.furtherInfoID);
+		System.out.println("FurtherInfoID: " + furtherInfoIDValue);
+
+		byte[] furtherInfoIDBytes = new byte[] {
+			(byte) ((furtherInfoIDValue >> 8) & 0xFF),  // high byte
+			(byte) (furtherInfoIDValue & 0xFF)          // low byte
+		};
+
+		if (furtherInfoIDValue > 0) {
 			FurtherInfoID furtherInfoID = new FurtherInfoID();
 			msgId.setFurtherInfoID(new FurtherInfoID(furtherInfoIDBytes));
 		} else {
-			System.out.println("The FurtherInfoID is " + isFurtherInfoID + " (default)");
 			RoadSignID roadSignID = new RoadSignID();
 			roadSignID.setPosition(getAnchorPointPosition(travInputData, anchorPoint));
 			roadSignID.setViewAngle(getHeadingSlice(anchorPoint));

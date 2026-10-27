@@ -377,11 +377,24 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
         {
 
             jclass msgIdCls = (*env)->GetObjectClass(env, msgId);
+            jmethodID midGetFurtherInfoID = (*env)->GetMethodID(
+                env, msgIdCls, "getFurtherInfoID",
+                "()Lgov/usdot/cv/timencoder/FurtherInfoID;");
+            jobject fiidObj = midGetFurtherInfoID ? (*env)->CallObjectMethod(env, msgId, midGetFurtherInfoID) : NULL;
             jmethodID midGetRoadSign = (*env)->GetMethodID(
                 env, msgIdCls, "getRoadSignID",
                 "()Lgov/usdot/cv/timencoder/RoadSignID;");
             jobject rsObj = midGetRoadSign ? (*env)->CallObjectMethod(env, msgId, midGetRoadSign) : NULL;
 
+            if (fiidObj)
+            {
+                tdf->msgId.present = TravelerDataFrame__msgId_PR_furtherInfoID;
+                FurtherInfoID_t *fiid = &tdf->msgId.choice.furtherInfoID;
+
+                jclass fiidCls = (*env)->GetObjectClass(env, fiidObj);
+
+                (*env)->DeleteLocalRef(env, msgIdCls);
+            }
             if (rsObj)
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_roadSignID;
