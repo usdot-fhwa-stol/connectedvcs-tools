@@ -396,6 +396,7 @@ function registerMapEvents() {
 
 
       deleteMarker(lanes, selected);
+      refreshLaneWidths();
 
       // Re-enable controls
       document.getElementById('drawPoly').disabled = false;
@@ -1227,10 +1228,7 @@ function onFeatureAdded() {
     }
   });
 
-  if (laneWidths.getSource().getFeatures().length !== 0) {
-    laneWidths.getSource().clear();
-    toggleWidthArray();
-  }
+  const laneWidthCheck = refreshLaneWidths(); // returned at the end, for the node Done handler
 
   polyMarkers.getSource().clear();
   radiuslayer.getSource().clear();
@@ -1340,6 +1338,7 @@ function onFeatureAdded() {
       }
     }
   }
+  return laneWidthCheck;
 }
 
 
@@ -1682,6 +1681,7 @@ async function populateRefWindow(feature, lat, lon) {
 //  */
 
 $(".btnDone").click(function () {
+  let savedLaneWidth = false; // set when a lane node's Lane Width Delta is changed
   $('#attributes').parsley().validate();
   let error_count = 0;
   const code_check = /^(n((1-((4|8|10|16)th|3rd|2)|3-4)|[1-9]\d*)|\d+)$/;
@@ -1750,6 +1750,8 @@ $(".btnDone").click(function () {
       };
       feature.set('elevation', elevation);
 
+      // Only a delta that really changed can bring up the width warning, at the end of this handler
+      savedLaneWidth = laneWidthDeltaChanged(nodeLaneWidth[selected_marker.get('number')], $("#lane_width").val());
       nodeLaneWidth[selected_marker.get('number')] = $("#lane_width").val();
       feature.set('laneWidth', nodeLaneWidth);
       nodeLaneWidth = [];
@@ -1877,7 +1879,10 @@ $(".btnDone").click(function () {
     }
   }
 
-  onFeatureAdded();
+  const laneWidthCheck = onFeatureAdded();
+  if (savedLaneWidth) {
+    warnIfLaneWidthNegative(laneWidthCheck); // once, when the node that causes it is saved
+  }
 });
 
 function mapSubtypeToValue(type, text) {
@@ -2150,15 +2155,31 @@ function changePriority(mutcd) {
   }
 }
 
-
-
+/**
+ * Show menu item "Lane Widths": ticks or unticks it. The state is the visibility of the widths layer,
+ * the same way the Regions and Markers items work.
+ */
 export function toggleWidthArray() {
+  const show = !laneWidths.getVisible();
+  laneWidths.setVisible(show);
+  document.getElementById("laneWidthIcon").className = show ? "fa fa-check-square-o" : "fa fa-square-o";
+  refreshLaneWidths();
+}
+
+/**
+ * Redraws the lane widths so they match the current lanes (this is the former body of toggleWidthArray).
+ * The widths are always worked out and drawn into the widths layer; the Lane Widths item only shows or
+ * hides that layer, so the result (and the width warning) is the same whether the widths are shown or not.
+ */
+function refreshLaneWidths() {
   const laneFeatures = lanes.getSource().getFeatures();
   const vectorFeatures = vectors.getSource().getFeatures();
   const laneWidthSource = laneWidths.getSource();
   var isNegative = { value: false, node: "", lane: "" };
 
-  if (laneWidthSource.getFeatures().length === 0) {
+  laneWidthSource.clear();
+
+  if (laneFeatures.length > 0) {
     let masterWidth;
 
     for (let f = 0; f < vectorFeatures.length; f++) {
@@ -2166,6 +2187,9 @@ export function toggleWidthArray() {
       if (attr.marker?.type === "TIM") {
         masterWidth = parseFloat(attr.masterLaneWidth);
       }
+    }
+    if (!Number.isFinite(masterWidth)) {
+      return; // no TIM marker with a master lane width yet
     }
 
 
@@ -2245,14 +2269,33 @@ export function toggleWidthArray() {
         }
       }
     }
-  } else {
-    laneWidthSource.clear();
   }
 
   if (isNegative.value) {
-    const laneNum = laneFeatures[isNegative.lane].get("laneNumber");
-    alert(`Width deltas sum to less than zero on lane ${laneNum} at node ${isNegative.node}!`);
+    isNegative.lane = laneFeatures[isNegative.lane].get("laneNumber");
   }
+  return isNegative;
+}
+
+/**
+ * Shows the "width deltas sum to less than zero" warning for a refreshLaneWidths result, if it found one.
+ * Called once from the node Done handler, not after every redraw.
+ */
+function warnIfLaneWidthNegative(result) {
+  if (result?.value) {
+    // TIM lanes usually have no lane number, so the lane is only named when it has one
+    const onLane = [undefined, null, ""].includes(result.lane) ? "" : ` on lane ${result.lane}`;
+    alert(`Width deltas sum to less than zero${onLane} at node ${result.node}!`);
+  }
+}
+
+/**
+ * Whether a node's Lane Width Delta really changed. The values are compared the way the widths are drawn,
+ * where an empty or invalid delta counts as 0, so "0", 0, "" and a missing value are all the same delta.
+ */
+function laneWidthDeltaChanged(oldDelta, newDelta) {
+  const asDrawn = (delta) => Number.parseFloat(delta) || 0;
+  return asDrawn(oldDelta) !== asDrawn(newDelta);
 }
 
 function isOdd(num) { return (num % 2) == 1; }

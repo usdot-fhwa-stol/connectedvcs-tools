@@ -95,10 +95,7 @@ $(document).ready(function()
             success : function(result) {
                 // console.log( "success: ", result );
                 setMessageResult( true, result.hexString, "hex" );
-
-                // TODO: Temporarily changing this until decoder is implemented using ASN1c
-                // setMessageResult( true, result.readableString, "text" );
-                setMessageResult( true, "This box is not populated in this version of the Tool", "text" );
+                setMessageResult( true, result.readableString, "text" );
 
             },
             error : function(xhr, status, error) {
