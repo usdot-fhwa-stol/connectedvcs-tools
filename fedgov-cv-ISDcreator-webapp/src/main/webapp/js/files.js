@@ -2,7 +2,7 @@ import { getCookie, unselectFeature } from "./utils.js";
 import { onFeatureAdded } from "./features.js";
 import { selected } from "./parent-child-latest.js";
 import { setStatusHintForState } from "../../private-resources/js/status-bar.js";
-import { clearSimMode, getSimModeState, restoreSimMode } from "./sim-overlay.js";
+import { getSimModeState, handleLoadWithoutSimState, restoreSimMode } from "./sim-overlay.js";
 let isLoadMap = false;
 
 /**
@@ -162,7 +162,7 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 	if (c === true && data.simMode) {
 		restoreSimMode(data.simMode);
 	} else if (c === true && loadType == "load") {
-		clearSimMode();
+		handleLoadWithoutSimState(getReferenceLatLon(vectorLayerAsOL));
 	}
 
 	if (c === true && loadType == "load") {
@@ -279,6 +279,17 @@ function loadMap( data, map ,lanes, vectors, laneMarkers, box, laneWidths, selec
 		toggleControlsOn('none', lanes, vectors, laneMarkers, laneWidths, false, controls);
 	}
 
+}
+
+/**
+ * @brief Returns the {lat, lon} of the Reference Point Marker among the given features, or null if there is none
+ * @param {ol.Feature[]} features - point features read from a map file
+ */
+function getReferenceLatLon(features) {
+	const ref = features.find(f => f.get('marker')?.name === "Reference Point Marker");
+	if (!ref) return null;
+	const lonlat = ol.proj.toLonLat(ref.getGeometry().getCoordinates());
+	return { lat: lonlat[1], lon: lonlat[0] };
 }
 
 /**

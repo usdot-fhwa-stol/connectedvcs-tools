@@ -125,15 +125,43 @@ export function getSimModeState() {
 /** Re-enter sim mode from a saved map file so its features encode correctly. */
 export function restoreSimMode(state) {
     const anchor = state?.anchor;
-    if (!anchor || !Number.isFinite(anchor.lat) || !Number.isFinite(anchor.lon)) return;
-    if (laneLayer && (anchor.lat !== sim.anchor.lat || anchor.lon !== sim.anchor.lon)) {
-        // Loaded sim lanes were placed at the old anchor.
-        removeSimLayers();
-    }
-    sim.anchor = { lat: anchor.lat, lon: anchor.lon };
+    if (!isValidLatLon(anchor)) return;
+    // Loaded sim lanes follow the file's origin so they line up with its features.
+    moveAnchor(anchor);
     if (Number.isFinite(state.groundZ)) sim.groundZ = state.groundZ;
     sim.active = true;
     refreshPanel();
+}
+
+/**
+ * Called when a map file without sim state replaces all features. Asks whether to
+ * stay in sim mode; if so, the sim origin moves to the file's reference point.
+ * @param {{lat:number, lon:number}|null} referenceLatLon - the file's reference point, if any
+ */
+export function handleLoadWithoutSimState(referenceLatLon) {
+    if (!sim.active) return;
+    const keep = confirm('This map file has no sim mode data. Stay in sim mode? The sim map origin will be placed '
+        + 'at its reference point and its coordinates encoded as sim coordinates. Cancel exits sim mode.');
+    if (!keep) {
+        clearSimMode();
+        return;
+    }
+    if (isValidLatLon(referenceLatLon)) moveAnchor(referenceLatLon);
+}
+
+function isValidLatLon(latLon) {
+    return !!latLon && Number.isFinite(latLon.lat) && Number.isFinite(latLon.lon);
+}
+
+/** Set the display anchor and move any loaded sim lanes to it. */
+function moveAnchor(anchor) {
+    sim.anchor = { lat: anchor.lat, lon: anchor.lon };
+    if (!laneLayer) return;
+    for (const feature of laneLayer.getSource().getFeatures()) {
+        const local = feature.get('simLocal');
+        feature.setGeometry(new ol.geom.LineString(local.map(p => localToMapCoord(p, sim.anchor))));
+    }
+    updateBackgroundLayer();
 }
 
 // Initialization
@@ -220,7 +248,7 @@ function exitSimMode() {
     clearSimMode();
 }
 
-/** Leave sim mode without asking, e.g. when a map file without sim state replaces all features. */
+/** Leave sim mode without asking. */
 export function clearSimMode() {
     if (!sim.active) return;
     removeSimLayers();
@@ -249,10 +277,10 @@ function parseOsm(text, anchor) {
         throw new Error('The selected file is not a valid OSM XML file.');
     }
 
-    const nodes = parseOsmNodes(doc, anchor);
+    const nodes = parseOsmNodes(doc);
     const features = [];
     for (const way of doc.getElementsByTagName('way')) {
-        const feature = osmWayToFeature(way, nodes);
+        const feature = osmWayToFeature(way, nodes, anchor);
         if (feature) features.push(feature);
     }
     if (features.length === 0) {
@@ -261,33 +289,37 @@ function parseOsm(text, anchor) {
     return features;
 }
 
-/** Map of OSM node id -> map coordinate, skipping nodes without a valid lat/lon. */
-function parseOsmNodes(doc, anchor) {
+/** Map of OSM node id -> local meters [E, N], skipping nodes without a valid lat/lon. */
+function parseOsmNodes(doc) {
     const nodes = new Map();
     for (const node of doc.getElementsByTagName('node')) {
         const lat = Number.parseFloat(node.getAttribute('lat'));
         const lon = Number.parseFloat(node.getAttribute('lon'));
         if (Number.isFinite(lat) && Number.isFinite(lon)) {
-            nodes.set(node.getAttribute('id'), localToMapCoord(simLonLatToLocal([lon, lat]), anchor));
+            nodes.set(node.getAttribute('id'), simLonLatToLocal([lon, lat]));
         }
     }
     return nodes;
 }
 
-/** LineString feature for an OSM way, or null when fewer than 2 of its nodes are known. */
-function osmWayToFeature(way, nodes) {
-    const coords = [];
+/**
+ * LineString feature for an OSM way, or null when fewer than 2 of its nodes are known.
+ * The local meters are kept as simLocal so moveAnchor can re-place the lanes.
+ */
+function osmWayToFeature(way, nodes, anchor) {
+    const local = [];
     for (const nd of way.getElementsByTagName('nd')) {
-        const coord = nodes.get(nd.getAttribute('ref'));
-        if (coord) coords.push(coord);
+        const point = nodes.get(nd.getAttribute('ref'));
+        if (point) local.push(point);
     }
-    if (coords.length < 2) return null;
+    if (local.length < 2) return null;
     const tags = {};
     for (const tag of way.getElementsByTagName('tag')) {
         tags[tag.getAttribute('k')] = tag.getAttribute('v');
     }
     return new ol.Feature({
-        geometry: new ol.geom.LineString(coords),
+        geometry: new ol.geom.LineString(local.map(p => localToMapCoord(p, anchor))),
+        simLocal: local,
         osmId: way.getAttribute('id'),
         type: tags.type,
         subtype: tags.subtype
