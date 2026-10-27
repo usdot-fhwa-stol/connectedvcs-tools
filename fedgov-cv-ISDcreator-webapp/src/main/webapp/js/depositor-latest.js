@@ -349,7 +349,7 @@ function createMessageJSON()
                         // they differ from the previous node's (node 0 always carries the base limits).
                         // Lanes without their own speed limits delta from the intersection speed limits,
                         // which already apply at node 0, so node 0 carries none.
-                        let nodeSpeedLimitDelta = m > 0 ? parseFloat(laneFeat[j].get('speedLimitDelta')?.[m]) : NaN;
+                        let nodeSpeedLimitDelta = m > 0 ? Number.parseFloat(laneFeat[j].get('speedLimitDelta')?.[m]) : Number.NaN;
                         if (Number.isNaN(nodeSpeedLimitDelta)) {
                             nodeSpeedLimitDelta = 0;
                         }
@@ -360,7 +360,7 @@ function createMessageJSON()
                         } else if (m === 0 || nodeSpeedLimitDelta !== 0) {
                             let adjustedSpeedLimits = cumulativeSpeedLimitDelta === 0 ? currentSpeedLimits : currentSpeedLimits.map((speedLimit) => ({
                                 ...speedLimit,
-                                "velocity": parseFloat(speedLimit.velocity) + cumulativeSpeedLimitDelta
+                                "velocity": Number.parseFloat(speedLimit.velocity) + cumulativeSpeedLimitDelta
                             }));
                             if (adjustedSpeedLimits.some((speedLimit) => speedLimit.velocity < 0 || speedLimit.velocity > 366) &&
                                 $('#speed-limit-delta-alert-' + laneFeat[j].get('laneNumber') + '-' + m).length === 0) {
