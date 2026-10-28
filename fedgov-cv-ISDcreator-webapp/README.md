@@ -23,6 +23,20 @@ Sim mode lets you draw a MAP message on top of a simulator's Lanelet2 OSM map, w
 
 - Pan the map to where you want to work, then go to **File** > **Open Sim Map...** and select the `.osm` file. The OSM lanes are drawn as a guide layer centered on the current map view.
 - Draw the intersection as usual. When encoding, node, reference point, and verified point coordinates are converted back to sim lat/lon.
-- Set the elevation for new nodes with the **Ground z (m)** field in the SIM MODE panel. Esri elevation lookups are skipped while sim mode is on.
-- Saving the map file stores the sim state. Opening that file later turns sim mode back on and moves any loaded OSM lanes to the origin saved in the file. Opening a map file without sim state while in sim mode asks whether to stay in sim mode; if choosing to stay in sim mode, the sim origin is placed at that map's reference point.
+- Set the elevation with the **Ground z (m)** field in the SIM MODE panel; it applies to all lane nodes and markers, so elevation deltas stay 0. Esri elevation lookups are skipped while sim mode is on.
+- Saving the map file stores the sim state. To reopen it, first open the OSM file with **File** > **Open Sim Map...**, then open the saved map; sim mode is turned back on and the OSM lanes are moved to the origin saved in the file. Opening a map file without sim state while in sim mode asks whether to stay in sim mode; if choosing to stay in sim mode, the sim origin is placed at that map's reference point.
 - Go to **File** > **Exit Sim Mode** to return to normal encoding.
+
+## JavaScript Unit Tests
+
+Unit tests for the sim mode coordinate conversions (`js/sim-geo.js`) are in `src/test/js`. They are not run by the Maven build; run them with Node 22.12 or later from this directory:
+
+```bash
+node --test "src/test/js/*.test.js"
+```
+
+Or, without a local Node install:
+
+```bash
+docker run --rm -v "$PWD":/w -w /w node:22 node --test "src/test/js/*.test.js"
+```

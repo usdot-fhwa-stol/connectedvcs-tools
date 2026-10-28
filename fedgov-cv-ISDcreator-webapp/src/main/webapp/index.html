@@ -205,7 +205,7 @@
                         <li><input type="file" id="rsmToLoad" multiple></li>
 						<li class="divider"></li>
                         <li><a href="#" id="openSimMap">Open Sim Map...</a></li>
-                        <li><a href="#" id="exitSimMode">Exit Sim Mode</a></li>
+                        <li style="display: none;"><a href="#" id="exitSimMode">Exit Sim Mode</a></li>
 			          </ul>
 			        </li>
 					<li class="dropdown">
@@ -1667,6 +1667,7 @@
 						<li role="presentation"><a href="#instructions_tab_8" aria-controls="computed_lanes" role="tab" data-toggle="tab">Computed Lanes</a></li>
 						<li role="presentation"><a href="#instructions_tab_5" aria-controls="deposit" role="tab" data-toggle="tab">Encode</a></li>
 						<li role="presentation"><a href="#instructions_tab_7" aria-controls="stencil" role="tab" data-toggle="tab">Stencil</a></li>
+						<li role="presentation"><a href="#instructions_tab_9" aria-controls="sim_mode" role="tab" data-toggle="tab">Sim Mode</a></li>
 					</ul>
 
 					<!-- Tab panes -->
@@ -1939,6 +1940,39 @@
 								</ol>
 							</div>
 						</div>
+						<div role="tabpanel" class="tab-pane" id="instructions_tab_9">
+							<div class="container-fluid">
+								<h4>Sim Mode</h4>
+								<p class="help-block">Draw a MAP on top of a simulator's Lanelet2 OSM map (origin at lat/lon 0,0) and encode it in sim coordinates.</p>
+								<ul>
+									<li>Loading a Sim Map</li>
+									<ol type="a">
+										<li>Pan the map to the location where you want to work.</li>
+										<li>From the top navbar, go to <strong>File</strong> <i class="fa fa-arrow-right"></i> <strong>Open Sim Map...</strong>, select the <strong>.osm</strong> file, and click <strong>Load</strong>.</li>
+										<li>The OSM lanes are drawn in lavender on a black background, centered on the current map view, and the <strong>SIM MODE</strong> panel appears at the bottom left of the map.</li>
+										<li>If the map already has drawn features, you will be asked to confirm that they will be encoded as sim coordinates.</li>
+									</ol>
+									<li>Drawing and Encoding</li>
+									<ol type="a">
+										<li>Build the parent and child maps as usual, using the OSM lanes as a guide.</li>
+										<li>When encoding, lane, crosswalk, reference point, and verified point coordinates are converted back to sim lat/lon.</li>
+										<li>Set the elevation with the <strong>Ground z (m)</strong> field in the <strong>SIM MODE</strong> panel. It applies to all lane nodes and markers, so elevation deltas stay 0. Esri elevation is not used in sim mode.</li>
+									</ol>
+									<li>Saving and Loading</li>
+									<ol type="a">
+										<li><strong>File</strong> <i class="fa fa-arrow-right"></i> <strong>Save</strong> stores the sim origin and ground z with the map.</li>
+										<li>Before opening a saved map, first open the OSM file with <strong>File</strong> <i class="fa fa-arrow-right"></i> <strong>Open Sim Map...</strong>.</li>
+										<li>Then open the saved sim mode map (parent or child). Sim mode is restored and the OSM lanes are moved to that map's origin.</li>
+										<li>Opening a map without sim mode data while in sim mode asks whether to stay in sim mode. <strong>OK</strong> places the sim origin at the map's reference point; <strong>Cancel</strong> exits sim mode.</li>
+									</ol>
+									<li>Exiting Sim Mode</li>
+									<ol type="a">
+										<li>From the top navbar, go to <strong>File</strong> <i class="fa fa-arrow-right"></i> <strong>Exit Sim Mode</strong> and confirm.</li>
+										<li>The OSM lanes are removed and features are encoded with their displayed coordinates.</li>
+									</ol>
+								</ul>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -2124,7 +2158,11 @@ such Contributor has been advised of the possibility of such damages.</p>
 		});
 		initSimOverlay(() => mapModule.map, {
 			hasUserFeatures: () => [mapModule.lanes, mapModule.vectors, mapModule.laneMarkers, mapModule.box]
-				.some(layer => layer && layer.getSource().getFeatures().length > 0)
+				.some(layer => layer && layer.getSource().getFeatures().length > 0),
+			getElevationFeatures: () => ({
+				lanes: mapModule.lanes ? mapModule.lanes.getSource().getFeatures() : [],
+				points: mapModule.vectors ? mapModule.vectors.getSource().getFeatures() : []
+			})
 		});
 	</script>
 

@@ -28,8 +28,9 @@
  * lat/lon (displayToSimLonLat) and elevation lookups return the sim ground z.
  */
 
-const WGS84_A = 6378137.0;
-const WGS84_E2 = 0.00669437999014;
+import {
+    displayLonLatToLocal, localToDisplayLonLat, localToSimLonLat, simLonLatToLocal
+} from './sim-geo.js';
 
 // Kept clear of the drawing palette in style.js (orange, red, yellow, cyan, blue).
 const LANE_COLOR = '#C9A7EB';
@@ -47,41 +48,7 @@ let laneLayer = null;
 let osmFilename = null;
 let backgroundLayer = null;
 
-// Coordinate conversions
-
-function toRad(deg) { return deg * Math.PI / 180; }
-function toDeg(rad) { return rad * 180 / Math.PI; }
-
-/** Sim lat/lon -> local meters. Transverse Mercator at 0,0 on WGS84 (the OSM geoReference). */
-function simLonLatToLocal([lon, lat]) {
-    return [WGS84_A * toRad(lon), WGS84_A * (1 - WGS84_E2) * toRad(lat)];
-}
-
-function localToSimLonLat([e, n]) {
-    return [toDeg(e / WGS84_A), toDeg(n / (WGS84_A * (1 - WGS84_E2)))];
-}
-
-/** Meters per degree of latitude and longitude at the display anchor (local tangent plane). */
-function anchorScales(anchor) {
-    const phi = toRad(anchor.lat);
-    const w = 1 - WGS84_E2 * Math.sin(phi) ** 2;
-    const meridional = WGS84_A * (1 - WGS84_E2) / Math.pow(w, 1.5);
-    const primeVertical = WGS84_A / Math.sqrt(w);
-    return {
-        lat: toRad(meridional),
-        lon: toRad(primeVertical * Math.cos(phi))
-    };
-}
-
-function localToDisplayLonLat([e, n], anchor) {
-    const s = anchorScales(anchor);
-    return [anchor.lon + e / s.lon, anchor.lat + n / s.lat];
-}
-
-function displayLonLatToLocal([lon, lat], anchor) {
-    const s = anchorScales(anchor);
-    return [(lon - anchor.lon) * s.lon, (lat - anchor.lat) * s.lat];
-}
+// Coordinate conversions (the math lives in sim-geo.js)
 
 function localToMapCoord(local, anchor) {
     return ol.proj.fromLonLat(localToDisplayLonLat(local, anchor));
@@ -115,6 +82,29 @@ export function isSimMode() {
 
 export function getSimGroundZ() {
     return Math.round(sim.groundZ * 100) / 100;
+}
+
+/**
+ * Set the sim ground z and apply it to every existing lane node and marker elevation,
+ * so the ground plane stays flat and the encoded elevation deltas stay 0.
+ */
+export function setSimGroundZ(z) {
+    sim.groundZ = z;
+    const features = options.getElevationFeatures?.();
+    if (!features) return;
+    const groundZ = getSimGroundZ();
+    for (const lane of features.lanes || []) {
+        // Computed lanes take their elevation from the source lane plus offsetZ.
+        if (lane.get('computed')) continue;
+        // Update the node objects in place; the lane marker dots share them.
+        for (const node of lane.get('elevation') || []) {
+            if (node) node.value = groundZ;
+        }
+    }
+    for (const point of features.points || []) {
+        if (point.get('elevation') !== undefined) point.set('elevation', groundZ);
+        if (point.get('verifiedElev') !== undefined) point.set('verifiedElev', groundZ);
+    }
 }
 
 /** State saved with the map file, or null when sim mode is off. */
@@ -170,6 +160,8 @@ function moveAnchor(anchor) {
  * @param {function():ol.Map} mapGetter - returns the map once it exists
  * @param {Object} [userOptions]
  * @param {function():boolean} [userOptions.hasUserFeatures] - true when the map already has drawn features
+ * @param {function():{lanes:ol.Feature[], points:ol.Feature[]}} [userOptions.getElevationFeatures] - lane and
+ *   point features whose elevations follow the sim ground z
  */
 export function initSimOverlay(mapGetter, userOptions) {
     getMap = mapGetter;
@@ -397,7 +389,7 @@ function createPanel() {
     panel.innerHTML =
         '<h6><span class="sim-mode-badge">SIM MODE</span><span id="sim-osm-name" class="sim-overlay-name"></span></h6>'
         + '<div class="sim-overlay-row">'
-        + '  <label for="sim-ground-z" title="Elevation used for nodes placed in sim mode">Ground z (m)</label>'
+        + '  <label for="sim-ground-z" title="Elevation of every lane node and marker in sim mode">Ground z (m)</label>'
         + '  <input type="number" id="sim-ground-z" step="0.01">'
         + '</div>'
         + '<p id="sim-no-lanes-hint" class="sim-overlay-hint">Use File &gt; Open Sim Map to show the sim lanes.</p>';
@@ -411,7 +403,7 @@ function createPanel() {
     document.getElementById('sim-ground-z').addEventListener('change', function () {
         const z = Number.parseFloat(this.value);
         if (Number.isFinite(z)) {
-            sim.groundZ = z;
+            setSimGroundZ(z);
         } else {
             this.value = sim.groundZ;
         }
@@ -419,6 +411,8 @@ function createPanel() {
 }
 
 function refreshPanel() {
+    // The File menu's Exit Sim Mode item is only offered while in sim mode.
+    $('#exitSimMode').parent().toggle(sim.active);
     const panel = document.getElementById('sim-overlay-panel');
     if (!panel) return;
     panel.style.display = sim.active ? 'block' : 'none';
