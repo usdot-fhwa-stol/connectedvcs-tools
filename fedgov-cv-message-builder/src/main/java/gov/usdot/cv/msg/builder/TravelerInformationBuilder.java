@@ -434,7 +434,6 @@ public class TravelerInformationBuilder {
 		// if (isRoadSign) {
 
 		long furtherInfoIDValue = (anchorPoint.furtherInfoID);
-		System.out.println("FurtherInfoID: " + furtherInfoIDValue);
 
 		byte[] furtherInfoIDBytes = new byte[] {
 			(byte) ((furtherInfoIDValue >> 8) & 0xFF),  // high byte
@@ -442,8 +441,10 @@ public class TravelerInformationBuilder {
 		};
 
 		if (furtherInfoIDValue > 0) {
-			FurtherInfoID furtherInfoID = new FurtherInfoID();
-			msgId.setFurtherInfoID(new FurtherInfoID(furtherInfoIDBytes));
+			FurtherInfoID furtherInfoID = new FurtherInfoID(furtherInfoIDBytes);
+			// msgId.setFurtherInfoID(new FurtherInfoID(furtherInfoIDBytes)); 
+			// FurtherInfoID(furtherInfoIDBytes) is causing NullPointerException
+			msgId.setFurtherInfoID(furtherInfoID);
 		} else {
 			RoadSignID roadSignID = new RoadSignID();
 			roadSignID.setPosition(getAnchorPointPosition(travInputData, anchorPoint));
