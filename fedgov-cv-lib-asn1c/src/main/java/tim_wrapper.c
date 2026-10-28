@@ -392,10 +392,13 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 FurtherInfoID_t *fiid = &tdf->msgId.choice.furtherInfoID;
 
                 jclass fiidCls = (*env)->GetObjectClass(env, fiidObj);
+                jmethodID midGetID = (*env)->GetMethodID(env, fiidCls, "getFurtherInfoID", "()B");
+                // jbyte val = (*env)->CallIntMethod(env, furtherInfoID, midGetID);
+                // tdf->furtherInfoID = (FurtherInfoID_t)val;
 
                 (*env)->DeleteLocalRef(env, msgIdCls);
             }
-            if (rsObj)
+            else if (rsObj)
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_roadSignID;
                 RoadSignID_t *rs = &tdf->msgId.choice.roadSignID;
