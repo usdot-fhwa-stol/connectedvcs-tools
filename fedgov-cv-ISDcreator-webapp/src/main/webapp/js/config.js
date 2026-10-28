@@ -245,6 +245,14 @@ var help_notes = [
     	description: "Used to convey the delta width of a lane in LSB units of 1cm."
     },
     {
+    	value: "speed_limit_delta",
+    	title: "Speed Limit Delta",
+    	max: "366",
+    	min: "-366",
+    	units: "MPH",
+    	description: "Change in speed limit from the previous node, applied to every speed limit type defined for the lane (or to the intersection speed limits if the lane has none). The new speed limit carries forward to subsequent nodes until another delta is entered."
+    },
+    {
     	value: "node_delta",
     	title: "Node Delta",
     	max: "327",

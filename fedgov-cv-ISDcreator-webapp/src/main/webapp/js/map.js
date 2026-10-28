@@ -1518,6 +1518,13 @@ function registerModalButtonEvents() {
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("laneWidth")[selectedMarker.get("number")] = nodeLaneWidth
         nodeLaneWidth = 0;
 
+        if (selectedMarker.get("number") > 0 && !selectedMarker.get("computed")) {
+          const speedLimitDelta = lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("speedLimitDelta");
+          if (speedLimitDelta) {
+            speedLimitDelta[selectedMarker.get("number")] = $("#speed_limit_delta").val().trim();
+          }
+        }
+
         selectedMarker.set("elevation", $("#elev").val());
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].value = $("#elev").val();
         lanes.getSource().getFeatures()[selectedMarker.get("lane")].get("elevation")[selectedMarker.get("number")].edited = true;

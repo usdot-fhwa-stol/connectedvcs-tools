@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.ws.rs.Consumes;
@@ -418,8 +419,17 @@ public class IntersectionSituationDataBuilder {
 					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
 						LaneNode[] laneNodes = drivingLane.laneNodes;
 						if (laneNodes != null && laneNodes.length > 0) {
-							for (int nodeIndex = 0; nodeIndex < 1; nodeIndex++) {
+							// Speed limits can change along the lane (Speed Limit Delta), so each node whose
+							// speed limits differ from the previous node's gets its own location entry.
+							// Repeated speed limits (sent on every node by older maps) are skipped.
+							ISDRegulatorySpeedLimit[] previousSpeedLimits = null;
+							for (int nodeIndex = 0; nodeIndex < laneNodes.length; nodeIndex++) {
 								LaneNode laneNode = laneNodes[nodeIndex];
+								if (laneNode == null || laneNode.speedLimitType == null || laneNode.speedLimitType.length == 0
+										|| isSameSpeedLimits(previousSpeedLimits, laneNode.speedLimitType)) {
+									continue;
+								}
+								previousSpeedLimits = laneNode.speedLimitType;
 								LocationSpeedLimits locationSpeedLimits = new LocationSpeedLimits();
 								NodeIndexOffset location = new NodeIndexOffset();
 								SpeedLimitInfo speedLimitInfo = new SpeedLimitInfo();
@@ -507,6 +517,27 @@ public class IntersectionSituationDataBuilder {
 		}
 
 		return wayUseContainers;
+	}
+
+	/**
+	 * Checks whether two node speed limit lists have the same types, velocities and choices
+	 * @param previous speed limits of the previous node (may be null)
+	 * @param current speed limits of the current node
+	 * @return true if both lists describe the same speed limits
+	 */
+	private boolean isSameSpeedLimits(ISDRegulatorySpeedLimit[] previous, ISDRegulatorySpeedLimit[] current) {
+		if (previous == null || current == null || previous.length != current.length) {
+			return false;
+		}
+		for (int i = 0; i < current.length; i++) {
+			if (previous[i] == null || current[i] == null
+					|| !Objects.equals(previous[i].speedLimitType, current[i].speedLimitType)
+					|| previous[i].getVelocity() != current[i].getVelocity()
+					|| !Objects.equals(previous[i].speedLimitChoice, current[i].speedLimitChoice)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public TimeRestrictions setNightTimeRestrictions(TimeRestrictions timeRestrictions) {
