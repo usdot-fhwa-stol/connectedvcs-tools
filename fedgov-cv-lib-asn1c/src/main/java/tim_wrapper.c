@@ -392,9 +392,28 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
                 FurtherInfoID_t *fiid = &tdf->msgId.choice.furtherInfoID;
 
                 jclass fiidCls = (*env)->GetObjectClass(env, fiidObj);
-                jmethodID midGetID = (*env)->GetMethodID(env, fiidCls, "getFurtherInfoID", "()B");
-                // jbyte val = (*env)->CallIntMethod(env, furtherInfoID, midGetID);
-                // tdf->furtherInfoID = (FurtherInfoID_t)val;
+
+                jmethodID midGetID = (*env)->GetMethodID(env, fiidCls, "getFurtherInfoID", "()[B");
+                jbyteArray jByteArrayValue = (jbyteArray)(*env)->CallObjectMethod(env, fiidObj, midGetID);
+                // tdf->furtherInfoID = (FurtherInfoID_t)jByteArrayValue;
+
+                if (jByteArrayValue != NULL) {
+                    jsize length = (*env)->GetArrayLength(env, jByteArrayValue);
+                    jbyte *bytes = (*env)->GetByteArrayElements(env, jByteArrayValue, NULL);
+
+                    // Allocate ASN.1 structure
+                    // TravelerInformation_t *furtherInfoID = (TravelerInformation_t *)calloc(1, sizeof(TravelerInformation_t));
+                    fiid_t *furtherInfoID = (fiid_t *)calloc(1, sizeof(fiid_t));
+                    furtherInfoID->size = length;
+                    furtherInfoID->buf = (uint8_t *)calloc(1, length);
+                    memcpy(furtherInfoID->buf, bytes, length);
+
+                    // tim.furtherInfoID = furtherInfoID;
+                    tdf->furtherInfoID = (fiid_t)jByteArrayValue;
+
+                    (*env)->ReleaseByteArrayElements(env, jByteArrayValue, bytes, JNI_ABORT);
+                    (*env)->DeleteLocalRef(env, jByteArrayValue);
+                }
 
                 (*env)->DeleteLocalRef(env, msgIdCls);
             }
