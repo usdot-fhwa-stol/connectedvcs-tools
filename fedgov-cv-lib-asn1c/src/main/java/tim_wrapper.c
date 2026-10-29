@@ -370,7 +370,7 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
-        // msgId (MsgId -> RoadSignID)
+        // msgId (MsgId -> RoadSignID) and (MsgId -> FurtherInfoID)
         mid_getMsgId = (*env)->GetMethodID(env, frameCls, "getMsgId", "()Lgov/usdot/cv/timencoder/MsgId;");
         jobject msgId = mid_getMsgId ? (*env)->CallObjectMethod(env, frame, mid_getMsgId) : NULL;
         if (msgId)
@@ -393,29 +393,30 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
 
                 jclass fiidCls = (*env)->GetObjectClass(env, fiidObj);
 
-                jmethodID midGetID = (*env)->GetMethodID(env, fiidCls, "getFurtherInfoID", "()[B");
-                jbyteArray jByteArrayValue = (jbyteArray)(*env)->CallObjectMethod(env, fiidObj, midGetID);
-                // tdf->furtherInfoID = (FurtherInfoID_t)jByteArrayValue;
+                jmethodID midGetValue = (*env)->GetMethodID(env, fiidCls, "getValue", "()[B");
+                jbyteArray valueArr = midGetValue ? (jbyteArray)(*env)->CallObjectMethod(env, fiidObj, midGetValue) : NULL;
 
-                if (jByteArrayValue != NULL) {
-                    jsize length = (*env)->GetArrayLength(env, jByteArrayValue);
-                    jbyte *bytes = (*env)->GetByteArrayElements(env, jByteArrayValue, NULL);
-
-                    // Allocate ASN.1 structure
-                    // TravelerInformation_t *furtherInfoID = (TravelerInformation_t *)calloc(1, sizeof(TravelerInformation_t));
-                    fiid_t *furtherInfoID = (fiid_t *)calloc(1, sizeof(fiid_t));
-                    furtherInfoID->size = length;
-                    furtherInfoID->buf = (uint8_t *)calloc(1, length);
-                    memcpy(furtherInfoID->buf, bytes, length);
-
-                    // tim.furtherInfoID = furtherInfoID;
-                    tdf->furtherInfoID = (fiid_t)jByteArrayValue;
-
-                    (*env)->ReleaseByteArrayElements(env, jByteArrayValue, bytes, JNI_ABORT);
-                    (*env)->DeleteLocalRef(env, jByteArrayValue);
+                fiid->buf = (uint8_t *)calloc(1, 2);
+                if (fiid->buf)
+                {
+                    if (valueArr && (*env)->GetArrayLength(env, valueArr) >= 2)
+                    {
+                        jbyte *bytes = (*env)->GetByteArrayElements(env, valueArr, NULL);
+                        if (bytes)
+                        {
+                            memcpy(fiid->buf, bytes, 2);
+                            (*env)->ReleaseByteArrayElements(env, valueArr, bytes, JNI_ABORT);
+                        }
+                    }
+                    fiid->size = 2;
                 }
-
-                (*env)->DeleteLocalRef(env, msgIdCls);
+ 
+                if (valueArr)
+                {
+                    (*env)->DeleteLocalRef(env, valueArr);
+                }
+                (*env)->DeleteLocalRef(env, fiidCls);
+                (*env)->DeleteLocalRef(env, fiidObj);
             }
             else if (rsObj)
             {
