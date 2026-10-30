@@ -18,6 +18,7 @@ import { onMoveEnd, onPointerMove, onZoomCallback, onZoomIn, onZoomOut } from ".
 import { getElev, populateAutocompleteSearchPlacesDropdown, getElevation } from "./api.js";
 import { deleteTrace } from "./mapTools.js"
 import { setStatusHintForState, setStatusHint } from "../../private-resources/js/status-bar.js";
+import { initPacketIdControls, loadPacketIdFields } from "./packet-id.js";
 
 import { deleteMode, currentControl, addITISForm, removeITISForm, rebuildITISForm } from "./main.js";
 var map;
@@ -235,9 +236,7 @@ const customTileLoadFunction = (imageTile, src) => {
 
 function init() {
 
-  const d = new Date();
-  const t = d.getTime().toString();
-  $('#packet_id').val(t.slice(-9));
+  initPacketIdControls();
 
   $('option:selected').prop("selected", false);
 
@@ -723,6 +722,7 @@ function registerMapEvents() {
   vectorSource.on('addfeature', function (evt) {
     selected_marker = evt.feature;
     if (evt.feature.get('marker') && evt.feature.get('marker').type === 'TIM') {
+      inheritSharedTimFields(evt.feature);
       setActiveContentMarker(evt.feature);
       if (!suppressRegionOwnerChecks) {
         if (pendingRegionForAssociation && isRegionOrphaned(pendingRegionForAssociation)) {
@@ -1106,6 +1106,16 @@ function getSharedTimFieldValue(field, fallback) {
   const marker = vectors.getSource().getFeatures()
     .find(f => f.get('marker')?.type === 'TIM' && f.get(field));
   return marker ? marker.get(field) : fallback;
+}
+
+// A newly added TIM marker (placed, undone, or loaded) takes the message-level values
+// already used by the other TIM markers, so every frame carries the same packetID.
+function inheritSharedTimFields(marker) {
+  SHARED_TIM_FIELDS.forEach((field) => {
+    const source = vectors.getSource().getFeatures()
+      .find(f => f !== marker && f.get('marker')?.type === 'TIM' && f.get(field));
+    if (source) marker.set(field, source.get(field));
+  });
 }
 
 function syncSharedTimFields(sourceMarker) {
@@ -1873,6 +1883,10 @@ function updateFeatureLocation(feature) {
 
   $('#long').val(lonLat[0]);
   $('#lat').val(lonLat[1]);
+
+  if (feature.get('marker')?.name !== "Verified Point Marker") {
+    loadPacketIdFields(feature.get('packetID') || getSharedTimFieldValue('packetID'), lonLat[1], lonLat[0]);
+  }
 
   populateRefWindow(feature, lonLat[1], lonLat[0]);
 }

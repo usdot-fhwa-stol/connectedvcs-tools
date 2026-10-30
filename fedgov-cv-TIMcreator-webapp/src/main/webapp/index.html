@@ -320,10 +320,27 @@
 				<div class="form-group">
 				
 					<div class="row packet_id">
-                    	<div class="col-sm-4"><label for="packet_id">Packet ID:</label></div>
-                    	<div class="col-sm-7"><input class="form-control" id="packet_id" placeholder="0 to 999999999" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 999999999]" data-parsley-pattern-message="This value must be an integer."></div>
-                   		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_id"></i></div>
-                   	</div>
+						<div class="col-sm-4"><label for="packet_gnis">GNIS Location:</label></div>
+						<div class="col-sm-7" id="packet_gnis_container" style="position: relative;"><select class="form-control" id="packet_gnis"></select></div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_gnis"></i></div>
+					</div>
+					<div class="row packet_id">
+						<div class="col-sm-4"><label for="packet_unique">Unique ID:</label></div>
+						<div class="col-sm-7">
+							<div class="input-group">
+								<input class="form-control" id="packet_unique" readonly>
+								<span class="input-group-btn">
+									<button type="button" class="btn btn-default" id="regenerate_packet_unique" title="Generate a new random ID"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+								</span>
+							</div>
+						</div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_unique"></i></div>
+					</div>
+					<div class="row packet_id">
+						<div class="col-sm-4"><label for="packet_id">Packet ID:</label></div>
+						<div class="col-sm-7"><input class="form-control" id="packet_id" readonly></div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_id"></i></div>
+					</div>
 					<div class="row message_count">
                     	<div class="col-sm-4"><label for="message_count">Message Count:</label></div>
                     	<div class="col-sm-7"><input class="form-control" id="message_count" placeholder="0 to 127" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 127]" data-parsley-pattern-message="This value must be an integer."></div>
@@ -661,6 +678,20 @@
 	<!-- End Open File Modal -->
 	
 	<!-- ? Help Modal -->
+	<dialog class="packet-id-notice" id="packet_id_notice_dialog" aria-labelledby="packet_id_notice_label">
+		<form method="dialog" class="modal-content">
+			<div class="modal-header bg-warning">
+				<button type="submit" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="packet_id_notice_label">Packet ID Updated</h4>
+			</div>
+			<div class="modal-body">
+				<p id="packet_id_notice_text"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-primary" autofocus>OK</button>
+			</div>
+		</form>
+	</dialog>
 	<div class="modal fade" id="help_modal" tabindex="-1" role="dialog" aria-labelledby="help_modal_label" aria-hidden="true">
 		<div class="modal-dialog modal-md">
 			<div class="modal-content">
