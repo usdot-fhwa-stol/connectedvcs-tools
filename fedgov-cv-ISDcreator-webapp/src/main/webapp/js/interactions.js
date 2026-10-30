@@ -1,5 +1,5 @@
 import { barHighlightedStyle } from "./style.js";
-import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, getLaneTypeLabel, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches } from "./utils.js";
+import { populateAttributeWindow, populateRefWindow, referencePointWindow, hideRGAFields, toggleLaneTypeAttributes, getLaneTypeLabel, updateLaneTypeAttributesHelpText, updateDisplayedLaneAttributes, rebuildConnections, rebuildSpeedForm, removeSpeedForm, addSpeedForm, resetLaneAttributes, getLength, copyTextToClipboard, updateLaneInfoTimePeriod, updateLaneInfoDaySelection, setRGAStatus, rebuildApproaches, refreshLaneWidths } from "./utils.js";
 import { getGeodesicDistance, getElevationDelta, getReferencePointFeature } from "./features.js";
 import { pushStatusHintForState, popStatusHint } from "../../private-resources/js/status-bar.js";
 
@@ -12,7 +12,8 @@ export function clearConnectionsHint() {
   }
 }
 
-function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidths, laneMarkers, deleteMode, selected){
+function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, widthLayers, laneMarkers, deleteMode, selected){
+    const { laneWidths, vectors } = widthLayers; // the lane widths layer, and the layer with the reference point
     if (evt.selected?.length > 0) {
       console.log('Lane feature selected:', evt.selected[0]);  
     }else{
@@ -44,7 +45,7 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
             for(let i = 0; i < dependentLanes.length; i++) {
               deleteMarker(laneLayer, dependentLanes[i], lanes, selected);
             }
-            laneWidths.getSource().clear();
+            refreshLaneWidths(lanes, vectors, laneWidths);
           }
           else {
             // controls.del.unselect(selectedLane);
@@ -69,11 +70,11 @@ function laneSelectInteractionCallback(evt, overlayLayersGroup, lanes, laneWidth
 
           // Delete this computed lane
           deleteMarker(laneLayer,selectedLane,lanes, selected);
-          laneWidths.getSource().clear();
+          refreshLaneWidths(lanes, vectors, laneWidths);
         }
         else {
           deleteMarker(laneLayer, selectedLane,lanes, selected);
-          laneWidths.getSource().clear();
+          refreshLaneWidths(lanes, vectors, laneWidths);
         }
     }
 }
@@ -237,7 +238,17 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     } else {
       $("#lane_width").val("0");
     }
-    
+
+    // Speed Limit Delta: change in speed limit from the previous node. Hidden for node 0
+    // (which holds the lane's base speed limits) and for computed lanes (which have no nodes of their own).
+    if (selectedMarker.get("number") > 0 && !selectedMarker.get("computed")) {
+      $(".speed_limit_delta").show();
+      $("#speed_limit_delta").val(laneFeatures[selectedMarker.get("lane")]?.get("speedLimitDelta")?.[selectedMarker.get("number")] ?? "");
+    } else {
+      $("#speed_limit_delta").val("");
+      $(".speed_limit_delta").hide();
+    }
+
     if (! selectedMarker.get("elevation")?.value){
       $("#elev").val("");
     } else {
@@ -427,6 +438,7 @@ function laneMarkersInteractionCallback(evt, map, overlayLayersGroup, lanes, lan
     }
     resetLaneAttributes();
     laneConnections.getSource().clear();
+    $(".speed_limit_delta").hide();
     $(".node_delta").hide();
     $(".elev_delta").hide();
     clearConnectionsHint();
@@ -541,6 +553,7 @@ function boxSelectInteractionCallback(evt, map, overlayLayersGroup, lanes, delet
       $(".elev").hide();
       $(".verified_elev").hide();
       $(".lane_width").hide();
+      $(".speed_limit_delta").hide();
       $(".node_delta").hide();
       $(".elev_delta").hide();
       $(".descriptive_name").hide();

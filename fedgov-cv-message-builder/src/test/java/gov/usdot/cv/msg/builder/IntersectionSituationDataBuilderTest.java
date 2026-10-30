@@ -19,6 +19,7 @@ package gov.usdot.cv.msg.builder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -26,6 +27,19 @@ import org.junit.Test;
 
 import gov.usdot.cv.msg.builder.message.IntersectionMessage;
 import gov.usdot.cv.msg.builder.exception.MessageBuildException;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.Approach;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.DrivingLane;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.ISDRegulatorySpeedLimit;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.IntersectionGeometry;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneList;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.LaneNode;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.MapData;
+import gov.usdot.cv.msg.builder.input.IntersectionInputData.TimeRestrictions;
+import gov.usdot.cv.rgaencoder.IndividualSpeedLimitSettings;
+import gov.usdot.cv.rgaencoder.IndividualWaySpeedLimits;
+import gov.usdot.cv.rgaencoder.LocationSpeedLimits;
+import gov.usdot.cv.rgaencoder.WayUseContainer;
 
 public class IntersectionSituationDataBuilderTest {
 
@@ -338,6 +352,96 @@ public class IntersectionSituationDataBuilderTest {
         runIntersectionSituationDataBuilderTests(filePath, expectedHexString);
     }
     
+    @Test
+    public void rgaWayUseSpeedLimitsEncodeEachSpeedLimitChange() {
+        // Speed Limit Delta: 50 at node 0, +10 at node 3, -20 at node 6. Nodes without a change carry no speed limits.
+        LaneNode[] laneNodes = buildLaneNodes(8);
+        laneNodes[0].speedLimitType = new ISDRegulatorySpeedLimit[] { buildSpeedLimit("Vehicle Max Speed", 50) };
+        laneNodes[3].speedLimitType = new ISDRegulatorySpeedLimit[] { buildSpeedLimit("Vehicle Max Speed", 60) };
+        laneNodes[6].speedLimitType = new ISDRegulatorySpeedLimit[] { buildSpeedLimit("Vehicle Max Speed", 40) };
+
+        List<LocationSpeedLimits> locations = getLocationSpeedLimits(laneNodes);
+
+        assertEquals(3, locations.size());
+        assertLocationSpeedLimit(locations.get(0), 1, 50);
+        assertLocationSpeedLimit(locations.get(1), 4, 60);
+        assertLocationSpeedLimit(locations.get(2), 7, 40);
+    }
+
+    @Test
+    public void rgaWayUseSpeedLimitsSkipRepeatedSpeedLimits() {
+        // Older maps repeat the same speed limits on every node; only the first occurrence is encoded
+        LaneNode[] laneNodes = buildLaneNodes(4);
+        for (LaneNode laneNode : laneNodes) {
+            laneNode.speedLimitType = new ISDRegulatorySpeedLimit[] { buildSpeedLimit("Vehicle Max Speed", 50) };
+        }
+
+        List<LocationSpeedLimits> locations = getLocationSpeedLimits(laneNodes);
+
+        assertEquals(1, locations.size());
+        assertLocationSpeedLimit(locations.get(0), 1, 50);
+    }
+
+    @Test
+    public void rgaWayUseSpeedLimitsStartAfterNodeWithoutSpeedLimits() {
+        // Lanes without their own speed limits send none at node 0 and the delta-adjusted intersection speed limits later
+        LaneNode[] laneNodes = buildLaneNodes(4);
+        laneNodes[0].speedLimitType = new ISDRegulatorySpeedLimit[0];
+        laneNodes[2].speedLimitType = new ISDRegulatorySpeedLimit[] { buildSpeedLimit("Vehicle Max Speed", 35) };
+
+        List<LocationSpeedLimits> locations = getLocationSpeedLimits(laneNodes);
+
+        assertEquals(1, locations.size());
+        assertLocationSpeedLimit(locations.get(0), 3, 35);
+    }
+
+    private LaneNode[] buildLaneNodes(int count) {
+        LaneNode[] laneNodes = new LaneNode[count];
+        for (int i = 0; i < count; i++) {
+            laneNodes[i] = new LaneNode();
+            laneNodes[i].nodeNumber = i;
+        }
+        return laneNodes;
+    }
+
+    private ISDRegulatorySpeedLimit buildSpeedLimit(String speedLimitType, double velocity) {
+        ISDRegulatorySpeedLimit speedLimit = new ISDRegulatorySpeedLimit();
+        speedLimit.speedLimitType = speedLimitType;
+        speedLimit.velocity = velocity;
+        speedLimit.speedLimitChoice = "regulatory";
+        speedLimit.timeRestrictions = new TimeRestrictions();
+        return speedLimit;
+    }
+
+    private List<LocationSpeedLimits> getLocationSpeedLimits(LaneNode[] laneNodes) {
+        DrivingLane drivingLane = new DrivingLane();
+        drivingLane.laneID = "1";
+        drivingLane.laneType = "Vehicle";
+        drivingLane.laneNodes = laneNodes;
+
+        Approach approach = new Approach();
+        approach.approachID = 1;
+        approach.drivingLanes = new DrivingLane[] { drivingLane };
+
+        IntersectionInputData isdInputData = new IntersectionInputData();
+        isdInputData.mapData = new MapData();
+        isdInputData.mapData.intersectionGeometry = new IntersectionGeometry();
+        isdInputData.mapData.intersectionGeometry.laneList = new LaneList();
+        isdInputData.mapData.intersectionGeometry.laneList.approach = new Approach[] { approach };
+
+        List<WayUseContainer> wayUseContainers = builder.buildWayUseContainers(isdInputData);
+        assertEquals(1, wayUseContainers.size());
+        List<IndividualWaySpeedLimits> lanes = wayUseContainers.get(0).getMtrVehLaneSpeedLimitsLayer().getLaneSpeedLimitLaneSet();
+        assertEquals(1, lanes.size());
+        return lanes.get(0).getLocationSpeedLimitSet();
+    }
+
+    private void assertLocationSpeedLimit(LocationSpeedLimits location, long expectedNodeIndex, double expectedMph) {
+        assertEquals(expectedNodeIndex, location.getLocation().getNodeIndex());
+        IndividualSpeedLimitSettings settings = location.getSpeedLimitInfo().getMaxSpeedLimitSettingsSet().get(0);
+        assertEquals(Math.round(22.352 * expectedMph), settings.getSpeedLimit());
+    }
+
     public void runIntersectionSituationDataBuilderTests(String filePath, String expectedHexString) {
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));

@@ -119,22 +119,25 @@ static char *build_failure_result(const asn_dec_rval_t *rval, const asn_TYPE_des
 {
 	const char *typeName = (asn_def && asn_def->name) ? asn_def->name : "message";
 
-	char partialBuffer[65536];
-	partialBuffer[0] = '\0';
+	/* The dump grows as needed and is always NUL-terminated (a fixed buffer cut long dumps off,
+	 * and a full one had no terminator, so the reads below could run past its end). */
+	char *partialText = NULL;
+	size_t partialSize = 0;
 	if (msg)
 	{
-		FILE *partialStream = fmemopen(partialBuffer, sizeof(partialBuffer), "w");
+		FILE *partialStream = open_memstream(&partialText, &partialSize);
 		if (partialStream)
 		{
 			asn_fprint(partialStream, asn_def, msg);
-			fclose(partialStream);
+			fclose(partialStream);          /* finalizes partialText (NUL-terminated) */
 		}
 	}
+	const char *partial = (partialText && partialText[0] != '\0') ? partialText : NULL;
 
 	const char *lastReached = NULL;
 	const char *likelyFailed = NULL;
-	if (partialBuffer[0] != '\0')
-		find_last_and_likely_failed_field(asn_def, partialBuffer, &lastReached, &likelyFailed);
+	if (partial)
+		find_last_and_likely_failed_field(asn_def, partial, &lastReached, &likelyFailed);
 
 	char detail[160] = "";
 	if (lastReached && likelyFailed)
@@ -150,15 +153,19 @@ static char *build_failure_result(const asn_dec_rval_t *rval, const asn_TYPE_des
 	else
 		snprintf(errBuf, sizeof(errBuf), "Decoding failed for %s%s", typeName, detail);
 
-	if (partialBuffer[0] == '\0')
+	if (!partial)
+	{
+		free(partialText);
 		return strdup(errBuf);
+	}
 
 	char *combined = NULL;
 	if (asprintf(&combined,
 	             "%s\n\n--- Decoded so far, before the failure (fields after this point may be incomplete or default-valued) ---\n%s",
-	             errBuf, partialBuffer) < 0 || !combined)
-		return strdup(errBuf);
+	             errBuf, partial) < 0 || !combined)
+		combined = strdup(errBuf);
 
+	free(partialText);
 	return combined;
 }
 
@@ -185,17 +192,17 @@ static jboolean decode_message_only(
 
 	if (rval.code == RC_OK && msg != NULL)
 	{
-		char outputBuffer[65536];
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		char *outputBuffer = NULL;
+		size_t outputSize = 0;
+		FILE *stream = open_memstream(&outputBuffer, &outputSize);
 		if (stream)
 		{
 			asn_fprint(stream, asn_def, msg);
-			fclose(stream);
+			fclose(stream);                 /* flushes and finalizes outputBuffer (NUL-terminated) */
 
-			char *heapStr = strdup(outputBuffer);
-			if (heapStr)
+			if (outputBuffer)
 			{
-				*decodedStrOut = heapStr;
+				*decodedStrOut = outputBuffer;   /* malloc'd; the JNI function frees it */
 				*msgTypeStrOut = messageType;
 				ASN_STRUCT_FREE(*asn_def, msg);
 				return JNI_TRUE;
@@ -292,20 +299,30 @@ static jboolean decode_tim_message_frame(const void *buf_in, int len, const char
 			break;
 		}
 
-		char outputBuffer[65536];
-		FILE *stream = fmemopen(outputBuffer, sizeof(outputBuffer), "w");
+		char *outputBuffer = NULL;
+		size_t outputSize = 0;
+		FILE *stream = open_memstream(&outputBuffer, &outputSize);
 		if (stream)
 		{
 			asn_fprint(stream, &asn_DEF_MessageFrame, message);
-			fclose(stream);
-			*decodedStrOut = strdup(outputBuffer);
-			return JNI_TRUE;
+			fclose(stream);                 /* flushes and finalizes outputBuffer (NUL-terminated) */
+			if (outputBuffer)
+			{
+				*decodedStrOut = outputBuffer;   /* malloc'd; the JNI function frees it */
+				ASN_STRUCT_FREE(asn_DEF_MessageFrame, message);
+				return JNI_TRUE;
+			}
 		}
 		*decodedStrOut = strdup("Failed to allocate memory for output");
+		ASN_STRUCT_FREE(asn_DEF_MessageFrame, message);
 		return JNI_FALSE;
 	}
 
 	*decodedStrOut = build_failure_result(&rval, &asn_DEF_MessageFrame, message);
+	if (message)
+	{
+		ASN_STRUCT_FREE(asn_DEF_MessageFrame, message);
+	}
 	return JNI_FALSE;
 }
 

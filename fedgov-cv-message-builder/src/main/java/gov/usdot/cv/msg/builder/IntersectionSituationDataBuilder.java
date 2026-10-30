@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -85,7 +87,9 @@ import gov.usdot.cv.msg.builder.message.IntersectionMessage;
 import gov.usdot.cv.msg.builder.util.BitStringHelper;
 import gov.usdot.cv.msg.builder.util.GeoPoint;
 import gov.usdot.cv.msg.builder.util.J2735Helper;
+import gov.usdot.cv.msg.builder.util.J2735MAPHelper;
 import gov.usdot.cv.msg.builder.util.J2945Helper;
+import gov.usdot.cv.msg.builder.util.J2945RGAHelper;
 import gov.usdot.cv.msg.builder.util.JSONMapper;
 import gov.usdot.cv.msg.builder.util.ObjectPrinter;
 import gov.usdot.cv.msg.builder.util.OffsetEncoding;
@@ -227,14 +231,15 @@ public class IntersectionSituationDataBuilder {
 					// Removing the first 8 characters from the MessageFrame provides the MAP message
 					// This was tested manually by removing the characters from MessageFrame and testing using the decoder
 					hexString = (J2735Helper.getHexString(md)).substring(8);
-					readableString = md.toString();
+					readableString = readableOrFallback(J2735MAPHelper::getReadableMAP, md);
 					break;
 				case RGA:
 					isdInputData.validatePoints();
 					rd = buildRGAData(isdInputData);
 					logger.debug("in RGA: ");
-					hexString = J2945Helper.getHexString(rd).substring(8);
-					readableString = rd.toString();
+					String rgaFramedHex = J2945Helper.getHexString(rd);
+					hexString = rgaFramedHex.substring(8);
+					readableString = readableOrFallback(J2945RGAHelper::getReadableRGA, rgaFramedHex);
 					break;
 				case SPaT:
 					break;
@@ -243,14 +248,14 @@ public class IntersectionSituationDataBuilder {
 					md = buildMapData(isdInputData);
 					logger.debug("in FramePlusMap: ");
 					hexString = J2735Helper.getHexString(md);
-					readableString = md.toString();
+					readableString = readableOrFallback(J2735MAPHelper::getReadableMAPplusFrame, md);
 					break;
 				case FramePlusRGA:
 					isdInputData.validatePoints();
 					rd = buildRGAData(isdInputData);
 					logger.debug("in RGA: ");
 					hexString = J2945Helper.getHexString(rd);
-					readableString = rd.toString();
+					readableString = readableOrFallback(J2945RGAHelper::getReadableRGAplusFrame, hexString);
 					break;
 				case FramePlusSPaT:
 					break;
@@ -276,6 +281,17 @@ public class IntersectionSituationDataBuilder {
 			requestId = 0;
 		}
 		return ++requestId;
+	}
+
+	// Package-private so tests can reach it. The ASN.1 text is a convenience: if it cannot be
+	// produced, the encode must still return the hex.
+	<T> String readableOrFallback(Function<T, String> decode, T input) {
+		try {
+			return decode.apply(input);
+		} catch (Exception e) {
+			logger.warn("Could not produce readable ASN.1", e);
+			return "ASN.1 text unavailable: " + e.getMessage();
+		}
 	}
 
 	private MapData buildMapData(IntersectionInputData isdInputData) {
@@ -403,8 +419,17 @@ public class IntersectionSituationDataBuilder {
 					if ((drivingLane.laneType.toLowerCase()).equals("vehicle")) {
 						LaneNode[] laneNodes = drivingLane.laneNodes;
 						if (laneNodes != null && laneNodes.length > 0) {
-							for (int nodeIndex = 0; nodeIndex < 1; nodeIndex++) {
+							// Speed limits can change along the lane (Speed Limit Delta), so each node whose
+							// speed limits differ from the previous node's gets its own location entry.
+							// Repeated speed limits (sent on every node by older maps) are skipped.
+							ISDRegulatorySpeedLimit[] previousSpeedLimits = null;
+							for (int nodeIndex = 0; nodeIndex < laneNodes.length; nodeIndex++) {
 								LaneNode laneNode = laneNodes[nodeIndex];
+								if (laneNode == null || laneNode.speedLimitType == null || laneNode.speedLimitType.length == 0
+										|| isSameSpeedLimits(previousSpeedLimits, laneNode.speedLimitType)) {
+									continue;
+								}
+								previousSpeedLimits = laneNode.speedLimitType;
 								LocationSpeedLimits locationSpeedLimits = new LocationSpeedLimits();
 								NodeIndexOffset location = new NodeIndexOffset();
 								SpeedLimitInfo speedLimitInfo = new SpeedLimitInfo();
@@ -492,6 +517,27 @@ public class IntersectionSituationDataBuilder {
 		}
 
 		return wayUseContainers;
+	}
+
+	/**
+	 * Checks whether two node speed limit lists have the same types, velocities and choices
+	 * @param previous speed limits of the previous node (may be null)
+	 * @param current speed limits of the current node
+	 * @return true if both lists describe the same speed limits
+	 */
+	private boolean isSameSpeedLimits(ISDRegulatorySpeedLimit[] previous, ISDRegulatorySpeedLimit[] current) {
+		if (previous == null || current == null || previous.length != current.length) {
+			return false;
+		}
+		for (int i = 0; i < current.length; i++) {
+			if (previous[i] == null || current[i] == null
+					|| !Objects.equals(previous[i].speedLimitType, current[i].speedLimitType)
+					|| previous[i].getVelocity() != current[i].getVelocity()
+					|| !Objects.equals(previous[i].speedLimitChoice, current[i].speedLimitChoice)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public TimeRestrictions setNightTimeRestrictions(TimeRestrictions timeRestrictions) {

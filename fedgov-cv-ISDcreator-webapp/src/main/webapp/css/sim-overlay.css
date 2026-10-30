@@ -1,0 +1,60 @@
+/* Floating sim mode panel (js/sim-overlay.js) */
+.sim-overlay-panel {
+    position: absolute;
+    left: 10px;
+    bottom: 100px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    width: 290px;
+    font-size: 12px;
+}
+
+.sim-overlay-panel h6 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px 0;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.sim-overlay-panel .sim-mode-badge {
+    background: #6f42c1;
+    color: #fff;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.sim-overlay-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+}
+
+.sim-overlay-row label {
+    flex: 0 0 115px;
+    margin: 0;
+    font-weight: normal;
+}
+
+.sim-overlay-row input[type="number"] {
+    width: 65px;
+}
+
+.sim-overlay-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sim-overlay-hint {
+    margin: 4px 0 0 0;
+    color: #666;
+}

@@ -7,6 +7,7 @@ import { errorMarkerStyle } from "./style.js";
 import {lanes, box, vectors, errors, rgaEnabled} from "./map.js";
 import { getElevationDelta } from "./features.js";
 import { getLaneTypeLabel } from "./utils.js";
+import { displayToSimLatLon, displayToSimLonLat } from "./sim-overlay.js";
 
 /**
  * DEFINE GLOBAL VARIABLES
@@ -95,10 +96,7 @@ $(document).ready(function()
             success : function(result) {
                 // console.log( "success: ", result );
                 setMessageResult( true, result.hexString, "hex" );
-
-                // TODO: Temporarily changing this until decoder is implemented using ASN1c
-                // setMessageResult( true, result.readableString, "text" );
-                setMessageResult( true, "This box is not populated in this version of the Tool", "text" );
+                setMessageResult( true, result.readableString, "text" );
 
             },
             error : function(xhr, status, error) {
@@ -180,8 +178,14 @@ function createMessageJSON()
     let stopFeat = box.getSource().getFeatures();
     let laneFeat = lanes.getSource().getFeatures();
 
-    const refPointElev = vectors.getSource().getFeatures()
-        .find(f => f.get('marker')?.name === "Reference Point Marker")?.get('elevation');
+    const refPointFeat = vectors.getSource().getFeatures()
+        .find(f => f.get('marker')?.name === "Reference Point Marker");
+    const refPointElev = refPointFeat?.get('elevation');
+    // Intersection speed limits are the base for Speed Limit Deltas on lanes without speed limits of their own
+    const intersectionSpeedLimits = refPointFeat?.get('speedLimitType') || [];
+    const hasSpeedLimits = (speedLimits) => (speedLimits || []).some(
+        (item) => item.speedLimitType != "Speed Limit Type" && item.speedLimitType != ""
+    );
 
     //Building of nested layers
     let approachesArray = { "approach": []};
@@ -243,13 +247,26 @@ function createMessageJSON()
                 laneFeat[j].set('inBox', true);
 
                 if (!lanes.getSource().getFeatures()[j].get('computed')) {
+                    // Running total of the Speed Limit Deltas entered on this lane's nodes
+                    let cumulativeSpeedLimitDelta = 0;
+                    const usesIntersectionSpeedLimits = !hasSpeedLimits(laneFeat[j].get('speedLimitType'));
+                    // A Speed Limit Delta needs a base speed limit from the lane or the intersection
+                    const hasSpeedLimitDelta = (laneFeat[j].get('speedLimitDelta') || []).some(
+                        (delta, nodeIndex) => nodeIndex > 0 && String(delta ?? "").trim() !== ""
+                    );
+                    if (hasSpeedLimitDelta && usesIntersectionSpeedLimits && !hasSpeedLimits(intersectionSpeedLimits) &&
+                        $('#speed-limit-delta-base-alert-' + laneFeat[j].get('laneNumber')).length === 0) {
+                        $("#message_deposit").prop('disabled', true);
+                        $('#alert_placeholder').append('<div id="speed-limit-delta-base-alert-' + laneFeat[j].get('laneNumber') + '" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Speed Limit Delta entered in lane " + laneFeat[j].get('laneNumber') + " but no speed limit is defined on the lane's first node or the reference point marker." +'</span></div>');
+                        $('#message_alert').removeClass('alert-section-hidden');
+                    }
                     for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
                         let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                        let lonlat = ol.proj.toLonLat(coord);
+                        let lonlat = displayToSimLonLat(ol.proj.toLonLat(coord));
 
                         let currentSpeedLimits = [];
-                        if(laneFeat[j].get('speedLimitType')) {
-                            let mapSpeedLimits = laneFeat[j].get('speedLimitType');
+                        let mapSpeedLimits = usesIntersectionSpeedLimits ? intersectionSpeedLimits : laneFeat[j].get('speedLimitType');
+                        if(mapSpeedLimits) {
                             for (let mapSpeedLimit of mapSpeedLimits) {
                                 if (mapSpeedLimit.speedLimitType != "Speed Limit Type" && mapSpeedLimit.speedLimitType != "") {
                                     let speedLimit = { ...mapSpeedLimit };
@@ -260,7 +277,7 @@ function createMessageJSON()
                                     }
                                     
                                     //Presents alerts for incompatible RGA Speed Limits in MAP
-                                    if (m === 0 && (messageType === "Frame+Map" || messageType === "Map")) {
+                                    if (m === 0 && !usesIntersectionSpeedLimits && (messageType === "Frame+Map" || messageType === "Map")) {
                                         if (speedLimit.speedLimitType == "Passenger Vehicles Min Speed" && $('#maneuver-alert-min-' + laneFeat[j].get('laneNumber')).length === 0) {
                                             let speedLimitAlert = "Passenger Vehicle Min Speed type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in MAP";
                                             $('#alert_placeholder').append('<div id="maneuver-alert-min-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                          
@@ -278,7 +295,7 @@ function createMessageJSON()
                                         }
                                     }
                                     //Presents alerts for incompatible MAP Speed Limits in RGA
-                                    if (m === 0 && (messageType === "RGA" || messageType === "Frame+RGA")) {
+                                    if (m === 0 && !usesIntersectionSpeedLimits && (messageType === "RGA" || messageType === "Frame+RGA")) {
                                         if (speedLimit.speedLimitType == "Unknown" && $('#maneuver-alert-unknown-' + laneFeat[j].get('laneNumber')).length === 0) {
                                             let speedLimitAlert = "Unknown speed limit type added to lane " + laneFeat[j].get('laneNumber') + " cannot be encoded as it is not supported in RGA";
                                             $('#alert_placeholder').append('<div id="maneuver-alert-unknown-' + laneFeat[j].get('laneNumber') + '" class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>' + speedLimitAlert + '</span></div>');                                           
@@ -329,6 +346,32 @@ function createMessageJSON()
                             }
                         }
 
+                        // Apply the Speed Limit Delta. A node's speed limits are only included when
+                        // they differ from the previous node's (node 0 always carries the base limits).
+                        // Lanes without their own speed limits delta from the intersection speed limits,
+                        // which already apply at node 0, so node 0 carries none.
+                        let nodeSpeedLimitDelta = m > 0 ? Number.parseFloat(laneFeat[j].get('speedLimitDelta')?.[m]) : Number.NaN;
+                        if (Number.isNaN(nodeSpeedLimitDelta)) {
+                            nodeSpeedLimitDelta = 0;
+                        }
+                        cumulativeSpeedLimitDelta += nodeSpeedLimitDelta;
+                        let nodeSpeedLimits = {};
+                        if (m === 0 && usesIntersectionSpeedLimits) {
+                            nodeSpeedLimits["speedLimitType"] = [];
+                        } else if (m === 0 || nodeSpeedLimitDelta !== 0) {
+                            let adjustedSpeedLimits = cumulativeSpeedLimitDelta === 0 ? currentSpeedLimits : currentSpeedLimits.map((speedLimit) => ({
+                                ...speedLimit,
+                                "velocity": Number.parseFloat(speedLimit.velocity) + cumulativeSpeedLimitDelta
+                            }));
+                            if (adjustedSpeedLimits.some((speedLimit) => speedLimit.velocity < 0 || speedLimit.velocity > 366) &&
+                                $('#speed-limit-delta-alert-' + laneFeat[j].get('laneNumber') + '-' + m).length === 0) {
+                                $("#message_deposit").prop('disabled', true);
+                                $('#alert_placeholder').append('<div id="speed-limit-delta-alert-' + laneFeat[j].get('laneNumber') + '-' + m + '" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Speed Limit Delta for node " + m + " in lane " + laneFeat[j].get('laneNumber') + " results in a velocity outside of 0 to 366 MPH." +'</span></div>');
+                                $('#message_alert').removeClass('alert-section-hidden');
+                            }
+                            nodeSpeedLimits["speedLimitType"] = adjustedSpeedLimits;
+                        }
+
                         try {
                             nodeArray[m] = {
                                 "nodeNumber": m,
@@ -337,7 +380,7 @@ function createMessageJSON()
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
                                 "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
-                                "speedLimitType": currentSpeedLimits
+                                ...nodeSpeedLimits
                             }
                         } catch (e) {
                             nodeArray[m] = {
@@ -347,7 +390,7 @@ function createMessageJSON()
                                 "nodeElev": laneFeat[j].get('elevation')[m]?.value,
                                 "nodeElevDelta": getElevationDelta(laneFeat[j], m, refPointElev),
                                 "laneWidthDelta": laneFeat[j].get('laneWidth')[m],
-                                "speedLimitType": currentSpeedLimits
+                                ...nodeSpeedLimits
                             }
                             $("#message_deposit").prop('disabled', true);
                             $('#alert_placeholder').append('<div id="approach-alert" class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ "Node elevation empty for node " + m + " in lane " + laneFeat[j].get('laneNumber') + "." +'</span></div>');
@@ -403,6 +446,7 @@ function createMessageJSON()
                 
                         // Warn if maneuver "6" or "7" exists and RGA is enabled when messageType is Frame+RGA or RGA
                         if (connection.maneuvers) {
+                        // Warn if maneuver 
                             if ((messageType === "Frame+RGA" || messageType === "RGA")) {
                                 if (connection.maneuvers.includes("6")) {
                                     let existingManeuverAlert6 = $('#alert_placeholder').find('#maneuver-alert-6-' + laneFeat[j].get('laneNumber'));
@@ -617,7 +661,7 @@ function createMessageJSON()
             if(!laneFeat[j].get('computed')) {
                 for(let m=0; m< laneFeat[j].getGeometry().getCoordinates().length; m++){
                     let coord = laneFeat[j].getGeometry().getCoordinates()[m];
-                    let lonlat = ol.proj.toLonLat(coord);
+                    let lonlat = displayToSimLonLat(ol.proj.toLonLat(coord));
                     cwNodeArray[m] = {
                         "nodeNumber": m,
                         "nodeLat": lonlat[1],
@@ -783,6 +827,7 @@ function createMessageJSON()
                 $('#message_alert').removeClass('alert-section-hidden');
                 $("#message_deposit").prop('disabled', true);
             }
+            const refLatLon = displayToSimLatLon(feature.get('LonLat').lat, feature.get('LonLat').lon);
             reference = {
                 "descriptiveIntersctionName": feature.get('intersectionName'),
                 "layerID": feature.get('layerID'),
@@ -790,8 +835,8 @@ function createMessageJSON()
                 "regionID": feature.get('regionID'),
                 "msgCount": feature.get('revisionNum'),
                 "masterLaneWidth": feature.get('masterLaneWidth'),
-                "referenceLat": feature.get('LonLat').lat,
-                "referenceLon": feature.get('LonLat').lon,
+                "referenceLat": refLatLon.lat,
+                "referenceLon": refLatLon.lon,
                 "referenceElevation": feature.get('elevation'),
                 "roadAuthorityId": feature.get('roadAuthorityId')?.split(".").map(num => parseInt(num, 10)),
                 "roadAuthorityIdType": feature.get('roadAuthorityIdType'),
@@ -853,12 +898,15 @@ function createMessageJSON()
         }
 
         if (feature.get('marker').name == "Verified Point Marker") {
+            const mapLatLon = displayToSimLatLon(feature.get('LonLat').lat, feature.get('LonLat').lon);
+            // Surveyed values are typed in display coordinates, so convert them the same way.
+            const surveyedLatLon = displayToSimLatLon(feature.get('verifiedLat'), feature.get('verifiedLon'));
             verified = {
-                "verifiedMapLat": feature.get('LonLat').lat,
-                "verifiedMapLon": feature.get('LonLat').lon,
+                "verifiedMapLat": mapLatLon.lat,
+                "verifiedMapLon": mapLatLon.lon,
                 "verifiedMapElevation": feature.get('elevation'),
-                "verifiedSurveyedLat": feature.get('verifiedLat'),
-                "verifiedSurveyedLon": feature.get('verifiedLon'),
+                "verifiedSurveyedLat": surveyedLatLon.lat,
+                "verifiedSurveyedLon": surveyedLatLon.lon,
                 "verifiedSurveyedElevation": feature.get('verifiedElev')
             };
 
@@ -1018,4 +1066,4 @@ function removeExplicitRGA() {
         disableOrEnableExplicitRGA(this.value);
     });
 }
-document.addEventListener("DOMContentLoaded", removeExplicitRGA);
+document.addEventListener("DOMContentLoaded", removeExplicitRGA);

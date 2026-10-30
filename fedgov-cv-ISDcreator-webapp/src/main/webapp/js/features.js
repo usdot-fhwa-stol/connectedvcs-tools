@@ -1,7 +1,7 @@
 import { getComputedElevation, getElevation } from "./api.js";
 import { toggleControlsOn } from "./files.js";
 import { laneStyle, pointStyle } from "./style.js";
-import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, toggleWidthArray } from "./utils.js";
+import { directVincenty, hideRGAFields, inverseVincenty, removeSpeedForm, refreshLaneWidths } from "./utils.js";
 /*********************************************************************************************************************/
 /**
  * Purpose: dot functions that bind the metadata to the feature object
@@ -24,6 +24,7 @@ function syncParallelArraysAfterNodeDelete(laneFeat) {
 	const elev = laneFeat.get("elevation");
 	const lw   = laneFeat.get("laneWidth");
 	const ni   = laneFeat.get("nodeInitialized");
+	const sld  = laneFeat.get("speedLimitDelta");
 
 	if (!elev || elev.length <= max) return;
 
@@ -47,6 +48,7 @@ function syncParallelArraysAfterNodeDelete(laneFeat) {
 	elev.splice(deletedIdx, 1);
 	if (lw) lw.splice(deletedIdx, 1);
 	if (ni) ni.splice(deletedIdx, 1);
+	if (sld) sld.splice(deletedIdx, 1);
 }
 
 function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
@@ -71,7 +73,11 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 				laneFeat.get("laneWidth")[z] = 0;
 			}
 		}
-		if(!laneFeat.get("computed")) 
+		if (!Array.isArray(laneFeat.get("speedLimitDelta"))) {
+			// Maps saved before Speed Limit Delta existed have no deltas, so every node is empty
+			laneFeat.set("speedLimitDelta", []);
+		}
+		if(!laneFeat.get("computed"))
 		{
 			// Loop through the lane vertices and see if there are any new dots to
 			for(let j=0; j< max; j++){
@@ -91,6 +97,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 						// to be too small.
 						laneFeat.get("elevation").splice(j, 0, 0);
 						laneFeat.get("laneWidth").splice(j, 0, 0);
+						laneFeat.get("speedLimitDelta").splice(j, 0, "");
 						laneFeat.get("nodeInitialized").splice(j, 0, undefined);
 					}
 				}
@@ -166,9 +173,7 @@ function onFeatureAdded(lanes, vectors, laneMarkers, laneWidths, isLoadMap){
 		}
 	};
 
-	if (laneWidths.getSource().getFeatures().length != 0) {
-		toggleWidthArray(lanes, vectors, laneWidths);
-	}
+	return refreshLaneWidths(lanes, vectors, laneWidths);
 }
 
 
