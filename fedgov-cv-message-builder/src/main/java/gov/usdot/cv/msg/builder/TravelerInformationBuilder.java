@@ -427,19 +427,27 @@ public class TravelerInformationBuilder {
 
 	private MsgId getMessageId(TravelerInputData travInputData, AnchorPoint anchorPoint) {
 		MsgId msgId = new MsgId();
-		// always using RoadSign for now
-		boolean isRoadSign = true;
-		if (isRoadSign) {
+
+		// If there is a furtherInfoID then don't use roadSignID for msgId
+
+		long furtherInfoIDValue = (anchorPoint.furtherInfoID);
+
+		byte[] furtherInfoIDBytes = {
+			(byte) ((furtherInfoIDValue >> 8) & 0xFF),  // high byte
+			(byte) (furtherInfoIDValue & 0xFF)          // low byte
+		};
+
+		if (furtherInfoIDValue > 0) {
+			FurtherInfoID furtherInfoID = new FurtherInfoID(furtherInfoIDBytes);
+			msgId.setFurtherInfoID(furtherInfoID);
+		} else {
 			RoadSignID roadSignID = new RoadSignID();
 			roadSignID.setPosition(getAnchorPointPosition(travInputData, anchorPoint));
 			roadSignID.setViewAngle(getHeadingSlice(anchorPoint));
 			roadSignID.setMutcdCode(getMutcdFromInt(anchorPoint.mutcd));
 			msgId.setRoadSignID(roadSignID);
-		} else {
-			// FurtherInfoID is not supported by the Legacy tool using a dummy value here as
-			// well
-			msgId.setFurtherInfoID(new FurtherInfoID(new byte[] { 0x00, 0x00 }));
 		}
+
 		return msgId;
 	}
 

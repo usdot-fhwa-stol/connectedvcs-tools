@@ -344,6 +344,7 @@ public class TravelerInputData {
 		 */
 		public String packetID;
 		public long msgCount;
+		public long furtherInfoID;
 		public ItisContent[] content;
 		public short sspTypeRights;
 		public short sspContentRights;
@@ -404,6 +405,7 @@ public class TravelerInputData {
 					", sspLocationRights=" + sspLocationRights +
 					", packetID=" + packetID +
 					", msgCount=" + msgCount +
+					", furtherInfoID=" + furtherInfoID +
 					", content=" + Arrays.toString(content) +
 					", direction=" + direction +
 					", mutcd=" + mutcd +

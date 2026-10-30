@@ -273,6 +273,7 @@ function buildAnchorPointJSON(feature, marker) {
         sspTimRights: attrs.sspTimRights,
         packetID: attrs.packetID,
         msgCount: attrs.msgCount,
+        furtherInfoID: attrs.furtherInfoID,
         content: attrs.content,
         sspTypeRights: attrs.sspTypeRights,
         sspContentRights: attrs.sspContentRights,

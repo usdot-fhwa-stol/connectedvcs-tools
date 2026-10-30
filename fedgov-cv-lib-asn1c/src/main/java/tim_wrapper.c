@@ -370,19 +370,55 @@ JNIEXPORT jbyteArray JNICALL Java_gov_usdot_cv_timencoder_Encoder_encodeTIM(
             (*env)->DeleteLocalRef(env, frameTypeCls);
         }
 
-        // msgId (MsgId -> RoadSignID)
+        // msgId (MsgId -> RoadSignID) and (MsgId -> FurtherInfoID)
         mid_getMsgId = (*env)->GetMethodID(env, frameCls, "getMsgId", "()Lgov/usdot/cv/timencoder/MsgId;");
         jobject msgId = mid_getMsgId ? (*env)->CallObjectMethod(env, frame, mid_getMsgId) : NULL;
         if (msgId)
         {
 
             jclass msgIdCls = (*env)->GetObjectClass(env, msgId);
+            jmethodID midGetFurtherInfoID = (*env)->GetMethodID(
+                env, msgIdCls, "getFurtherInfoID",
+                "()Lgov/usdot/cv/timencoder/FurtherInfoID;");
+            jobject fiidObj = midGetFurtherInfoID ? (*env)->CallObjectMethod(env, msgId, midGetFurtherInfoID) : NULL;
             jmethodID midGetRoadSign = (*env)->GetMethodID(
                 env, msgIdCls, "getRoadSignID",
                 "()Lgov/usdot/cv/timencoder/RoadSignID;");
             jobject rsObj = midGetRoadSign ? (*env)->CallObjectMethod(env, msgId, midGetRoadSign) : NULL;
 
-            if (rsObj)
+            if (fiidObj)
+            {
+                tdf->msgId.present = TravelerDataFrame__msgId_PR_furtherInfoID;
+                FurtherInfoID_t *fiid = &tdf->msgId.choice.furtherInfoID;
+
+                jclass fiidCls = (*env)->GetObjectClass(env, fiidObj);
+
+                jmethodID midGetValue = (*env)->GetMethodID(env, fiidCls, "getValue", "()[B");
+                jbyteArray valueArr = midGetValue ? (jbyteArray)(*env)->CallObjectMethod(env, fiidObj, midGetValue) : NULL;
+
+                fiid->buf = (uint8_t *)calloc(1, 2);
+                if (fiid->buf)
+                {
+                    if (valueArr && (*env)->GetArrayLength(env, valueArr) >= 2)
+                    {
+                        jbyte *bytes = (*env)->GetByteArrayElements(env, valueArr, NULL);
+                        if (bytes)
+                        {
+                            memcpy(fiid->buf, bytes, 2);
+                            (*env)->ReleaseByteArrayElements(env, valueArr, bytes, JNI_ABORT);
+                        }
+                    }
+                    fiid->size = 2;
+                }
+ 
+                if (valueArr)
+                {
+                    (*env)->DeleteLocalRef(env, valueArr);
+                }
+                (*env)->DeleteLocalRef(env, fiidCls);
+                (*env)->DeleteLocalRef(env, fiidObj);
+            }
+            else if (rsObj)
             {
                 tdf->msgId.present = TravelerDataFrame__msgId_PR_roadSignID;
                 RoadSignID_t *rs = &tdf->msgId.choice.roadSignID;

@@ -44,6 +44,7 @@ let overlayLayersGroup, baseLayersGroup;
 const aerialMaxZoom = 19;
 const DEFAULT_MAX_DURATION = false;
 const DEFAULT_MSG_COUNT = 1;
+const DEFAULT_FURTHER_INFO_ID = 0;
 var layerSwitcher;
 let controls;
 let activeControlKey = null;
@@ -1099,7 +1100,7 @@ function buildMarkerBaseStyle(marker) {
 
 // Switches the active marker, restyling the old one plain and highlighting the new one.
 // These are message-level fields in the encoded output, not per-marker, so keep them in sync.
-const SHARED_TIM_FIELDS = ['packetID', 'msgCount'];
+const SHARED_TIM_FIELDS = ['packetID', 'msgCount', 'furtherInfoID'];
 
 function getSharedTimFieldValue(field, fallback) {
   const marker = vectors.getSource().getFeatures()
@@ -1757,6 +1758,17 @@ function referencePointWindow(feature) {
       : msgCount
   );
 
+  const furtherInfoID = selected_marker.get('furtherInfoID');
+  $('#further_info_id').val(
+    furtherInfoID === undefined || furtherInfoID === null || furtherInfoID === ''
+      ? getSharedTimFieldValue('furtherInfoID', DEFAULT_FURTHER_INFO_ID)
+      : furtherInfoID
+  );
+
+  $('#packet_id').val(
+    selected_marker.get('packetID') || getSharedTimFieldValue('packetID', $('#packet_id').val())
+  );
+
   const content = selected_marker.get('content');
   if (!content) {
     removeITISForm();
@@ -2071,6 +2083,7 @@ $(".btnDone").click(function () {
         selected_marker.set('maxDuration', $("#max_duration").prop("checked"));
         selected_marker.set('packetID', $("#packet_id").val());
         selected_marker.set('msgCount', $("#message_count").val());
+        selected_marker.set('furtherInfoID', $("#further_info_id").val());
         syncSharedTimFields(selected_marker);
         selected_marker.set('content', content);
         selected_marker.set('elevation', $("#elev").val());
@@ -2571,6 +2584,10 @@ export function setFeatureAttributes(feature) {
   if (msgCount === undefined || msgCount === null || msgCount === '') {
     feature.set('msgCount', DEFAULT_MSG_COUNT);
   }
+  const furtherInfoID = feature.get('furtherInfoID');
+  if (furtherInfoID === undefined || furtherInfoID === null || furtherInfoID === '') {
+    feature.set('furtherInfoID', DEFAULT_FURTHER_INFO_ID);
+  }
   mutcd = feature.get('mutcd');
   priority = feature.get('priority');
   direction = feature.get('direction');
@@ -2643,4 +2660,4 @@ export {
   circle_bounds,
   toProjection,
   MAX_TIM_MARKERS
-};
+};
