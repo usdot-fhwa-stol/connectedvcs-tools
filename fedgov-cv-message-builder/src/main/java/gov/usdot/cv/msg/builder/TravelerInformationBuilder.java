@@ -432,7 +432,7 @@ public class TravelerInformationBuilder {
 
 		long furtherInfoIDValue = (anchorPoint.furtherInfoID);
 
-		byte[] furtherInfoIDBytes = new byte[] {
+		byte[] furtherInfoIDBytes = {
 			(byte) ((furtherInfoIDValue >> 8) & 0xFF),  // high byte
 			(byte) (furtherInfoIDValue & 0xFF)          // low byte
 		};
