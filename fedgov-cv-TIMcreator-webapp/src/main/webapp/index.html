@@ -201,7 +201,10 @@
 				            </div>
 				        </div>
 				        <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="max_duration"></i></div>
-				    </div>
+					</div>
+					<div class="row" style="padding-bottom: 4px;">
+						<div class="col-sm-7 col-md-offset-4"><a href="#about_end_time_and_max_duration_modal" data-toggle="modal" data-target="#about_end_time_and_max_duration_modal"><i class="fa fa-question-circle" aria-hidden="true" style="padding-right: 4px;"></i>About End Time and Maximum Duration</a></div>
+					</div>
 
 					<div class="regionFeatures form-group">
 						<div class="row nwlat" data-toggle="tooltip" title="in decimal degrees">
@@ -919,7 +922,7 @@
 	</div>
 	<!-- End Instructions Modal -->
 
-	<!-- Terms of Service Modal-->
+	<!-- Terms of Service Modal -->
 	 	<div class="modal fade" id="TOS_modal" tabindex="-1" role="dialog" aria-labelledby="TOS_modal_label" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
@@ -1011,7 +1014,29 @@ such Contributor has been advised of the possibility of such damages.</p>
 			</div>
 		</div>
 	</div>
-	<!--End of Terms of Service Modal-->
+	<!--End of Terms of Service Modal -->
+
+	<!-- About End Time and Maximum Duration Modal -->
+	<div class="modal fade" id="about_end_time_and_max_duration_modal" tabindex="-1" role="dialog" aria-labelledby="about_end_time_and_max_duration_modal_label" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header bg-warning">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="about_end_time_and_max_duration_modal_label">About End Time and Maximum Duration Modal</h4>
+				</div>
+				<div class="modal-body">
+					<p>The End Time specifies when a message should end being active. Selecting the Maximum Duration checkbox will:</p>
+					<ul>
+						<li>Clear and deactivate the End Time, removing any date and time entered.</li>
+						<li>Make the message active indefinitely.</li>
+						<li>Set the message's Duration Time to the maximum value (32000 minutes).</li>
+					</ul>
+					<p>If the End Time entered is more than 32000 minutes past the Start Time, the message's Duration Time will be automatically set to 32000.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- End About End Time and Maximum Duration Modal -->
 	
 	<div id="control-toolbar" class="container">
 		<div class="btn-toolbar" aria-label="Toolbar with button groups" role="toolbar" data-toggle="buttons">
