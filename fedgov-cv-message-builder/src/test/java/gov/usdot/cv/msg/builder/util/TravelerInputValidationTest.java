@@ -32,7 +32,7 @@ public class TravelerInputValidationTest {
     @Test(expected = IllegalArgumentException.class)
     public void validate_invalidRegionType() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.regions[0].regionType = "badregiontype";
+        data.frames[0].regions[0].regionType = "badregiontype";
         data.validate();
     }
 
@@ -41,7 +41,7 @@ public class TravelerInputValidationTest {
         TravelerInputData data = createValidTravelerInput();
         String[] validValues = { "lane", "region", "circle" };
         for (String type : validValues) {
-            data.regions[0].regionType = type;
+            data.frames[0].regions[0].regionType = type;
             data.validate();
         }
     }
@@ -49,87 +49,87 @@ public class TravelerInputValidationTest {
     @Test(expected = IllegalArgumentException.class)
     public void validate_invalidExtent() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.regions[0].extent = 25;
+        data.frames[0].regions[0].extent = 25;
         data.validate();
     }
 
     @Test
     public void validate_validExtent() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.regions[0].extent = 5;
+        data.frames[0].regions[0].extent = 5;
         data.validate();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validate_invalidLaneNodeLat() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.regions[0].laneNodes[0].nodeLat = 0.0;
+        data.frames[0].regions[0].laneNodes[0].nodeLat = 0.0;
         data.validate();
     }
 
     @Test
     public void validate_validLaneNodeLat() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.regions[0].laneNodes[0].nodeLat = 42.123456;
+        data.frames[0].regions[0].laneNodes[0].nodeLat = 42.123456;
         data.validate();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validate_invalidMutcd()throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.mutcd = 99;
+        data.frames[0].anchorPoint.mutcd = 99;
         data.validate();
     }
 
     @Test
     public void validate_validMutcd() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.mutcd = 2;
+        data.frames[0].anchorPoint.mutcd = 2;
         data.validate();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validate_startTimeEmpty() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.startTime = "";
+        data.frames[0].anchorPoint.startTime = "";
         data.validate();
     }
 
     @Test
     public void validate_validStartTime() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.startTime = "05/20/2015 10:56 AM";
-        data.anchorPoint.endTime = "05/21/2015 10:56 AM";
+        data.frames[0].anchorPoint.startTime = "05/20/2015 10:56 AM";
+        data.frames[0].anchorPoint.endTime = "05/21/2015 10:56 AM";
         data.validate();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validate_startTimeAfterEndTime  () throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.startTime = "05/22/2015 10:56 AM";
-        data.anchorPoint.endTime = "05/21/2015 10:56 AM";
+        data.frames[0].anchorPoint.startTime = "05/22/2015 10:56 AM";
+        data.frames[0].anchorPoint.endTime = "05/21/2015 10:56 AM";
         data.validate();
     }
 
         @Test
     public void validate_validEndTime() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-         data.anchorPoint.startTime = "05/21/2015 10:56 AM";
-        data.anchorPoint.endTime = "05/21/2015 2:56 PM";
+         data.frames[0].anchorPoint.startTime = "05/21/2015 10:56 AM";
+        data.frames[0].anchorPoint.endTime = "05/21/2015 2:56 PM";
         data.validate();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validate_invalidInfoType() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.infoType = 99;
+        data.frames[0].anchorPoint.infoType = 99;
         data.validate();
     }
 
     @Test
     public void validate_validInfoType() throws Exception {
         TravelerInputData data = createValidTravelerInput();
-        data.anchorPoint.infoType = 2;
+        data.frames[0].anchorPoint.infoType = 2;
         data.validate();
     }
 
@@ -178,6 +178,30 @@ public class TravelerInputValidationTest {
             data.deposit = new TravelerInputData.Deposit();
         }
         data.deposit.timeToLive = 3;
+        data.validate();
+    }
+
+    @Test
+    public void packetID_hexEncodesGnisAndRandomBytes() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "2474D9A1B2C3D4E5F6";
+        data.validate();
+        byte[] expected = { 0x24, 0x74, (byte) 0xD9, (byte) 0xA1, (byte) 0xB2, (byte) 0xC3, (byte) 0xD4, (byte) 0xE5, (byte) 0xF6 };
+        org.junit.Assert.assertArrayEquals(expected, data.frames[0].anchorPoint.getPacketIDBytes());
+    }
+
+    @Test
+    public void packetID_legacyDecimalStillEncodes() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "466651996";
+        byte[] expected = java.nio.ByteBuffer.allocate(9).put((byte) 0).putLong(466651996L).array();
+        org.junit.Assert.assertArrayEquals(expected, data.frames[0].anchorPoint.getPacketIDBytes());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void validate_invalidPacketID() throws Exception {
+        TravelerInputData data = createValidTravelerInput();
+        data.frames[0].anchorPoint.packetID = "ZZZZ";
         data.validate();
     }
 }

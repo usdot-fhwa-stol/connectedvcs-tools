@@ -76,6 +76,14 @@ var help_notes = [
         description: "Denotes when the message should end being active."
     },
     {
+        value: "max_duration",
+        title: "Maximum Duration",
+        max: "32000",
+        min: "32000",
+        units: "Minutes",
+        description: "Denotes that the message should remain active and not end. Duration time is infinite."
+    },
+    {
         value: "nwlat",
         title: "Northwest Latitude",
         max: "90.0",
@@ -220,12 +228,44 @@ var help_notes = [
         description: "The verified geographic elevation of an object."
     },
     {
+        value: "packet_gnis",
+        title: "GNIS Location",
+        max: "16777215",
+        min: "0",
+        units: "N/A",
+        description: "The USGS GNIS feature ID for the TIM location. The dropdown lists the city or place, county, and state that contain the marker; type in the search box below them to find any other state, county, or place by name or a state by its postal code (counties and places are searched in the marker's state; add \", ST\" to search a different state). Encoded as the first 3 bytes of the Packet ID."
+    },
+    {
+        value: "packet_unique",
+        title: "Unique ID",
+        max: "N/A",
+        min: "N/A",
+        units: "N/A",
+        description: "A random 6-byte value that makes the Packet ID unique. Encoded as the last 6 bytes of the Packet ID. Use the refresh button to generate a new value."
+    },
+    {
         value: "packet_id",
         title: "Packet ID",
         max: "N/A",
         min: "N/A",
         units: "N/A",
-        description: "Provides a unique value which can be used to connet to other supporting messages"
+        description: "A unique 9-byte value (shown in hex) which can be used to connect to other supporting messages. The first 3 bytes are the GNIS code of the TIM location and the last 6 bytes are a random unique ID."
+    },
+    {
+        value: "message_count",
+        title: "Message Count",
+        max: "127",
+        min: "0",
+        units: "N/A",
+        description: "Provides a sequence number within a stream of messages."
+    },
+    {
+        value: "further_info_id",
+        title: "Further Info ID",
+        max: "65535",
+        min: "0",
+        units: "N/A",
+        description: "Provides a link number to other messages which relate to the same event."
     },
     {
         value: "content",
@@ -482,4 +522,4 @@ var itis_list = [
         value: 13610,
         text: "(13610) Left Hand Curve"
     }
-];
+];

@@ -27,7 +27,9 @@ import {
     selected_marker_limit,
     fromProjection,
     toProjection,
-    toggleControlsOn
+    toggleControlsOn,
+    MAX_TIM_MARKERS,
+    generateMarkerId
 
 } from './mapping.js';
 import { initStatusBar } from "../../private-resources/js/status-bar.js";
@@ -102,12 +104,22 @@ $(document).ready(function () {
                 : this.id.substring(this.id.indexOf("VER"), 20);
 
             var features = vectors.getSource().getFeatures();
+            var timMarkerCount = 0;
+            var verifiedPointPlaced = false;
             for (var i = 0; i < features.length; i++) {
                 var marker = features[i].get('marker');
-                if (marker && marker.type === id) {
-                    console.log("marker already placed");
-                    return;
-                }
+                if (!marker) continue;
+                if (marker.type === "VER") verifiedPointPlaced = true;
+                if (marker.type === "TIM") timMarkerCount++;
+            }
+
+            if (id === "VER" && verifiedPointPlaced) {
+                console.log("Verified Point marker already placed");
+                return;
+            }
+            if (id === "TIM" && timMarkerCount >= MAX_TIM_MARKERS) {
+                alert("A TIM message can contain at most " + MAX_TIM_MARKERS + " road sign markers.");
+                return;
             }
 
             if ($(this).hasClass('drag-intersection-img')) {
@@ -151,6 +163,8 @@ $(document).ready(function () {
                 image: new ol.style.Icon(IconInfo),
             })
         );
+        // JSON-safe id so region ownership survives save/load (see generateMarkerId in mapping.js).
+        clonedFeature.set("markerId", generateMarkerId());
         let lonLat = ol.proj.toLonLat(coordinate);
         let lonLatObj = { lon: lonLat[0], lat: lonLat[1] };
         clonedFeature.set("LonLat", lonLatObj);
@@ -224,6 +238,19 @@ $(document).ready(function () {
     function templateSelection(val) {
         return val.id;
     }
+
+    // Max Duration Checkbox
+
+    $('#max_duration').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Checked
+            $('#end_time input').attr("disabled", "disabled");
+            $('#end_time input').val('');
+        } else {
+            // Unchecked
+            $('#end_time input').removeAttr("disabled");
+        }
+    });
 
 });
 
@@ -410,6 +437,7 @@ function rebuildITISForm(contentArray) {
 
 export {
     deleteMode,
+    currentControl,
     addITISForm,
     removeITISForm,
     rebuildITISForm

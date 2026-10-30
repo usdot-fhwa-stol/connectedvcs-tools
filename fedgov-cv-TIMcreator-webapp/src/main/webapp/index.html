@@ -191,7 +191,21 @@
 				        </div>
 				        <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="end_time"></i></div>
 				    </div>
-			            
+
+					<div class="row max_duration">
+						<div class="col-sm-4"><label for="max_duration" style="margin-bottom: 0;">Maximum Duration:</label></div>
+	    				<div class="col-sm-7">
+				            <div class="form-check">
+				                <input type="checkbox" id="max_duration" class="form-check-input" />
+								<span class="form-check-label" style="padding-left: 4px;">Message will remain active indefinitely.</span>
+				            </div>
+				        </div>
+				        <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="max_duration"></i></div>
+					</div>
+					<div class="row" style="padding-bottom: 4px;">
+						<div class="col-sm-7 col-md-offset-4"><a href="#about_end_time_and_max_duration_modal" data-toggle="modal" data-target="#about_end_time_and_max_duration_modal"><i class="fa fa-question-circle" aria-hidden="true" style="padding-right: 4px;"></i>About End Time and Maximum Duration</a></div>
+					</div>
+
 					<div class="regionFeatures form-group">
 						<div class="row nwlat" data-toggle="tooltip" title="in decimal degrees">
 							<div class="col-sm-4"><label for="nwlat">NW Latitude:</label></div>
@@ -309,10 +323,38 @@
 				<div class="form-group">
 				
 					<div class="row packet_id">
-                    	<div class="col-sm-4"><label for="packet_id">Packet ID:</label></div>
-                    	<div class="col-sm-7"><input class="form-control" id="packet_id" placeholder="0 to 999999999" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 999999999]" data-parsley-pattern-message="This value must be an integer."></div>
-                   		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_id"></i></div>
+						<div class="col-sm-4"><label for="packet_gnis">GNIS Location:</label></div>
+						<div class="col-sm-7" id="packet_gnis_container" style="position: relative;"><select class="form-control" id="packet_gnis"></select></div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_gnis"></i></div>
+					</div>
+					<div class="row packet_id">
+						<div class="col-sm-4"><label for="packet_unique">Unique ID:</label></div>
+						<div class="col-sm-7">
+							<div class="input-group">
+								<input class="form-control" id="packet_unique" readonly>
+								<span class="input-group-btn">
+									<button type="button" class="btn btn-default" id="regenerate_packet_unique" title="Generate a new random ID"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+								</span>
+							</div>
+						</div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_unique"></i></div>
+					</div>
+					<div class="row packet_id">
+						<div class="col-sm-4"><label for="packet_id">Packet ID:</label></div>
+						<div class="col-sm-7"><input class="form-control" id="packet_id" readonly></div>
+						<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="packet_id"></i></div>
+					</div>
+					<div class="row message_count">
+                    	<div class="col-sm-4"><label for="message_count">Message Count:</label></div>
+                    	<div class="col-sm-7"><input class="form-control" id="message_count" placeholder="0 to 127" data-parsley-pattern="^[0-9]+$" data-parsley-required="true" data-parsley-range="[0, 127]" data-parsley-pattern-message="This value must be an integer."></div>
+                   		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="message_count"></i></div>
                    	</div>
+					<div class="row further_info_id">
+                    	<div class="col-sm-4"><label for="further_info_id">Further Info ID:</label></div>
+                    	<div class="col-sm-7"><input class="form-control" id="further_info_id" placeholder="0 to 65535" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 65535]" data-parsley-pattern-message="This value must be an integer."></div>
+                   		<div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="further_info_id"></i></div>
+                   	</div>
+					<p class="help-block">If a Further Info ID is added, the position, MUTCD, and heading slice will not be set. </p>
 					<div class="row ssp_content_rights">
 						<div class="col-sm-4"><label for="ssp_content_rights">SSP Content Rights:</label></div>
 						<div class="col-sm-7"><input class="form-control" id="ssp_content_rights" placeholder="0 to 31" data-parsley-pattern="^[0-9]+$" data-parsley-range="[0, 31]" data-parsley-pattern-message="This value must be an integer."></div>
@@ -338,7 +380,8 @@
 					    </div></div>
 					    <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="mutcd"></i></div>
 					</div>
-					<div class="row info-type">
+					<div class="info-type">
+					<div class="row">
 			        	<div class="col-sm-4"><label for="info-type">Info Type:</label></div>
 					    <div class="col-sm-7"><div id="info-type" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Type <span class="caret"></span></a>
 					            <ul class="dropdown-menu">
@@ -350,7 +393,9 @@
 					    </div></div>
 					    <div class="col-sm-1"><i class="fa fa-question-circle" aria-hidden="true" tag="info-type"></i></div>
 					</div>
-	
+					<p class="help-block">Note that advisory is not recommended as a frameType for TIM messages</p>
+					</div>
+
 					<div class="row priority">
 						<div class="col-sm-4"><label for="priority">Priority:</label></div>
 					    <div class="col-sm-7"><div id="priority" class="btn-group"><a class="btn btn-default dropdown-toggle btn-select" data-toggle="dropdown" href="#">Select A Priority <span class="caret"></span></a>
@@ -636,6 +681,20 @@
 	<!-- End Open File Modal -->
 	
 	<!-- ? Help Modal -->
+	<dialog class="packet-id-notice" id="packet_id_notice_dialog" aria-labelledby="packet_id_notice_label">
+		<form method="dialog" class="modal-content">
+			<div class="modal-header bg-warning">
+				<button type="submit" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="packet_id_notice_label">Packet ID Updated</h4>
+			</div>
+			<div class="modal-body">
+				<p id="packet_id_notice_text"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-primary" autofocus>OK</button>
+			</div>
+		</form>
+	</dialog>
 	<div class="modal fade" id="help_modal" tabindex="-1" role="dialog" aria-labelledby="help_modal_label" aria-hidden="true">
 		<div class="modal-dialog modal-md">
 			<div class="modal-content">
@@ -698,7 +757,7 @@
 									<ul>
 										<li>In the <strong>Road Signs</strong> tab, you should see the various road sign options and the <strong>Verified Point Marker</strong>.</li>
 									</ul>
-									<li>Click and drag a road sign to the area you wish to begin building. You can only place one road sign per message.</li>
+									<li>Click and drag a road sign to the area you wish to begin building. You can place up to 8 road signs per message, but only one Verified Point Marker.</li>
 									<ul>
 										<li>Note that the <strong>Markers</strong> Control becomes enabled once the marker is placed.</li>
 										<li>You may drag around the marker after being placed to tweak its location</li>
@@ -711,7 +770,7 @@
 											You can view the location of the marker on the map, as well as view and modify the verified location of the marker.</li>
 										<li>Check the verified marker information and edit as necessary.  Click <strong>Done</strong> when finished.</li>
 									</ul>
-									<li>Close the <strong>Builder</strong> once you are finished placing the two markers.</li>
+									<li>Close the <strong>Builder</strong> once you are finished placing your markers.</li>
 								</ol>
 							</div>
 						</div>
@@ -720,6 +779,7 @@
 							<div class="container-fluid">
 								<h4>Defining the Region</h4>
 								<ol>
+									<li>Click the road sign marker you want to associate the region with. The selected marker is highlighted on the map. Each marker can have at most one region.</li>
 									<li>Toggle ON the <strong>Draw Region</strong> Control from the bottom Control Panel.</li>
 									<li>Drawing a Line</li>
 									<ol type="a">
@@ -750,6 +810,12 @@
 										<li>Toggle <strong>ON</strong> the <strong>Delete</strong> Control on the bottom panel.</li>
 										<li>Click the feature (region) you wish to delete.</li>
 										<li>Toggle <strong>OFF</strong> the <strong>Delete</strong> Control.</li>
+									</ul>
+									<li>Re-associating an Orphaned Region</li>
+									<ul>
+										<li>Deleting a marker does not delete its region, so a region can be left without an owning marker (for example, after deleting the marker that had it).</li>
+										<li>With all Controls toggled <strong>OFF</strong>, click the orphaned region to select it.</li>
+										<li>Drag a new road sign onto the map - it will be associated with the selected region instead of needing a new one drawn for it.</li>
 									</ul>
 									<li>Deleting a Lane Node</li>
 									<ol type="a">
@@ -856,7 +922,7 @@
 	</div>
 	<!-- End Instructions Modal -->
 
-	<!-- Terms of Service Modal-->
+	<!-- Terms of Service Modal -->
 	 	<div class="modal fade" id="TOS_modal" tabindex="-1" role="dialog" aria-labelledby="TOS_modal_label" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
@@ -948,7 +1014,29 @@ such Contributor has been advised of the possibility of such damages.</p>
 			</div>
 		</div>
 	</div>
-	<!--End of Terms of Service Modal-->
+	<!--End of Terms of Service Modal -->
+
+	<!-- About End Time and Maximum Duration Modal -->
+	<div class="modal fade" id="about_end_time_and_max_duration_modal" tabindex="-1" role="dialog" aria-labelledby="about_end_time_and_max_duration_modal_label" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header bg-warning">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="about_end_time_and_max_duration_modal_label">About End Time and Maximum Duration Modal</h4>
+				</div>
+				<div class="modal-body">
+					<p>The End Time specifies when a message should end being active. Selecting the Maximum Duration checkbox will:</p>
+					<ul>
+						<li>Clear and deactivate the End Time, removing any date and time entered.</li>
+						<li>Make the message active indefinitely.</li>
+						<li>Set the message's Duration Time to the maximum value (32000 minutes).</li>
+					</ul>
+					<p>If the End Time entered is more than 32000 minutes past the Start Time, the message's Duration Time will be automatically set to 32000.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- End About End Time and Maximum Duration Modal -->
 	
 	<div id="control-toolbar" class="container">
 		<div class="btn-toolbar" aria-label="Toolbar with button groups" role="toolbar" data-toggle="buttons">
